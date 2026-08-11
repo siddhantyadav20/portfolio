@@ -1,40 +1,127 @@
+/* ==========================================================================
+   Tokens
+   Every value here was read out of the Figma file, not eyeballed.
+   Light mode only for now — see "Theming" at the bottom.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --- Ink ------------------------------------------------------------- */
+  --ink: #222222;
+  --ink-70: rgba(34, 34, 34, 0.7);
+  --ink-60: rgba(34, 34, 34, 0.6);
+  --ink-50: rgba(34, 34, 34, 0.5);
+  --ink-40: rgba(34, 34, 34, 0.4);
+  --ink-20: rgba(34, 34, 34, 0.2);
+  --ink-strong: #191919;
+
+  /* --- Accents --------------------------------------------------------- */
+  --accent: #ea580b; /* orange: timeline, "Currently Building", waitlist */
+  --blue: #1178ab; /* LinkedIn */
+  --green: #58a942; /* positive deltas */
+  --red: #ef3340;
+  --live: #ee6a5f; /* live-visitor dot */
+
+  /* --- Surfaces -------------------------------------------------------- */
+  /* Page: solid base with a near-invisible gradient wash on top.
+     Figma: fill #F3F3F3 + linear gradient #EBEBEB -> #EDEDED @55%, ~97deg.
+     Left edge resolves to #EBEBEB, right edge to #EFEFEF. */
+  --page-base: #f3f3f3;
+  --page-wash-from: #ebebeb;
+  --page-wash-to: rgba(237, 237, 237, 0.55);
+  --page-wash-angle: 97deg;
+
+  --surface: rgba(255, 255, 255, 0.7); /* most cards */
+  --surface-solid: #ffffff; /* Workspace, Music Player */
+  --surface-glass: rgba(255, 255, 255, 0.4); /* theme toggle */
+  --glass-blur: 8px; /* Figma GLASS effect, radius 8 */
+
+  /* CTA pill fill (Copy Email / Go to Store) */
+  --cta-fill: linear-gradient(
+    108.36deg,
+    rgba(255, 255, 255, 0.6) 4.95%,
+    rgba(217, 217, 217, 0.6) 368.67%
+  );
+
+  /* --- Radii ----------------------------------------------------------- */
+  --r-sm: 16px;
+  --r-md: 20px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+  --r-pill: 100px;
+
+  /* --- Type ------------------------------------------------------------ */
+  --lh: 1.5; /* 150% on essentially everything */
+  --lh-wide: 1.6; /* 160% in the footer */
+
+  /* --- Page geometry (from the 1440 Figma frame) ----------------------- */
+  --page-w: 1440px;
+  --page-pad: 64px;
+  --band: 1312px; /* 1440 - 2*64 */
+  --gap: 32px; /* the one repeating gutter */
+
+  --col-1: 394px; /* Inspection / Search */
+  --col-2: 540px; /* Introduction / Store / Personality */
+  --col-3: 314px; /* Timeline / Design System */
+
+  /* Vertical rhythm that isn't just --gap */
+  --gap-lg: 80px;
+  --row-top: 196px; /* top row track; Workspace deliberately overhangs it */
+  --col-3-offset: 28px; /* col 3 starts 28px below col 2 */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ==========================================================================
+   Reset
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html {
-  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  color-scheme: light;
 }
 
-html,
 body {
-  max-width: 100vw;
+  min-height: 100svh;
+  color: var(--ink);
+  background-color: var(--page-base);
+  background-image: linear-gradient(
+    var(--page-wash-angle),
+    var(--page-wash-from) 0%,
+    var(--page-wash-to) 100%
+  );
+  background-attachment: fixed;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: var(--lh);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+}
+
+button {
+  cursor: pointer;
 }
 
 a {
@@ -42,8 +129,73 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+ul,
+ol {
+  list-style: none;
+}
+
+/* ==========================================================================
+   Focus
+   Visible for keyboard users, absent for mouse users.
+   ========================================================================== */
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Content whose destination or data source isn't decided yet. Visually
+   identical to the finished thing (fidelity is the point of this phase) but
+   inert, and greppable in the DOM via [data-placeholder]. */
+[data-placeholder] {
+  cursor: default;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   Squircles
+   Every card in Figma has cornerSmoothing: 1 — full iOS-style smoothing, not
+   a plain rounded rect. `corner-shape` gets us that natively where supported;
+   elsewhere it degrades to an ordinary radius, which is a close-enough miss.
+   No dependency, no JS, no clip-path (which would kill the shadows).
+   ========================================================================== */
+
+@supports (corner-shape: squircle) {
+  .squircle {
+    corner-shape: squircle;
   }
 }
+
+/* ==========================================================================
+   Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   Theming
+   Light only, deliberately. Dark mode is a later phase and its palette hasn't
+   been designed yet — so there is no dark block here to go stale. When it is
+   designed, it lands as a `:root[data-theme="dark"]` override of the Ink /
+   Accent / Surface groups above and nothing else needs to move.
+   ========================================================================== */
