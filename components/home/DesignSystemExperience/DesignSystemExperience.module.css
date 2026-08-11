@@ -1,0 +1,75 @@
+/* Figma node 1:55 — 314x578, radius 24, surface #FFF @0.7 */
+
+.card {
+  display: block;
+  width: 314px;
+  height: 578px;
+  flex: none;
+}
+
+.heading {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 223px;
+}
+
+.eyebrow {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: var(--lh);
+  color: var(--ink-60);
+}
+
+.title {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.shot {
+  position: absolute;
+  top: 160px;
+  left: 40px;
+  width: 274px;
+  height: 256px;
+  border-radius: 12px 0 0 12px;
+}
+
+.chip {
+  position: absolute;
+  top: 488px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 163px;
+  padding: 10px 12px;
+}
+
+.stat {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: var(--lh);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.statDetail {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: var(--lh);
+  color: var(--green);
+  white-space: nowrap;
+}
+
+@media (max-width: 1180px) {
+  .card {
+    max-width: 100%;
+  }
+}

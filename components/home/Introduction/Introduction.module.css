@@ -1,0 +1,72 @@
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  align-items: flex-start;
+  width: 372px;
+  max-width: 100%;
+}
+
+.logo {
+  width: 52px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  font-size: 44px;
+  line-height: var(--lh);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.tagline {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.note {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: var(--lh);
+  color: var(--ink-70);
+}
+
+.ctas {
+  display: flex;
+  gap: 16px;
+}
+
+.srOnlyEmail {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+@media (max-width: 860px) {
+  .title {
+    font-size: 36px;
+  }
+  .tagline {
+    font-size: 20px;
+  }
+}

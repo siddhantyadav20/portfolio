@@ -1,0 +1,95 @@
+/* Figma node 1:198 — 256x116, radius 20, surface #FFF @0.7 */
+
+.card {
+  width: 256px;
+  height: 116px;
+  flex: none;
+}
+
+.start,
+.dest {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.start {
+  top: 16px;
+  left: 16px;
+}
+
+.dest {
+  top: 47px;
+  left: 174px;
+  align-items: flex-end;
+}
+
+.abbrFrom,
+.abbrTo {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: var(--lh);
+}
+
+.abbrFrom {
+  color: var(--accent);
+}
+
+.abbrTo {
+  color: var(--ink);
+}
+
+.labelFrom,
+.labelTo {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: var(--lh);
+}
+
+.labelFrom {
+  color: var(--accent);
+}
+
+.labelTo {
+  color: var(--ink-40);
+}
+
+/* Both elements are rotated on the Figma canvas; sizes and angles below are
+   the nodes' own dimensions and rotations, centred on their bounding boxes. */
+
+/* The path node is vertically flipped on the canvas (its matrix determinant is
+   -1), which a plain rotation can't express — so this is Figma's
+   relativeTransform applied verbatim, same approach as the Inspection hand. */
+.journey {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 114.21px;
+  height: 35.43px;
+  transform-origin: 0 0;
+  transform: matrix(0.9961, -0.0886, -0.0886, -0.9961, 71.4301, 78.336);
+}
+
+/* White disc with a hairline border — easy to miss, but it's what lifts the
+   plane off the dashed path. */
+.planeBadge {
+  position: absolute;
+  top: 29.03px;
+  left: 74.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--ink-20);
+  border-radius: 50%;
+  background-color: #ffffff;
+}
+
+.plane {
+  width: 14.3px;
+  height: 15.56px;
+  transform: rotate(77.39deg);
+}

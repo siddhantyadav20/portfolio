@@ -1,0 +1,181 @@
+/* Figma node 1:62 — 394x569, radius 24, surface #FFF @0.7 */
+
+.card {
+  width: 394px;
+  height: 569px;
+  flex: none;
+}
+
+.heading {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 241px;
+}
+
+.title {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.titleLink::after {
+  /* Extends the hit area to the heading block without covering the input. */
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+/* --- The search surface (Figma "Search" component, Default state) --------- */
+
+.search {
+  position: absolute;
+  top: 169px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 346px;
+  padding: 16px;
+  border: 1px solid rgba(25, 25, 25, 0.05);
+  border-radius: var(--r-md);
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 0 24px rgba(31, 151, 221, 0.12);
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 32px;
+}
+
+.searchIcon {
+  display: flex;
+  flex: none;
+  width: 19px;
+  height: 20px;
+  opacity: 0.6;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-strong);
+}
+
+.input::placeholder {
+  color: rgba(25, 25, 25, 0.5);
+}
+
+.input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.send {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background-color: #1f97dd;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Default state in Figma: nothing typed yet, so the action reads as inactive. */
+.send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--r-pill);
+  background-color: rgba(25, 25, 25, 0.05);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-strong);
+}
+
+.category:disabled {
+  cursor: default;
+}
+
+/* Exported at its unrotated 4x8; Figma rotates it to point down. */
+.category :global(img) {
+  width: 4px;
+  height: 8px;
+  transform: rotate(-90deg);
+}
+
+/* --- Outcome chip --------------------------------------------------------- */
+
+.chip {
+  position: absolute;
+  top: 473px;
+  left: 168px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  width: 202px;
+  padding: 12px;
+}
+
+.compare {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.before,
+.after,
+.delta {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: var(--lh);
+  white-space: nowrap;
+}
+
+.before {
+  color: var(--ink-50);
+  text-decoration: line-through;
+}
+
+.after {
+  color: var(--ink);
+}
+
+.delta {
+  color: var(--green);
+}
+
+/* Internals are absolutely placed against a 394x569 box — keep the design
+   width and shrink only to avoid overflow. */
+@media (max-width: 1180px) {
+  .card {
+    max-width: 100%;
+  }
+}

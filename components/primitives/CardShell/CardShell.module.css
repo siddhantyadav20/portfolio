@@ -1,0 +1,50 @@
+.card {
+  position: relative;
+  overflow: hidden;
+
+  /* Written by the cursor-proximity controller; inert until then. */
+  --prox-x: 0px;
+  --prox-y: 0px;
+  --prox-s: 1;
+  transform: translate3d(var(--prox-x), var(--prox-y), 0) scale(var(--prox-s));
+
+  /* The controller eases in JS, so no CSS transition here — it would fight
+     the per-frame writes. This only smooths non-pointer state changes. */
+  will-change: transform;
+}
+
+/* --- Surfaces (Figma fills) ---------------------------------------------- */
+
+.translucent {
+  background-color: var(--surface);
+}
+
+.solid {
+  background-color: var(--surface-solid);
+}
+
+.glass {
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
+}
+
+.none {
+  background: none;
+}
+
+/* --- Radii --------------------------------------------------------------- */
+
+.r16 {
+  border-radius: var(--r-sm);
+}
+.r20 {
+  border-radius: var(--r-md);
+}
+.r24 {
+  border-radius: var(--r-lg);
+}
+.r32 {
+  border-radius: var(--r-xl);
+}

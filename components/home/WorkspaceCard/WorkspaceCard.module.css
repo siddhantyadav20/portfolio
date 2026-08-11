@@ -1,0 +1,30 @@
+/* Figma node 25:2684 — 322x246, radius 24, solid white.
+   Deliberately wider than col 3: it straddles the col 2/3 boundary. */
+
+.card {
+  width: 322px;
+  height: 246px;
+  flex: none;
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cta {
+  position: absolute;
+  top: 182px;
+  left: 101px;
+  width: 205px;
+}
+
+@media (max-width: 1180px) {
+  .card {
+    width: 100%;
+    max-width: 322px;
+  }
+}

@@ -1,0 +1,13 @@
+.chip {
+  /* Figma: gradient fill #FFFFFF -> #7CD899 held at layer opacity 0.2,
+     1px inside stroke #58A942 @ 0.2, radius 16, GLASS blur 11. */
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(124, 216, 153, 0.2) 100%
+  );
+  border: 1px solid rgba(88, 169, 66, 0.2);
+  border-radius: var(--r-sm);
+  backdrop-filter: blur(11px);
+  -webkit-backdrop-filter: blur(11px);
+}

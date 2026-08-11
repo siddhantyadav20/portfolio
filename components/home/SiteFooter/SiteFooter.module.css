@@ -1,0 +1,90 @@
+/* Figma node 42:3127 — 1312x102, gap 16 */
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.linkedin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 8px;
+  border-radius: 60px;
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  width: 100%;
+  gap: 16px;
+}
+
+.visitors {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--live);
+  white-space: nowrap;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background-color: var(--live);
+}
+
+.credit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: var(--lh-wide);
+  color: var(--ink-60);
+  white-space: nowrap;
+}
+
+.copyright {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.making {
+  justify-self: end;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--ink-60);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .row {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .visitors,
+  .making {
+    justify-self: center;
+  }
+}

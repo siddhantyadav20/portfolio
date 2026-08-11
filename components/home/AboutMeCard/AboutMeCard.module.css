@@ -1,0 +1,49 @@
+/* Figma node 21:2476 — 100x116, radius 16, pad 12 top/bottom, space-between */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 100px;
+  height: 116px;
+  padding: 12px 0;
+  flex: none;
+}
+
+.photo {
+  display: block;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-pill);
+  background-color: #fff;
+}
+
+.photo :global(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: var(--lh);
+  color: var(--ink-40);
+}
+
+.title {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: var(--lh);
+  color: var(--ink);
+}

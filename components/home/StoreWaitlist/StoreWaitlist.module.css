@@ -1,0 +1,99 @@
+/* Figma node 110:8576 — 540x219, radius 24, pad 24, gap 20 */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: flex-start;
+  width: 540px;
+  height: 219px;
+  padding: 24px;
+  flex: none;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.eyebrow {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: var(--lh);
+  color: var(--accent);
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.description {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: var(--lh);
+  color: var(--ink-60);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 12px;
+  border: 1px solid rgba(234, 88, 11, 0.2);
+  border-radius: var(--r-pill);
+  background-color: #ffffff;
+  backdrop-filter: blur(11px);
+  -webkit-backdrop-filter: blur(11px);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* Figma draws the "+" as two 2x8 bars in a #EDEDED circle. */
+.plus {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-pill);
+  background-color: #ededed;
+}
+
+.plus::before,
+.plus::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 8px;
+  border-radius: 1px;
+  background-color: var(--accent);
+  transform: translate(-50%, -50%);
+}
+
+.plus::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+@media (max-width: 1180px) {
+  .card {
+    width: 100%;
+    height: auto;
+  }
+}

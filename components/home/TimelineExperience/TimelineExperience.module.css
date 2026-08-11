@@ -1,0 +1,151 @@
+/* Figma node 1:69 — 279x327 visual box, no fill.
+   The ruler overhangs the top of the card by 92px, exactly as in Figma. */
+
+.card {
+  position: relative;
+  width: 279px;
+  height: 327px;
+  flex: none;
+
+  --prox-x: 0px;
+  --prox-y: 0px;
+  --prox-s: 1;
+  transform: translate3d(var(--prox-x), var(--prox-y), 0) scale(var(--prox-s));
+  will-change: transform;
+}
+
+/* --- Ruler ---------------------------------------------------------------- */
+
+.scale {
+  position: absolute;
+  top: -92px;
+  left: 199px;
+  width: 80px;
+  height: 371px;
+}
+
+.group {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 0;
+}
+
+.group[data-dim] {
+  opacity: 0.4;
+}
+
+.milestone,
+.middle,
+.filler {
+  position: absolute;
+  left: 0;
+  display: block;
+  border-radius: 1px;
+  background-color: var(--accent);
+}
+
+.milestone {
+  top: 0;
+  width: 48px;
+  height: 2px;
+}
+
+.middle {
+  top: 31px;
+  width: 32px;
+  height: 2px;
+  opacity: 0.4;
+}
+
+.filler {
+  width: 24px;
+  height: 1px;
+  opacity: 0.4;
+}
+
+.number {
+  position: absolute;
+  top: -7px;
+  left: 52px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: var(--lh);
+  color: var(--accent);
+}
+
+.dragger {
+  position: absolute;
+  left: 66px;
+  width: 14px;
+  height: 14px;
+}
+
+/* --- Active entry --------------------------------------------------------- */
+
+.content {
+  position: absolute;
+  top: 161px;
+  left: 32px;
+  width: 119px;
+}
+
+.years {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: var(--lh);
+  color: var(--accent);
+}
+
+.unit {
+  margin-left: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.date {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: var(--lh);
+  color: var(--accent);
+}
+
+.separator {
+  width: 80px;
+  margin: 12px 0;
+  border: 0;
+  border-top: 1px dashed rgba(234, 88, 11, 0.32);
+}
+
+.company {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: var(--lh);
+  color: var(--ink-60);
+  white-space: nowrap;
+}
+
+.role {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: var(--lh);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* Ruler and content are absolutely placed, so keep the design box and pull the
+   overhanging ruler back inside once there's no room for it to bleed. */
+@media (max-width: 1180px) {
+  .card {
+    max-width: 100%;
+    height: 420px;
+  }
+  .scale {
+    top: 20px;
+  }
+  .content {
+    top: 250px;
+  }
+}

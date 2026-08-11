@@ -1,0 +1,90 @@
+/* Figma node 80:8117 — 362x560, radius 32.
+   Layer order matches Figma: bg, title, chip, hand, phone. */
+
+.card {
+  display: block;
+  width: 362px;
+  height: 560px;
+  flex: none;
+}
+
+.bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.title {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 223px;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: var(--lh);
+  color: #ebebeb;
+}
+
+.chip {
+  position: absolute;
+  top: 409px;
+  left: 24px;
+  width: 149px;
+  padding: 10px 12px;
+}
+
+.stat {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: var(--lh);
+  color: #ffffff;
+}
+
+/* Both run past the card's right edge in Figma and are clipped by it.
+
+   The hand layer is rotated 15.06deg on the canvas. Rather than eyeball it,
+   this is Figma's own relativeTransform for the node, applied verbatim:
+   own box 415.27x599.56, origin (168.874, 159.775). */
+
+.hand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 415.27px;
+  height: 599.56px;
+  max-width: none;
+  object-fit: cover;
+  transform-origin: 0 0;
+  transform: matrix(0.966, -0.26, 0.26, 0.966, 168.874, 159.775);
+}
+
+/* The screen export comes out as the tilted render inside its bounding box,
+   with opaque #111 filling the corners outside the screen itself. Clipping to
+   the actual screen quad drops that fill so the fingers behind it show through.
+
+   Quad derived from Figma: the "Your image" node (171.96x362.59) inside the
+   Prototype frame's matrix, then cut at the card's right edge.
+   Phase 2 swaps this <img> for a <video> using the same box and clip. */
+.screen {
+  position: absolute;
+  top: 111.49px;
+  left: 216.89px;
+  width: 145.11px;
+  height: 394.97px;
+  max-width: none;
+  object-fit: cover;
+  object-position: left top;
+  clip-path: polygon(0% 11.32%, 100% 1.43%, 100% 96.54%, 64.96% 100%);
+}
+
+/* This card is a fixed photographic composite — its layers are placed against
+   a 362x560 box. Stretching it would strand the artwork, so it keeps its
+   design width and only ever shrinks to avoid overflow. */
+@media (max-width: 1180px) {
+  .card {
+    max-width: 100%;
+  }
+}
