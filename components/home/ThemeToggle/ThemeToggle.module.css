@@ -1,12 +1,13 @@
-/* Figma node 3:77 — 112x64, radius 60, #FFF @0.4, GLASS(8) + soft shadow */
+/* Figma node 3:77 — 112x64, radius 60. Material is `.liquid` in globals.css.
+
+   No `squircle`: radius 60 on a 64px-tall box already rounds both ends fully,
+   and smoothing a stadium only squares it off.
+
+   Deliberately outside the cursor-proximity field: this is a control, not a
+   card, and having it drift toward the composition's centre as the pointer
+   approached made it feel like it was dodging the click. */
 
 .toggle {
-  --prox-x: 0px;
-  --prox-y: 0px;
-  --prox-s: 1;
-  transform: translate3d(var(--prox-x), var(--prox-y), 0) scale(var(--prox-s));
-  will-change: transform;
-
   display: flex;
   flex: none;
   gap: 0;
@@ -14,13 +15,21 @@
   height: 64px;
   padding: 8px;
   border-radius: 60px;
-  background-color: var(--surface-glass);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
+}
+
+.toggle:hover {
+  --liquid-body: 0.3;
+  --liquid-shade: 0.13;
+  --liquid-gloss: 0.8;
+  --liquid-spec: 0.28;
+
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12),
+    0 8px 18px rgba(0, 0, 0, 0.06);
 }
 
 .option {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,11 +38,20 @@
   border-radius: var(--r-pill);
 }
 
+/* The selected half. `--surface-solid` rather than the #ffffff Figma draws,
+   because in dark that white pill is the brightest thing on the page and it
+   pulls the eye to a control nobody is looking at. */
 .active {
-  background-color: #ffffff;
+  background-color: var(--surface-solid);
 }
 
-.option:disabled {
-  cursor: default;
-  opacity: 0.55;
+/* The unselected half is legible but clearly secondary. Without this both
+   glyphs sit at full ink and the control reads as two buttons rather than as
+   one two-state switch. */
+.option:not(.active) {
+  color: var(--ink-50);
+}
+
+.option:not(.active):hover {
+  color: var(--ink-70);
 }

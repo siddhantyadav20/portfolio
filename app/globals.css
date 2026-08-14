@@ -32,41 +32,69 @@
 
   --surface: rgba(255, 255, 255, 0.7); /* most cards */
   --surface-solid: #ffffff; /* Workspace, Music Player */
-  --surface-glass: rgba(255, 255, 255, 0.4); /* theme toggle */
+  --surface-glass: rgba(255, 255, 255, 0.4); /* theme toggle, footer, modal */
   --glass-blur: 8px; /* Figma GLASS effect, radius 8 */
 
-  /* CTA pill fill (Copy Email / Go to Store) */
-  --cta-fill: linear-gradient(
-    108.36deg,
-    rgba(255, 255, 255, 0.6) 4.95%,
-    rgba(217, 217, 217, 0.6) 368.67%
-  );
+  /* Figma's only shadow on the plain (non-liquid) glass surfaces. Two percent. */
+  --glass-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
+
+  /* Write `backdrop-filter` ONLY — never pair it with a hand-written
+     `-webkit-backdrop-filter`. Turbopack's Lightning CSS treats the pair as one
+     author intent, keeps whichever came last, and drops the other; with the
+     prefixed one last that leaves Chrome, which no longer honours the alias,
+     with no blur at all. Every glass surface on this site was silently flat
+     until that duplication came out. Lightning adds whatever prefixes the
+     browserslist actually needs on its own. */
 
   /* --- Radii ----------------------------------------------------------- */
   --r-sm: 16px;
   --r-md: 20px;
   --r-lg: 24px;
   --r-xl: 32px;
+  --r-2xl: 48px;
   --r-pill: 100px;
 
   /* --- Type ------------------------------------------------------------ */
   --lh: 1.5; /* 150% on essentially everything */
   --lh-wide: 1.6; /* 160% in the footer */
 
-  /* --- Page geometry (from the 1440 Figma frame) ----------------------- */
+  /* --- Page geometry (from the 1440 Figma frame) -----------------------
+     The page is padded 32px on every side and the one repeating gutter is
+     also 32px, so the 1440 frame carries a 1376px band:
+
+         386  |32|  540  |32|  386        = 1376
+
+     Two cards deliberately break out of those tracks, both from Figma:
+     Inspection is 420 wide (34 past col 1) and Workspace is 322 (straddling
+     the col 2/3 boundary). Nothing else does. */
   --page-w: 1440px;
-  --page-pad: 64px;
-  --band: 1312px; /* 1440 - 2*64 */
+  --page-pad: 32px;
+  --band: 1376px; /* 1440 - 2*32 */
   --gap: 32px; /* the one repeating gutter */
 
-  --col-1: 394px; /* Inspection / Search */
+  --col-1: 386px; /* Inspection / Design System */
   --col-2: 540px; /* Introduction / Store / Personality */
-  --col-3: 314px; /* Timeline / Design System */
+  --col-3: 386px; /* Timeline / Search */
+
+  /* How far Inspection (420) runs past col 1. The top row starts one gutter
+     after *it* rather than on the col-2 line, and the Introduction a double
+     gutter after it — both measured off the card, not the grid. */
+  --overhang: 34px;
 
   /* Vertical rhythm that isn't just --gap */
-  --gap-lg: 80px;
-  --row-top: 196px; /* top row track; Workspace deliberately overhangs it */
+  --gap-lg: 122px; /* Introduction -> Store */
+  --gap-col3: 41px; /* Timeline -> Search */
+  --row-top: 164px; /* top row track; Workspace deliberately overhangs it */
   --col-3-offset: 28px; /* col 3 starts 28px below col 2 */
+
+  /* The theme toggle is pinned to the page's top-right corner rather than
+     flowed, so the top row has to reserve its width. */
+  --toggle-w: 112px;
+
+  /* How far up from the bottom edge the blur ramp reaches. Figma draws it as a
+     44px bar; it is built here as a gradient with no edge of its own, so it
+     needs more room to arrive at nothing. See BottomBlur. */
+  --blur-bar-h: 72px;
 }
 
 /* ==========================================================================
@@ -84,6 +112,10 @@
 html {
   -webkit-text-size-adjust: 100%;
   color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {
@@ -135,6 +167,32 @@ ol {
 }
 
 /* ==========================================================================
+   Cursor
+   The OS arrow is replaced by the Figma "Page" cursor. The attribute is set by
+   CanvasCursor once it has decided it should run, so if it never mounts — touch
+   device, reduced motion, no JS — the native cursor is left completely alone
+   rather than hidden with nothing to replace it.
+
+   The universal selector is deliberate: `cursor` inherits, but plenty of rules
+   set their own — `button` above, and `.send:disabled` / `.option:disabled` in
+   the card modules — and every one of them has to give way, or the OS arrow
+   draws on top of the custom one. `!important` is the point here rather than a
+   patch: this is the single switch that says the OS cursor is off, and it only
+   applies while CanvasCursor is actually mounted to replace it.
+   ========================================================================== */
+
+html[data-canvas-cursor],
+html[data-canvas-cursor] * {
+  cursor: none !important;
+}
+
+/* Text entry keeps its I-beam — the shape is doing real work there. Canvas
+   Cursor hides itself over these so the two never both show. */
+html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) {
+  cursor: auto !important;
+}
+
+/* ==========================================================================
    Focus
    Visible for keyboard users, absent for mouse users.
    ========================================================================== */
@@ -143,6 +201,23 @@ ol {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 4px;
+}
+
+/* Suppressed on the glass controls and the case-study card by request. Worth
+   knowing rather than rediscovering: these are the site's interactive controls,
+   and with no outline and no substitute they no longer satisfy WCAG 2.4.7 for
+   anyone navigating by keyboard. Deleting this block puts it back. */
+.liquid:focus-visible,
+[data-cursor="view-project"]:focus-visible,
+/* The theme toggle wears `.liquid` on its wrapper, but focus lands on the two
+   buttons inside it — so descendants have to be covered too. */
+.liquid :focus-visible,
+/* A closing modal handing focus back to the card that opened it. Escape counts
+   as keyboard input, so without this the card is ringed the moment the modal
+   goes — see `restoreFocus` in ModalSurface, which sets this only for as long
+   as focus stays where it was put. Tabbing to the card still rings it. */
+[data-focus-restore]:focus-visible {
+  outline: none;
 }
 
 /* Content whose destination or data source isn't decided yet. Visually
@@ -164,6 +239,40 @@ ol {
 }
 
 /* ==========================================================================
+   Ink icons
+
+   Every glyph in /icons was exported from Figma with its fill baked in —
+   #222222, #191919, #09244B, #666666. That was invisible while the site was
+   light-only and fatal the moment it wasn't: a #222 glyph on a dark surface
+   is a hole in the layout.
+
+   The fix is to stop drawing the file and start using it as a stencil. The
+   element paints `currentColor` and the SVG masks it, so the glyph inherits
+   colour from its surroundings exactly like text does — which also means one
+   rule themes all of them, with no re-export and no duplicated path data in
+   TSX.
+
+   Usage: a <span class="inkIcon" style="--icon: url(/icons/search.svg)"> with
+   width and height from the call site. `mask-size: contain` rather than a
+   fixed size so the same class serves 8px chevrons and 24px suns.
+
+   NOT for the brand and accent glyphs — tool-figma, tool-claude,
+   tool-after-effects, linkedin, dragger. Those are coloured on purpose, and
+   recolouring a logo to match the theme would be wrong even where it looked
+   better.
+   ========================================================================== */
+
+.inkIcon {
+  display: block;
+  flex: none;
+  background-color: currentColor;
+  mask-image: var(--icon);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+/* ==========================================================================
    Squircles
    Every card in Figma has cornerSmoothing: 1 — full iOS-style smoothing, not
    a plain rounded rect. `corner-shape` gets us that natively where supported;
@@ -175,6 +284,362 @@ ol {
   .squircle {
     corner-shape: squircle;
   }
+}
+
+/* ==========================================================================
+   Liquid glass
+   One material, worn by every glass surface on the site: the CTA pills, the
+   stat chips, the theme toggle, the modal's close button and the View Project
+   cursor. Add `liquid` alongside the component's own class.
+
+   It lives here rather than in a module because it is coordinated layers, two
+   of them pseudo-elements, and CSS Modules can't share those — an earlier
+   attempt copied the same block into five files and they drifted.
+
+   ---------------------------------------------------------------------------
+   The numbers come from sampling references/liquid glass effect/*.png, not
+   from Figma's flat "GLASS blur" token, which describes a frosted plate and
+   stops there. Down the centre of a resting pill on a 240-grey page:
+
+     249  a single pixel at the very top edge
+     234  just inside it — darker than the page
+     243  the body, flat all the way through
+     252  climbing over the last ~3.5px before the bottom edge
+     192  one pixel below the bottom edge
+
+   Two things follow from that, and the previous version of this file got both
+   wrong.
+
+   First: the highlight is on the face *opposite* where the light arrives —
+   dark under the top edge, bright at the bottom. That inversion is what a lens
+   does. A top-lit bevel, which every glassmorphism snippet reaches for, reads
+   as plastic.
+
+   Second, and this is what made it look like a bordered box: there is no ring.
+   The View Project disc measured over white is a flat 255 inside with nothing
+   but a soft *darkening* at its edge (243 top, 219 bottom). The old build drew
+   four white inset shadows — which fatten wherever the edge curves — under a
+   5px band carrying `brightness(1.04)`, and on a grey page that band is a
+   visible white border. Both are gone. What replaces them is a true 1px
+   hairline: a masked ring of exactly `padding` width, filled with a vertical
+   gradient so it is bright top and bottom and almost absent at the sides.
+
+   Checked against both backdrops with one set of values: over the grey page
+   the hairline lands the top edge at ~249 and the bottom at ~252; over the
+   dark app grid in View Projectt.png the same values give the measured 190 at
+   the left rim and 219 at the bottom.
+
+   Layers, painted bottom-up:
+     ::before  the plate — backdrop blur, body fill, pointer specular, and the
+               three shading gradients.
+     ::after   the hairline.
+     the box   the cast shadow.
+
+   Everything tunable is a registered custom property, so a hover state is four
+   numbers in the component's own module and still animates — an unregistered
+   custom property inside a gradient can only snap.
+   ========================================================================== */
+
+@property --liquid-body {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.2;
+}
+
+@property --liquid-shade {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.07;
+}
+
+@property --liquid-gloss {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.55;
+}
+
+/* Strength of the pointer-tracked specular. Zero at rest — the highlight only
+   exists while something is pointing at the glass. */
+@property --liquid-spec {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Kept, at zero, purely so a coloured variant is one line away: Figma gives
+   the stat chip a green resting fill, and this is where it would go back. */
+@property --liquid-tint {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(124, 216, 153, 0);
+}
+
+/* How hard the plate pushes the colour it is sitting on. Grey pages have no
+   chroma to push, so this is invisible over the page and decisive over a
+   photograph — the stat chip sits on grass and anything much above 100 turns
+   it into a lime tile. Surfaces over imagery turn it down. */
+@property --liquid-sat {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 150%;
+}
+
+.liquid {
+  /* Where the light is. Written by the delegated pointermove in CanvasCursor;
+     deliberately unregistered, so it tracks the pointer exactly instead of
+     easing after it. */
+  --lx: 50%;
+  --ly: -20%;
+
+  position: relative;
+  isolation: isolate;
+
+  /* Three shadows, because the reference has three jobs for them: a hard
+     contact line right under the edge (it measures 192 against a 240 page —
+     alpha 0.2, and half of that is what made an earlier pass read as flat), a
+     mid falloff over the next few pixels, and a wide ambient one that lifts
+     the whole pill off the page. */
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0, 0, 0, 0.1),
+    0 10px 24px rgba(0, 0, 0, 0.05);
+
+  transition: box-shadow 280ms ease, transform 280ms cubic-bezier(0.2, 0, 0, 1),
+    --liquid-body 280ms ease, --liquid-shade 280ms ease,
+    --liquid-gloss 280ms ease, --liquid-spec 280ms ease,
+    --liquid-tint 280ms ease;
+}
+
+.liquid::before,
+.liquid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  corner-shape: inherit;
+  pointer-events: none;
+}
+
+.liquid::before {
+  z-index: -2;
+  backdrop-filter: blur(14px) saturate(var(--liquid-sat));
+  background-color: rgba(255, 255, 255, var(--liquid-body));
+  background-image:
+    /* The specular, following the pointer. iOS moves this highlight as the
+       device tilts; on a desktop the honest analogue is where the pointer is.
+       Sits above everything else so it reads as light on the surface rather
+       than colour within it. */
+    radial-gradient(
+      140px circle at var(--lx) var(--ly),
+      rgba(255, 255, 255, var(--liquid-spec)) 0%,
+      rgba(255, 255, 255, 0) 68%
+    ),
+    /* Kept at zero opacity unless a component asks for a tint. */
+      linear-gradient(
+        108.36deg,
+        rgba(255, 255, 255, 0) 4.95%,
+        var(--liquid-tint) 368.67%
+      ),
+    /* Light that entered the top face landing on the bottom one — the single
+       loudest thing in the reference, and the cue that reads as thickness.
+       It climbs from 243 to 252 in the last few pixels before the edge. */
+      linear-gradient(
+        0deg,
+        rgba(255, 255, 255, var(--liquid-gloss)) 0%,
+        rgba(255, 255, 255, 0) 14%
+      ),
+    /* Shade under the top rim, where the light goes in. */
+      linear-gradient(
+        180deg,
+        rgba(0, 0, 0, var(--liquid-shade)) 0%,
+        rgba(0, 0, 0, 0) 12%
+      ),
+    /* The same trade across the diagonal: 241 at the lit corner, 247 at the
+       far one. */
+      linear-gradient(
+        160deg,
+        rgba(0, 0, 0, 0.015) 0%,
+        rgba(255, 255, 255, 0) 42%,
+        rgba(255, 255, 255, 0.13) 100%
+      );
+}
+
+/* The hairline. The border-box/content-box mask XOR is the only way to get a
+   band of constant width that follows the box's own corner shape rather than
+   its bounding rect — which is exactly why inset box-shadows couldn't do this
+   job. `padding` is the width, and it is 1px. */
+.liquid::after {
+  z-index: -1;
+  padding: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.12) 28%,
+    rgba(255, 255, 255, 0.08) 62%,
+    rgba(255, 255, 255, 0.6) 100%
+  );
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* ==========================================================================
+   View transitions
+   The case study opens by morphing the device you clicked into the device in
+   the modal — see CaseStudyModal and InspectionExperience, which hand the same
+   `view-transition-name` to whichever of the two screens is currently the one
+   on screen.
+
+   The shared element is the phone *screen* rather than the whole card, and
+   that choice is what makes the move clean: 170.855x362.577 in the card and
+   265.29x562.982 in the modal are the same aspect ratio to four decimal
+   places, so the group animation is a pure scale and translate with no squash.
+   The screen box also sits fully inside the card's bounds in both its resting
+   and hovered states, so nothing is clipped at snapshot time.
+
+   The rest of the modal is named too, and choreographed against that morph.
+   That is the whole point: with only the device named, everything else rode a
+   flat root cross-fade on a different clock, so the page had already arrived
+   while the phone was still travelling — two events, which is what read as a
+   glitch. Named, each part is a participant, and they can be given an order.
+
+   One curve for all of it. The delays are the hierarchy: plate, then hero,
+   then the reading order of the page.
+   ========================================================================== */
+
+/* Stacking, and it has to be explicit.
+
+   Groups are appended to the transition tree in capture order — old state
+   first, then anything new — so the painting order flips depending on which
+   way you are going. Opening, the card's device is the only thing in the old
+   state, so its group is created first and the opaque plate, captured second,
+   paints straight over it: the phone morphs *behind* the modal and all you see
+   is the modal appearing. Closing, the modal's DOM order puts the plate before
+   the device, so the phone flies home on top and looks right.
+
+   That asymmetry is not something to work around one direction at a time. Name
+   the layers and the order stops depending on the direction of travel. */
+/* The card expanding into its hero sits under the modal's plate — the plate is
+   the page it lands on.
+
+   Two cards do this: Inspection hands over the phone's screen, About hands over
+   the portrait. Both are shapes whose aspect ratio is identical at either end,
+   which is what keeps the group animation a pure scale and translate. */
+::view-transition-group(inspection-frame),
+::view-transition-group(about-portrait) {
+  z-index: 1;
+  animation-duration: 560ms;
+}
+
+/* A 362x560 card and a 1120x700 mockup are very different shapes, and left
+   alone Chrome stretches each snapshot to fill the animating box, which pulls
+   the phone out of proportion mid-flight. Filling proportionally and cropping
+   instead makes the aspect change read as a card opening out.
+
+   The device is deliberately *not* a hero of its own any more. A hero is lifted
+   out of its container and so is not clipped by the card's `overflow: hidden`;
+   in flight it was a free-floating rectangle that appeared to break out of the
+   card on the way back. With only the container named, its snapshot carries its
+   own clip and nothing can escape — and because both surfaces now render the
+   same screen image at two sizes, the cross-fade between them has nothing left
+   to reveal. */
+::view-transition-old(inspection-frame),
+::view-transition-new(inspection-frame),
+::view-transition-old(about-portrait),
+::view-transition-new(about-portrait) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+::view-transition-group(modal-plate) {
+  z-index: 2;
+}
+
+::view-transition-group(modal-title),
+::view-transition-group(modal-body),
+::view-transition-group(modal-meta) {
+  z-index: 3;
+}
+
+/* The controls are sticky over everything in the real modal, so they are here
+   too. */
+::view-transition-group(modal-controls) {
+  z-index: 5;
+}
+
+::view-transition-group(*) {
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Naming the plate keeps the homepage out of the root cross-fade: root barely
+   changes, and the modal arrives over a page that stays put. */
+::view-transition-new(modal-plate) {
+  animation: modal-plate-in 420ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* `forwards` on every leaving animation, and it is not optional.
+   A `::view-transition-old` pseudo lives for the whole transition, not for the
+   length of its own animation. Without a forwards fill it plays out, then snaps
+   back to its base state — fully opaque — and sits there until the longest
+   group (the 560ms device morph) finishes. That is exactly the reported bug:
+   the phone flies home, and then the modal flashes back for a third of a second
+   before disappearing. */
+::view-transition-old(modal-plate) {
+  animation: modal-plate-in 240ms cubic-bezier(0.4, 0, 1, 1) reverse forwards;
+}
+
+::view-transition-new(modal-title),
+::view-transition-new(modal-body),
+::view-transition-new(modal-meta) {
+  animation: modal-content-rise 460ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+::view-transition-new(modal-title) {
+  animation-delay: 90ms;
+}
+
+::view-transition-new(modal-body) {
+  animation-delay: 160ms;
+}
+
+::view-transition-new(modal-meta) {
+  animation-delay: 210ms;
+}
+
+::view-transition-new(modal-controls) {
+  animation: modal-content-fade 300ms ease 260ms backwards;
+}
+
+/* Leaving is one movement, not a reverse reading. */
+::view-transition-old(modal-title),
+::view-transition-old(modal-body),
+::view-transition-old(modal-meta),
+::view-transition-old(modal-controls) {
+  animation: modal-content-fade 200ms ease reverse forwards;
+}
+
+@keyframes modal-plate-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes modal-content-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes modal-content-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ==========================================================================
@@ -194,8 +659,69 @@ ol {
 
 /* ==========================================================================
    Theming
-   Light only, deliberately. Dark mode is a later phase and its palette hasn't
-   been designed yet — so there is no dark block here to go stale. When it is
-   designed, it lands as a `:root[data-theme="dark"]` override of the Ink /
-   Accent / Surface groups above and nothing else needs to move.
+
+   Exactly the shape this block used to promise: an override of the Ink /
+   Accent / Surface groups at the top of the file, and nothing else moves.
+   Every other token — radii, geometry, type — is theme-independent by
+   construction, which is why this block is short.
+
+   The selector is `html[data-theme="dark"]`, written by the inline script in
+   layout.tsx before first paint and by ThemeToggle thereafter. There is no
+   bare `@media (prefers-color-scheme: dark)` rule: the OS preference is read
+   *once*, by that script, and resolved into the attribute. Honouring it here
+   as well would mean a stored "light" choice loses to the OS on any property
+   the script hadn't already covered.
+
+   ---------------------------------------------------------------------------
+   PLACEHOLDER — these values are derived, not designed.
+
+   Every number above was read out of Figma. None of these were: no dark
+   composition exists in the file yet (ARCHITECTURE.md risk #3 / D5). They are
+   a defensible first pass — ink and page swap roles, surfaces become light
+   films over a dark ground rather than white ones, accents lift in luminance
+   enough to hold contrast on a dark field — and they are meant to be replaced
+   wholesale once the dark composition is drawn. Nothing outside this block
+   should need to change when that happens.
    ========================================================================== */
+
+html[data-theme="dark"] {
+  /* --- Ink ------------------------------------------------------------- */
+  /* Not pure white: #ededed against the page below lands around 14:1, which
+     is comfortably past AAA without the halation pure white causes on dark. */
+  --ink: #ededed;
+  --ink-70: rgba(237, 237, 237, 0.7);
+  --ink-60: rgba(237, 237, 237, 0.6);
+  --ink-50: rgba(237, 237, 237, 0.5);
+  --ink-40: rgba(237, 237, 237, 0.4);
+  --ink-20: rgba(237, 237, 237, 0.2);
+  --ink-strong: #ffffff;
+
+  /* --- Accents ---------------------------------------------------------
+     Each one lifted in lightness and pulled back in saturation. The light
+     values are tuned to sit *on* white; unchanged on a dark ground they read
+     as glowing rather than as ink. */
+  --accent: #ff8a4c;
+  --blue: #4bb4e6;
+  --green: #7ed15f;
+  --red: #ff6470;
+  --live: #ff8b80;
+
+  /* --- Surfaces ---------------------------------------------------------
+     The light theme is a near-white base with a slightly darker wash; this
+     inverts that relationship rather than picking new hues, so the gradient
+     still runs the same direction across the page. */
+  --page-base: #1b1c1e;
+  --page-wash-from: #212326;
+  --page-wash-to: rgba(28, 30, 32, 0.55);
+
+  /* White films, not grey fills. A translucent white over the page ground
+     keeps the material reading as glass — a solid grey would flatten every
+     card into a plate and lose the `.liquid` refraction entirely. */
+  --surface: rgba(255, 255, 255, 0.07);
+  --surface-solid: #26282b;
+  --surface-glass: rgba(255, 255, 255, 0.05);
+
+  /* Shadow does almost no work on a dark ground — light does. The card's
+     edge has to come from a highlight, so the "shadow" here is a hairline. */
+  --glass-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
