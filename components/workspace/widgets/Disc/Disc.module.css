@@ -1,0 +1,275 @@
+/* A record, at the reference's proportions: an 82% vinyl centred behind a
+   full-bleed sleeve, sliding out 42% of the widget's width when it plays. */
+
+.root {
+  /* Every colour the record and its chrome use, so the whole widget follows
+     the board. The vinyl still reads as a record in light mode — it is a
+     lighter charcoal rather than a different object — because a genuinely
+     pale record stops looking like vinyl. */
+  --disc-vinyl-in: #2a2a2a;
+  --disc-vinyl-out: #0e0e0e;
+  --disc-groove: rgba(255, 255, 255, 0.05);
+  --disc-spindle: #0e0e0e;
+  --disc-sleeve: #1b1b1b;
+  --disc-plate: #222222;
+  --disc-on-plate: #d9d9d9;
+  --disc-stop-bg: #d9d9d9;
+  --disc-stop-fg: #222222;
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* The vinyl travels outside the widget's box on play, and the tooltip hangs
+     below it. Neither may be clipped. */
+  overflow: visible;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.vinylWrap {
+  position: absolute;
+  top: 9%;
+  left: 9%;
+  width: 82%;
+  height: 82%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.vinyl {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--disc-vinyl-in) 0 30%,
+    var(--disc-vinyl-out) 30% 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  /* Paused rather than removed when stopped, so play resumes the groove where
+     it stopped instead of snapping back to zero. */
+  animation: spin linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.grooves {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    var(--disc-groove) 0 1px,
+    transparent 1px 4px
+  );
+}
+
+.centreLabel {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 38%;
+  height: 38%;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.spindle {
+  width: 16%;
+  height: 16%;
+  border-radius: 50%;
+  background: var(--disc-spindle);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.sleeve {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 48px;
+  background-color: var(--disc-sleeve);
+  background-size: cover;
+  background-position: center;
+}
+
+/* --- Tooltip --------------------------------------------------------------
+   A printed object's label, so it keeps its own colour in both themes — the
+   reference's #222 on #d9d9d9.
+   -------------------------------------------------------------------------- */
+
+.tooltip {
+  position: absolute;
+  top: calc(100% + 16px);
+  left: 25%;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--disc-plate);
+  color: var(--disc-on-plate);
+  white-space: nowrap;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  font-family: var(--font-ui);
+}
+
+.tipSong {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.tipArtist {
+  margin-top: 1px;
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.65;
+}
+
+/* --- Now playing ---------------------------------------------------------- */
+
+.nowPlaying {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 320px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  /* Glass. It is fixed to the viewport rather than inside the transformed
+     world, so the blur is composited once instead of on every pan frame —
+     the one place on this widget where it is free. */
+  background: color-mix(in srgb, var(--disc-plate) 72%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  color: var(--disc-on-plate);
+  font-family: var(--font-ui);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.npCover {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+}
+
+.npText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.npLabel {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 2px;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.npSong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.npArtist {
+  font-size: 12px;
+  opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.npStop {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  margin-left: 4px;
+  border: none;
+  border-radius: 50%;
+  background: var(--disc-stop-bg);
+}
+
+.npStop svg rect {
+  fill: var(--disc-stop-fg);
+}
+
+/* --- Equalizer ------------------------------------------------------------ */
+
+.eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 9px;
+}
+
+.eq i {
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--disc-on-plate);
+  transform-origin: bottom;
+  animation: eq 0.9s ease-in-out infinite;
+}
+
+.eq i:nth-child(2) { animation-delay: 0.25s; }
+.eq i:nth-child(3) { animation-delay: 0.5s; }
+
+@keyframes eq {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vinyl,
+  .eq i {
+    animation: none;
+  }
+}
+
+/* --- Light board ----------------------------------------------------------
+   The record lightens rather than inverts: a pale disc stops reading as vinyl.
+   The plate the tooltip and now-playing card wear does invert, because those
+   are UI rather than objects on the desk.
+   -------------------------------------------------------------------------- */
+
+:global(html[data-theme="light"]) .root {
+  --disc-vinyl-in: #4a4a4a;
+  --disc-vinyl-out: #262626;
+  --disc-groove: rgba(255, 255, 255, 0.07);
+  --disc-spindle: #1f1f1f;
+  --disc-sleeve: #e7e4de;
+  --disc-plate: #ffffff;
+  --disc-on-plate: #222222;
+  --disc-stop-bg: #222222;
+  --disc-stop-fg: #ffffff;
+}
+
+:global(html[data-theme="light"]) .tooltip,
+:global(html[data-theme="light"]) .nowPlaying {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(34, 34, 34, 0.08);
+}

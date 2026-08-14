@@ -1,3 +1,8 @@
+/* Stand-in for a widget still being ported. Carries the board's card
+   treatment so the composition being judged is the one that will ship:
+   squircled corners, no cast shadow, and the same two radii the real cards
+   use. */
+
 .frame {
   display: grid;
   place-content: center;
@@ -7,9 +12,13 @@
   height: 100%;
   padding: 14px;
   text-align: center;
-  border-radius: var(--r-md);
   border: 1px dashed var(--ink-40);
 }
+
+/* 48 for the board's larger objects, 32 for the rest — same split as the real
+   cards, so a frame never reads as a different family of thing. */
+.r32 { border-radius: 32px; }
+.r48 { border-radius: 48px; }
 
 .label {
   font-family: var(--font-ui);
@@ -29,8 +38,7 @@
   background-color: var(--surface-solid);
 }
 
-/* The terminal and the scratch card are dark objects on the desk in both
-   themes on the reference board. */
+/* Objects that are dark on the reference board in both themes. */
 .dark {
   border-color: rgba(255, 255, 255, 0.22);
   background-color: #16181b;

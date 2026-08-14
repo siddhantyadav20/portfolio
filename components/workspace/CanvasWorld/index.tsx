@@ -1,11 +1,15 @@
 import { widgets, WORLD_H, WORLD_W, type Widget } from "@/content/workspace";
-import BookCover from "../widgets/BookCover";
-import CaseStudyCard from "../widgets/CaseStudyCard";
+import Book from "../widgets/Book";
 import Disc from "../widgets/Disc";
-import Frame from "../widgets/Frame";
-import LinkedInCard from "../widgets/LinkedInCard";
+import DrawingCanvas from "../widgets/DrawingCanvas";
+// The homepage's card, unchanged — same component, same flood, same chime.
+import LinkedInCard from "@/components/home/LinkedInCard";
+import PhotoStack from "../widgets/PhotoStack";
 import ProfileCard from "../widgets/ProfileCard";
+import Receipt from "../widgets/Receipt";
+import ScratchCard from "../widgets/ScratchCard";
 import Sticker from "../widgets/Sticker";
+import Terminal from "../widgets/Terminal";
 import styles from "./CanvasWorld.module.css";
 
 /**
@@ -70,38 +74,39 @@ function Render({ widget }: { widget: Widget }) {
     case "disc":
       return (
         <Disc
+          id={widget.id}
           title={widget.title}
           artist={widget.artist}
           cover={widget.cover}
+          src={widget.src}
         />
       );
     case "book":
+      return <Book book={widget} />;
+    case "sticker":
       return (
-        <BookCover
-          title={widget.title}
-          author={widget.author}
-          cover={widget.cover}
+        <Sticker
+          label={widget.label}
+          art={widget.art}
+          effect={widget.effect}
         />
       );
-    case "sticker":
-      return <Sticker label={widget.label} art={widget.art} />;
     case "profile":
       return <ProfileCard />;
     case "linkedin":
       return <LinkedInCard />;
-    case "caseStudy":
-      return <CaseStudyCard />;
-
-    /* Still being ported from references/canvas — see Frame. */
     case "terminal":
-      return <Frame label="Terminal" tone="dark" />;
+      return <Terminal />;
+
     case "receipt":
-      return <Frame label="Design receipt" tone="paper" />;
+      return <Receipt />;
+
     case "scratch":
-      return <Frame label="Scratch to play" tone="dark" />;
+      return <ScratchCard />;
+
     case "draw":
-      return <Frame label="Drawing canvas" tone="dark" />;
+      return <DrawingCanvas />;
     case "photos":
-      return <Frame label="Photos" />;
+      return <PhotoStack />;
   }
 }

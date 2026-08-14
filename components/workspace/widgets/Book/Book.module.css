@@ -1,0 +1,313 @@
+/* A book, as a real 3D box.
+
+   Six faces at the reference's geometry: front and back boards a thickness
+   apart, a spine on the left hinge, and page edges on the fore, top and
+   bottom. `--d` is that thickness, 20% of the shorter side.
+
+   The front board hinges open on hover to reveal the first page. That is the
+   one departure from the reference, and it is why the page sits at the same
+   depth as the board rather than behind the whole box. */
+
+.root {
+  position: relative;
+  perspective: 900px;
+  user-select: none;
+}
+
+.box {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.2s ease;
+}
+
+/* While the pointer is on the book the tilt has to track it, so the settle
+   curve is swapped for a short one — otherwise the parallax lags the cursor. */
+.box[data-hovered] {
+  transition: transform 0.12s ease-out, opacity 0.2s ease;
+}
+
+/* --- Front board ---------------------------------------------------------- */
+
+.front {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #111;
+  /* Hinged on the spine, like a board. */
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: transform 0.62s cubic-bezier(0.23, 1, 0.32, 1);
+  backface-visibility: visible;
+}
+
+.coverArt {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0) 32%
+  );
+}
+
+/* The board's inside face, only visible once it has swung past square. */
+.boardBack {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+  background: color-mix(in srgb, var(--board) 55%, #1a1512);
+}
+
+/* --- The first page ------------------------------------------------------- */
+
+.page {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  /* One hair behind the board, so the board's shadow falls on it. */
+  transform: translateZ(calc(var(--d) - 1px));
+  background: #f7f1e4;
+  box-shadow: inset 14px 0 22px -14px rgba(0, 0, 0, 0.45);
+}
+
+.pageInner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 15px 13px 13px 19px;
+  color: #2c2620;
+}
+
+.pageEyebrow {
+  font-family: var(--font-ui);
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--binding);
+}
+
+.pageTitle {
+  margin-top: 5px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #1d1813;
+}
+
+.pageAuthor {
+  margin-top: 3px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 10px;
+  color: rgba(44, 38, 32, 0.62);
+}
+
+.pageRule {
+  display: block;
+  height: 1px;
+  margin: 8px 0;
+  background: rgba(44, 38, 32, 0.16);
+}
+
+/* A colophon, not a table: two columns of tiny label/value pairs, the way the
+   front matter of a book carries its edition details. */
+.colophon {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  /* Row gap has to clear a wrapped value — "Dystopian Fiction" runs to two
+     lines at this width and was landing on the row above. */
+  gap: 9px 10px;
+  align-content: start;
+  font-family: var(--font-ui);
+}
+
+.colophon > div {
+  min-width: 0;
+}
+
+.colophon dt {
+  font-size: 6.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(44, 38, 32, 0.45);
+}
+
+.colophon dd {
+  margin-top: 1px;
+  font-family: var(--font-serif);
+  font-size: 10.5px;
+  line-height: 1.25;
+  color: #1d1813;
+}
+
+.learntLabel {
+  font-family: var(--font-ui);
+  font-size: 6.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(44, 38, 32, 0.45);
+}
+
+.learnt,
+.learntOwed {
+  margin-top: 4px;
+  font-family: var(--font-serif);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.learnt {
+  color: #2c2620;
+}
+
+.learntOwed {
+  color: rgba(44, 38, 32, 0.38);
+  font-style: italic;
+}
+
+/* --- The other five faces ------------------------------------------------- */
+
+.back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg) translateZ(var(--d));
+  border-radius: 4px 2px 2px 4px;
+  background: var(--board);
+}
+
+.spine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--d);
+  height: 100%;
+  overflow: hidden;
+  transform-origin: left center;
+  transform: rotateY(-90deg);
+  background: var(--binding);
+  box-shadow: inset -3px 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.spineTitle {
+  writing-mode: vertical-rl;
+  max-height: calc(var(--h) - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-ui);
+  font-size: min(12px, calc(var(--d) * 0.42));
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Page block: cream leaves with darker gaps, so the edge reads as paper
+   rather than as a flat panel. */
+.edgeFore,
+.edgeTop,
+.edgeBottom {
+  position: absolute;
+  background: repeating-linear-gradient(
+    to bottom,
+    #f9f4ec 0px,
+    #f9f4ec 1.5px,
+    #e5dcc8 1.5px,
+    #e5dcc8 2.5px
+  );
+}
+
+.edgeFore {
+  top: 0;
+  left: var(--w);
+  width: var(--d);
+  height: 100%;
+  transform-origin: left center;
+  transform: rotateY(90deg);
+}
+
+.edgeTop,
+.edgeBottom {
+  left: 0;
+  width: 100%;
+  height: var(--d);
+  transform-origin: center top;
+  background: repeating-linear-gradient(
+    to right,
+    #f9f4ec 0px,
+    #f9f4ec 1.5px,
+    #e5dcc8 1.5px,
+    #e5dcc8 2.5px
+  );
+}
+
+.edgeTop {
+  top: 0;
+  transform: rotateX(90deg);
+}
+
+.edgeBottom {
+  top: var(--h);
+  transform: rotateX(-90deg);
+}
+
+/* --- Ribbon --------------------------------------------------------------- */
+
+.ribbon {
+  position: absolute;
+  top: calc(var(--h) - 2px);
+  right: calc(var(--w) * 0.16);
+  width: 11px;
+  height: 16px;
+  transform: translateZ(calc(var(--d) - 3px));
+  transition: height 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+  background: linear-gradient(to bottom, var(--binding), var(--board));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 6px), 0 100%);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+.box[data-hovered] .ribbon {
+  height: 30px;
+}
+
+/* --- Reading spread backdrop ---------------------------------------------- */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 8, 10, 0.55);
+  backdrop-filter: blur(8px);
+  font-family: var(--font-ui);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .box,
+  .front,
+  .ribbon {
+    transition: none;
+  }
+}

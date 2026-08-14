@@ -11,7 +11,7 @@ import styles from "./ProfileCard.module.css";
  */
 export default function ProfileCard() {
   return (
-    <article className={styles.card}>
+    <article className={`${styles.card} squircle`}>
       <header className={styles.head}>
         <Image
           src={profile.avatar}
@@ -20,11 +20,27 @@ export default function ProfileCard() {
           height={44}
           className={styles.avatar}
         />
-        <div>
+        <div className={styles.nameStack}>
           <h2 className={styles.name}>{profile.name}</h2>
           <p className={styles.role}>{profile.role}</p>
         </div>
+
+        {/* Pinned right: the one fact that changes, and the only reason a
+            recruiter reads this card at all. */}
+        <span className={styles.status}>
+          <span className={styles.statusDot} aria-hidden="true" />
+          {profile.status.text}
+        </span>
       </header>
+
+      <dl className={styles.facts}>
+        {profile.facts.map((f) => (
+          <div key={f.label}>
+            <dt className={styles.factValue}>{f.value}</dt>
+            <dd className={styles.factLabel}>{f.label}</dd>
+          </div>
+        ))}
+      </dl>
 
       <div className={styles.body}>
         {profile.body.map((p) => (
@@ -34,22 +50,7 @@ export default function ProfileCard() {
         ))}
       </div>
 
-      <div className={styles.actions}>
-        {profile.actions.map((a) => (
-          <span key={a.label} className={styles.action}>
-            {a.badge && <span className={styles.badge}>{a.badge}</span>}
-            <span
-              className="inkIcon"
-              style={{
-                ["--icon" as string]: `url(/icons/${a.icon}.svg)`,
-                width: 16,
-                height: 16,
-              }}
-            />
-            {a.label}
-          </span>
-        ))}
-      </div>
+      <p className={styles.place}>{profile.location}</p>
 
       <div className={styles.updates}>
         <h3 className={styles.updatesLabel}>{profile.updatesLabel}</h3>

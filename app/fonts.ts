@@ -1,5 +1,5 @@
 import localFont from "next/font/local";
-import { Outfit } from "next/font/google";
+import { Newsreader, Outfit } from "next/font/google";
 
 /**
  * Display face. Only the two weights the design actually uses are shipped
@@ -25,5 +25,21 @@ export const canela = localFont({
 export const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-ui",
+  display: "swap",
+});
+
+/**
+ * Reading serif. Used only by the books on the workspace canvas — their pages
+ * and reading spread are set in it, because a book set in the UI face reads as
+ * a card about a book rather than as a book.
+ *
+ * The reference loaded it from Google's CDN at runtime; self-hosted here like
+ * Outfit, so the canvas makes no external request.
+ */
+export const newsreader = Newsreader({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  style: ["normal", "italic"],
+  variable: "--font-serif",
   display: "swap",
 });

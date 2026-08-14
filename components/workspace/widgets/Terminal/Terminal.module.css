@@ -1,0 +1,263 @@
+/* The terminal.
+
+   The original derived its chrome by lightening a hard-coded background hex at
+   runtime. Here the three shades are tokens, so the default palette can follow
+   the site's theme — dark shell on the dark board, paper on the light one —
+   while the `theme` command still overrides --term-bg and --term-accent
+   inline for its four local palettes.
+
+   Deliberately no backdrop-filter anywhere: this sits inside the transformed
+   world. See CanvasWorld. */
+
+.shell {
+  --term-bg: #16181b;
+  --term-chrome: #212429;
+  --term-input: #101215;
+  --term-accent: #4ade80;
+  --term-ink: rgba(255, 255, 255, 0.55);
+  --term-ink-strong: #e2e8f0;
+  --term-ink-faint: rgba(255, 255, 255, 0.25);
+  --term-rule: rgba(255, 255, 255, 0.15);
+  --term-edge: rgba(255, 255, 255, 0.07);
+  --term-cmd: #ffffff;
+  --term-error: #f87171;
+
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 14px;
+
+  background-color: var(--term-bg);
+  /* Hairline and inner highlight only — the cast shadow is gone with the rest
+     of the board's. Both of these are edges, not depth. */
+  box-shadow: 0 0 0 1px var(--term-edge),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  font-family: ui-monospace, "SF Mono", "Fira Code", "Cascadia Code", Menlo,
+    monospace;
+  user-select: none;
+  transition: background-color 0.35s ease;
+}
+
+/* Paper, not a dark shell. Chosen deliberately over keeping the terminal dark
+   in both themes: on a light desk a black slab is the loudest thing on the
+   board and pulls the eye away from the work. The phosphor accent survives
+   the switch, which is what keeps it reading as a terminal.
+
+   `[data-tone]` is the same set of tokens applied on demand rather than by
+   theme. The `theme` command's palettes pick their own background, and some of
+   them are dark by intent — so the ink has to follow the palette rather than
+   the page, or `theme matrix` on a light board prints black on black. */
+:global(html[data-theme="light"]) .shell,
+.shell[data-tone="light"] {
+  --term-bg: #f7f6f3;
+  --term-chrome: #eceae5;
+  --term-input: #f1efeb;
+  --term-accent: #1f9d55;
+  --term-ink: rgba(34, 34, 34, 0.62);
+  --term-ink-strong: #1a1a1a;
+  --term-ink-faint: rgba(34, 34, 34, 0.3);
+  --term-rule: rgba(34, 34, 34, 0.16);
+  --term-edge: rgba(34, 34, 34, 0.1);
+  --term-cmd: #111111;
+  --term-error: #c2410c;
+
+  box-shadow: 0 0 0 1px var(--term-edge);
+}
+
+/* A palette that chose a dark background takes the dark ink back, whatever
+   the page is doing. Listed after the light block so it wins on a light page. */
+.shell[data-tone="dark"] {
+  --term-ink: rgba(255, 255, 255, 0.55);
+  --term-ink-strong: #e2e8f0;
+  --term-ink-faint: rgba(255, 255, 255, 0.25);
+  --term-rule: rgba(255, 255, 255, 0.15);
+  --term-edge: rgba(255, 255, 255, 0.07);
+  --term-cmd: #ffffff;
+  --term-error: #f87171;
+}
+
+/* The chrome shades are derived from the palette's own background rather than
+   from the theme, so a local palette does not leave a light title bar on a
+   dark shell. */
+.shell[data-tone] .bar,
+.shell[data-tone] .inputBar {
+  background-color: color-mix(in srgb, var(--term-bg) 88%, var(--term-ink) 12%);
+}
+
+/* --- Title bar ------------------------------------------------------------ */
+
+.bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background-color: var(--term-chrome);
+  border-bottom: 1px solid var(--term-edge);
+  transition: background-color 0.35s ease;
+}
+
+.lights {
+  display: flex;
+  gap: 7px;
+}
+
+.lights i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.lights i[data-light="red"] {
+  background-color: #ff5f57;
+  box-shadow: 0 0 7px #ff5f5788;
+}
+.lights i[data-light="amber"] {
+  background-color: #febc2e;
+  box-shadow: 0 0 7px #febc2e88;
+}
+.lights i[data-light="green"] {
+  background-color: #28c840;
+  box-shadow: 0 0 7px #28c84088;
+}
+
+.title {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--term-ink-faint);
+}
+
+/* The "machine is alive" light. */
+.pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--term-accent);
+  box-shadow: 0 0 8px var(--term-accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* --- Output --------------------------------------------------------------- */
+
+.output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 0 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--term-edge) transparent;
+  /* The one place selection is allowed: copying a line out of a terminal is a
+     reasonable thing to want. */
+  user-select: text;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  padding: 0 20px;
+}
+
+.prompt {
+  flex: none;
+  margin-right: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--term-accent);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--term-accent) 53%, transparent);
+  user-select: none;
+}
+
+.line,
+.link {
+  font-size: 12px;
+  line-height: 1.75;
+  letter-spacing: 0.2px;
+  /* `pre`, so the leading spaces every line is padded with survive — the whole
+     layout of the output is done in spaces, as a terminal's would be. */
+  white-space: pre;
+}
+
+.line[data-kind="ascii"],
+.link[data-kind="ascii"] {
+  font-size: 8.5px;
+  letter-spacing: 0.3px;
+  color: var(--term-accent);
+}
+
+.line[data-kind="meta"] { color: var(--term-ink-faint); }
+.line[data-kind="divider"] { color: var(--term-rule); }
+.line[data-kind="label"] { color: var(--term-ink-strong); font-weight: 600; }
+.line[data-kind="item"] { color: var(--term-ink); }
+.line[data-kind="cmd"] { color: var(--term-cmd); }
+.line[data-kind="error"] { color: var(--term-error); }
+.line[data-kind="hint"] { color: var(--term-ink-faint); }
+.line[data-kind="boot"] { color: var(--term-ink-faint); }
+.line[data-kind="bootok"] { color: var(--term-accent); }
+.line[data-kind="blank"] { line-height: 8px; color: transparent; }
+
+.link {
+  color: var(--term-ink-strong);
+  text-decoration: none;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--term-accent) 27%, transparent);
+}
+
+.link:hover {
+  color: var(--term-accent);
+}
+
+/* --- Input bar ------------------------------------------------------------ */
+
+.inputBar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px 13px;
+  background-color: var(--term-input);
+  border-top: 1px solid var(--term-edge);
+  transition: background-color 0.35s ease;
+}
+
+.inputBar[data-shake] {
+  animation: shake 0.35s ease;
+}
+
+/* A rejected command is told, not just printed — the bar flinches. Small
+   enough not to be a gag the second time. */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  color: var(--term-cmd);
+  caret-color: var(--term-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse,
+  .inputBar[data-shake] {
+    animation: none;
+  }
+}
