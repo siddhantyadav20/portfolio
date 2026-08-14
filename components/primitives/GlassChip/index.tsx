@@ -15,7 +15,9 @@ export default function GlassChip({
 }) {
   return (
     <div
-      className={[styles.chip, "squircle", className].filter(Boolean).join(" ")}
+      className={[styles.chip, "squircle", "liquid", className]
+        .filter(Boolean)
+        .join(" ")}
     >
       {children}
     </div>

@@ -1,0 +1,44 @@
+/* The photographed device, and the app inside its screen.
+
+   One definition, used at both sizes. Figma draws this device twice — in the
+   card at a hand of 415.271x599.559 and in the modal at 644.8x930.949 — and the
+   two differ by exactly 0.644 in every dimension, screen included. So it is one
+   object, and the only things a surface supplies are the hand's own rect and,
+   on the card, a rotation. Everything below is a fraction of that rect and
+   therefore scales with it.
+
+   Taken from the modal's nodes (77:7493 hand, 77:7495 clip, 77:7497 image),
+   which are the pair the design was built at:
+
+     clip   left 11.3230%  top 1.4752%  w 41.4722%  h 60.4608%
+     image  left 11.4286%  top 1.4984%  w 41.1431%  h 60.4741%
+
+   The card's own numbers put the image 1.1px further left than a scaled copy
+   of the modal's would. That is a nudge in the file rather than a different
+   design, and using one set for both is what makes the card a true scaled
+   version — which is the point. */
+
+.device {
+  position: absolute;
+}
+
+/* The hand and the phone are a single photograph, and stay one: the fingers
+   wrap in front of the device, so splitting them would need an alpha matte for
+   the foreground hand and would throw away the screen's real reflections and
+   perspective — which the clip shape follows. */
+.hand {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+.screen {
+  position: absolute;
+  left: 11.4286%;
+  top: 1.4984%;
+  width: 41.1431%;
+  height: 60.4741%;
+}

@@ -22,7 +22,7 @@
   width: 205px;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1000px) {
   .card {
     width: 100%;
     max-width: 322px;

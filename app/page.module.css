@@ -1,15 +1,18 @@
 /* ==========================================================================
    Homepage bento composition
 
-   The Figma frame is 1440 wide with 64px page padding, leaving a 1312px band.
+   The Figma frame is 1440 wide with 32px page padding, leaving a 1376px band.
    That band is three columns with a single repeating 32px gutter:
 
-       394  |32|  540  |32|  314        = 1312
+       386  |32|  540  |32|  386        = 1376
 
-   Each column is an independent vertical flow, and all three land on exactly
-   y=1277 in Figma. Two deliberate exceptions break the grid, both preserved:
+   Each column is an independent vertical flow. Three deliberate exceptions
+   break the grid, all of them Figma's:
 
-     - Workspace (322 wide) overhangs the top row and straddles cols 2/3.
+     - Inspection (420 wide) overhangs col 1 by 34px. The top row and the
+       Introduction are then measured off *that card* — one gutter and two
+       gutters past its right edge — rather than off the col-2 line.
+     - Workspace (322 wide) straddles the col 2/3 boundary in the top row.
      - Timeline is rotated -90deg in Figma; here it is simply built upright
        and right-aligned in col 3.
 
@@ -17,28 +20,50 @@
    stays legible in one place instead of scattered through media queries.
    ========================================================================== */
 
-/* Figma places content at y=116 inside a 1440x1516 frame, but the top 52px of
-   that frame is the Safari mockup chrome. The real page starts 64px down —
-   matching the 64px side padding, which is clearly the intent. */
+/* 32px from the top and the sides, everywhere. The bottom is deeper because
+   the sticky blur bar parks over the last 44px of the page and the footer has
+   to clear it — Figma leaves exactly 96px under the footer's last line. */
 .page {
+  position: relative; /* the theme toggle is pinned to this box */
   width: 100%;
-  padding: 64px var(--page-pad) 32px;
+  padding: var(--page-pad) var(--page-pad) 96px;
 }
 
+/* Pinned rather than flowed: 32px off the top and right at any width, exactly
+   like the Inspection card is off the top and left. Left in the top row's DOM
+   position so reading and tab order are unchanged. */
+.themeToggle {
+  position: absolute;
+  top: var(--page-pad);
+  right: var(--page-pad);
+  z-index: 10;
+}
+
+/* No max-width: the side padding is 32px at every viewport, which is what the
+   design asks for. Every gutter stays 32px too, so the width a viewport has
+   beyond 1440 has to be *absorbed by a card* rather than by a gap — col 3 is
+   the track that grows, and the Search card grows with it. */
 .band {
   display: grid;
-  grid-template-columns: var(--col-1) var(--col-2) var(--col-3);
+  grid-template-columns:
+    var(--col-1)
+    minmax(0, var(--col-2))
+    minmax(0, 1fr);
+  /* Row 1 is pinned, not auto. Col 1 spans rows 1-2 and is now the tallest
+     thing on the page, and an auto row 1 absorbs part of that overflow —
+     which quietly pushed the Introduction and the Timeline ~24px down. */
+  grid-template-rows: var(--row-top) auto auto;
   column-gap: var(--gap);
+  row-gap: var(--gap);
   width: 100%;
-  max-width: var(--band);
-  margin-inline: auto;
 }
 
-/* --- Column 1 : Inspection, Search --------------------------------------- */
+/* --- Column 1 : Inspection, Design System -------------------------------- */
 
 .col1 {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--gap);
   grid-column: 1;
   /* Spans both rows: the top row's height is set by .topRow, not by this
@@ -46,9 +71,14 @@
   grid-row: 1 / 3;
 }
 
-/* --- Top row : About, Designer/Engineer, Workspace, Theme ----------------- */
-/* Spans cols 2-3. Fixed track height so cols 2 and 3 start where Figma puts
-   them; Workspace is taller and overhangs on purpose. */
+/* --- Top row : About, Designer/Engineer, Workspace ------------------------ */
+/* Spans cols 2-3, but starts one gutter past Inspection's right edge rather
+   than on the col-2 line, and stops one gutter short of the pinned theme
+   toggle. Fixed track height so cols 2 and 3 start where Figma puts them;
+   Workspace is taller and overhangs it on purpose.
+
+   About Me and Workspace are fixed; the Designer/Engineer card is the one that
+   stretches, so all three gutters stay 32px however wide the row gets. */
 
 .topRow {
   display: flex;
@@ -56,7 +86,12 @@
   grid-row: 1;
   gap: var(--gap);
   align-items: flex-start;
+  /* A hard height, not a min: Workspace is 246 tall and is *meant* to hang out
+     of this track. Letting the row grow to fit it would push the Introduction
+     and the Timeline 82px down the page. */
   height: var(--row-top);
+  margin-left: var(--overhang);
+  margin-right: calc(var(--toggle-w) + var(--gap));
 }
 
 /* --- Column 2 : Introduction, Store, Personality -------------------------- */
@@ -69,97 +104,61 @@
   gap: var(--gap-lg);
 }
 
-/* Personality sits closer to the Store card than the 80px rhythm above it. */
+/* 64px clear of Inspection — a double gutter, and the widest single piece of
+   breathing room in the composition. */
+.intro {
+  margin-left: calc(var(--overhang) + var(--gap));
+}
+
+/* Personality sits a plain gutter under the Store card, not the 122px rhythm
+   above it. */
 .personality {
   display: flex;
   gap: var(--gap);
   margin-top: calc(var(--gap) - var(--gap-lg));
 }
 
-/* --- Column 3 : Timeline, Design System ----------------------------------- */
+/* --- Column 3 : Timeline, Search ----------------------------------------- */
 
 .col3 {
   display: flex;
   flex-direction: column;
   grid-column: 3;
   grid-row: 2;
-  gap: var(--gap);
+  gap: var(--gap-col3);
   align-items: flex-end;
   margin-top: var(--col-3-offset);
 }
 
 /* --- Footer --------------------------------------------------------------- */
 
+/* Figma insets the footer a further 32px inside the band (1312 wide, at x=64)
+   and drops it 48px below the tallest column — 32 of which is the grid's own
+   row gap, so only the remainder is a margin here. */
 .footerWrap {
   grid-column: 1 / -1;
   grid-row: 3;
-  margin-top: 105px;
+  margin-top: calc(48px - var(--gap));
+  margin-inline: var(--gap);
 }
 
 /* ==========================================================================
    Responsive
 
-   Desktop is the design target. Below it the composition reflows rather than
-   shrinking: the three columns become two, then one, and the top row wraps.
-   Card widths stop being fixed and fill their column.
+   One breakpoint for now, at 1000px, and it is a holding pattern rather than a
+   design: below it the three columns become one and the cards keep the
+   compositions they were drawn at instead of stretching into layouts nobody
+   has drawn yet. The real breakpoints are a later phase.
    ========================================================================== */
 
-@media (max-width: 1439px) {
-  .band {
-    grid-template-columns:
-      minmax(0, var(--col-1))
-      minmax(0, var(--col-2))
-      minmax(0, var(--col-3));
-  }
-}
-
-@media (max-width: 1180px) {
-  .band {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    row-gap: var(--gap);
-  }
-
-  .col1 {
-    grid-row: 2;
-  }
-  .topRow {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    height: auto;
-    flex-wrap: wrap;
-  }
-  .col2 {
-    grid-column: 2;
-    grid-row: 2;
-    gap: var(--gap);
-  }
-  .col3 {
-    grid-column: 1 / -1;
-    grid-row: 3;
-    align-items: stretch;
-    margin-top: 0;
-  }
-  .personality {
-    margin-top: 0;
-  }
-  .footerWrap {
-    margin-top: 64px;
-  }
-}
-
-@media (max-width: 860px) {
-  .page {
-    padding-inline: 24px;
-  }
-
-  /* One centred column at the widest card's design width. The cards keep the
-     compositions they were drawn at rather than stretching into layouts that
-     were never designed; a proper mobile treatment is Phase 11. */
+@media (max-width: 1000px) {
+  /* One centred column at the widest card's design width. */
   .band {
     grid-template-columns: minmax(0, 1fr);
-    max-width: min(394px, 100%);
+    grid-template-rows: none;
+    grid-auto-flow: row;
+    max-width: min(540px, 100%);
     margin-inline: auto;
-    row-gap: var(--gap);
   }
 
   .col1,
@@ -169,10 +168,27 @@
   .footerWrap {
     grid-column: 1;
     grid-row: auto;
+    margin: 0;
+  }
+
+  .col1,
+  .col3 {
+    align-items: stretch;
+  }
+
+  .topRow {
+    height: auto;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .col2,
+  .col3 {
+    gap: var(--gap);
   }
 
   /* Introduction leads on mobile — the fastest way to say who this is — so the
-     column holding it comes first. Finer mobile ordering is Phase 11. */
+     column holding it comes first. */
   .col2 {
     order: -1;
   }
@@ -190,6 +206,6 @@
   }
 
   .personality {
-    flex-direction: column;
+    margin-top: 0;
   }
 }

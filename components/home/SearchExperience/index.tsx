@@ -11,7 +11,7 @@ import styles from "./SearchExperience.module.css";
  */
 export default function SearchExperience() {
   return (
-    <CardShell radius={24} className={styles.card}>
+    <CardShell radius={48} className={styles.card}>
       {/* The card holds a real input, so it can't itself be a link — the
           heading carries the case-study destination instead. */}
       <div className={styles.heading}>
@@ -29,7 +29,7 @@ export default function SearchExperience() {
             Search inspection remarks
           </label>
           <span className={styles.searchIcon} aria-hidden="true">
-            <img src="/icons/search.svg" alt="" width={19} height={20} />
+            <span className="inkIcon" style={{ ["--icon" as string]: "url(/icons/search.svg)", width: 19, height: 20 }} />
           </span>
           <input
             id="remark-search"
@@ -46,7 +46,7 @@ export default function SearchExperience() {
 
         <button type="button" className={styles.category} disabled>
           {search.category}
-          <img src="/icons/chevron.svg" alt="" width={8} height={4} />
+          <span className="inkIcon" style={{ ["--icon" as string]: "url(/icons/chevron.svg)", width: 8, height: 4 }} />
         </button>
       </div>
 

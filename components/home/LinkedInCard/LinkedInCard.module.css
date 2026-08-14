@@ -1,6 +1,45 @@
-/* Figma node 71:7395 — 254x280, radius 24, pad 20, space-between */
+/* Figma "LinkedIn", node 80:7629 — 254x280, pad 20, space-between.
+
+   Radius is 48 rather than Figma's 24, by request, with the file's 100% corner
+   smoothing carried over: CardShell adds `.squircle`, so the card is an iOS
+   superellipse and not a rounded rect.
+
+   ---------------------------------------------------------------------------
+   Default -> Hover.
+
+   At rest the logo tile is the only blue on the card, so it is treated as
+   where the colour is kept. Hovering the CTA lets it out: the fill spills from
+   the tile, floods the card, and takes the type with it. Reversed, it drains
+   back into the tile.
+
+   The whole thing is one plate, `.flood`:
+
+     - It is card-sized, LinkedIn blue, and carries a second copy of the card's
+       content already wearing the hover colours.
+     - It is clipped by `inset()` down to precisely the tile's rectangle and
+       corner. So at rest it is not hidden — it *is* the tile. What you take
+       for the logo tile is this plate showing through a 40px window.
+     - Opening that inset to the full card is the entire animation. One
+       interpolated property, and the corner radius rides along from the
+       tile's 12 to the card's 48.
+
+   Because the hover copy travels inside the clip, every word turns white at
+   the exact pixel the edge crosses it. There is no colour cross-fade anywhere
+   in this file and no staggered delays to keep in sync with the sweep — the
+   sweep is the only clock.
+
+   The card never animates its own background. If it did, it would turn blue
+   underneath the flood and there would be nothing to watch. */
 
 .card {
+  /* The flood's resting window and the tile are cut from one set of numbers.
+     The tile's top is the card's 20px padding plus the 4px a 40px tile is
+     inset inside the 48px header row. */
+  --logo-size: 40px;
+  --logo-top: 24px;
+  --logo-right: 20px;
+  --logo-radius: 12px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -8,8 +47,125 @@
   width: 254px;
   height: 280px;
   padding: 20px;
-  flex: none;
+  /* Shares the middle column's flexibility with the music player. */
+  flex: 0 1 auto;
+  min-width: 0;
 }
+
+/* --- The flood ------------------------------------------------------------ */
+
+.flood {
+  position: absolute;
+  inset: 0;
+  /* Above the real content, and inert, so the link underneath is still what
+     the pointer is talking to. */
+  z-index: 2;
+  pointer-events: none;
+  /* It is a second copy of text that is already on the page: `aria-hidden`
+     keeps it out of the accessibility tree, and this keeps it out of a
+     selection drag, so nobody ends up copying the name twice. */
+  user-select: none;
+
+  /* The card's own box, repeated exactly — that is what keeps the hover copy
+     registered to the real one to the pixel. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+
+  background-color: var(--blue);
+
+  /* Its own copy of the card's shape. Two jobs: it is what makes the
+     overshoot below invisible, and it survives the frame where an animating
+     child gets promoted to its own composited layer and would otherwise paint
+     outside the card's `overflow: hidden` (CardShell carries
+     `will-change: transform` for the proximity field). */
+  border-radius: inherit;
+  corner-shape: inherit;
+
+  clip-path: inset(
+    var(--logo-top) var(--logo-right)
+      calc(100% - var(--logo-top) - var(--logo-size))
+      calc(100% - var(--logo-right) - var(--logo-size))
+      round var(--logo-radius)
+  );
+
+  /* Draining. Ease *in*, so it hangs for a moment and is then pulled home —
+     the opposite shape to the release, and quicker, because a retreat that
+     takes as long as the arrival reads as an undo rather than a decision. */
+  transition: clip-path 320ms cubic-bezier(0.6, 0, 0.9, 0.2);
+}
+
+/* Overshooting the card by 16px on every side rather than landing on 0: the
+   clip is a plain rounded rect and the card is a squircle, which is the fuller
+   shape, so an exact `inset(0 round 48px)` would shave four corners of white
+   off it. Past the edge, the flood's own `border-radius`/`corner-shape` above
+   draws the corner, and it is the right one. It also means the fill visibly
+   completes a beat before the motion does, which is what gives the arrival its
+   settle. */
+.lit .flood {
+  clip-path: inset(-16px -16px -16px -16px round 48px);
+  transition: clip-path 520ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The hover palette, worn permanently by the copy inside the flood. Nothing
+   here transitions; the clip decides which copy you are looking at. */
+.flood .name,
+.flood .ink {
+  color: #ffffff;
+}
+
+.flood .role {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* The light halves of the same three accents — the resting values have no
+   contrast left over blue. */
+.flood .blue {
+  color: #aae3ff;
+}
+.flood .red {
+  color: #ff989f;
+}
+.flood .green {
+  color: #86ee6a;
+}
+
+/* The echo's tile has no fill of its own: the plate behind it is already that
+   exact blue, which is also Figma's hover, where the tile stops having an edge
+   and only the mark is left. */
+.flood .logo {
+  background-color: transparent;
+}
+
+/* Letting go: a short recoil and a soft ring pushed out after it. One shot, on
+   arrival only — leaving, the mark is sitting on its own colour and has
+   nothing left to say. */
+.lit .flood .logo {
+  animation: eject 640ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes eject {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+  22% {
+    transform: scale(0.88);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.22);
+  }
+  52% {
+    transform: scale(1.07);
+    box-shadow: 0 0 18px 6px rgba(255, 255, 255, 0.12);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 30px 18px rgba(255, 255, 255, 0);
+  }
+}
+
+/* --- Content -------------------------------------------------------------- */
 
 .content {
   display: flex;
@@ -52,9 +208,9 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  border-radius: var(--logo-radius);
   background-color: var(--blue);
 }
 
@@ -77,22 +233,32 @@
   color: var(--green);
 }
 
+/* --- CTA ------------------------------------------------------------------ */
+
+/* Figma's asymmetric padding (6 left, 16 right) is kept — the label is
+   centred either way, but the box is the box.
+
+   No `.squircle` here, unlike every other rounded thing on the page: at 44px
+   tall the pill's corner is a true semicircle, and smoothing a semicircle only
+   flattens it. This one stays a stadium. */
 .cta {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 44px;
+  padding: 11px 16px 11px 6px;
   border-radius: var(--r-pill);
   background-color: var(--blue);
-  box-shadow: 0 0 2px rgba(56, 124, 249, 0.3);
+  box-shadow: 0 0 2px 4px rgba(56, 124, 249, 0.3);
   font-size: 14px;
   font-weight: 600;
   color: #ffffff;
 }
 
-@media (max-width: 860px) {
-  .card {
-    width: 100%;
-  }
+/* The pill inside the flood. Same box, same glow, Figma's hover fill — so the
+   sweep crosses the CTA the way it crosses everything else, and the last
+   thing to change is the thing being pointed at. */
+.ctaFace {
+  background-color: rgba(255, 255, 255, 0.2);
 }

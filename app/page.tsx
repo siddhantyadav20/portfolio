@@ -1,4 +1,5 @@
 import AboutMeCard from "@/components/home/AboutMeCard";
+import BottomBlur from "@/components/home/BottomBlur";
 import DesignEngineerCard from "@/components/home/DesignEngineerCard";
 import DesignSystemExperience from "@/components/home/DesignSystemExperience";
 import InspectionExperience from "@/components/home/InspectionExperience";
@@ -21,40 +22,48 @@ import styles from "./page.module.css";
  */
 export default function Home() {
   return (
-    <ProximityField>
-      <main className={styles.page}>
-        <div className={styles.band}>
-          <div className={styles.col1}>
-            <InspectionExperience />
-            <SearchExperience />
-          </div>
+    <>
+      <ProximityField>
+        <main className={styles.page}>
+          <div className={styles.band}>
+            <div className={styles.col1}>
+              <InspectionExperience />
+              <DesignSystemExperience />
+            </div>
 
-          <div className={styles.topRow}>
-            <AboutMeCard />
-            <DesignEngineerCard />
-            <WorkspaceCard />
-            <ThemeToggle />
-          </div>
+            <div className={styles.topRow}>
+              <AboutMeCard />
+              <DesignEngineerCard />
+              <WorkspaceCard />
+              {/* Pinned to the page's top-right corner by this class, not
+                  laid out by the row it sits in. See page.module.css. */}
+              <ThemeToggle className={styles.themeToggle} />
+            </div>
 
-          <div className={styles.col2}>
-            <Introduction className={styles.intro} />
-            <StoreWaitlist />
-            <div className={styles.personality}>
-              <MusicPlayer />
-              <LinkedInCard />
+            <div className={styles.col2}>
+              <Introduction className={styles.intro} />
+              <StoreWaitlist />
+              <div className={styles.personality}>
+                <MusicPlayer />
+                <LinkedInCard />
+              </div>
+            </div>
+
+            <div className={styles.col3}>
+              <TimelineExperience />
+              <SearchExperience />
+            </div>
+
+            <div className={styles.footerWrap}>
+              <SiteFooter />
             </div>
           </div>
+        </main>
+      </ProximityField>
 
-          <div className={styles.col3}>
-            <TimelineExperience />
-            <DesignSystemExperience />
-          </div>
-
-          <div className={styles.footerWrap}>
-            <SiteFooter />
-          </div>
-        </div>
-      </main>
-    </ProximityField>
+      {/* Outside the field on purpose: it is fixed to the viewport, not a
+          member of the composition the pointer is pushing around. */}
+      <BottomBlur />
+    </>
   );
 }

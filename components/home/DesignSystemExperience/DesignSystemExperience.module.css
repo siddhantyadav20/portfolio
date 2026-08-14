@@ -1,8 +1,8 @@
-/* Figma node 1:55 — 314x578, radius 24, surface #FFF @0.7 */
+/* Figma node 244:9359 — 386x578, radius 24, surface #FFF @0.7 */
 
 .card {
   display: block;
-  width: 314px;
+  width: 386px;
   height: 578px;
   flex: none;
 }
@@ -36,8 +36,12 @@
   position: absolute;
   top: 160px;
   left: 40px;
-  width: 274px;
+  width: 426px;
   height: 256px;
+  /* Wider than the card it sits in — Figma runs it off the right edge, and the
+     card's own overflow does the clipping. Without this the reset's blanket
+     `img { max-width: 100% }` pulls it back to the card and the crop is wrong. */
+  max-width: none;
   border-radius: 12px 0 0 12px;
 }
 
@@ -68,7 +72,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1000px) {
   .card {
     max-width: 100%;
   }

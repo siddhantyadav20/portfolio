@@ -23,7 +23,7 @@ export default function WorkspaceCard() {
         href={workspace.href}
         className={styles.cta}
         icon={
-          <img src="/icons/mouse-square.svg" alt="" width={20} height={20} />
+          <span className="inkIcon" style={{ ["--icon" as string]: "url(/icons/mouse-square.svg)", width: 20, height: 20 }} />
         }
       >
         {workspace.cta}

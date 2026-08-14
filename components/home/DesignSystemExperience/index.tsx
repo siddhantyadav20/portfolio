@@ -10,7 +10,7 @@ export default function DesignSystemExperience() {
     <CardShell
       as="a"
       href={designSystem.href}
-      radius={24}
+      radius={48}
       className={styles.card}
       aria-label={`${designSystem.eyebrow} ${designSystem.title} ${designSystem.subtitle} — open case study`}
     >
@@ -24,7 +24,7 @@ export default function DesignSystemExperience() {
       <Image
         src="/media/design-system.png"
         alt=""
-        width={274}
+        width={426}
         height={256}
         className={styles.shot}
       />

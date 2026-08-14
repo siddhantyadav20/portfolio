@@ -23,7 +23,7 @@ export default function CtaPill<T extends ElementType = "button">({
 
   return (
     <Tag
-      className={[styles.pill, "squircle", className].filter(Boolean).join(" ")}
+      className={[styles.pill, "liquid", className].filter(Boolean).join(" ")}
       {...rest}
     >
       {icon ? (

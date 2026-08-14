@@ -22,7 +22,13 @@ export default function Introduction({ className }: { className?: string }) {
   }
 
   return (
-    <section className={[styles.intro, className].filter(Boolean).join(" ")}>
+    // Passive in the proximity field: the composition can carry it when a
+    // neighbouring card is active, but it is never an interaction target
+    // itself — it never becomes the active card and never scales.
+    <section
+      className={[styles.intro, className].filter(Boolean).join(" ")}
+      data-prox-passive=""
+    >
       <Image
         src="/media/logo.png"
         alt="Siddhant Yadav"
@@ -43,7 +49,7 @@ export default function Introduction({ className }: { className?: string }) {
       <div className={styles.ctas}>
         <CtaPill
           onClick={copyEmail}
-          icon={<img src="/icons/chat.svg" alt="" width={20} height={20} />}
+          icon={<span className="inkIcon" style={{ ["--icon" as string]: "url(/icons/chat.svg)", width: 20, height: 20 }} />}
         >
           {copied ? "Copied!" : "Copy Email"}
         </CtaPill>
@@ -53,7 +59,7 @@ export default function Introduction({ className }: { className?: string }) {
           href={intro.storeHref ?? undefined}
           data-placeholder={intro.storeHref ? undefined : ""}
           aria-disabled={intro.storeHref ? undefined : true}
-          icon={<img src="/icons/cart.svg" alt="" width={20} height={20} />}
+          icon={<span className="inkIcon" style={{ ["--icon" as string]: "url(/icons/cart.svg)", width: 20, height: 20 }} />}
         >
           Go to Store
         </CtaPill>

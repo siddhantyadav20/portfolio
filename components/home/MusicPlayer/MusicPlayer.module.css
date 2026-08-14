@@ -1,51 +1,222 @@
-/* Figma node 71:7351 — 254x280, radius 24 */
+/* Figma "Music Player", node 80:7658 — 254x280.
+
+   Radius is 48 rather than Figma's 24, by request, with the file's 100% corner
+   smoothing carried over: CardShell adds `.squircle`, so the whole card is an
+   iOS superellipse and not a rounded rect.
+
+   One card, two states. Everything below that differs between paused and
+   playing hangs off `.playing` on the card, so the transition between the two
+   Figma variants is CSS and there is no second component. */
 
 .card {
   width: 254px;
   height: 280px;
-  flex: none;
+  /* Shares the middle column's flexibility with LinkedIn. */
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
-/* Export already carries the #000 @0.4 scrim baked in. */
+/* --- Cover ---------------------------------------------------------------- */
+
+/* All four are stacked; only the current one is opaque.
+
+   They carry the card's own corner as well, and that is not belt-and-braces:
+   the card is `overflow: hidden` under a `will-change: transform` (CardShell,
+   for the proximity field), so a child that gets promoted to its own
+   composited layer — which is exactly what happens on the frame a cross-fade
+   starts — is painted outside the parent's rounded clip and flashes square.
+   Clipping each cover to the same shape means there is nothing to escape. */
 .cover {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: inherit;
+  corner-shape: inherit;
+  opacity: 0;
+  transition: opacity 420ms ease;
 }
 
-.play {
+.cover[data-active] {
+  opacity: 1;
+}
+
+/* Figma dims the artwork 40% while paused and takes the scrim to zero while
+   playing — the cover is the thing you are looking at once it is running. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  corner-shape: inherit;
+  background-color: rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  transition: background-color 420ms ease;
+}
+
+.playing .scrim {
+  background-color: rgba(0, 0, 0, 0);
+}
+
+/* --- Playhead ------------------------------------------------------------- */
+
+/* Width is written per frame by the component. Playing only: there is no
+   track behind it in Figma, just the elapsed part. */
+.duration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.playing .duration {
+  opacity: 1;
+}
+
+/* --- Transport ------------------------------------------------------------ */
+
+/* One row in both states, and it does not move between them. The skip buttons
+   keep their 40px of layout while hidden, so the play disc stays on the
+   card's centreline and at the same height whether it is playing or not —
+   the button you just pressed should still be under your cursor.
+
+   (Figma drops the row 17px on the playing variant. Deliberately not carried
+   over: the disc sliding out from under the pointer on click reads as a
+   misfire.) */
+.controls {
   position: absolute;
   top: 65px;
-  left: 95px;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 16px;
+}
+
+/* The discs are built here rather than taken from the export, because the one
+   thing that makes them read as controls sitting *on* a painting is a
+   background blur, and an SVG cannot carry one. The exported files are the
+   glyphs alone. 12px is sampled off the Figma render — the artwork inside a
+   64px disc is smeared past recognition there, which Figma's flat GLASS token
+   (8) doesn't reach. */
+.play {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   width: 64px;
   height: 64px;
-  padding: 8px;
   border-radius: 60px;
   background-color: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(12px);
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
-  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background-color 300ms ease,
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.playing .play {
+  background-color: rgba(34, 34, 34, 0.6);
 }
 
 .play:hover {
   transform: scale(1.04);
 }
 
-/* Figma's Play Icon is a polygon rotated on the canvas; the exported vector
-   points up, so it gets its rotation back here. */
-.play :global(img) {
-  transform: rotate(90deg);
+/* Exported on Figma's own 112 canvas and left there, so the glyph lands where
+   the file puts it without a second set of coordinates to keep in sync. */
+.playGlyph {
+  position: absolute;
+  inset: -24px;
+  width: 112px;
+  height: 112px;
+  max-width: none;
+  transition: opacity 220ms ease;
 }
 
-.chip {
+.playing .playGlyph {
+  opacity: 0;
+}
+
+/* Two bars, exactly as Figma builds them — 4x20, radius 12, 6px apart. */
+.pauseGlyph {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.playing .pauseGlyph {
+  opacity: 1;
+}
+
+.pauseGlyph i {
+  display: block;
+  width: 4px;
+  height: 20px;
+  border-radius: 12px;
+  background-color: #ffffff;
+}
+
+.step {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background-color: rgba(34, 34, 34, 0.6);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+  transition: opacity 260ms ease,
+    transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.playing .step {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.step img {
   position: absolute;
-  top: 178px;
+  inset: -24px;
+  width: 88px;
+  height: 88px;
+  max-width: none;
+}
+
+/* --- Listening To --------------------------------------------------------- */
+
+/* The one place GlassChip's white plate is wrong: everywhere else the chip
+   sits on the grey page, and here it sits on a photograph, so Figma darkens
+   it instead — #222 @ 0.2 ramping into #7CD899 @ 0.2 across a 108deg
+   diagonal. That exact fill goes on the chip's own box, which paints above
+   the plate, and the plate's body drops out from under it. The blur, the
+   hairline and the radius are still GlassChip's. */
+.chip {
+  --liquid-body: 0;
+  --liquid-sat: 100%;
+  /* And the plate's own shading comes down with it. At the site-wide values
+     the bottom gloss is a white bar across a chip Figma keeps dark. */
+  --liquid-gloss: 0.22;
+  --liquid-shade: 0.04;
+
+  background-image: linear-gradient(
+    108.83deg,
+    rgba(34, 34, 34, 0.2) 4.95%,
+    rgba(124, 216, 153, 0.2) 368.67%
+  );
+
+  position: absolute;
+  bottom: 28px;
   left: 24px;
   display: flex;
   flex-direction: column;
@@ -75,10 +246,10 @@
   width: 4px;
   height: 4px;
   border-radius: var(--r-pill);
-  background-color: rgba(34, 34, 34, 0.3);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
-.progress {
+.count {
   font-size: 13px;
   font-weight: 500;
   line-height: var(--lh);
@@ -91,14 +262,23 @@
   font-size: 15px;
   line-height: var(--lh);
   color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* --- Track dots ----------------------------------------------------------- */
+
+/* One per track, the current one stretched to a 12px pill. Same elements
+   across a skip (keyed by title), so the stretch animates. */
 .bars {
   position: absolute;
-  top: 264px;
-  left: 112px;
+  bottom: 12px;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
 }
 
@@ -107,6 +287,8 @@
   height: 4px;
   border-radius: var(--r-pill);
   background-color: rgba(255, 255, 255, 0.6);
+  transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 320ms ease;
 }
 
 .bar {
@@ -118,8 +300,8 @@
   background-color: #ffffff;
 }
 
-@media (max-width: 860px) {
-  .card {
-    width: 100%;
-  }
+/* Figma lifts the inactive dots to 0.8 while playing — the scrim is gone by
+   then and 0.6 disappears into a bright cover. */
+.playing .bar {
+  background-color: rgba(255, 255, 255, 0.8);
 }

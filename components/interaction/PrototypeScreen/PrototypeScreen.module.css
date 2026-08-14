@@ -1,0 +1,61 @@
+/* The app inside the device's screen. DeviceMockup places this; the geometry
+   here is only what happens *within* the screen, and is identical at both
+   sizes. */
+
+.screen {
+  overflow: hidden;
+  background-color: #cfcfcf;
+
+  /* Figma's "Clip" (77:7495) — the photographed screen's outline, which carries
+     the device's perspective, so the app's edges follow the real glass rather
+     than a rectangle. Stated relative to the app image's own box: Figma's clip
+     is 100.80% of its width and sits 0.257% to its left. */
+  mask-image: url("/media/inspection-screen-mask.png");
+  mask-size: 100.8% 99.98%;
+  mask-position: -0.257% -0.038%;
+  mask-repeat: no-repeat;
+}
+
+/* Two layers, which is what Figma has: the app image, and the iOS furniture
+   drawn over it. The poster is Figma's own screenshot — the exact image the
+   design composites — so at rest the card and the modal are the file. */
+.poster,
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The recording is a different capture of the same app, and measures 1.0083x
+   the screenshot's UI, anchored at the top-left — landmarked on the house
+   thumbnail, which lands at x 26..146 in the screenshot and 26..147 in the
+   recording, top-left coincident in both. Scaling it back by that one factor
+   registers the two, so the app does not shift the instant the video appears.
+
+   This is the whole of the correction. It lives on the video because that is
+   what is out of register; nothing else in the composition compensates for
+   anything. */
+.video {
+  transform: scale(0.99177);
+  transform-origin: 0 0;
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+.video[data-show] {
+  opacity: 1;
+}
+
+/* Status bar, dynamic island and home indicator. Figma draws these as vector
+   layers over the app image; neither the screenshot nor the recording contains
+   them, so one overlay serves both states. */
+.chrome {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}

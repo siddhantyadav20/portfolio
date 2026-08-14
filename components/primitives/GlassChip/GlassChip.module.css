@@ -1,13 +1,16 @@
+/* Figma "Info - Case Study", e.g. node 80:7973 — radius 16, 1px inside stroke
+   #58A942 @ 0.2, fill ramping white -> #7CD899 at 20%.
+
+   Static by design: the chip has no hover variant anywhere in the file. On the
+   Inspection card it is the *card's* hover that acts on it — see
+   InspectionExperience.module.css, which slides it off the left edge. */
+
 .chip {
-  /* Figma: gradient fill #FFFFFF -> #7CD899 held at layer opacity 0.2,
-     1px inside stroke #58A942 @ 0.2, radius 16, GLASS blur 11. */
-  background-image: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.2) 0%,
-    rgba(124, 216, 153, 0.2) 100%
-  );
-  border: 1px solid rgba(88, 169, 66, 0.2);
+  --liquid-body: 0.24;
+  /* Sits on a photograph, so it takes the plate's colour boost off entirely —
+     see --liquid-sat. Anything much above 100 turns the grass behind it into a
+     lime tile. */
+  --liquid-sat: 100%;
+
   border-radius: var(--r-sm);
-  backdrop-filter: blur(11px);
-  -webkit-backdrop-filter: blur(11px);
 }

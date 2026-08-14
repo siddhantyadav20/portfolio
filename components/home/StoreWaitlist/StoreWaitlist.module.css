@@ -1,14 +1,71 @@
-/* Figma node 110:8576 — 540x219, radius 24, pad 24, gap 20 */
+/* ===========================================================================
+   Figma "Currently Building" — node 110:8501, five variants.
+
+     110:8500  Default   540x219, pad 24, gap 20; CTA 138x40 at (24, 155)
+     110:8502  Input     CTA 340x40, pl 12 / pr 6; Join dimmed to 40%
+     110:8536  Entered   Join live
+     302:9989  Sent      Join collapsed to a 28px disc, 14px loader inside
+     110:8555  Success   fill #D1FFE2, 146x109 artwork, two centred lines
+
+   Everything is measured, nothing is eyeballed. The one number Figma does not
+   give is `--flight`: the disc has no in-between frame in the file, so how long
+   it takes to cross the card is a decision, and every other delay below is
+   quoted off it.
+
+   The card is exactly its content: 24 + 111 (header) + 20 (gap) + 40 (pill) +
+   24 = 219. There is no slack in the padding box, which is why the error line
+   is absolutely placed in the bottom padding rather than added to the column —
+   a card that grows by a line on a failed submit shoves the two cards under it
+   down the page, and that is a worse failure than the one it is reporting.
+   =========================================================================== */
 
 .card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* The only flexible track on the page is the one this sits in, so the
+     card gives width back rather than overflowing it. 540/219 at 1440. */
+  width: 100%;
+  max-width: 540px;
+  min-height: 219px;
+  padding: 24px;
+  flex: none;
+
+  /* Success palette. Local rather than global tokens: nothing else on the site
+     is mint, and the check green is brighter than `--green`, which is the ink
+     for positive deltas and reads too olive at 43px.
+
+     The mint is Figma's, and it has to be exactly Figma's, because the artwork
+     is an opaque 146x109 rectangle with its own background baked into it and
+     any mismatch draws that rectangle onto the card. Worth knowing rather than
+     rediscovering: sampling the GIF gives #CEFFDE or #D6FFE6 depending on which
+     pixel you land on — the export dithers a flat fill across two palette
+     entries in a checkerboard. Neither is the colour. The mean of the two is
+     #D2FFE2, which is Figma's #D1FFE2 to within half a unit, and building the
+     card on a sampled leg instead of the mean is what put a visible pale
+     rectangle behind the check. */
+  --mint: #d1ffe2;
+  --check: #31ce73;
+
+  /* Two curves do all of the work. `--out` decelerates hard — things arriving.
+     `--in` accelerates — things leaving, and the vertical half of the arc. */
+  --out: cubic-bezier(0.22, 1, 0.36, 1);
+  --in: cubic-bezier(0.55, 0, 0.85, 0.5);
+
+  /* How long the disc is in the air. Every celebration delay is a multiple or
+     an offset of this, so retiming the whole sequence is one number. */
+  --flight: 480ms;
+}
+
+/* --- The form side --------------------------------------------------------- */
+
+.form {
   display: flex;
   flex-direction: column;
   gap: 20px;
   align-items: flex-start;
-  width: 540px;
-  height: 219px;
-  padding: 24px;
-  flex: none;
+  width: 100%;
 }
 
 .header {
@@ -46,25 +103,67 @@
   color: var(--ink-60);
 }
 
+/* --- The pill -------------------------------------------------------------- */
+
+/* One element across Default / Input / Entered / Sent. Figma draws them as
+   four boxes; they are the same box at two widths, so the state change is a
+   width and the contents cross-fade inside it. Rebuilding the pill per state
+   would have been four elements and a cut between them. */
 .cta {
-  display: inline-flex;
+  position: relative;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  flex: none;
+  width: 138px;
+  max-width: 100%;
   height: 40px;
-  padding: 12px;
+  padding-left: 12px;
+  padding-right: 12px;
   border: 1px solid rgba(234, 88, 11, 0.2);
   border-radius: var(--r-pill);
   background-color: #ffffff;
   backdrop-filter: blur(11px);
-  -webkit-backdrop-filter: blur(11px);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--accent);
-  white-space: nowrap;
+  overflow: hidden;
+
+  transition: width 460ms var(--out), padding-right 460ms var(--out),
+    border-color 200ms ease, box-shadow 220ms ease, opacity 140ms linear;
+}
+
+.cta[data-open] {
+  width: 340px;
+  padding-right: 6px;
+}
+
+/* Resting hover is the pill lifting a hair — no colour change, because the
+   orange hairline is already the only colour in the row. */
+.cta:not([data-open]):hover {
+  border-color: rgba(234, 88, 11, 0.38);
+  box-shadow: 0 2px 8px rgba(34, 34, 34, 0.06);
+}
+
+/* Focus is shown on the pill, not on the field.
+
+   A text field always matches `:focus-visible` — the spec says so regardless of
+   how focus arrived — so the global 2px orange ring draws a second rounded
+   rectangle inside the pill the moment it opens, which is both ugly and a lie
+   about where the boundary is. The pill is the control; its hairline going from
+   20% to 55% is the indicator, and it is the only element that moves. */
+.field:focus-visible {
+  outline: none;
+}
+
+.cta:focus-within {
+  border-color: rgba(234, 88, 11, 0.55);
+}
+
+.cta[data-trouble] {
+  border-color: rgba(239, 51, 64, 0.5);
+  animation: nudge 340ms ease;
 }
 
 /* Figma draws the "+" as two 2x8 bars in a #EDEDED circle. */
-.plus {
+.mark,
+.joinMark {
   position: relative;
   display: inline-block;
   flex: none;
@@ -74,8 +173,14 @@
   background-color: #ededed;
 }
 
-.plus::before,
-.plus::after {
+.joinMark {
+  background-color: #ffffff;
+}
+
+.mark::before,
+.mark::after,
+.joinMark::before,
+.joinMark::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -87,13 +192,546 @@
   transform: translate(-50%, -50%);
 }
 
-.plus::after {
+.mark::after,
+.joinMark::after {
   transform: translate(-50%, -50%) rotate(90deg);
 }
 
-@media (max-width: 1180px) {
-  .card {
-    width: 100%;
-    height: auto;
+/* Out of flow so that opening the pill is a pure width change: in flow, the
+   label's 86px would still be pushing on the input as it faded. At 138px wide
+   it draws in exactly the place Figma puts it — 12 padding, 20 icon, 6 gap. */
+.label {
+  position: absolute;
+  left: 38px;
+  top: 50%;
+  translate: 0 -50%;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: var(--lh);
+  color: var(--accent);
+  white-space: nowrap;
+  transition: opacity 160ms ease;
+}
+
+.cta[data-open] .label {
+  opacity: 0;
+}
+
+/* The whole resting pill is the button, and it has to actually win the hit
+   test to be one. Two things were stopping it:
+
+   `z-index` — the input is a replaced element and Chrome was hit-testing it
+   above this absolutely-positioned sibling, so the middle 80% of the pill
+   answered to the field rather than the button. Clicking anywhere but the "+"
+   did nothing.
+
+   `pointer-events` on the closed field — even with the button on top, the
+   field underneath is what CanvasCursor's `closest('input, textarea, …')`
+   found under the pointer, so it stood the site cursor down and handed back
+   the I-beam over a control that cannot be typed into yet. */
+.expand {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.cta:not([data-open]) .field {
+  pointer-events: none;
+}
+
+.field {
+  flex: 1;
+  min-width: 0;
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: var(--lh);
+  color: var(--ink);
+  opacity: 0;
+  transition: opacity 200ms ease 120ms;
+}
+
+.field::placeholder {
+  color: var(--ink-40);
+}
+
+.cta[data-open] .field {
+  opacity: 1;
+}
+
+.field:disabled {
+  /* Held during Sent so the address cannot change under the request. */
+  color: var(--ink);
+}
+
+/* --- Join ------------------------------------------------------------------ */
+
+/* Zero-width at rest, so it grows out of the right-hand end as the pill opens
+   rather than appearing in it. `overflow: hidden` is what lets a width be the
+   animation — the label inside is clipped instead of reflowing. */
+.join {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  width: 0;
+  height: 28px;
+  padding: 0;
+  border-radius: var(--r-pill);
+  background-color: var(--accent);
+  overflow: hidden;
+  opacity: 0;
+
+  transition: width 460ms var(--out), padding 460ms var(--out),
+    opacity 220ms ease;
+}
+
+.cta[data-open] .join {
+  width: 68px;
+  padding-left: 6px;
+  padding-right: 12px;
+  opacity: 1;
+}
+
+/* Figma's Input state: 40% until there is something to send. */
+.cta[data-open] .join:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Sent. The label goes, the mark goes, the box closes to a 28px disc and the
+   loader takes the middle. Must follow the `:disabled` rule above — the button
+   is disabled while it is sending, and this state is not dimmed. */
+.cta[data-open] .join[data-busy] {
+  width: 28px;
+  padding: 0;
+  opacity: 1;
+}
+
+.joinLabel {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: var(--lh);
+  color: #ffffff;
+  white-space: nowrap;
+  transition: opacity 160ms ease;
+}
+
+.join[data-busy] .joinMark,
+.join[data-busy] .joinLabel {
+  opacity: 0;
+}
+
+.joinMark {
+  transition: opacity 160ms ease;
+}
+
+/* --- Loader ---------------------------------------------------------------- */
+
+/* Figma's loader is the twelve-spoke stepped ring, not a sweeping arc, so this
+   is twelve spokes and a travelling gap. `--dia` is the only thing that
+   changes between the one in the button and the one riding the disc. */
+.spinner {
+  --dia: 14px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--dia);
+  height: var(--dia);
+  translate: -50% -50%;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.join[data-busy] .spinner {
+  opacity: 1;
+  transition-delay: 80ms;
+}
+
+.spoke {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: calc(var(--dia) * 0.13);
+  height: calc(var(--dia) * 0.3);
+  margin-left: calc(var(--dia) * -0.065);
+  border-radius: var(--r-pill);
+  background-color: #ffffff;
+  transform-origin: 50% calc(var(--dia) / 2);
+  transform: rotate(calc(var(--i) * 30deg));
+  animation: spoke 900ms linear infinite;
+  /* Negative delays start every spoke part-way through the same fade, which is
+     what makes the gap travel. */
+  animation-delay: calc(var(--i) * -75ms);
+}
+
+/* --- The error line -------------------------------------------------------- */
+
+/* In the bottom padding, not in the column. Empty and silent until there is
+   something to say; `role="alert"` on a live element means the text is
+   announced when it arrives rather than on mount. */
+.hint {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 4px;
+  font-size: 12px;
+  line-height: var(--lh);
+  color: var(--red);
+}
+
+.hint:empty {
+  display: none;
+}
+
+/* ===========================================================================
+   Success
+   =========================================================================== */
+
+/* The pill goes first and fastest — the visitor's hand is on it, and leaving
+   it under the disc that has just left it reads as a duplicate. Nested inside
+   `.form`'s own fade, so it is gone in about a tenth of a second. */
+.won .cta {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.won .form {
+  animation: leave 280ms var(--in) forwards;
+}
+
+.won .hint {
+  display: none;
+}
+
+/* The mint arriving as a flood from under the disc rather than as a crossfade.
+   A crossfade says the card was swapped; this says the check caused it. It
+   starts as the disc is landing, not when it sets off. */
+.wash {
+  position: absolute;
+  inset: 0;
+  background-color: var(--mint);
+  clip-path: circle(0% at 50% 78.5px);
+  /* Not `--out`: a radius on a hard decelerating curve covers the card in the
+     first third of its duration, because area goes as the square of it — the
+     mint was arriving before the disc that is supposed to be causing it. This
+     curve is gentler at the front and still lands soft. */
+  animation: flood 860ms cubic-bezier(0.32, 0.55, 0.25, 1)
+    calc(var(--flight) - 120ms) forwards;
+}
+
+.win {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px;
+  pointer-events: none;
+}
+
+/* Figma: 146x109 at the top of the content box. The GIF's disc is the centre
+   of its own frame, so it is the centre of this box — 78.5px down the card,
+   which is the point `liftOff` in index.tsx flies to. */
+.art {
+  position: relative;
+  width: 146px;
+  height: 109px;
+  flex: none;
+}
+
+.gif,
+.still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Held back until the disc has landed. The GIF is opaque and the same mint as
+   the card, so it needs nothing to hide the disc under it — it just covers it,
+   and the frame it covers it with is a bare green disc the same size and in
+   the same place. */
+.gif {
+  opacity: 0;
+  animation: appear 200ms ease calc(var(--flight) + 80ms) forwards;
+}
+
+.still {
+  opacity: 0;
+}
+
+/* The swap at the end of the first loop. No transition on either side: the
+   canvas holds the exact frame the GIF is showing, so a cut is invisible and a
+   crossfade would only blend the frame with itself. */
+.gif[data-frozen] {
+  opacity: 0;
+  animation: none;
+}
+
+.still[data-frozen] {
+  opacity: 1;
+}
+
+/* --- The flight ------------------------------------------------------------ */
+
+.discX {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
+
+/* Two wrappers, one axis each, on different curves. X decelerates and Y
+   accelerates, and the sum of two straight lines on different clocks is a
+   parabola — the disc leaves the pill sideways and is lifted into place at the
+   end. A single element on a single curve arrives in a straight line, which
+   reads as a box being repositioned instead of something being thrown. */
+.discX {
+  width: 0;
+  height: 0;
+  transform: translateX(var(--fly-x));
+  animation: flyX var(--flight) cubic-bezier(0.3, 0.05, 0.2, 1) forwards;
+}
+
+.discY {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform: translateY(var(--fly-y));
+  animation: flyY var(--flight) var(--in) forwards;
+}
+
+/* 28px in the Sent state, 43 when it lands — the size of the disc in the GIF
+   that is about to take over from it. The colour change is inside the same
+   keyframes as the scale so the disc cannot be orange at rest, ever, whatever
+   interrupts it, and it has settled by the time the artwork appears over it. */
+.disc {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  translate: -50% -50%;
+  scale: 0.651;
+  animation: land calc(var(--flight) + 120ms) var(--out) forwards;
+}
+
+/* The loader carries across the handoff: the disc leaves the pill still
+   spinning and only stops once it is most of the way there. Without it there
+   is a beat of bare orange between the button going and the artwork arriving. */
+.discSpin {
+  --dia: 18px;
+  opacity: 1;
+  animation: fade 240ms ease 140ms forwards;
+}
+
+.winTitle {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: var(--lh);
+  color: var(--ink);
+  animation: rise 520ms var(--out) calc(var(--flight) + 140ms) backwards;
+}
+
+.winSub {
+  font-size: 14px;
+  line-height: var(--lh);
+  color: var(--ink-60);
+  text-align: center;
+  animation: rise 520ms var(--out) calc(var(--flight) + 220ms) backwards;
+}
+
+/* ===========================================================================
+   Standing down
+
+   Five seconds after the artwork appears the card offers itself again, and it
+   has to un-happen as deliberately as it happened or the reset reads as the
+   page reloading under the visitor. So it is the arrival played backwards, at
+   about half the length: the thanks drop away, the mint drains back into the
+   disc it came out of, and the form is already on its way up before the mint
+   has finished going.
+
+   Every rule here overrides a `.won` rule of the same specificity and so has
+   to stay below it in the file.
+   =========================================================================== */
+
+/* Strictly in this order. The artwork and the thanks paint above the mint, so
+   they have to be gone before it starts to go, or the last frame of the exit is
+   two lines of type sitting on the page's grey. */
+.closing .win {
+  animation: winOut 200ms var(--in) forwards;
+}
+
+/* The form paints *under* the mint, so it is already back at full strength by
+   the time the mint finishes draining off it — the card is not rebuilt in front
+   of the visitor, it is uncovered. */
+/* `both`, not `forwards`, and it is not a detail: the delay is there to let the
+   thanks clear, and during a delay an animation with no backwards fill does not
+   apply at all — so the wash fell back to its own base `circle(0%)` and the mint
+   vanished in a single frame before it had begun to drain. */
+.closing .wash {
+  animation: ebb 420ms cubic-bezier(0.4, 0, 0.55, 1) 200ms both;
+}
+
+.closing .form {
+  animation: rejoin 340ms var(--out) 240ms backwards;
+}
+
+/* Back to full strength as the resting pill, not as the open one — the phase
+   change has already closed it and emptied it. */
+.closing .cta {
+  opacity: 1;
+  transition: opacity 240ms ease 280ms;
+}
+
+/* ===========================================================================
+   Keyframes
+   =========================================================================== */
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  22% {
+    transform: translateX(-5px);
+  }
+  46% {
+    transform: translateX(4px);
+  }
+  70% {
+    transform: translateX(-2px);
+  }
+}
+
+@keyframes spoke {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.12;
+  }
+}
+
+@keyframes leave {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+    filter: blur(2px);
+  }
+}
+
+@keyframes flood {
+  to {
+    clip-path: circle(112% at 50% 78.5px);
+  }
+}
+
+/* Draining back into the point it came from, which is where the disc is still
+   sitting. The `from` is written out because the forwards-filled `flood` above
+   stops applying the moment this animation replaces it.
+
+   It starts at 80%, not at the 112% `flood` leaves behind, and that is the
+   whole reason the retreat is visible at all. A percentage radius resolves
+   against the box's diagonal over root two — 412px on a 540x219 card — and the
+   furthest corner from the disc is 304px away, so anything at or above 74%
+   covers the card completely. Draining from 112% spent the first third of the
+   animation shrinking a circle that was off-screen the whole time, and the mint
+   appeared to sit still and then vanish. */
+@keyframes ebb {
+  from {
+    clip-path: circle(80% at 50% 78.5px);
+  }
+  to {
+    clip-path: circle(0% at 50% 78.5px);
+  }
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes flyX {
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes flyY {
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* A single overshoot on arrival — the disc settling into the card rather than
+   stopping dead on it.
+
+   The colour is held flat until half way and then flips over about a tenth of
+   a second, rather than easing across the whole flight. Interpolating from the
+   moment it leaves put an olive disc in the air for 300ms with a loader still
+   turning inside it, which reads as "finished, but still working" — the one
+   thing the frame must not say. Orange while it is spinning, green when the
+   spinner has gone and the check is starting. */
+@keyframes land {
+  0% {
+    scale: 0.651;
+    background-color: var(--accent);
+  }
+  56% {
+    background-color: var(--accent);
+  }
+  /* Kept short on purpose. sRGB interpolation between this orange and this
+     green runs through olive, and the less of that there is the better. */
+  63% {
+    background-color: var(--check);
+  }
+  76% {
+    scale: 1.09;
+  }
+  100% {
+    scale: 1;
+    background-color: var(--check);
+  }
+}
+
+@keyframes fade {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes winOut {
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* The mirror of `leave`: the form comes back the way it went. */
+@keyframes rejoin {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+    filter: blur(2px);
   }
 }

@@ -1,0 +1,163 @@
+/* Figma "Custom Cursors" — node 110:8475 (Page) and 110:8476 (View Project).
+
+   The root sits exactly on the pointer and carries no size of its own; each
+   variant places itself against that one point. That is what lets the two
+   swap without the transform having to know which one is showing: the arrow
+   hangs off it by its own hotspot, the badge centres on it. */
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;
+  width: 0;
+  height: 0;
+
+  /* Never a hit target: every hover, click and :hover state must resolve
+     against the page underneath exactly as if this element weren't here. */
+  pointer-events: none;
+
+  /* Hidden until the pointer has actually reported a position, so it never
+     flashes at the top-left corner on load. */
+  opacity: 0;
+  transition: opacity 120ms linear;
+}
+
+.cursor[data-visible] {
+  opacity: 1;
+}
+
+/* --- Page (the site default) ---------------------------------------------
+
+   Figma's own measurements: a 17.962x20 glyph rotated -45deg about a point
+   1.58 left and 1.28 above the centre of the 24x24 box. The hotspot — the
+   glyph's tip, the point that has to sit on the real pointer — works out to
+   (5.39, 5.69) inside that box, which is what `.arrow` backs off by. */
+
+.arrow {
+  position: absolute;
+  left: -5.39px;
+  top: -5.69px;
+  width: 24px;
+  height: 24px;
+  transform-origin: 5.39px 5.69px;
+  transition: opacity 160ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Zero-sized, so `rotate` pivots on this exact point. */
+.pivot {
+  position: absolute;
+  left: 10.42px; /* 12 - 1.58 */
+  top: 10.72px; /* 12 - 1.28 */
+  width: 0;
+  height: 0;
+  transform: rotate(-45deg);
+}
+
+.glyph {
+  position: absolute;
+  left: -8.981px; /* centred on the pivot: -17.962 / 2 */
+  top: -10px; /* -20 / 2 */
+  width: 17.962px;
+  height: 20px;
+}
+
+/* Figma's own insets. They stretch the artwork from the glyph box out to the
+   93.784 x 95.095 the shadow needs, which is exactly the SVG's viewBox. */
+.art {
+  position: absolute;
+  inset: -84.97% -211.13% -290.51% -210.99%;
+  width: auto;
+  height: auto;
+  max-width: none;
+}
+
+/* --- View Project --------------------------------------------------------
+
+   Figma node 110:8476: a 132px disc with a 98px disc inside it. The material
+   is `.liquid` (globals.css), which gives it the same plate, hairline and
+   shadow as every other glass surface. Measured over the dark app grid in
+   References/View Projectt.png, those numbers land the interior at 71 and the
+   rim at 190-219 — the same values that land 243 and 249 over the grey page,
+   which is the check that the material is right rather than tuned per-surface.
+
+   The one thing the disc needs that a pill doesn't is `.lens` below. */
+
+.badge {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 132px;
+  height: 132px;
+  border-radius: var(--r-pill);
+
+  transform: translate(-50%, -50%) scale(0.72);
+  opacity: 0;
+  transition: opacity 160ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Refraction at the rim — the one thing in the reference a hairline can't do.
+   Over the dark app grid the icons behind the disc visibly smear round its
+   edge, so the outer band gets a second, heavier backdrop filter on top of the
+   plate's.
+
+   The mask is a radial falloff rather than the fixed-width ring this used to
+   be: a hard-edged band reads as a drawn circle, and combined with a
+   brightness bump — which is what the old version used — it read as a border.
+   There is no brightness here at all. The edge is only more refracted, never
+   lighter. */
+.lens {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  backdrop-filter: blur(10px) saturate(1.4);
+  mask-image: radial-gradient(closest-side, transparent 58%, #000 96%);
+}
+
+/* The reference's inner disc is a tone shift, not an outline — a slightly
+   thicker pour of the same glass, with no edge of its own. */
+.inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 98px;
+  height: 98px;
+  padding: 10px 12px;
+  border-radius: var(--r-pill);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.label {
+  font-weight: 600;
+  font-size: 13px;
+  line-height: var(--lh);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* --- The swap ------------------------------------------------------------ */
+
+.cursor[data-variant="view-project"] .arrow {
+  opacity: 0;
+  transform: scale(0.4);
+}
+
+.cursor[data-variant="view-project"] .badge {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Both backdrop filters are switched off while the badge is hidden. Each one
+   costs a full backdrop re-composite on every frame the element moves, and this
+   element moves on every frame there is — at opacity 0 that would be paid for
+   nothing, all the way across the page. */
+.cursor:not([data-variant="view-project"]) .badge::before,
+.cursor:not([data-variant="view-project"]) .lens {
+  backdrop-filter: none;
+}

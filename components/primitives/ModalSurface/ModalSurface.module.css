@@ -1,0 +1,178 @@
+/* The shell every modal on the site is drawn in: the plate, its entry and
+   exit, and the sticky control cluster in the top right.
+   Content geometry belongs to the modal, not to this file. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+
+  /* Below CanvasCursor's z-index and above everything else. A native <dialog>
+     would have been less code, but the top layer paints above *every*
+     non-top-layer element including the custom cursor — and with `cursor: none`
+     set globally that leaves the modal with no pointer at all. */
+  z-index: 900;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  background-color: var(--page-base);
+  background-image: linear-gradient(
+    var(--page-wash-angle),
+    var(--page-wash-from) 0%,
+    var(--page-wash-to) 100%
+  );
+
+  /* --- Entry and exit -------------------------------------------------------
+     Two paths, and they stay separate on purpose.
+
+     Where the browser has view transitions, the whole thing arrives as the
+     card morphing into its hero (see globals.css) and this transition is over
+     before it starts — `data-enter` is set on the first frame, and the browser
+     is showing a snapshot until the morph lands.
+
+     Where it doesn't, this is the entry: the plate rises and scales in, and
+     the content follows it in stages below, so the page assembles instead of
+     appearing all at once. Exit reverses faster and without the stagger —
+     leaving should be decisive. */
+  opacity: 0;
+  transform: scale(0.96) translateY(8px);
+  transition: opacity 260ms ease, transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.overlay[data-enter] {
+  opacity: 1;
+  transform: none;
+}
+
+.overlay[data-exit] {
+  opacity: 0;
+  transform: scale(0.985);
+  transition: opacity 200ms ease, transform 240ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* The stagger. Each block starts a beat after the one above it, so the eye
+   follows the page down as it settles. Keyed on `data-stage` rather than on
+   the consumer's own class names — attribute selectors aren't scoped by CSS
+   Modules, so one declaration here serves every modal.
+
+   The hero is given longer and a scale rather than a lift, so the heaviest
+   thing on the page moves like the heaviest thing on the page. */
+.overlay[data-enter] [data-stage] {
+  animation: modal-rise 520ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.overlay[data-enter] [data-stage="title"] {
+  animation-delay: 40ms;
+}
+
+.overlay[data-enter] [data-stage="hero"] {
+  animation: modal-swell 640ms cubic-bezier(0.16, 1, 0.3, 1) 100ms backwards;
+}
+
+.overlay[data-enter] [data-stage="body"] {
+  animation-delay: 170ms;
+}
+
+.overlay[data-enter] [data-stage="rule"] {
+  animation-delay: 220ms;
+}
+
+.overlay[data-enter] [data-stage="meta"] {
+  animation-delay: 250ms;
+}
+
+@keyframes modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes modal-swell {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+/* The morph is the motion on that path; a stagger on top of it reads as two
+   separate events rather than one. */
+@supports (view-transition-name: none) {
+  @media not (prefers-reduced-motion: reduce) {
+    .overlay {
+      transition: none;
+    }
+
+    .overlay[data-enter] [data-stage] {
+      animation: none;
+    }
+  }
+}
+
+/* --- Controls --------------------------------------------------------------
+   48px in from the top and right, and sticky: a case study frame is 2690px
+   tall, and a close button that scrolls away on a page this long is a close
+   button you have to scroll back for. */
+
+.controls {
+  position: sticky;
+  top: 48px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  height: 64px;
+  margin: 48px 48px 60px; /* Figma's own 60px gap down to the content */
+}
+
+/* Figma node 67:4229 — 64x64, radius 60, wearing the same liquid glass as the
+   CTAs. The close glyph is two 2x23.756 rounded bars at ±45deg, not an icon
+   file. */
+.action {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 60px;
+  color: var(--ink);
+}
+
+.action:hover {
+  --liquid-body: 0.3;
+  --liquid-shade: 0.13;
+  --liquid-gloss: 0.8;
+  --liquid-spec: 0.28;
+
+  transform: scale(1.015);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12),
+    0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* Classed rather than `.action span`, which also caught the button's own
+   .srOnly label and drew it as a third stroke. */
+.bar {
+  position: absolute;
+  width: 2px;
+  height: 23.756px;
+  border-radius: 12px;
+  /* currentColor, not #000: .action sets `color: var(--ink)`, so the glyph
+     follows the theme instead of vanishing into a dark plate. */
+  background-color: currentColor;
+}
+
+.barBack {
+  transform: rotate(-45deg);
+}
+
+.barForward {
+  transform: rotate(45deg);
+}
+
+@media (max-width: 900px) {
+  .controls {
+    top: 24px;
+    margin: 24px 24px 40px;
+  }
+}

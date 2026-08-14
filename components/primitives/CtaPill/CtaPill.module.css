@@ -1,3 +1,11 @@
+/* Figma "CTA - Light Mode", nodes 80:7607 (Default) / 80:7618 (Hover).
+   The material is `.liquid` in globals.css; this file only sets the box and
+   the four numbers that separate the two states.
+
+   No `squircle`: at radius 100 on a 48px box both ends are already fully
+   round, so corner smoothing has nothing left to smooth and only flattens the
+   stadium into a rounded rectangle. Figma renders it as a true stadium. */
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -6,21 +14,30 @@
   height: 48px;
   padding: 10px 16px;
   border-radius: var(--r-pill);
-
-  /* Figma: linear 108.36deg, #FFFFFF @.6 -> #D9D9D9 @.6, GLASS blur 11 */
-  background-image: var(--cta-fill);
-  backdrop-filter: blur(11px);
-  -webkit-backdrop-filter: blur(11px);
-
-  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Hover is the material thickening, not a colour change. Measured off the
+   hover reference: the band under the top rim deepens from 234 to 223, the far
+   side brightens from 247 to 249, and the cast shadow tightens from a 7px
+   falloff to about 1.5px while a faint ambient halo appears *above* the pill —
+   the pill coming up off the page rather than pressing into it.
+
+   Figma's hover variant tints the far gradient stop green; the reference
+   screenshots have no colour anywhere, and they win. `--liquid-tint` is still
+   there if that decision reverses. */
 .pill:hover {
-  transform: translateY(-1px);
+  --liquid-body: 0.3;
+  --liquid-shade: 0.13;
+  --liquid-gloss: 0.8;
+  --liquid-spec: 0.28;
+
+  transform: scale(1.015);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12),
+    0 8px 18px rgba(0, 0, 0, 0.06);
 }
 
 .pill:active {
-  transform: translateY(0);
+  transform: scale(1);
 }
 
 .icon {

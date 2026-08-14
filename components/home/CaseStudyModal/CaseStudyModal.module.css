@@ -1,0 +1,215 @@
+/* Figma "Case Study - Modal" — node 62:3688, a 1440-wide frame.
+   Content column 1120 (so 160 either side), text blocks 960 inside that.
+
+   The plate, its entry and exit, and the control cluster live in
+   ModalSurface.module.css — everything here is this modal's own content.
+   Blocks carry `data-stage` so the shell can stage them on the no-morph path. */
+
+.inner {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 0 48px 160px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+  width: 100%;
+}
+
+/* The `view-transition-name`s for this modal are set inline in index.tsx, not
+   here: CSS Modules scopes them the same way it scopes class names, so a name
+   written in this file arrives in the browser as
+   `CaseStudyModal-module__NKAC5q__modal-title` and the `::view-transition-*`
+   selectors in globals.css never match it. Inline styles are not scoped. */
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 960px;
+}
+
+.title {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 40px;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.subtitle {
+  font-size: 24px;
+  line-height: var(--lh);
+  color: var(--ink-70);
+}
+
+/* --- The mockup ------------------------------------------------------------
+   Figma node 68:4844 — 1120x700, radius 48. Built from its three layers rather
+   than shipped as one flat export, because the screen has to be live.
+
+   Every offset below is Figma's, expressed against the 1120x700 frame so the
+   whole composite scales with the viewport instead of stranding the device
+   when the modal is narrower than the design. */
+
+.mockup {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1120 / 700;
+  border-radius: 48px;
+  overflow: hidden;
+  background-color: var(--surface-solid);
+}
+
+.plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Figma's "Background" (77:7493) — the hand's rect, and nothing else. The
+   screen's position inside it belongs to DeviceMockup, which the card renders
+   too. It runs off the bottom of the frame and is clipped, as in Figma. */
+.device {
+  left: 30.143%; /* 337.6 / 1120 */
+  top: 8.436%; /* 59.05 / 700 */
+  width: 57.571%; /* 644.8 / 1120 */
+  height: 132.993%; /* 930.949 / 700 */
+}
+
+/* Not in Figma. The recording runs on its own here, and anything that plays
+   without being asked needs a way to be told to stop. */
+.playback {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.playToggle {
+  /* The only glass on the site that sits on a photograph rather than the page.
+     The plate is carrying a dark driveway here, so it takes more white to stay
+     a light control and none of the colour boost — see --liquid-sat. */
+  --liquid-body: 0.5;
+  --liquid-sat: 100%;
+
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-pill);
+  color: var(--ink);
+}
+
+.playToggle:hover {
+  --liquid-body: 0.62;
+  --liquid-shade: 0.13;
+  --liquid-gloss: 0.8;
+  --liquid-spec: 0.24;
+
+  transform: scale(1.015);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12),
+    0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+.body {
+  width: 100%;
+  max-width: 960px;
+  font-size: 24px;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.separator {
+  width: 600px;
+  max-width: 100%;
+  height: 0;
+  border-top: 1px dashed rgba(0, 0, 0, 0.25);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 64px;
+  width: 100%;
+  max-width: 960px;
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: none;
+}
+
+/* Skills runs long and is the only column allowed to take the slack. */
+.metaItem:last-child {
+  flex: 1 0 0;
+  min-width: 240px;
+}
+
+.metaLabel {
+  font-size: 15px;
+  line-height: var(--lh);
+  color: var(--ink-70);
+}
+
+.metaValue {
+  font-weight: 500;
+  font-size: 17px;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+/* --- Narrow viewports ------------------------------------------------------
+   The design is a fixed 1440 frame; below it everything simply gets closer
+   together. Nothing reflows, because nothing in the layout is side-by-side
+   except the meta row, which already wraps. */
+
+@media (max-width: 900px) {
+  .inner {
+    padding: 0 24px 96px;
+  }
+
+  .content,
+  .intro {
+    gap: 40px;
+  }
+
+  .title {
+    font-size: 30px;
+  }
+
+  .subtitle,
+  .body {
+    font-size: 18px;
+  }
+
+  .mockup {
+    border-radius: 28px;
+  }
+
+  .meta {
+    gap: 32px;
+  }
+}

@@ -1,9 +1,25 @@
-/* Figma node 1:198 — 256x116, radius 20, surface #FFF @0.7 */
+/* Figma node 244:9495 — 260x116, radius 32, surface #FFF @0.7 */
 
+/* The one card in the top row that stretches. About Me and Workspace are
+   fixed, so whatever width a viewport has past 1440 arrives here and every
+   gutter in the row stays 32px. At 1440 this resolves to exactly 260. The
+   three pieces inside are anchored accordingly: DES to the left edge, ENG to
+   the right, and the route between them stretches to keep them joined. */
 .card {
-  width: 256px;
+  flex: 1 1 auto;
+  min-width: 0;
   height: 116px;
-  flex: none;
+}
+
+/* Stretching is only meaningful while the top row is a single line. Once it
+   wraps there is no spare width to absorb — and a flexible card in a wrapped
+   row is squeezed to nothing — so it goes back to the width it was drawn at. */
+@media (max-width: 1000px) {
+  .card {
+    flex: none;
+    width: 260px;
+    max-width: 100%;
+  }
 }
 
 .start,
@@ -21,7 +37,7 @@
 
 .dest {
   top: 47px;
-  left: 174px;
+  right: 16px;
   align-items: flex-end;
 }
 
@@ -31,6 +47,21 @@
   font-weight: 700;
   font-size: 22px;
   line-height: var(--lh);
+}
+
+/* One side is lit at a time, and the accent is what marks it. The card ships
+   in the Designer state, so those are the plain declarations; the Engineer
+   state below is the same rule with the sides exchanged.
+
+   `transit` — the plane is in the air — lights neither. The accent has left
+   DES and has not yet arrived at ENG; while it is between them it exists only
+   as the orange stretch of route behind the plane. */
+
+.abbrFrom,
+.abbrTo,
+.labelFrom,
+.labelTo {
+  transition: color 280ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .abbrFrom {
@@ -56,24 +87,66 @@
   color: var(--ink-40);
 }
 
+.card[data-focus="transit"] .abbrFrom,
+.card[data-focus="engineer"] .abbrFrom {
+  color: var(--ink);
+}
+
+.card[data-focus="transit"] .labelFrom,
+.card[data-focus="engineer"] .labelFrom {
+  color: var(--ink-40);
+}
+
+.card[data-focus="engineer"] .abbrTo {
+  color: var(--accent);
+}
+
+.card[data-focus="engineer"] .labelTo {
+  color: var(--accent);
+}
+
 /* Both elements are rotated on the Figma canvas; sizes and angles below are
    the nodes' own dimensions and rotations, centred on their bounding boxes. */
 
 /* The path node is vertically flipped on the canvas (its matrix determinant is
    -1), which a plain rotation can't express — so this is Figma's
    relativeTransform applied verbatim, same approach as the Inspection hand. */
+/* Width, not height, carries the card's stretch: DES is pinned left and ENG
+   right, so the extra pixels all land between them. `preserveAspectRatio="none"`
+   on the element lets the viewBox follow, which is what keeps the route joined
+   to both ends instead of stopping 114px in and leaving ENG stranded.
+
+   `max()` because the card may also be squeezed below its design width on a
+   narrow desktop; the route stops shrinking at the length it was drawn. */
 .journey {
   position: absolute;
   top: 0;
   left: 0;
-  width: 114.21px;
+  display: block;
+  width: max(114.21px, calc(114.21px + 100% - 260px));
   height: 35.43px;
+  overflow: visible;
   transform-origin: 0 0;
-  transform: matrix(0.9961, -0.0886, -0.0886, -0.9961, 71.4301, 78.336);
+  transform: matrix(0.9961, -0.0886, -0.0886, -0.9961, 73.43, 78.336);
+}
+
+/* The stretch of route the plane has just flown, in accent. Same path, same
+   dash phase, so it covers the grey dashes exactly — this is the existing
+   route lighting up, not a second line drawn over it. Masked to a short window
+   that travels with the plane, so it only ever exists while something is
+   moving, and the resting states stay exactly as designed. */
+.trail {
+  opacity: 0;
 }
 
 /* White disc with a hairline border — easy to miss, but it's what lifts the
-   plane off the dashed path. */
+   plane off the dashed path.
+
+   The shadow is the altitude. Figma's card has none, and at rest there is none
+   here either: `--alt` is 0 until the plane leaves the ground, and every term
+   below collapses to the design. Off the ground the shadow drops further and
+   softens, which — with the scale on the same number — is the whole of how a
+   plan view says "climbing". */
 .planeBadge {
   position: absolute;
   top: 29.03px;
@@ -86,10 +159,138 @@
   border: 1px solid var(--ink-20);
   border-radius: 50%;
   background-color: #ffffff;
+  box-shadow: 0 calc(1px + 5px * var(--alt, 0)) calc(2px + 10px * var(--alt, 0))
+    rgba(0, 0, 0, calc(0.03 + 0.13 * var(--alt, 0)));
+  will-change: transform;
 }
 
 .plane {
   width: 14.3px;
   height: 15.56px;
+  /* Figma's angle. It is exactly the route's tangent here plus 90deg, which is
+     what tells you the plane was meant to fly the route rather than sit on it —
+     the flight keeps that relationship the whole way round. */
   transform: rotate(77.39deg);
+  will-change: transform;
+}
+
+/* --- Exhaust ---------------------------------------------------------------
+   A 32px box tracking the badge exactly, rotated with the nose, with the plume
+   drawn out of its trailing edge. Sized and placed off the badge's own numbers
+   so the two can never drift apart.
+
+   `--thrust` is written per frame from the flight's throttle: full through the
+   climb-out, about half at cruise, nothing on the approach. It is the same
+   number the engine note is reading, which is why they agree. */
+
+.thrust {
+  position: absolute;
+  top: 29.03px;
+  left: 74.5px;
+  width: 32px;
+  height: 32px;
+  opacity: var(--thrust, 0);
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+/* The plane's local +y is behind it — the nose points up in the icon's own
+   frame — so the plume hangs off the bottom of this box and grows downward. */
+.thrust::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 62%;
+  width: 9px;
+  height: 30px;
+  transform: translateX(-50%) scaleY(calc(0.45 + 0.55 * var(--thrust, 0)));
+  transform-origin: 50% 0;
+  border-radius: 50%;
+  background: linear-gradient(
+    180deg,
+    rgba(234, 88, 11, 0.55) 0%,
+    rgba(234, 88, 11, 0.22) 42%,
+    rgba(234, 88, 11, 0) 100%
+  );
+  filter: blur(2.5px);
+}
+
+/* --- Dust ------------------------------------------------------------------
+   The wheels arriving. A zero-sized anchor moved to the touchdown point and
+   rotated onto the direction of travel, so everything inside it is thrown out
+   behind the aircraft rather than sprayed in a circle.
+
+   Everything is inert until `data-puff` appears, and it is put back by hand on
+   every landing — see `puff()`, which forces a reflow between removing and
+   re-adding it so the animation actually restarts. */
+
+.dust {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.dust > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  border-radius: 50%;
+  background-color: rgba(34, 34, 34, 0.34);
+  filter: blur(1.5px);
+}
+
+.puffRing {
+  width: 20px;
+  height: 7px;
+  margin: -3.5px 0 0 -10px;
+}
+
+.grain {
+  width: 5px;
+  height: 4px;
+  margin: -2px 0 0 -2.5px;
+}
+
+.dust[data-puff] .puffRing {
+  animation: de-dust-ring 560ms cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+}
+
+.dust[data-puff] .grain {
+  animation: de-dust-grain 620ms cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+}
+
+/* The second grain leaves later, goes further and drifts the other side of the
+   track — two identical puffs read as one symmetrical shape rather than as
+   debris. */
+.dust[data-puff] .grain:last-child {
+  animation-delay: 70ms;
+  animation-duration: 700ms;
+  --grain-x: -22px;
+  --grain-y: 5px;
+}
+
+@keyframes de-dust-ring {
+  from {
+    opacity: 0.5;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+@keyframes de-dust-grain {
+  from {
+    opacity: 0.42;
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--grain-x, -17px), var(--grain-y, -5px)) scale(0.35);
+  }
 }

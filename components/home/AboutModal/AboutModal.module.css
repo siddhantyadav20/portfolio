@@ -1,0 +1,178 @@
+/* Built to the case study's measurements — 1120 content column, 960 text
+   blocks — so the two readers feel like the same publication. The plate and the
+   controls belong to ModalSurface. */
+
+.inner {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 0 48px 160px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+  width: 100%;
+}
+
+/* The `view-transition-name`s are set inline in index.tsx, not here: CSS
+   Modules scopes them the same way it scopes class names, so a name written in
+   this file would arrive in the browser prefixed and the `::view-transition-*`
+   selectors in globals.css would never match it. */
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 960px;
+}
+
+.title {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 40px;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.subtitle {
+  font-size: 24px;
+  line-height: var(--lh);
+  color: var(--ink-70);
+}
+
+/* --- The hero --------------------------------------------------------------
+   A circle, not a plate. It is the far end of the morph the card starts, and
+   the card's portrait is a circle — matching the shape at both ends is what
+   keeps the transition a pure scale. */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.portrait {
+  position: relative;
+  width: 360px;
+  height: 360px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background-color: var(--surface-solid);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 18px 48px rgba(0, 0, 0, 0.08);
+}
+
+.portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Where the orbit ends up. Same pills, at rest. */
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tool {
+  --liquid-body: 0.55;
+
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-pill);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 960px;
+  font-size: 24px;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.separator {
+  width: 600px;
+  max-width: 100%;
+  height: 0;
+  border-top: 1px dashed rgba(0, 0, 0, 0.25);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 64px;
+  width: 100%;
+  max-width: 960px;
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: none;
+}
+
+.metaItem:last-child {
+  flex: 1 0 0;
+  min-width: 240px;
+}
+
+.metaLabel {
+  font-size: 15px;
+  line-height: var(--lh);
+  color: var(--ink-70);
+}
+
+.metaValue {
+  font-weight: 500;
+  font-size: 17px;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .inner {
+    padding: 0 24px 96px;
+  }
+
+  .content,
+  .intro {
+    gap: 40px;
+  }
+
+  .title {
+    font-size: 30px;
+  }
+
+  .subtitle,
+  .body {
+    font-size: 18px;
+  }
+
+  .portrait {
+    width: 240px;
+    height: 240px;
+  }
+
+  .meta {
+    gap: 32px;
+  }
+}

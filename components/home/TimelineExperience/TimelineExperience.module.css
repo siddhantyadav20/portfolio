@@ -1,9 +1,9 @@
-/* Figma node 1:69 — 279x327 visual box, no fill.
+/* Figma node 244:9388 — 275x327 visual box, no fill.
    The ruler overhangs the top of the card by 92px, exactly as in Figma. */
 
 .card {
   position: relative;
-  width: 279px;
+  width: 275px;
   height: 327px;
   flex: none;
 
@@ -19,7 +19,7 @@
 .scale {
   position: absolute;
   top: -92px;
-  left: 199px;
+  left: 195px;
   width: 80px;
   height: 371px;
 }
@@ -137,7 +137,7 @@
 
 /* Ruler and content are absolutely placed, so keep the design box and pull the
    overhanging ruler back inside once there's no room for it to bleed. */
-@media (max-width: 1180px) {
+@media (max-width: 1000px) {
   .card {
     max-width: 100%;
     height: 420px;

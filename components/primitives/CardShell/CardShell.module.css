@@ -26,7 +26,6 @@
 .glass {
   background-color: var(--surface-glass);
   backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
 }
 
@@ -47,4 +46,7 @@
 }
 .r32 {
   border-radius: var(--r-xl);
+}
+.r48 {
+  border-radius: var(--r-2xl);
 }
