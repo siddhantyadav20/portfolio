@@ -1,0 +1,79 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background-color: var(--surface-solid);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1), 0 18px 40px rgba(0, 0, 0, 0.15);
+}
+
+.cover {
+  height: 86px;
+  overflow: hidden;
+  background-color: var(--ink-20);
+}
+
+.coverArt {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Overlapping the cover's lower edge — the detail that makes it read as a
+   LinkedIn profile rather than as a generic card with a photo on top. */
+.avatar {
+  position: absolute;
+  top: 58px;
+  left: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--surface-solid);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 26px 20px 0;
+}
+
+.name {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-strong);
+}
+
+.role {
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  color: var(--ink-50);
+}
+
+.blurb {
+  margin-top: 8px;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-70);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: auto 20px 18px;
+  padding: 9px 0;
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-pill);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--blue);
+}

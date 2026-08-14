@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" shape-rendering="crispEdges">
+  <!-- Transcribed from the Framer canvas. Drawn at full opacity because this
+       file is used as a CSS mask, not as an image: the colour and the overall
+       strength come from the page's theme (see WorkspaceCanvas.module.css), so
+       the grid can be white-on-dark and ink-on-light from one asset.
+
+       The relative weights Framer gave it are preserved as alpha — the 80px
+       cell border reads heavier than the 16px sub-grid, which is what stops
+       the whole thing collapsing into noise when zoomed out. -->
+  <g stroke="#fff" fill="none">
+    <g stroke-width="0.5" opacity="0.66">
+      <line x1="0" y1="16" x2="80" y2="16"/>
+      <line x1="0" y1="32" x2="80" y2="32"/>
+      <line x1="0" y1="48" x2="80" y2="48"/>
+      <line x1="0" y1="64" x2="80" y2="64"/>
+      <line x1="16" y1="0" x2="16" y2="80"/>
+      <line x1="32" y1="0" x2="32" y2="80"/>
+      <line x1="48" y1="0" x2="48" y2="80"/>
+      <line x1="64" y1="0" x2="64" y2="80"/>
+    </g>
+    <rect x="0" y="0" width="80" height="80" stroke-width="0.75"/>
+    <!-- The diagonals. These are what make it read as drafting paper rather
+         than graph paper, and they are the detail the first pass missed. -->
+    <g stroke-width="0.5" opacity="0.66">
+      <line x1="0" y1="0" x2="80" y2="80"/>
+      <line x1="80" y1="0" x2="0" y2="80"/>
+    </g>
+  </g>
+</svg>

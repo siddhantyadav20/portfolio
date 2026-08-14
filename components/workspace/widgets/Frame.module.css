@@ -1,0 +1,49 @@
+.frame {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  padding: 14px;
+  text-align: center;
+  border-radius: var(--r-md);
+  border: 1px dashed var(--ink-40);
+}
+
+.label {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--ink-50);
+}
+
+.hint {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.light {
+  background-color: var(--surface-solid);
+}
+
+/* The terminal and the scratch card are dark objects on the desk in both
+   themes on the reference board. */
+.dark {
+  border-color: rgba(255, 255, 255, 0.22);
+  background-color: #16181b;
+}
+
+.dark .label { color: rgba(255, 255, 255, 0.62); }
+.dark .hint  { color: rgba(255, 255, 255, 0.34); }
+
+/* Thermal paper — the receipt. */
+.paper {
+  border-color: rgba(255, 255, 255, 0.18);
+  background-color: #222;
+}
+
+.paper .label { color: #d9d9d9; }
+.paper .hint  { color: rgba(217, 217, 217, 0.45); }

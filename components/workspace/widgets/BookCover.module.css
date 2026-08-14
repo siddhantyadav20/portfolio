@@ -1,0 +1,29 @@
+.book {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 2px 5px 5px 2px;
+  overflow: hidden;
+  background-color: #1a1a1a;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3), 0 16px 34px rgba(0, 0, 0, 0.34);
+}
+
+.art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 9px;
+  background-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.42),
+    rgba(0, 0, 0, 0.12) 60%,
+    rgba(255, 255, 255, 0.12)
+  );
+}

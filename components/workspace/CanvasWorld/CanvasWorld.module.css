@@ -1,0 +1,20 @@
+/* The board. One transformed layer holding everything.
+
+   `transform-origin: 0 0` so the camera's translate/scale composition matches
+   the arithmetic in lib/camera.ts (screen = world * scale + x). Any other
+   origin adds a term that then has to be cancelled everywhere else. */
+
+.world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* One positioned box per widget. The widget fills it and knows nothing about
+   where on the board it is — placement is data (content/workspace.ts), not
+   something each component re-decides. */
+.slot {
+  position: absolute;
+}

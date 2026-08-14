@@ -1,0 +1,143 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  height: 100%;
+  padding: 26px 28px;
+  border-radius: var(--r-lg);
+  background-color: var(--surface-solid);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), 0 24px 60px rgba(0, 0, 0, 0.16);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.name {
+  font-family: var(--font-ui);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink-strong);
+}
+
+.role {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink-50);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.para {
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-70);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border: 1px solid var(--ink-20);
+  border-radius: 10px;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  color: var(--ink-70);
+}
+
+/* Figma's "NEW" tag rides the button's top-left corner rather than sitting
+   inside it, so it reads as an annotation on the button, not a label in it. */
+.badge {
+  position: absolute;
+  top: -8px;
+  left: 6px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background-color: var(--blue);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+
+.updates {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--ink-20);
+}
+
+.updatesLabel {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+}
+
+.update {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+}
+
+.dot {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background-color: var(--ink-40);
+}
+
+.updateText {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-70);
+}
+
+.when {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--ink-40);
+}
