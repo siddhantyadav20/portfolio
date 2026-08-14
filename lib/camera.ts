@@ -433,11 +433,23 @@ export function createCamera(worldW: number, worldH: number) {
       settle(cy, ty, omegaXY, dt);
       settle(cs, ts, omegaS, dt);
 
-      // Scale moves the legal range under us, so the targets have to be
-      // re-derived while the zoom is still travelling — otherwise a flight
-      // that also zooms lands slightly outside the world and snaps at the end.
-      tx = clampX(tx, cs.v);
-      ty = clampY(ty, cs.v);
+      /* The targets are deliberately NOT re-clamped here.
+
+         They used to be, against the *in-flight* scale, on the theory that a
+         zooming flight would otherwise land outside the world. That was wrong
+         twice over: flyToRaw already clamps against `ts`, the scale being
+         flown to, which is the only range that matters at the destination —
+         and re-clamping against the current scale actively destroys the
+         target. Zoom out until the world is narrower than the viewport and
+         the legal range for x collapses to a single centred value, so the
+         first frame of a flight home overwrote its own destination with that
+         value and the camera landed against the board's left edge instead of
+         at the middle. Pressing R from full zoom-out missed by half a
+         viewport, every time.
+
+         Mid-flight the camera may sit briefly outside the range for the scale
+         it is passing through. That is invisible and resolves on arrival,
+         which is a far better trade than not arriving. */
 
       const done =
         Math.abs(tx - cx.v) <= EPS_PX &&

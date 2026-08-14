@@ -79,6 +79,20 @@ export default function WorkspaceCanvas({ onClose }: Props) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
+      // Widgets with a text field of their own get Escape first — the terminal
+      // is a real prompt, and closing the whole canvas because someone
+      // abandoned a half-typed command would be its own small betrayal. Blur
+      // instead, and a second Escape closes as usual.
+      const active = document.activeElement;
+      if (
+        active instanceof HTMLElement &&
+        (active.tagName === "INPUT" ||
+          active.tagName === "TEXTAREA" ||
+          active.isContentEditable)
+      ) {
+        active.blur();
+        return;
+      }
       e.preventDefault();
       close();
     }
@@ -160,8 +174,26 @@ export default function WorkspaceCanvas({ onClose }: Props) {
 
     function onPointerDown(e: PointerEvent) {
       // Left button only, and never on something that wants the click itself.
+      //
+      // The second test is not optional decoration. Starting a drag calls
+      // setPointerCapture on the surface, which redirects the rest of that
+      // pointer's events away from whatever was actually clicked — so a button
+      // that falls through to here never receives its click at all. That is
+      // what broke the theme toggle and the close cross: they sit in the
+      // canvas's own chrome and carried no marker, so every click on them was
+      // silently eaten by a one-pixel pan.
+      //
+      // Native controls are matched by tag as well as by the explicit marker,
+      // so the next widget with a button in it cannot reintroduce this.
       if (e.button !== 0) return;
-      if ((e.target as HTMLElement).closest("[data-canvas-interactive]")) return;
+      const target = e.target as HTMLElement;
+      if (
+        target.closest(
+          "[data-canvas-interactive], button, a, input, textarea, select, [role='button']",
+        )
+      ) {
+        return;
+      }
 
       dragging = true;
       surface!.setPointerCapture(e.pointerId);
@@ -268,7 +300,7 @@ export default function WorkspaceCanvas({ onClose }: Props) {
           transformed on a per-frame basis. Same 64px discs, same 16px gap and
           same corner inset as ModalSurface's cluster, so closing the canvas
           and closing a case study look like the same gesture. */}
-      <div className={styles.controls}>
+      <div className={styles.controls} data-canvas-interactive="">
         <ThemeToggle />
 
         <button

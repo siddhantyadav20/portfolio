@@ -111,6 +111,17 @@ export default function CanvasCursor() {
       else show();
 
       const variant = t?.closest(VARIANT_TARGET)?.getAttribute("data-cursor");
+
+      // `data-cursor="none"` means the surface draws its own pointer and this
+      // one would be a second cursor on screen — the drawing canvas has a
+      // brush ring, the scratch card has a coin. Suppress ours entirely
+      // rather than swapping it for a variant.
+      if (variant === "none") {
+        hide();
+        el!.removeAttribute("data-variant");
+        return;
+      }
+
       if (variant) el!.setAttribute("data-variant", variant);
       else el!.removeAttribute("data-variant");
 
