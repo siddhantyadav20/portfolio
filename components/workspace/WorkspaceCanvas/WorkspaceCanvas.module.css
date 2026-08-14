@@ -1,0 +1,147 @@
+/* The canvas surface.
+
+   Fixed rather than a flow element: it is a viewport onto the board, and it
+   must not participate in the page's scrolling in any way. `overflow: hidden`
+   is what makes the world's 4000x3000 box a window rather than a scrollbar. */
+
+.surface {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--page-base);
+
+  /* Every gesture on this surface belongs to the camera. Without this the
+     browser claims vertical drags for page scroll on touch, and the canvas
+     only pans sideways. */
+  touch-action: none;
+
+  /* The pointer is a custom element (see CanvasCursor) and `cursor: none` is
+     global, so grab / grabbing states cannot be expressed here — they are a
+     CanvasCursor variant, and are wired up with the rest of the chrome. */
+}
+
+/* The grid.
+
+   Drafting paper, not graph paper: a 16px sub-grid, an 80px cell border at a
+   heavier weight, and both diagonals of every cell. The diagonals are the
+   whole character of it.
+
+   Painted as a *mask* over a flat colour rather than as a background image,
+   for one reason: a data-URI SVG bakes its stroke colour in, and this grid has
+   to be white-on-dark in one theme and ink-on-light in the other. Masking a
+   themed colour with a monochrome stencil gets both from one asset.
+
+   It lives on a pseudo-element on the fixed surface, so panning costs one
+   mask-position write per frame instead of repainting a 3000x3000 layer. The
+   camera writes --grid-pitch / --grid-x / --grid-y on `.surface`; custom
+   properties inherit into ::before, which is what makes that reachable at all. */
+.surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  background-color: var(--ink);
+  opacity: 0.16;
+
+  mask-image: url("/media/workspace/grid.svg");
+  mask-repeat: repeat;
+  mask-size: var(--grid-pitch, 80px) var(--grid-pitch, 80px);
+  mask-position: var(--grid-x, 0px) var(--grid-y, 0px);
+}
+
+/* --- Controls --------------------------------------------------------------
+
+   The theme toggle and the close cross, fixed to the viewport's top-right.
+
+   Same 64px discs, same 16px gap and same 48px inset as ModalSurface's
+   cluster, and built from the same `.liquid` material — closing the workspace
+   and closing a case study should read as one gesture that the site has, not
+   as two similar buttons.
+
+   This is also the only place on the canvas where glass is allowed. Nothing
+   here is inside the transformed world, so its backdrop-filter is composited
+   once rather than on every frame of a pan.
+   --------------------------------------------------------------------------- */
+
+.controls {
+  position: absolute;
+  top: 48px;
+  right: 48px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 64px;
+}
+
+/* Figma node 67:4229 — 64x64, radius 60. The close glyph is two 2x23.756
+   rounded bars at ±45deg, not an icon file. */
+.action {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 60px;
+  color: var(--ink);
+}
+
+.action:hover {
+  --liquid-body: 0.3;
+  --liquid-shade: 0.13;
+  --liquid-gloss: 0.8;
+  --liquid-spec: 0.28;
+
+  transform: scale(1.015);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12),
+    0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* Classed rather than `.action span`, which would also catch the button's own
+   .srOnly label and draw it as a third stroke. */
+.bar {
+  position: absolute;
+  width: 2px;
+  height: 23.756px;
+  border-radius: 12px;
+  background-color: currentColor;
+}
+
+.barBack {
+  transform: rotate(-45deg);
+}
+
+.barForward {
+  transform: rotate(45deg);
+}
+
+/* --- Hint ---------------------------------------------------------------- */
+
+.hint {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 18px;
+  border-radius: var(--r-pill);
+
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--ink-50);
+  white-space: nowrap;
+
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-shadow);
+
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .controls {
+    top: 24px;
+    right: 24px;
+  }
+}
