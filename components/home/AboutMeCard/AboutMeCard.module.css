@@ -1,27 +1,58 @@
-/* Figma node 21:2476 — 100x116, radius 16, pad 12 top/bottom, space-between */
+/* Figma node 244:9505 — 134x116, radius 32, pad 12 top/bottom, space-between.
+
+   The wrapper exists because the tool pills orbit the card's *border* and cards
+   clip their contents. It is also what the cursor-proximity field moves —
+   `data-prox-card` is on it, not on the shell — so the pills travel with the
+   card when the page gathers around it. The transform below is CardShell's,
+   moved out here for exactly that reason. */
+
+.wrap {
+  position: relative;
+  flex: none;
+  width: 134px;
+  height: 116px;
+
+  /* Written by the cursor-proximity controller; inert until then. */
+  --prox-x: 0px;
+  --prox-y: 0px;
+  --prox-s: 1;
+  transform: translate3d(var(--prox-x), var(--prox-y), 0) scale(var(--prox-s));
+  will-change: transform;
+}
 
 .card {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  width: 100px;
-  height: 116px;
+  width: 100%;
+  height: 100%;
   padding: 12px 0;
-  flex: none;
+  text-align: center;
 }
 
+/* The recoil. `--photo-s` is written by the loop: the portrait dips as the
+   pills are thrown and swells as it catches them again. */
 .photo {
   display: block;
   width: 32px;
   height: 32px;
+  transform: scale(var(--photo-s, 1));
+}
+
+/* Separate from `.photo` so the scale above and the morph below never share an
+   element — this is what the card hands to the modal. */
+.portrait {
+  display: block;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   border: 1px solid var(--ink-20);
   border-radius: var(--r-pill);
   background-color: #fff;
 }
 
-.photo :global(img) {
+.portrait :global(img) {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -46,4 +77,62 @@
   font-size: 20px;
   line-height: var(--lh);
   color: var(--ink);
+}
+
+/* --- The orbit -------------------------------------------------------------
+   A layer over the card, the same size as it, unclipped. Every pill is parked
+   at its top-left corner and put where it belongs by a transform, so the loop
+   writes one property per pill per frame and never touches layout.
+
+   Inert to the pointer, deliberately: these are scenery for the card
+   underneath, and a pill drifting under the cursor must not read as the
+   cursor having left the card. */
+
+.orbit {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.pill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+
+  /* Behind the portrait, at rest — the loop opens both of these. */
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* The material, as its own element rather than on `.pill`: `.liquid` carries a
+   280ms transform transition for its hover states, and the loop writes a
+   transform every frame. The two cannot share a box. */
+.glass {
+  --liquid-body: 0.72;
+  --liquid-gloss: 0.7;
+
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--r-pill);
+
+  /* Tighter than the site default: this is a 40px disc, not a 64px control,
+     and the stock three-shadow stack reads as a smudge at this size. */
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12), 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.pill img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  /* The three marks have three different aspect ratios; contain keeps each one
+     its own shape inside a shared box. */
+  object-fit: contain;
 }
