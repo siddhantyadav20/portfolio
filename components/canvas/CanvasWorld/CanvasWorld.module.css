@@ -17,4 +17,36 @@
    something each component re-decides. */
 .slot {
   position: absolute;
+  animation: settle 520ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Each thing arrives a hair small and a hair low, as if set down. `backwards`
+   so the delay holds it at the start rather than flashing it first. */
+@keyframes settle {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+    scale: 0.96;
+  }
+}
+
+/* Focused by Tab. The ring is on the slot rather than the widget so it traces
+   the object's real box, whatever the widget draws inside it. */
+.slot:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 8px;
+  border-radius: 8px;
+}
+
+/* The card's preview is a picture of the board, not an arrival at it — it
+   should be there the moment the homepage paints, not assemble itself in the
+   corner of someone's eye while they read the intro. */
+.world[data-preview] .slot {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot {
+    animation: none;
+  }
 }

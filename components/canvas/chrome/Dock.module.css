@@ -1,0 +1,50 @@
+/* Bottom-centre, on the site's own glass. Fixed to the viewport, so its blur
+   composites once rather than on every frame of a pan. */
+
+.dock {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  translate: -50% 0;
+  border-radius: var(--r-pill);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--r-pill);
+  color: var(--ink-50);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab[data-on] {
+  color: var(--surface-solid);
+  background-color: var(--ink-strong);
+}
+
+/* The labels collapse before the dock does. Five words at 13px is wider than a
+   phone, and the glyphs alone still name the places once you have been. */
+@media (max-width: 720px) {
+  .label {
+    display: none;
+  }
+  .tab {
+    padding: 0 10px;
+  }
+}

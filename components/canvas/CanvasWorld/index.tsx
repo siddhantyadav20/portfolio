@@ -56,13 +56,23 @@ export default function CanvasWorld({
     <div
       ref={ref}
       className={[styles.world, className].filter(Boolean).join(" ")}
+      data-preview={preview ? "" : undefined}
       style={{ width: WORLD_W, height: WORLD_H, ...style }}
     >
-      {widgets.map((w) => (
+      {widgets.map((w, i) => (
         <div
           key={w.id}
           className={styles.slot}
+          data-widget={w.id}
+          // Walked by Tab, and the camera follows — see CanvasSurface. A board
+          // you can only reach by dragging is a keyboard dead end, and this is
+          // the cheapest way out of that: focus order *is* a guided tour.
+          tabIndex={preview ? -1 : 0}
           style={{
+            // Staggered by band, so arriving reads as the board being laid out
+            // rather than switched on. Index-based: the data is authored in
+            // reading order, which is the order it should appear in.
+            animationDelay: preview ? undefined : `${Math.min(i * 26, 620)}ms`,
             left: w.x,
             top: w.y,
             width: w.w,

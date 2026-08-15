@@ -1,0 +1,14 @@
+/* 32px of cat. `image-rendering: pixelated` because the sheet is pixel art and
+   smoothing it turns a cat into a smudge. */
+
+.cat {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 6;
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+  pointer-events: none;
+  will-change: transform;
+}

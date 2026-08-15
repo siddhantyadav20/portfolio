@@ -1,0 +1,48 @@
+/* Top-left, quiet until you look at it. */
+
+.map {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 4;
+  padding: 0;
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-sm);
+  background-color: color-mix(in srgb, var(--page-base) 70%, transparent);
+  backdrop-filter: blur(8px);
+  opacity: 0.62;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.map:hover,
+.map:focus-visible {
+  opacity: 1;
+  transform: scale(1.03);
+}
+
+/* A widget. Deliberately not to scale — at this size a faithful rectangle is
+   two pixels, and what the map has to convey is distribution, not shape. */
+.pip {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background-color: var(--ink-40);
+}
+
+.viewport {
+  position: absolute;
+  border: 1.5px solid var(--accent);
+  border-radius: 2px;
+  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+  /* Linear and short: this tracks a drag, and easing it would lag the hand. */
+  transition: all 0.12s linear;
+}
+
+@media (max-width: 720px) {
+  .map {
+    display: none;
+  }
+}

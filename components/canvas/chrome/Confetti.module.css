@@ -1,0 +1,10 @@
+/* Over everything on the canvas, under the site cursor, and never in the way. */
+
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
