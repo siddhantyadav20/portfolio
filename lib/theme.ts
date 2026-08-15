@@ -58,7 +58,7 @@ export const THEME_SCRIPT = `try{var s=localStorage.getItem(${JSON.stringify(
    copied into component state inside an effect.
 
    That also makes the multi-instance case free: the toggle is rendered on the
-   homepage, in the case-study modal and in the workspace canvas, and all three
+   homepage, in the case-study modal and in the canvas, and all three
    read the same attribute rather than three copies that could drift.
    =========================================================================== */
 

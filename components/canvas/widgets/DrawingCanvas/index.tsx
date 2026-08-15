@@ -26,7 +26,7 @@ import styles from "./DrawingCanvas.module.css";
 
    - The surface attaches its own non-passive touch listeners. React's are
      passive, so `preventDefault` inside the pointer handlers cannot stop the
-     workspace canvas underneath from panning while you draw on it.
+     canvas underneath from panning while you draw on it.
 
    The ~200 lines of colour parsing are gone. Framer could hand those props a
    token a 2D context cannot resolve, so the original resolved everything
@@ -264,7 +264,7 @@ export default function DrawingCanvas() {
   }, [defaultInk]);
 
   /* React's touch listeners are passive, so preventDefault inside the pointer
-     handlers cannot stop the workspace canvas underneath from panning. These
+     handlers cannot stop the canvas underneath from panning. These
      are non-passive and do. */
   useEffect(() => {
     const el = surfaceRef.current;

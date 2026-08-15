@@ -14,7 +14,7 @@ import styles from "./ThemeToggle.module.css";
  * The site's one theme control.
  *
  * Rendered in three places — the homepage's top-right corner, the case-study
- * modal's action cluster, and the workspace canvas — all reading the same
+ * modal's action cluster, and the canvas — all reading the same
  * attribute on <html>, so they cannot disagree.
  *
  * The theme is not React state. It is set on the document by a pre-paint

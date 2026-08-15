@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import CanvasWorld from "@/components/workspace/CanvasWorld";
+import { useMounted } from "@/lib/clientValue";
+import CanvasWorld from "@/components/canvas/CanvasWorld";
 import ThemeToggle from "@/components/home/ThemeToggle";
 import { createCamera } from "@/lib/camera";
 import { frameDelta } from "@/lib/spring";
-import { HOME, WORLD_H, WORLD_W } from "@/content/workspace";
-import styles from "./WorkspaceCanvas.module.css";
+import { HOME, WORLD_H, WORLD_W } from "@/content/canvas";
+import styles from "./CanvasSurface.module.css";
 
 /** Background grid pitch, world px. */
 const GRID = 80;
@@ -23,14 +25,25 @@ const ZOOM_STEP = 1.25;
  */
 const ZOOM_SENSITIVITY = 0.0022;
 
+/**
+ * The name the Canvas card and this canvas share while morphing.
+ *
+ * Set inline by both, never in a module: CSS Modules scope
+ * `view-transition-name` exactly as they scope a class, so written in a
+ * stylesheet it reaches the browser mangled and every `::view-transition-*`
+ * rule silently fails to match. globals.css documents the same trap for the
+ * modal names.
+ */
+export const CANVAS_MORPH = "canvas-frame";
+
 type Props = {
   /** Provided when the canvas is an overlay over the homepage. Omitted on the
-   *  standalone /workspace route, where closing is a navigation instead. */
+   *  standalone /canvas route, where closing is a navigation instead. */
   onClose?: () => void;
 };
 
 /**
- * The workspace canvas — pan, zoom, momentum. Nothing else yet.
+ * The canvas — pan, zoom, momentum. Nothing else yet.
  *
  * Deliberately still a skeleton: placeholder tiles rather than widgets, and no
  * card morph. The feel is decided here, and it is much easier to judge
@@ -49,7 +62,8 @@ type Props = {
  * The loop therefore only runs while the camera is actually integrating —
  * glide and fly — and stops itself the moment it isn't.
  */
-export default function WorkspaceCanvas({ onClose }: Props) {
+export default function CanvasSurface({ onClose }: Props) {
+  const mounted = useMounted();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -59,7 +73,7 @@ export default function WorkspaceCanvas({ onClose }: Props) {
    *
    * Opened from the card, the canvas is an overlay and the homepage is still
    * mounted behind it — `onClose` collapses it back into the card it grew out
-   * of. Arrived at /workspace directly, there is nothing behind it, so closing
+   * of. Arrived at /canvas directly, there is nothing behind it, so closing
    * is a navigation. Same button, same glyph, same position either way.
    */
   const close = useCallback(() => {
@@ -290,8 +304,27 @@ export default function WorkspaceCanvas({ onClose }: Props) {
     };
   }, []);
 
-  return (
-    <div ref={surfaceRef} className={styles.surface}>
+  /**
+   * Portalled to <body>, for the reason ModalSurface is.
+   *
+   * The canvas is rendered by the Canvas card, which lives several cards
+   * deep inside the composition — and `position: fixed` is contained by any
+   * transformed ancestor, `overflow: hidden` clips it, and its z-index only
+   * competes inside that card's stacking context. Left in place it opened
+   * *underneath* the homepage: the intro, the music and LinkedIn cards, the
+   * search, the theme toggle and the footer all painted over the top of it.
+   *
+   * At <body> none of that applies and one z-index settles it.
+   */
+  if (!mounted) return null;
+
+  return createPortal(
+    <div
+      ref={surfaceRef}
+      className={styles.surface}
+      // Handed over from the card, which released it as this mounted.
+      style={{ viewTransitionName: CANVAS_MORPH }}
+    >
       <CanvasWorld ref={worldRef} />
 
       {/* Fixed to the viewport, deliberately outside the transformed world:
@@ -310,13 +343,14 @@ export default function WorkspaceCanvas({ onClose }: Props) {
         >
           <span className={`${styles.bar} ${styles.barBack}`} />
           <span className={`${styles.bar} ${styles.barForward}`} />
-          <span className="srOnly">Close the workspace</span>
+          <span className="srOnly">Close the canvas</span>
         </button>
       </div>
 
       <div className={styles.hint} aria-hidden="true">
         drag to pan · ⌘ + scroll to zoom · + − · R to reset
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

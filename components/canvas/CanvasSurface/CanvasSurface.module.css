@@ -7,8 +7,18 @@
 .surface {
   position: fixed;
   inset: 0;
+  /* Above the whole composition, below CanvasCursor. The same slot
+     ModalSurface takes, for the same reason. */
+  z-index: 900;
   overflow: hidden;
-  background-color: var(--page-base);
+
+  /* A different room, not the same page with things on it.
+     `--page-base` alone made the board continuous with the homepage behind it
+     — same ground, same wash — so opening the canvas read as the cards being
+     removed rather than as going somewhere. A couple of percent darker in
+     light and lighter in dark is enough to seat it as its own surface without
+     leaving the family. */
+  background-color: color-mix(in srgb, var(--page-base) 94%, var(--ink) 6%);
 
   /* Every gesture on this surface belongs to the camera. Without this the
      browser claims vertical drags for page scroll on touch, and the canvas
@@ -55,7 +65,7 @@
    The theme toggle and the close cross, fixed to the viewport's top-right.
 
    Same 64px discs, same 16px gap and same 48px inset as ModalSurface's
-   cluster, and built from the same `.liquid` material — closing the workspace
+   cluster, and built from the same `.liquid` material — closing the canvas
    and closing a case study should read as one gesture that the site has, not
    as two similar buttons.
 

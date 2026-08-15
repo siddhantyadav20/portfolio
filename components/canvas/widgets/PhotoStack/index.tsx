@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { photoCategories as cats } from "@/content/workspace";
+import { photoCategories as cats } from "@/content/canvas";
 import { useMediaQuery } from "@/lib/clientValue";
 import styles from "./PhotoStack.module.css";
 

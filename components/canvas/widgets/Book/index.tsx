@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { useMediaQuery, useMounted } from "@/lib/clientValue";
-import type { Widget } from "@/content/workspace";
+import type { Widget } from "@/content/canvas";
 import Spread from "./Spread";
 import styles from "./Book.module.css";
 

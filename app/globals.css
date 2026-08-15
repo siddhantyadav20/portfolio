@@ -31,7 +31,7 @@
   --page-wash-angle: 97deg;
 
   --surface: rgba(255, 255, 255, 0.7); /* most cards */
-  --surface-solid: #ffffff; /* Workspace, Music Player */
+  --surface-solid: #ffffff; /* Canvas, Music Player */
   --surface-glass: rgba(255, 255, 255, 0.4); /* theme toggle, footer, modal */
   --glass-blur: 8px; /* Figma GLASS effect, radius 8 */
 
@@ -65,7 +65,7 @@
          386  |32|  540  |32|  386        = 1376
 
      Two cards deliberately break out of those tracks, both from Figma:
-     Inspection is 420 wide (34 past col 1) and Workspace is 322 (straddling
+     Inspection is 420 wide (34 past col 1) and Canvas is 322 (straddling
      the col 2/3 boundary). Nothing else does. */
   --page-w: 1440px;
   --page-pad: 32px;
@@ -84,7 +84,7 @@
   /* Vertical rhythm that isn't just --gap */
   --gap-lg: 122px; /* Introduction -> Store */
   --gap-col3: 41px; /* Timeline -> Search */
-  --row-top: 164px; /* top row track; Workspace deliberately overhangs it */
+  --row-top: 164px; /* top row track; Canvas deliberately overhangs it */
   --col-3-offset: 28px; /* col 3 starts 28px below col 2 */
 
   /* The theme toggle is pinned to the page's top-right corner rather than
@@ -547,6 +547,41 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* --- The canvas card, opening into the canvas -------------------------
+
+   The card and the canvas render the *same board* — one at a sixth scale
+   behind a 322px window, one full-bleed at the camera's scale — and both
+   carry `canvas-frame`. So this is not a card growing into a panel: it is
+   the same arrangement being approached, and the browser interpolates the box
+   from card-rect to viewport-rect while the two snapshots cross-fade over
+   almost identical pixels.
+
+   Longer than the modal's 560ms because it travels further, and the same
+   easing family as everything else on the site.
+
+   `object-fit: cover` for the reason the inspection frame needs it: a 322x246
+   card and a 1470x900 viewport are different shapes, and left alone Chrome
+   stretches each snapshot to fill the animating box, which shears the board
+   mid-flight. Filling proportionally and cropping reads as opening out. */
+::view-transition-group(canvas-frame) {
+  z-index: 2;
+  animation-duration: 680ms;
+}
+
+::view-transition-old(canvas-frame),
+::view-transition-new(canvas-frame) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The canvas's chrome — controls, hint — arrives after the board has landed
+   rather than travelling with it, so the frame is the only thing moving for
+   most of the transition. */
+::view-transition-new(canvas-frame) {
+  animation-delay: 60ms;
 }
 
 ::view-transition-group(modal-plate) {

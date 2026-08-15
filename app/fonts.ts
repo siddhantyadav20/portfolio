@@ -29,7 +29,7 @@ export const outfit = Outfit({
 });
 
 /**
- * Reading serif. Used only by the books on the workspace canvas — their pages
+ * Reading serif. Used only by the books on the canvas — their pages
  * and reading spread are set in it, because a book set in the UI face reads as
  * a card about a book rather than as a book.
  *

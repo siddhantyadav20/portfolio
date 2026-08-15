@@ -8,7 +8,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
-import { terminal as data } from "@/content/workspace";
+import { terminal as data } from "@/content/canvas";
 import styles from "./Terminal.module.css";
 
 /* ===========================================================================
@@ -17,7 +17,7 @@ import styles from "./Terminal.module.css";
    Ported from references/canvas/Terminal.tsx — the reveal engine, the command
    set, the Levenshtein "did you mean", tab completion and the palette command
    are all the original's. What changed is the plumbing: the Framer property
-   controls are gone, the content moved to content/workspace.ts, and ~400 lines
+   controls are gone, the content moved to content/canvas.ts, and ~400 lines
    of inline style objects became a stylesheet.
 
    One substantive change. The original hard-coded a dark shell and derived its

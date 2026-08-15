@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import type { Widget } from "@/content/workspace";
+import type { Widget } from "@/content/canvas";
 import styles from "./Spread.module.css";
 
 type BookWidget = Extract<Widget, { kind: "book" }>;

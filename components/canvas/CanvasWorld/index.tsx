@@ -1,4 +1,4 @@
-import { widgets, WORLD_H, WORLD_W, type Widget } from "@/content/workspace";
+import { widgets, WORLD_H, WORLD_W, type Widget } from "@/content/canvas";
 import Book from "../widgets/Book";
 import Disc from "../widgets/Disc";
 import DrawingCanvas from "../widgets/DrawingCanvas";
@@ -10,21 +10,22 @@ import Receipt from "../widgets/Receipt";
 import ScratchCard from "../widgets/ScratchCard";
 import Sticker from "../widgets/Sticker";
 import Terminal from "../widgets/Terminal";
+import Still from "./Still";
 import styles from "./CanvasWorld.module.css";
 
 /**
  * The board's contents, at world coordinates.
  *
  * This component is the reason the card can morph into the canvas
- * convincingly: it is rendered in *both* places — inside the Workspace card at
- * a small scale, and inside WorkspaceCanvas at the camera's scale — so
+ * convincingly: it is rendered in *both* places — inside the Canvas card at
+ * a small scale, and inside CanvasSurface at the camera's scale — so
  * clicking the card doesn't crossfade one picture into another, it
  * interpolates the same world from card-rect to viewport-rect.
  *
  * Two constraints hold for everything below:
  *
  *   1. It is a server component and stays one. No hooks, no state — the
- *      Workspace card is server-rendered and must not drag a client bundle
+ *      Canvas card is server-rendered and must not drag a client bundle
  *      along for a picture. Widget behaviour lands as client islands *inside*
  *      these frames.
  *
@@ -35,9 +36,18 @@ import styles from "./CanvasWorld.module.css";
  */
 export default function CanvasWorld({
   className,
+  preview = false,
+  style,
   ref,
 }: {
   className?: string;
+  /** Merged over the world's own box. The Canvas card uses it to set the
+   *  resting transform declaratively, so the preview is positioned in the
+   *  server's HTML rather than only once a rAF loop has run. */
+  style?: React.CSSProperties;
+  /** Render every widget as a still picture rather than a live component.
+   *  The Canvas card uses this — see Still. */
+  preview?: boolean;
   /** The canvas writes the camera transform straight onto this element, once
    *  per frame, outside React. A normal prop in React 19 — no forwardRef. */
   ref?: React.Ref<HTMLDivElement>;
@@ -46,7 +56,7 @@ export default function CanvasWorld({
     <div
       ref={ref}
       className={[styles.world, className].filter(Boolean).join(" ")}
-      style={{ width: WORLD_W, height: WORLD_H }}
+      style={{ width: WORLD_W, height: WORLD_H, ...style }}
     >
       {widgets.map((w) => (
         <div
@@ -62,7 +72,7 @@ export default function CanvasWorld({
             rotate: w.rotate ? `${w.rotate}deg` : undefined,
           }}
         >
-          <Render widget={w} />
+          {preview ? <Still widget={w} /> : <Render widget={w} />}
         </div>
       ))}
     </div>

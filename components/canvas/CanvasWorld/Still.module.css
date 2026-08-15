@@ -1,0 +1,54 @@
+/* Stills for the card's preview of the board. Flat by design — at a sixth
+   scale a shadow is a smudge and a gradient is a solid. */
+
+.art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contain {
+  object-fit: contain;
+}
+
+.plate {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* A hairline, so a white card on a white desk still has an edge. */
+  box-shadow: inset 0 0 0 6px rgba(0, 0, 0, 0.03);
+}
+
+/* Ruled lines standing in for writing. Chunky on purpose — at a sixth scale a
+   1px rule disappears, and these have to survive being shrunk. */
+.rules {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 34px;
+  height: 100%;
+  padding: 0 15%;
+}
+
+.rules i {
+  height: 22px;
+  border-radius: 11px;
+  background-color: rgba(0, 0, 0, 0.09);
+}
+
+.rules i:nth-child(2) { width: 74%; }
+.rules i:nth-child(4) { width: 58%; }
+.rules i:last-child { width: 40%; }
+
+:global(html[data-theme="dark"]) .rules i {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.paper { background-color: var(--surface-solid); }
+.ink { background-color: #16181b; }
+.receipt { background-color: #f4f1ea; }
+.foil { background-color: #d5d1c9; }
+
+:global(html[data-theme="dark"]) .receipt { background-color: #222222; }
+:global(html[data-theme="dark"]) .foil { background-color: #262626; }

@@ -13,7 +13,7 @@
 }
 
 /* One positioned box per widget. The widget fills it and knows nothing about
-   where on the board it is — placement is data (content/workspace.ts), not
+   where on the board it is — placement is data (content/canvas.ts), not
    something each component re-decides. */
 .slot {
   position: absolute;

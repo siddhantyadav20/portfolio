@@ -1,5 +1,5 @@
 /* ===========================================================================
-   The workspace board.
+   The canvas board.
 
    Every widget, where it sits, and what it says — transcribed from the live
    Framer canvas at siddhant.framer.website/explore rather than re-imagined.

@@ -1,6 +1,6 @@
 /* Figma node 244:9495 — 260x116, radius 32, surface #FFF @0.7 */
 
-/* The one card in the top row that stretches. About Me and Workspace are
+/* The one card in the top row that stretches. About Me and Canvas are
    fixed, so whatever width a viewport has past 1440 arrives here and every
    gutter in the row stays 32px. At 1440 this resolves to exactly 260. The
    three pieces inside are anchored accordingly: DES to the left edge, ENG to

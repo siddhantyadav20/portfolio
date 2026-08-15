@@ -3,7 +3,7 @@
 
    One integrator, used by everything that moves under its own weight: the
    homepage's proximity field, the About card's orbiting tools, and the
-   workspace canvas's camera. It was written twice before this file existed —
+   canvas's camera. It was written twice before this file existed —
    once inline in ProximityField and once in AboutMeCard/orbit.ts — which is
    how it earned its own module.
 

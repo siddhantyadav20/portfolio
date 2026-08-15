@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { receipt as data } from "@/content/workspace";
+import { receipt as data } from "@/content/canvas";
 import styles from "./Receipt.module.css";
 
 /* ===========================================================================
@@ -9,7 +9,7 @@ import styles from "./Receipt.module.css";
 
    Ported from references/canvas/Design Receipt.tsx. The original priced each
    skill from a jittered PRNG at render time; the prices here are the ones the
-   live canvas actually shows, lifted into content/workspace.ts. That is not a
+   live canvas actually shows, lifted into content/canvas.ts. That is not a
    simplification — a receipt whose totals change on reload is a receipt nobody
    can screenshot, and the numbers are content now rather than an accident of
    the seed.

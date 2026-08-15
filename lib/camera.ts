@@ -1,5 +1,5 @@
 /* ===========================================================================
-   The workspace canvas's camera.
+   The canvas's camera.
 
    A world of size (worldW × worldH) is viewed through a viewport of
    (viewW × viewH). The camera owns three numbers — x, y, scale — and the

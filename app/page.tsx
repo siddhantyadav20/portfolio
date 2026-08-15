@@ -11,7 +11,7 @@ import SiteFooter from "@/components/home/SiteFooter";
 import StoreWaitlist from "@/components/home/StoreWaitlist";
 import ThemeToggle from "@/components/home/ThemeToggle";
 import TimelineExperience from "@/components/home/TimelineExperience";
-import WorkspaceCard from "@/components/home/WorkspaceCard";
+import CanvasCard from "@/components/home/CanvasCard";
 import ProximityField from "@/components/interaction/ProximityField";
 import styles from "./page.module.css";
 
@@ -34,7 +34,7 @@ export default function Home() {
             <div className={styles.topRow}>
               <AboutMeCard />
               <DesignEngineerCard />
-              <WorkspaceCard />
+              <CanvasCard />
               {/* Pinned to the page's top-right corner by this class, not
                   laid out by the row it sits in. See page.module.css. */}
               <ThemeToggle className={styles.themeToggle} />

@@ -294,7 +294,7 @@ export default function ProximityField({ children }: { children: ReactNode }) {
         if (cards[i].passive) continue;
         const d = pointToRect(px, py, cards[i]);
         if (d > PROXIMITY_RANGE) continue;
-        // Ties happen where cards overlap (Workspace overhangs the top row);
+        // Ties happen where cards overlap (Canvas overhangs the top row);
         // the smaller card is the one the cursor is meaningfully on.
         if (d < bestDist || (d === bestDist && cards[i].area < bestArea)) {
           best = i;

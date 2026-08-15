@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { scratch as data } from "@/content/workspace";
+import { scratch as data } from "@/content/canvas";
 import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
 import { Coin, Wizard } from "./art";
 import styles from "./ScratchCard.module.css";

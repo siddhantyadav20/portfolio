@@ -9,7 +9,7 @@ type CtaPillProps<T extends ElementType> = {
 } & Omit<ComponentPropsWithoutRef<T>, "as" | "className" | "children">;
 
 /**
- * The frosted pill used by Copy Email, Go to Store and Explore my WorkSpace —
+ * The frosted pill used by Copy Email, Go to Store and Explore my Canvas —
  * same gradient, radius, height and blur in all three places.
  */
 export default function CtaPill<T extends ElementType = "button">({

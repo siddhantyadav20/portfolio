@@ -12,7 +12,7 @@
      - Inspection (420 wide) overhangs col 1 by 34px. The top row and the
        Introduction are then measured off *that card* — one gutter and two
        gutters past its right edge — rather than off the col-2 line.
-     - Workspace (322 wide) straddles the col 2/3 boundary in the top row.
+     - Canvas (322 wide) straddles the col 2/3 boundary in the top row.
      - Timeline is rotated -90deg in Figma; here it is simply built upright
        and right-aligned in col 3.
 
@@ -71,13 +71,13 @@
   grid-row: 1 / 3;
 }
 
-/* --- Top row : About, Designer/Engineer, Workspace ------------------------ */
+/* --- Top row : About, Designer/Engineer, Canvas ------------------------ */
 /* Spans cols 2-3, but starts one gutter past Inspection's right edge rather
    than on the col-2 line, and stops one gutter short of the pinned theme
    toggle. Fixed track height so cols 2 and 3 start where Figma puts them;
-   Workspace is taller and overhangs it on purpose.
+   Canvas is taller and overhangs it on purpose.
 
-   About Me and Workspace are fixed; the Designer/Engineer card is the one that
+   About Me and Canvas are fixed; the Designer/Engineer card is the one that
    stretches, so all three gutters stay 32px however wide the row gets. */
 
 .topRow {
@@ -86,7 +86,7 @@
   grid-row: 1;
   gap: var(--gap);
   align-items: flex-start;
-  /* A hard height, not a min: Workspace is 246 tall and is *meant* to hang out
+  /* A hard height, not a min: Canvas is 246 tall and is *meant* to hang out
      of this track. Letting the row grow to fit it would push the Introduction
      and the Timeline 82px down the page. */
   height: var(--row-top);

@@ -124,9 +124,9 @@ export const designEngineer = {
   to: { abbr: "ENG", label: "Engineer" },
 } as const;
 
-export const workspace = {
-  cta: "Explore my WorkSpace",
-  href: "/workspace",
+export const canvas = {
+  cta: "Explore my Canvas",
+  href: "/canvas",
 } as const;
 
 /**
