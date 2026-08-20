@@ -1,0 +1,556 @@
+/* ===========================================================================
+   The WinConnect shell, drawn at its real size.
+
+   Every measurement below is a component token from the library. They are
+   written as literals rather than as CSS variables because that is what they
+   are — the system's constants, not this card's choices — and naming each one
+   twice would only hide where it came from. The comment beside a number is its
+   token.
+
+   The whole thing is then scaled as one block (see `.frame`), so a 346px
+   thumbnail and a 1120px hero are the same drawing at two magnifications, with
+   every proportion held exactly.
+   =========================================================================== */
+
+.stage {
+  /* The scaled footprint. `.frame` is transformed, and a transform does not
+     affect layout, so the box it occupies has to be stated. */
+  /* No fallback on purpose: every frame that holds one of these states a
+     default (see the callers), and a `1` here would silently paint a zoomed
+     corner of the dashboard instead of failing where the mistake is. */
+  width: calc(1440px * var(--ds-scale));
+  height: calc(1024px * var(--ds-scale));
+  contain: paint;
+}
+
+.stage[data-mode="light"] {
+  --ds-bg: #ffffff; /* background/default */
+  --ds-paper: #ffffff; /* background/paper */
+  --ds-neutral: #f4f6f8; /* background/neutral */
+  --ds-text: #1c252e; /* text-primary */
+  --ds-text-2: #637381; /* text-secondary */
+  --ds-text-3: #919eab; /* text-disabled */
+  --ds-divider: #919eab33; /* components/divider */
+  --ds-grey-8: #919eab14; /* grey/8% */
+  --ds-shadow-12: #919eab1f; /* shadow/12% */
+  --ds-shadow-20: #919eab33; /* shadow/20% */
+}
+
+/* The same names, the other mode. This is the pair the study talks about:
+   nothing is renamed, nothing is conditional — one table is swapped for the
+   other and every component follows. */
+.stage[data-mode="dark"] {
+  --ds-bg: #141a21;
+  --ds-paper: #1c252e;
+  --ds-neutral: #28323d;
+  --ds-text: #ffffff;
+  --ds-text-2: #919eab;
+  --ds-text-3: #637381;
+  --ds-divider: #919eab33;
+  --ds-grey-8: #919eab14;
+  --ds-shadow-12: #0000001f;
+  --ds-shadow-20: #00000033;
+}
+
+.frame {
+  display: flex;
+  width: 1440px;
+  height: 1024px;
+  transform: scale(var(--ds-scale));
+  transform-origin: 0 0;
+  background: var(--ds-bg);
+  color: var(--ds-text);
+  font-family: var(--font-ui), system-ui, sans-serif;
+  /* At thumbnail scale the labels are three pixels tall and are read as
+     texture, not as words. Geometric precision matters more than hinting. */
+  text-rendering: geometricPrecision;
+}
+
+/* --- Nav ------------------------------------------------------------------ */
+
+.nav {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* nav/vertical/nav-spacing */
+  width: 280px;
+  padding: 0 16px; /* nav/vertical/nav-px */
+  background: var(--ds-paper);
+  border-right: 1px dashed var(--ds-divider); /* border-width */
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 72px; /* header/desktop-height — the nav's brand row lines up with it */
+  padding: 0 12px;
+}
+
+/* The W mark. Two overlapping rounds is not the real logo and is not trying to
+   be — it is a mark-shaped thing that takes the primary, so the sweep reaches
+   the top-left corner of the frame. */
+.mark {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px; /* radius-1,25 */
+  background: var(--ds-primary);
+}
+
+.mark::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 500px; /* radius-50% */
+  background: var(--ds-paper);
+}
+
+.wordmark {
+  width: 68px;
+  height: 10px;
+  border-radius: 4px; /* radius-0,5 */
+  background: var(--ds-text);
+  opacity: 0.85;
+}
+
+.subheader {
+  margin: 16px 0 4px; /* spacing-2 */
+  padding: 0 12px;
+  font-size: 11px; /* components/nav/subheader/size */
+  line-height: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ds-text-3);
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* nav/vertical/item-icon-mr */
+  height: 44px; /* nav/vertical/item-root-height */
+  padding: 0 8px 0 12px; /* item-pr / item-pl */
+  border-radius: 8px; /* nav/vertical/item-radius */
+}
+
+.navItem[data-active] {
+  background: var(--ds-primary-tint); /* primary/8% */
+}
+
+.navIcon {
+  flex: none;
+  width: 24px; /* nav/vertical/item-icon-size */
+  height: 24px;
+  border-radius: 6px; /* radius-0,75 */
+  background: var(--ds-text-3);
+  opacity: 0.55;
+}
+
+.navItem[data-active] .navIcon {
+  background: var(--ds-primary);
+  opacity: 1;
+}
+
+.navLabel {
+  font-size: 14px; /* components/nav/item/size */
+  line-height: 22px;
+  font-weight: 500;
+  color: var(--ds-text-2);
+}
+
+.navItem[data-active] .navLabel {
+  font-weight: 600;
+  color: var(--ds-primary);
+}
+
+/* --- Main ----------------------------------------------------------------- */
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 72px; /* header/desktop-height */
+  padding: 0 40px; /* container/vertical/px */
+}
+
+.search {
+  width: 240px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--ds-grey-8);
+}
+
+.grow {
+  flex: 1;
+}
+
+.bell {
+  position: relative;
+  width: 40px; /* icon button/sizesize */
+  height: 40px;
+  border-radius: 500px;
+  background: var(--ds-grey-8);
+}
+
+/* Error red, and it stays red through the whole sweep. A notification badge is
+   not the brand colour in any of the twelve products — showing it holding
+   still while everything else turns is half the point of the demonstration. */
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px; /* badge/standard-size */
+  height: 20px;
+  border-radius: 500px;
+  background: #ff5630; /* error/main */
+  border: 2px solid var(--ds-bg);
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 500px;
+  background: var(--ds-text-3);
+  box-shadow: 0 0 0 2px var(--ds-bg), 0 0 0 4px var(--ds-primary);
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* spacing-3 */
+  padding: 0 40px 40px;
+  min-height: 0;
+}
+
+/* --- Banner --------------------------------------------------------------- */
+
+.banner {
+  flex: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 200px;
+  padding: 0 40px;
+  border-radius: 16px; /* card/radius */
+  background: var(--ds-primary);
+  color: var(--ds-on-primary);
+  overflow: hidden;
+}
+
+.bannerCopy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px; /* spacing-1 */
+}
+
+.bannerTitle {
+  font-size: 24px; /* h4/size */
+  line-height: 36px;
+  font-weight: 700;
+}
+
+.bannerBody {
+  font-size: 14px; /* body2/size */
+  line-height: 22px;
+  opacity: 0.72;
+}
+
+/* Contained button, inverted: on a primary fill the system's contained button
+   flips to the paper colour with primary text. */
+.bannerCta {
+  margin-top: 8px;
+  display: grid;
+  place-items: center;
+  height: 48px; /* button/lg-height */
+  padding: 0 16px; /* button/lg-px */
+  min-width: 64px; /* button/min-width */
+  border-radius: 8px; /* button/radius */
+  background: var(--ds-paper);
+  color: var(--ds-primary);
+  font-size: 15px; /* components/button/large/size */
+  line-height: 26px;
+  font-weight: 700;
+}
+
+/* A wash that leans on the fill it sits over rather than being its own colour,
+   so it follows the sweep without a second variable. */
+.bannerArt {
+  position: absolute;
+  top: -80px;
+  right: -40px;
+  width: 360px;
+  height: 360px;
+  border-radius: 500px;
+  background: var(--ds-on-primary);
+  opacity: 0.08;
+}
+
+/* --- Cards ---------------------------------------------------------------- */
+
+.row {
+  display: flex;
+  gap: 24px;
+  min-height: 0;
+}
+
+.row:last-child {
+  flex: 1;
+}
+
+.stat,
+.chart,
+.side {
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px; /* card/radius */
+  background: var(--ds-paper);
+  /* shadow/card — two effects, exactly as the token composes them. */
+  box-shadow:
+    0 12px 24px -4px var(--ds-shadow-12),
+    0 0 2px 0 var(--ds-shadow-20);
+}
+
+.stat {
+  flex: 1;
+  gap: 4px;
+  padding: 24px; /* card/content-p */
+}
+
+.statIcon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 8px;
+  border-radius: 500px;
+  background: var(--ds-primary-tint);
+  border: 2px solid var(--ds-primary);
+}
+
+.statLabel {
+  font-size: 14px; /* body2 */
+  line-height: 22px;
+  color: var(--ds-text-2);
+}
+
+.statValue {
+  font-size: 32px; /* h3/size */
+  line-height: 48px;
+  font-weight: 700;
+  color: var(--ds-text);
+}
+
+.statTrack {
+  margin-top: 8px;
+  display: block;
+  height: 6px;
+  border-radius: 500px; /* slider/rail-radius */
+  background: var(--ds-grey-8);
+  overflow: hidden;
+}
+
+.statFill {
+  display: block;
+  width: 62%;
+  height: 100%;
+  border-radius: 500px;
+  background: var(--ds-primary);
+}
+
+.chart {
+  flex: 2;
+  padding: 24px 24px 24px 24px;
+  gap: 24px;
+  min-width: 0;
+}
+
+.side {
+  flex: 1;
+  padding: 24px;
+  gap: 16px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* card/header-spacing */
+}
+
+.cardTitle {
+  flex: 1;
+  font-size: 18px; /* h6/size */
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--ds-text);
+}
+
+.chip {
+  display: grid;
+  place-items: center;
+  height: 32px; /* chip/md-height */
+  padding: 0 12px;
+  border-radius: 10px; /* chip/md-radius */
+  background: var(--ds-primary-tint);
+  color: var(--ds-primary);
+  font-size: 13px; /* components/chip/size */
+  line-height: 18px;
+  font-weight: 500;
+}
+
+/* --- Chart ---------------------------------------------------------------- */
+
+.bars {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  min-height: 0;
+}
+
+.barGroup {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 100%;
+}
+
+.bar,
+.barAlt {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  background: var(--ds-primary);
+}
+
+/* The second series is the same variable at a lower opacity rather than a
+   second colour — one of the reasons the palette stays six ramps wide instead
+   of thirty. */
+.barAlt {
+  opacity: 0.32;
+}
+
+/* --- Side card ------------------------------------------------------------ */
+
+/* A ring, punched out with a disc rather than a mask.
+
+   `mask` was the obvious way to write this and the expensive one: it forces
+   the conic gradient onto its own raster pass, and that pass is redone every
+   time the primary changes — twice, because both colour modes are painted.
+   An opaque disc over the middle is the same picture for a fraction of the
+   cost, and the only thing it gives up is being able to sit over a
+   patterned background, which it never does. */
+.donut {
+  position: relative;
+  align-self: center;
+  width: 132px;
+  height: 132px;
+  border-radius: 500px;
+  background: conic-gradient(
+    var(--ds-primary) 0 68%,
+    var(--ds-grey-8) 68% 100%
+  );
+}
+
+.donut::after {
+  content: "";
+  position: absolute;
+  inset: 23px;
+  border-radius: 500px;
+  background: var(--ds-paper);
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 500px;
+  background: var(--ds-primary);
+}
+
+.dotMuted {
+  opacity: 0.32;
+}
+
+.legendBar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--ds-grey-8);
+}
+
+.legendRow:first-child .legendBar {
+  width: 96px;
+}
+
+.legendRow:last-child .legendBar {
+  width: 68px;
+}
+
+.controls {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px; /* button group/md-spacing */
+}
+
+.button {
+  width: 92px;
+  height: 36px; /* button/md-height */
+  border-radius: 8px; /* button/radius */
+  background: var(--ds-primary);
+}
+
+/* Outlined variant: the same colour as a 1px border and as the label, which is
+   why `primary/main` has to work as both a fill and as text on paper. */
+.buttonGhost {
+  width: 76px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--ds-primary);
+  opacity: 0.64;
+}
+
+.toggle {
+  position: relative;
+  width: 33px; /* switch/md-width */
+  height: 20px;
+  border-radius: 500px;
+  background: var(--ds-primary);
+}
+
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px; /* switch/p */
+  right: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 500px;
+  background: #ffffff;
+}

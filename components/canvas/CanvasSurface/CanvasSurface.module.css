@@ -12,13 +12,21 @@
   z-index: 900;
   overflow: hidden;
 
-  /* A different room, not the same page with things on it.
-     `--page-base` alone made the board continuous with the homepage behind it
-     — same ground, same wash — so opening the canvas read as the cards being
-     removed rather than as going somewhere. A couple of percent darker in
-     light and lighter in dark is enough to seat it as its own surface without
-     leaving the family. */
-  background-color: color-mix(in srgb, var(--page-base) 94%, var(--ink) 6%);
+  /* The same ground as the homepage, exactly.
+
+     This used to be mixed a few percent toward the ink to seat the canvas as
+     its own room. What that actually produced was a second, slightly different
+     grey — visible as a seam against the card the canvas morphs out of, since
+     the card's viewport paints `--page-base` and the canvas painted something
+     near it. The card carries a hairline now (see CanvasCard) which is what
+     separates it from the page it sits on, so the two grounds can be the one
+     value and the morph has nothing to reconcile. */
+  background-color: var(--page-base);
+  background-image: linear-gradient(
+    var(--page-wash-angle),
+    var(--page-wash-from) 0%,
+    var(--page-wash-to) 100%
+  );
 
   /* Every gesture on this surface belongs to the camera. Without this the
      browser claims vertical drags for page scroll on touch, and the canvas
@@ -99,14 +107,13 @@
 }
 
 .action:hover {
-  --liquid-body: 0.3;
-  --liquid-shade: 0.13;
-  --liquid-gloss: 0.8;
-  --liquid-spec: 0.28;
+  --liquid-body: var(--liquid-body-hi);
+  --liquid-shade: var(--liquid-shade-hi);
+  --liquid-gloss: var(--liquid-gloss-hi);
+  --liquid-spec: var(--liquid-spec-hi);
 
   transform: scale(1.015);
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12),
-    0 8px 18px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--liquid-cast-hi);
 }
 
 /* Classed rather than `.action span`, which would also catch the button's own

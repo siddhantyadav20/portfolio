@@ -69,6 +69,11 @@ type Props = {
   label: string;
   /** Controls placed left of the close button — the theme toggle, Share, etc. */
   actions?: ReactNode;
+  /**
+   * Which text-selection tint this reader carries. Omitted, it keeps the
+   * homepage's orange — see "Selection" in globals.css.
+   */
+  selectionTint?: "violet" | "green";
   children: ReactNode;
 };
 
@@ -90,6 +95,7 @@ export default function ModalSurface({
   onClose,
   label,
   actions,
+  selectionTint,
   children,
 }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -171,11 +177,15 @@ export default function ModalSurface({
       aria-label={label}
       style={{ viewTransitionName: "modal-plate" }}
       {...(closing ? { "data-exit": "" } : {})}
+      {...(selectionTint ? { "data-selection": selectionTint } : {})}
     >
-      <div
-        className={styles.controls}
-        style={{ viewTransitionName: "modal-controls" }}
-      >
+      {/* Deliberately unnamed for the view transition. `view-transition-name`
+          makes an element a backdrop root, and every control in here is
+          `.liquid` — whose frost is a `backdrop-filter`, which inside a
+          backdrop root has nothing behind it to filter. Named, the cluster sat
+          over the case study's hero photograph with no blur at all. See the
+          note beside `::view-transition-group(*)` in globals.css. */}
+      <div className={styles.controls}>
         {actions}
 
         <button

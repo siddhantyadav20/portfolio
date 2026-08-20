@@ -110,22 +110,25 @@
   margin-left: calc(var(--overhang) + var(--gap));
 }
 
-/* Personality sits a plain gutter under the Store card, not the 122px rhythm
-   above it. */
+/* Personality sits closer than the 118px rhythm above the Store card but wider
+   than a plain gutter — 48px, which is also the drop from the tallest column to
+   the footer. The column's own gap is subtracted back out. */
 .personality {
   display: flex;
   gap: var(--gap);
-  margin-top: calc(var(--gap) - var(--gap-lg));
+  margin-top: calc(var(--gap-personality) - var(--gap-lg));
 }
 
 /* --- Column 3 : Timeline, Search ----------------------------------------- */
 
+/* The one column whose two cards are a plain gutter apart. Timeline is drawn
+   with no fill, so the gutter is measured off its box rather than off ink. */
 .col3 {
   display: flex;
   flex-direction: column;
   grid-column: 3;
   grid-row: 2;
-  gap: var(--gap-col3);
+  gap: var(--gap);
   align-items: flex-end;
   margin-top: var(--col-3-offset);
 }
@@ -171,6 +174,15 @@
     margin: 0;
   }
 
+  /* The Introduction is indented past the Inspection card's overhang on the
+     desktop grid — it is measured off that card rather than off the column.
+     In one column there is no card to its left to measure from, and the
+     indent is just 66px of the viewport pushing the widest text block off
+     the right edge. */
+  .intro {
+    margin-left: 0;
+  }
+
   .col1,
   .col3 {
     align-items: stretch;
@@ -207,5 +219,60 @@
 
   .personality {
     margin-top: 0;
+  }
+}
+
+/* --- Phone -----------------------------------------------------------------
+
+   The 1000px rule above collapses the band to one 540px column, which is the
+   width the *widest card* is drawn at. Below ~600px that column is wider than
+   the screen, and three things break for real rather than merely looking
+   untuned:
+
+     1. `.personality` is two 254px cards either side of a 32px gutter — 540px
+        that cannot shrink, because neither card has a rule making it. It is
+        the one guaranteed horizontal overflow on the page.
+     2. `.themeToggle` is pinned to the page box while `.topRow` is allowed to
+        wrap, so the toggle lands on top of whichever card wraps under it.
+     3. Nothing accounts for a phone's home indicator or a landscape notch.
+
+   What this block does *not* do is redraw the cards. Their internal
+   compositions are transcribed from a 1440 frame at fixed sizes, and choosing
+   how the Inspection photograph or the Timeline ruler should be arranged on a
+   375px screen is a design decision, not a CSS one. This makes the page
+   correct at phone widths; it does not make it designed for them. */
+
+@media (max-width: 600px) {
+  .page {
+    /* The blur bar still parks over the last of the page, and the home
+       indicator sits under that again. */
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    padding-left: max(var(--page-pad), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--page-pad), env(safe-area-inset-right, 0px));
+  }
+
+  /* The toggle stays pinned to the page's top-right corner, which is the
+     affordance it was drawn as. Letting it rejoin the flow instead sounds
+     tidier and is much worse: `.topRow` is ordered fourth on this layout, so
+     an in-flow toggle lands roughly 4,000px down a phone page — a control
+     nobody will ever find.
+
+     What it can collide with is whatever is ordered *first*, which is `.col2`
+     and so the Introduction. That block gets the clearance instead. */
+  .col2 {
+    padding-top: calc(var(--toggle-w) * 0.42);
+  }
+
+  .topRow {
+    align-items: flex-start;
+    gap: var(--gap);
+  }
+
+  /* Stacked, and centred at their design width rather than stretched: 254px is
+     the size these two are drawn at, and widening them would move art their
+     layouts place by hand. */
+  .personality {
+    flex-direction: column;
+    align-items: center;
   }
 }

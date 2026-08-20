@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { inspection } from "@/content/site";
 import styles from "./PrototypeScreen.module.css";
@@ -120,7 +121,17 @@ export default function PrototypeScreen({
 
   return (
     <div className={[styles.screen, className].filter(Boolean).join(" ")}>
-      <img src="/media/inspection-screen.png" alt="" className={styles.poster} />
+      {/* The still under the recording. 726x1574 as exported, painted inside
+          a phone screen that is never wider than ~270px — so this was 488KB
+          for a box a third that size. */}
+      <Image
+        src="/media/inspection-screen.png"
+        alt=""
+        fill
+        sizes="(max-width: 900px) 40vw, 280px"
+        priority
+        className={styles.poster}
+      />
       <video
         ref={videoRef}
         className={styles.video}
@@ -145,9 +156,11 @@ export default function PrototypeScreen({
         }}
         {...(ready && (play || !rewindOnStop) ? { "data-show": "" } : {})}
       />
-      <img
+      <Image
         src="/media/inspection-screen-chrome.png"
         alt=""
+        fill
+        sizes="(max-width: 900px) 40vw, 280px"
         className={styles.chrome}
       />
     </div>

@@ -32,17 +32,102 @@
   color: var(--ink);
 }
 
-.shot {
+/* The frame the preview is cropped by, and the element that carries the morph.
+
+   It is the *visible* rectangle rather than the drawing's: from the preview's
+   40px inset to the card's right edge. Clipping here rather than relying on
+   the card means the crop travels with the snapshot during a view
+   transition — see index.tsx. */
+.shotFrame {
   position: absolute;
   top: 160px;
   left: 40px;
-  width: 426px;
+  right: 0;
   height: 256px;
-  /* Wider than the card it sits in — Figma runs it off the right edge, and the
-     card's own overflow does the clipping. Without this the reset's blanket
-     `img { max-width: 100% }` pulls it back to the card and the crop is wrong. */
-  max-width: none;
+  overflow: hidden;
   border-radius: 12px 0 0 12px;
+
+  /* The scale the instrument would measure for itself. Stated here because
+     this frame is a known 346x256 and, until the ResizeObserver has run, the
+     preview would otherwise paint at its full 1440x1024 — a zoomed corner of
+     a dashboard. That is the whole of what someone with JavaScript off ever
+     sees, so it has to be right rather than merely brief. */
+  --ds-scale: 0.25;
+}
+
+/* The six stops, at their literal hexes — this row is the palette, not a
+   decoration of it. */
+.presets {
+  position: absolute;
+  top: 432px;
+  left: 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  opacity: 0.32;
+  transition:
+    width 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 220ms ease;
+}
+
+/* The active stop stretches rather than growing: a wider pill reads as
+   "you are here" without the row shifting under it. */
+.dot[data-on] {
+  width: 20px;
+  opacity: 1;
+}
+
+.presetName {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: var(--lh);
+  color: var(--ink-50);
+  /* The label is rewritten from the loop and the names differ in width; a
+     fixed box keeps the dots from stepping sideways as it changes. */
+  min-width: 62px;
+}
+
+/* What the vertical axis is doing. The swatch tracks the seam continuously,
+   so a small movement down the card is answered even before the wording
+   changes from "Light + Dark" to one of them. */
+.presetMode {
+  --seam-mid: 55%;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: var(--lh);
+  color: var(--ink-40);
+  white-space: nowrap;
+}
+
+.presetMode::before {
+  content: "";
+  width: 20px;
+  height: 13px;
+  border-radius: 3px;
+  /* #ffffff and #141a21 are the library's own `background/default` in its two
+     modes — the swatch is the tokens, not an illustration of them. */
+  background: linear-gradient(
+    100deg,
+    #ffffff 0 var(--seam-mid),
+    #141a21 var(--seam-mid) 100%
+  );
+  box-shadow: inset 0 0 0 1px var(--ink-20);
 }
 
 .chip {

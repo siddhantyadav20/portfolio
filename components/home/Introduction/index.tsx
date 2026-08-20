@@ -29,12 +29,29 @@ export default function Introduction({ className }: { className?: string }) {
       className={[styles.intro, className].filter(Boolean).join(" ")}
       data-prox-passive=""
     >
+      {/* Two files, one mark. The logo is ink-on-nothing in light and a white
+          and grey cut in dark, so it cannot be recoloured with `currentColor`
+          the way the icon set can — it is two drawings.
+
+          Both are in the DOM and CSS picks one, rather than reading the theme
+          in JS: the theme is set on <html> before first paint, so a stylesheet
+          swap is correct on the server's HTML and through a toggle, with no
+          frame of the wrong mark. They are 5KB and 18KB. */}
       <Image
         src="/media/logo.png"
         alt="Siddhant Yadav"
         width={52}
         height={40}
-        className={styles.logo}
+        className={`${styles.logo} ${styles.logoLight}`}
+        priority
+      />
+      <Image
+        src="/media/logo-dark.png"
+        alt=""
+        aria-hidden="true"
+        width={52}
+        height={40}
+        className={`${styles.logo} ${styles.logoDark}`}
         priority
       />
 

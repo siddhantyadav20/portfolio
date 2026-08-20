@@ -21,6 +21,18 @@
   --red: #ef3340;
   --live: #ee6a5f; /* live-visitor dot */
 
+  /* --- Selection -------------------------------------------------------
+     One tint per surface, by request: the homepage highlights orange, a case
+     study purple, the About reader green. Each is its hue laid over the page
+     at low alpha rather than a solid, because the `::selection` rules set a
+     background and nothing else — the ink underneath keeps its own colour,
+     which is what keeps a highlighted paragraph as readable as an unhighlighted
+     one. Violet has no other job on the site, so it lives here rather than up
+     among the accents. See "Selection" below. */
+  --select-orange: rgba(234, 88, 11, 0.2);
+  --select-violet: rgba(124, 58, 237, 0.2);
+  --select-green: rgba(88, 169, 66, 0.22);
+
   /* --- Surfaces -------------------------------------------------------- */
   /* Page: solid base with a near-invisible gradient wash on top.
      Figma: fill #F3F3F3 + linear gradient #EBEBEB -> #EDEDED @55%, ~97deg.
@@ -34,6 +46,19 @@
   --surface-solid: #ffffff; /* Canvas, Music Player */
   --surface-glass: rgba(255, 255, 255, 0.4); /* theme toggle, footer, modal */
   --glass-blur: 8px; /* Figma GLASS effect, radius 8 */
+
+  /* A control sitting *on* a card — the waitlist pill, the search surface, the
+     plane's badge. In light it is the white the card is already made of; in
+     dark a card is a solid #222 and a control drawn in the same value would
+     disappear into it, so it lifts one step instead. One token rather than a
+     literal #fff at each call site, which is what made these vanish. */
+  --surface-raised: #ffffff;
+
+  /* LinkedIn's blue where it is a *fill* carrying white type — the card's CTA
+     and the hover flood. Separate from `--blue`, which is ink: the dark theme
+     lifts ink to stay legible on a dark ground, and that same lift under white
+     text is a fill nobody can read. This one stays deep in both themes. */
+  --blue-flood: #1178ab;
 
   /* Figma's only shadow on the plain (non-liquid) glass surfaces. Two percent. */
   --glass-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
@@ -82,8 +107,8 @@
   --overhang: 34px;
 
   /* Vertical rhythm that isn't just --gap */
-  --gap-lg: 122px; /* Introduction -> Store */
-  --gap-col3: 41px; /* Timeline -> Search */
+  --gap-lg: 118px; /* Introduction -> Store */
+  --gap-personality: 48px; /* Store -> Music + LinkedIn */
   --row-top: 164px; /* top row track; Canvas deliberately overhangs it */
   --col-3-offset: 28px; /* col 3 starts 28px below col 2 */
 
@@ -95,6 +120,22 @@
      44px bar; it is built here as a gradient with no edge of its own, so it
      needs more room to arrive at nothing. See BottomBlur. */
   --blur-bar-h: 72px;
+}
+
+/* --- Phone -----------------------------------------------------------------
+
+   One token, changed once. 32px of padding either side of a 375px screen
+   spends 17% of the viewport on margin and leaves 311px for cards drawn at
+   322 and 372 — so the padding is what gives first, before any card is asked
+   to reflow.
+
+   This is deliberately the *only* geometry token that moves. The column
+   widths below 1000px are already irrelevant (the band collapses to one
+   column there), and the gutter is vertical by then. */
+@media (max-width: 600px) {
+  :root {
+    --page-pad: 20px;
+  }
 }
 
 /* ==========================================================================
@@ -192,6 +233,20 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
   cursor: auto !important;
 }
 
+/* The opt-out. `data-cursor="native"` says this control's affordance is a
+   cursor shape the OS already draws better than we can — grab/grabbing on the
+   timeline's ruler is the one today, and every platform draws the hand its own
+   users recognise. CanvasCursor hides itself over these (they are in its
+   `NATIVE_CURSOR` list), so the two never both show.
+
+   The shape comes through `--native-cursor` rather than being hardcoded here,
+   so the element that owns the affordance is the one that names it — and can
+   change it mid-gesture, which is the whole point of grab vs grabbing. */
+html[data-canvas-cursor] [data-cursor="native"],
+html[data-canvas-cursor] [data-cursor="native"] * {
+  cursor: var(--native-cursor, auto) !important;
+}
+
 /* ==========================================================================
    Focus
    Visible for keyboard users, absent for mouse users.
@@ -218,6 +273,39 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
    as focus stays where it was put. Tabbing to the card still rings it. */
 [data-focus-restore]:focus-visible {
   outline: none;
+}
+
+/* ==========================================================================
+   Selection
+   Orange on the homepage, purple in a case study, green in the About reader.
+   The default is the homepage's, and the two readers opt out of it by name:
+   `data-selection` is written by ModalSurface's `selectionTint` prop and, on
+   the `/work/[slug]` route, by the page itself.
+
+   Two things about this that are easy to get wrong:
+
+   Every token here is defined on `:root` and nowhere else. A highlight
+   pseudo-element does *not* read custom properties off the element it
+   originates from — it inherits them down its own parallel chain, from the
+   root's `::selection` — so a `--select-violet` set on the modal's own div
+   would be invisible to this rule. Root, or it doesn't resolve.
+
+   And the tint has to be named on both sides of the combinator: `.x
+   ::selection` styles the selection inside descendants of .x but not .x's own
+   text, which is why each rule is an `:is()` over the element and its
+   subtree rather than a plain descendant selector.
+   ========================================================================== */
+
+::selection {
+  background-color: var(--select-orange);
+}
+
+:is([data-selection="violet"], [data-selection="violet"] *)::selection {
+  background-color: var(--select-violet);
+}
+
+:is([data-selection="green"], [data-selection="green"] *)::selection {
+  background-color: var(--select-green);
 }
 
 /* Content whose destination or data source isn't decided yet. Visually
@@ -340,6 +428,54 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
    custom property inside a gradient can only snap.
    ========================================================================== */
 
+/* ---------------------------------------------------------------------------
+   The material's two halves.
+
+   Everything above describes glass over a *bright* ground: a white film, a
+   dark band under the top rim, a bright return off the bottom face. Worn
+   unchanged on a dark page every one of those readings inverts — a 20% white
+   film over #111 is the brightest thing on screen, and the "shade" under the
+   top rim is invisible because there is nothing darker to shade toward.
+
+   So the plate's colour and its four state numbers are tokens, and the dark
+   theme redefines them at the bottom of this file. The reference is iOS /
+   Apple Music's dark glass: a dark film that is *more* opaque than its light
+   counterpart, no top shade at all, and the whole edge carried by a white
+   hairline rather than by a gradient across the face.
+
+   The `-hi` set is the hover state. It has to be tokens too: every control on
+   the site writes the same four numbers into its own `:hover`, and in dark a
+   resting body of 0.5 hovering to a hardcoded 0.3 would make the glass go
+   *thinner* under the pointer.
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* The plate's own colour, as channels so the alpha stays tunable. */
+  --liquid-fill: 255 255 255;
+  /* Where the light is made of. White in both themes — it is light. */
+  --liquid-lit: 255 255 255;
+
+  /* The hairline, top / sides / bottom. */
+  --liquid-ring-top: 0.85;
+  --liquid-ring-mid: 0.1;
+  --liquid-ring-bottom: 0.6;
+
+  --liquid-body-hi: 0.3;
+  --liquid-shade-hi: 0.13;
+  --liquid-gloss-hi: 0.8;
+  --liquid-spec-hi: 0.28;
+
+  /* Three shadows, because the reference has three jobs for them: a hard
+     contact line right under the edge (it measures 192 against a 240 page —
+     alpha 0.2, and half of that is what made an earlier pass read as flat), a
+     mid falloff over the next few pixels, and a wide ambient one that lifts
+     the whole pill off the page. */
+  --liquid-cast: 0 1px 1px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0, 0, 0, 0.1),
+    0 10px 24px rgba(0, 0, 0, 0.05);
+  --liquid-cast-hi: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12),
+    0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
 @property --liquid-body {
   syntax: "<number>";
   inherits: true;
@@ -394,13 +530,7 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
   position: relative;
   isolation: isolate;
 
-  /* Three shadows, because the reference has three jobs for them: a hard
-     contact line right under the edge (it measures 192 against a 240 page —
-     alpha 0.2, and half of that is what made an earlier pass read as flat), a
-     mid falloff over the next few pixels, and a wide ambient one that lifts
-     the whole pill off the page. */
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0, 0, 0, 0.1),
-    0 10px 24px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--liquid-cast);
 
   transition: box-shadow 280ms ease, transform 280ms cubic-bezier(0.2, 0, 0, 1),
     --liquid-body 280ms ease, --liquid-shade 280ms ease,
@@ -421,7 +551,7 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
 .liquid::before {
   z-index: -2;
   backdrop-filter: blur(14px) saturate(var(--liquid-sat));
-  background-color: rgba(255, 255, 255, var(--liquid-body));
+  background-color: rgb(var(--liquid-fill) / var(--liquid-body));
   background-image:
     /* The specular, following the pointer. iOS moves this highlight as the
        device tilts; on a desktop the honest analogue is where the pointer is.
@@ -429,8 +559,8 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
        than colour within it. */
     radial-gradient(
       140px circle at var(--lx) var(--ly),
-      rgba(255, 255, 255, var(--liquid-spec)) 0%,
-      rgba(255, 255, 255, 0) 68%
+      rgb(var(--liquid-lit) / var(--liquid-spec)) 0%,
+      rgb(var(--liquid-lit) / 0) 68%
     ),
     /* Kept at zero opacity unless a component asks for a tint. */
       linear-gradient(
@@ -443,8 +573,8 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
        It climbs from 243 to 252 in the last few pixels before the edge. */
       linear-gradient(
         0deg,
-        rgba(255, 255, 255, var(--liquid-gloss)) 0%,
-        rgba(255, 255, 255, 0) 14%
+        rgb(var(--liquid-lit) / var(--liquid-gloss)) 0%,
+        rgb(var(--liquid-lit) / 0) 14%
       ),
     /* Shade under the top rim, where the light goes in. */
       linear-gradient(
@@ -471,10 +601,10 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
   padding: 1px;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(255, 255, 255, 0.12) 28%,
-    rgba(255, 255, 255, 0.08) 62%,
-    rgba(255, 255, 255, 0.6) 100%
+    rgb(var(--liquid-lit) / var(--liquid-ring-top)) 0%,
+    rgb(var(--liquid-lit) / calc(var(--liquid-ring-mid) * 1.2)) 28%,
+    rgb(var(--liquid-lit) / var(--liquid-ring-mid)) 62%,
+    rgb(var(--liquid-lit) / var(--liquid-ring-bottom)) 100%
   );
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
@@ -523,6 +653,7 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
    the portrait. Both are shapes whose aspect ratio is identical at either end,
    which is what keeps the group animation a pure scale and translate. */
 ::view-transition-group(inspection-frame),
+::view-transition-group(design-system-frame),
 ::view-transition-group(about-portrait) {
   z-index: 1;
   animation-duration: 560ms;
@@ -542,6 +673,8 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
    to reveal. */
 ::view-transition-old(inspection-frame),
 ::view-transition-new(inspection-frame),
+::view-transition-old(design-system-frame),
+::view-transition-new(design-system-frame),
 ::view-transition-old(about-portrait),
 ::view-transition-new(about-portrait) {
   width: 100%;
@@ -594,11 +727,20 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
   z-index: 3;
 }
 
-/* The controls are sticky over everything in the real modal, so they are here
-   too. */
-::view-transition-group(modal-controls) {
-  z-index: 5;
-}
+/* The control cluster is deliberately *not* named, and that is a fix rather
+   than an omission.
+
+   An element with a `view-transition-name` is a backdrop root. Every control
+   in that cluster is `.liquid`, and `.liquid`'s blur is a `backdrop-filter` —
+   which, inside a backdrop root, has nothing behind it to filter. Named, the
+   cluster had no frost at all: over the case study's hero photograph the
+   theme toggle was a flat 20% white film with the driveway showing through it
+   perfectly sharp. That is the reported bug, and it is why the canvas's
+   identical cluster looked right — there the name is on the surface *around*
+   the controls, so the board is inside the root and does get blurred.
+
+   Unnamed, the cluster is captured inside `modal-plate` and arrives with it.
+   One less beat in the choreography, in exchange for the material working. */
 
 ::view-transition-group(*) {
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
@@ -639,15 +781,10 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
   animation-delay: 210ms;
 }
 
-::view-transition-new(modal-controls) {
-  animation: modal-content-fade 300ms ease 260ms backwards;
-}
-
 /* Leaving is one movement, not a reverse reading. */
 ::view-transition-old(modal-title),
 ::view-transition-old(modal-body),
-::view-transition-old(modal-meta),
-::view-transition-old(modal-controls) {
+::view-transition-old(modal-meta) {
   animation: modal-content-fade 200ms ease reverse forwards;
 }
 
@@ -708,15 +845,16 @@ html[data-canvas-cursor] :is(input, textarea, select, [contenteditable="true"]) 
    the script hadn't already covered.
 
    ---------------------------------------------------------------------------
-   PLACEHOLDER — these values are derived, not designed.
+   The ground and the cards are specified, not derived: #111111 for the page
+   and #222222 for every card, by request. Everything else in this block is
+   built to sit on those two values.
 
-   Every number above was read out of Figma. None of these were: no dark
-   composition exists in the file yet (ARCHITECTURE.md risk #3 / D5). They are
-   a defensible first pass — ink and page swap roles, surfaces become light
-   films over a dark ground rather than white ones, accents lift in luminance
-   enough to hold contrast on a dark field — and they are meant to be replaced
-   wholesale once the dark composition is drawn. Nothing outside this block
-   should need to change when that happens.
+   Cards are a *solid* here rather than the translucent white film an earlier
+   pass used. A film's value depends on what it happens to be over, so two
+   cards at different heights on the page were never quite the same grey; a
+   flat #222 is the same card everywhere, which is what "the cards are #222222"
+   asks for. The glass surfaces — `.liquid`, the modal, the footer — stay
+   translucent, because there the transparency is the material.
    ========================================================================== */
 
 html[data-theme="dark"] {
@@ -741,22 +879,60 @@ html[data-theme="dark"] {
   --red: #ff6470;
   --live: #ff8b80;
 
-  /* --- Surfaces ---------------------------------------------------------
-     The light theme is a near-white base with a slightly darker wash; this
-     inverts that relationship rather than picking new hues, so the gradient
-     still runs the same direction across the page. */
-  --page-base: #1b1c1e;
-  --page-wash-from: #212326;
-  --page-wash-to: rgba(28, 30, 32, 0.55);
+  --blue-flood: #17739f;
 
-  /* White films, not grey fills. A translucent white over the page ground
-     keeps the material reading as glass — a solid grey would flatten every
-     card into a plate and lose the `.liquid` refraction entirely. */
-  --surface: rgba(255, 255, 255, 0.07);
-  --surface-solid: #26282b;
+  /* The lifted hues, and a heavier film. A 20% tint that reads clearly over a
+     near-white page all but disappears over #111 — there is far less light
+     underneath for it to subtract from. */
+  --select-orange: rgba(255, 138, 76, 0.32);
+  --select-violet: rgba(167, 139, 250, 0.32);
+  --select-green: rgba(126, 209, 95, 0.28);
+
+  /* --- Surfaces ---------------------------------------------------------
+     #111111 flat. The light theme carries a near-invisible wash across the
+     page and this keeps that gesture, at a hair under a percent — enough that
+     the ground is not a dead field, not enough to read as a gradient. */
+  --page-base: #111111;
+  --page-wash-from: #131313;
+  --page-wash-to: rgba(15, 15, 15, 0.55);
+
+  --surface: #222222;
+  --surface-solid: #222222;
   --surface-glass: rgba(255, 255, 255, 0.05);
+
+  /* One step up from the card, for controls drawn on top of one. */
+  --surface-raised: #2c2c2e;
 
   /* Shadow does almost no work on a dark ground — light does. The card's
      edge has to come from a highlight, so the "shadow" here is a hairline. */
   --glass-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+  /* --- Liquid glass -----------------------------------------------------
+     A dark film, not a white one, and a more opaque film than the light
+     theme's: over a #111 page a 20% plate has almost nothing to separate it
+     from the ground, and the control reads as a hole. iOS's dark glass sits
+     around 60%, carries no top shade at all — there is nothing darker than
+     the page for it to shade toward — and puts the whole of its edge into a
+     white hairline instead of a gradient across the face. */
+  --liquid-fill: 28 28 30;
+  --liquid-body: 0.58;
+  --liquid-shade: 0;
+  --liquid-gloss: 0.1;
+
+  --liquid-ring-top: 0.26;
+  --liquid-ring-mid: 0.05;
+  --liquid-ring-bottom: 0.14;
+
+  --liquid-body-hi: 0.72;
+  --liquid-shade-hi: 0;
+  --liquid-gloss-hi: 0.18;
+  --liquid-spec-hi: 0.16;
+
+  /* Deeper and softer. A dark page swallows the light theme's 5%-alpha
+     shadows entirely, so the lift has to come from a shadow that is actually
+     darker than the ground it falls on. */
+  --liquid-cast: 0 1px 2px rgba(0, 0, 0, 0.5), 0 6px 16px rgba(0, 0, 0, 0.36),
+    0 14px 32px rgba(0, 0, 0, 0.24);
+  --liquid-cast-hi: 0 1px 2px rgba(0, 0, 0, 0.55),
+    0 4px 10px rgba(0, 0, 0, 0.4), 0 12px 28px rgba(0, 0, 0, 0.28);
 }

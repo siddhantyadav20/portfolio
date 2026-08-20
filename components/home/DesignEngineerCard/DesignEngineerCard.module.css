@@ -130,6 +130,14 @@
   transform: matrix(0.9961, -0.0886, -0.0886, -0.9961, 73.43, 78.336);
 }
 
+/* The unflown route. Ink at a third, so it is a dashed line on the card in
+   either theme rather than the #222 it used to be — which on a #222 card was
+   nothing at all. */
+.route {
+  stroke: var(--ink);
+  stroke-opacity: 0.32;
+}
+
 /* The stretch of route the plane has just flown, in accent. Same path, same
    dash phase, so it covers the grey dashes exactly — this is the existing
    route lighting up, not a second line drawn over it. Masked to a short window
@@ -158,7 +166,10 @@
   height: 32px;
   border: 1px solid var(--ink-20);
   border-radius: 50%;
-  background-color: #ffffff;
+  /* The disc the plane rides in. `--surface-raised` rather than #ffffff: it sits
+     on a card, and on a dark card a white disc is a hole punched in it — which
+     is exactly how the reported one read. */
+  background-color: var(--surface-raised);
   box-shadow: 0 calc(1px + 5px * var(--alt, 0)) calc(2px + 10px * var(--alt, 0))
     rgba(0, 0, 0, calc(0.03 + 0.13 * var(--alt, 0)));
   will-change: transform;
@@ -195,21 +206,32 @@
 }
 
 /* The plane's local +y is behind it — the nose points up in the icon's own
-   frame — so the plume hangs off the bottom of this box and grows downward. */
+   frame — so the plume hangs off the bottom of this box and grows downward.
+
+   It starts at 84% of the box rather than 62%, and that is the fix for the
+   trail nobody could see. The badge is an opaque 32px disc drawn *after* this
+   element, so everything above the disc's bottom edge is hidden — and at 62%
+   that swallowed the first two thirds of the plume, including the whole of its
+   dense head. What emerged was the tail, already down to 22% alpha and blurred.
+   Starting it just inside the rim keeps the plume tucked behind the plane the
+   way it should be while leaving the part that carries the colour on the card.
+
+   The gradient is heavier for the same reason: it now has to read over a card,
+   not over the white disc it used to be measured against. */
 .thrust::before {
   content: "";
   position: absolute;
   left: 50%;
-  top: 62%;
-  width: 9px;
-  height: 30px;
+  top: 84%;
+  width: 10px;
+  height: 34px;
   transform: translateX(-50%) scaleY(calc(0.45 + 0.55 * var(--thrust, 0)));
   transform-origin: 50% 0;
   border-radius: 50%;
   background: linear-gradient(
     180deg,
-    rgba(234, 88, 11, 0.55) 0%,
-    rgba(234, 88, 11, 0.22) 42%,
+    rgba(234, 88, 11, 0.85) 0%,
+    rgba(234, 88, 11, 0.45) 45%,
     rgba(234, 88, 11, 0) 100%
   );
   filter: blur(2.5px);
@@ -233,13 +255,16 @@
   pointer-events: none;
 }
 
+/* Ink at a third, so the dust is dark on a light card and light on a dark one —
+   it is a cloud kicked off the surface either way, and a #222 puff on a #222
+   card is nothing at all. */
 .dust > * {
   position: absolute;
   left: 0;
   top: 0;
   opacity: 0;
   border-radius: 50%;
-  background-color: rgba(34, 34, 34, 0.34);
+  background-color: var(--ink-40);
   filter: blur(1.5px);
 }
 

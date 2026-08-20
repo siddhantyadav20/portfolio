@@ -1,4 +1,4 @@
-import type { ElementType, ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ElementType, ComponentPropsWithRef, ReactNode } from "react";
 import styles from "./CardShell.module.css";
 
 type Surface = "translucent" | "solid" | "glass" | "none";
@@ -20,7 +20,11 @@ type CardShellProps<T extends ElementType> = {
   static?: boolean;
   className?: string;
   children?: ReactNode;
-} & Omit<ComponentPropsWithoutRef<T>, "as" | "className" | "children">;
+  /** Forwarded to the rendered element. React 19 passes `ref` through as an
+   *  ordinary prop, so the spread below already delivers it — this is only
+   *  what lets a caller say so in types. The Design System card needs it to
+   *  put pointer listeners on the card itself. */
+} & Omit<ComponentPropsWithRef<T>, "as" | "className" | "children">;
 
 /**
  * The one genuinely repeated surface in the composition: a translucent white

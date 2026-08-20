@@ -450,3 +450,31 @@ export const HOME = {
   x: anchor.x + anchor.w / 2,
   y: anchor.y + anchor.h / 2,
 };
+
+/**
+ * The scale the Canvas card renders the board at.
+ *
+ * It lives here rather than in the card because two very distant places need
+ * to agree on it: the card, which sets the transform, and `Still`, which uses
+ * it to work out how large a widget's artwork is *actually* painted. A 320px
+ * record at this scale occupies about 42 CSS pixels, and asking the browser
+ * for the full-resolution file to fill 42 pixels is how the homepage came to
+ * carry several megabytes of board art.
+ */
+export const PREVIEW_SCALE = 0.13;
+
+/**
+ * The name the Canvas card and the canvas share while morphing.
+ *
+ * Set inline by both, never in a module: CSS Modules scope
+ * `view-transition-name` exactly as they scope a class, so written in a
+ * stylesheet it reaches the browser mangled and every `::view-transition-*`
+ * rule silently fails to match. globals.css documents the same trap for the
+ * modal names.
+ *
+ * It lives here, next to the board it names, rather than in CanvasSurface —
+ * the card needs the string at module scope but must *not* pull the surface's
+ * ~40KB of camera, chrome and twelve widgets into the homepage bundle to get
+ * it. The surface is loaded on demand instead; see CanvasCard.
+ */
+export const CANVAS_MORPH = "canvas-frame";

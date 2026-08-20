@@ -1,42 +1,27 @@
-import { widgets, WORLD_H, WORLD_W, type Widget } from "@/content/canvas";
-import Book from "../widgets/Book";
-import Disc from "../widgets/Disc";
-import DrawingCanvas from "../widgets/DrawingCanvas";
-// The homepage's card, unchanged — same component, same flood, same chime.
-import LinkedInCard from "@/components/home/LinkedInCard";
-import PhotoStack from "../widgets/PhotoStack";
-import ProfileCard from "../widgets/ProfileCard";
-import Receipt from "../widgets/Receipt";
-import ScratchCard from "../widgets/ScratchCard";
-import Sticker from "../widgets/Sticker";
-import Terminal from "../widgets/Terminal";
+import { Board, Slot, widgets } from "./Board";
 import Still from "./Still";
-import styles from "./CanvasWorld.module.css";
 
 /**
- * The board's contents, at world coordinates.
+ * The board, as a picture of itself.
  *
- * This component is the reason the card can morph into the canvas
- * convincingly: it is rendered in *both* places — inside the Canvas card at
- * a small scale, and inside CanvasSurface at the camera's scale — so
+ * This is what the Canvas card renders, and it is the reason the card can
+ * morph into the canvas convincingly: it is the *same geometry* the canvas
+ * lays out — same world box, same slots, same coordinates, same angles — so
  * clicking the card doesn't crossfade one picture into another, it
- * interpolates the same world from card-rect to viewport-rect.
+ * interpolates the same arrangement from card-rect to viewport-rect.
  *
- * Two constraints hold for everything below:
+ * What it is not is the same *components*. Mounting the real widgets to paint
+ * a 322px card would boot a terminal, start a cat drawing itself, subscribe
+ * six records to an audio store and run three canvas contexts — and, because
+ * imports are not lazy, would put all of that in the homepage's first load
+ * whether or not anyone ever opened the canvas. The live board lives in
+ * `Live.tsx`, and only the canvas imports it.
  *
- *   1. It is a server component and stays one. No hooks, no state — the
- *      Canvas card is server-rendered and must not drag a client bundle
- *      along for a picture. Widget behaviour lands as client islands *inside*
- *      these frames.
- *
- *   2. No `backdrop-filter`, ever. `.liquid` is the house reflex and it must
- *      not come near a widget: twenty-five backdrop-filtered nodes inside a
- *      transformed layer take a pan from 120fps to single digits. Glass belongs
- *      on the fixed chrome, which is never transformed.
+ * Server component, and stays one: the card is server-rendered and must not
+ * drag a client bundle along for a picture.
  */
 export default function CanvasWorld({
   className,
-  preview = false,
   style,
   ref,
 }: {
@@ -45,88 +30,15 @@ export default function CanvasWorld({
    *  resting transform declaratively, so the preview is positioned in the
    *  server's HTML rather than only once a rAF loop has run. */
   style?: React.CSSProperties;
-  /** Render every widget as a still picture rather than a live component.
-   *  The Canvas card uses this — see Still. */
-  preview?: boolean;
-  /** The canvas writes the camera transform straight onto this element, once
-   *  per frame, outside React. A normal prop in React 19 — no forwardRef. */
   ref?: React.Ref<HTMLDivElement>;
 }) {
   return (
-    <div
-      ref={ref}
-      className={[styles.world, className].filter(Boolean).join(" ")}
-      data-preview={preview ? "" : undefined}
-      style={{ width: WORLD_W, height: WORLD_H, ...style }}
-    >
+    <Board className={className} style={style} ref={ref} preview>
       {widgets.map((w, i) => (
-        <div
-          key={w.id}
-          className={styles.slot}
-          data-widget={w.id}
-          // Walked by Tab, and the camera follows — see CanvasSurface. A board
-          // you can only reach by dragging is a keyboard dead end, and this is
-          // the cheapest way out of that: focus order *is* a guided tour.
-          tabIndex={preview ? -1 : 0}
-          style={{
-            // Staggered by band, so arriving reads as the board being laid out
-            // rather than switched on. Index-based: the data is authored in
-            // reading order, which is the order it should appear in.
-            animationDelay: preview ? undefined : `${Math.min(i * 26, 620)}ms`,
-            left: w.x,
-            top: w.y,
-            width: w.w,
-            height: w.h,
-            // `rotate` rather than a transform, so a widget's own transform —
-            // a hover lift, a click spring — can't wipe out its resting angle.
-            rotate: w.rotate ? `${w.rotate}deg` : undefined,
-          }}
-        >
-          {preview ? <Still widget={w} /> : <Render widget={w} />}
-        </div>
+        <Slot key={w.id} widget={w} index={i} preview>
+          <Still widget={w} />
+        </Slot>
       ))}
-    </div>
+    </Board>
   );
-}
-
-function Render({ widget }: { widget: Widget }) {
-  switch (widget.kind) {
-    case "disc":
-      return (
-        <Disc
-          id={widget.id}
-          title={widget.title}
-          artist={widget.artist}
-          cover={widget.cover}
-          src={widget.src}
-        />
-      );
-    case "book":
-      return <Book book={widget} />;
-    case "sticker":
-      return (
-        <Sticker
-          label={widget.label}
-          art={widget.art}
-          effect={widget.effect}
-        />
-      );
-    case "profile":
-      return <ProfileCard />;
-    case "linkedin":
-      return <LinkedInCard />;
-    case "terminal":
-      return <Terminal />;
-
-    case "receipt":
-      return <Receipt />;
-
-    case "scratch":
-      return <ScratchCard />;
-
-    case "draw":
-      return <DrawingCanvas />;
-    case "photos":
-      return <PhotoStack />;
-  }
 }

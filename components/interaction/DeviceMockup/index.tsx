@@ -1,12 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import PrototypeScreen from "@/components/interaction/PrototypeScreen";
 import styles from "./DeviceMockup.module.css";
 
 /**
- * The one shared element in the card → modal transition: the card itself, which
- * expands into the modal's mockup. The device rides inside that picture rather
- * than being a hero of its own.
+ * The device is deliberately *not* a view-transition hero of its own — it rides
+ * inside the card's picture, and the card is what carries the name.
  *
  * That was the fix for the screen appearing to break out of the card on close.
  * A view-transition hero is lifted out of its container and is therefore *not*
@@ -15,10 +15,11 @@ import styles from "./DeviceMockup.module.css";
  * interpolated box is briefly wider than the card. Naming only the container
  * makes that impossible — a card's snapshot carries its own clip.
  *
- * Only ever on one element at a time: two live elements sharing a name abort
- * the transition, and the card stays mounted behind the modal.
+ * The name itself used to be a constant here. It moved to the study data as
+ * `StudyMorphName` once a second card needed one: a name has to be unique
+ * across the live document, and two elements sharing one aborts the transition
+ * for both. See `content/work/types.ts`.
  */
-export const FRAME_MORPH = "inspection-frame";
 
 type Props = {
   /** The hand's own rect, and any rotation — the only thing a surface sets. */
@@ -48,7 +49,19 @@ export default function DeviceMockup({
 }: Props) {
   return (
     <div className={[styles.device, className].filter(Boolean).join(" ")}>
-      <img src="/media/inspection-hand.png" alt="" className={styles.hand} />
+      {/* 1114x1608 as exported, and painted at most ~700 wide (the modal's
+          mockup) or ~457 (the card). Left as a raw <img> it was the single
+          heaviest file on the homepage at 939KB; through the optimiser it is
+          an AVIF a fraction of that. `fill` because the surface sizes the
+          device and the hand simply occupies it. */}
+      <Image
+        src="/media/inspection-hand.png"
+        alt=""
+        fill
+        sizes="(max-width: 900px) 100vw, 700px"
+        priority
+        className={styles.hand}
+      />
       <PrototypeScreen
         className={styles.screen}
         play={play}

@@ -1,0 +1,74 @@
+/* The long-form body of a case study. Reading measure, not card measure:
+   these are paragraphs someone is meant to sit and read, so the column is
+   capped well below the surface that holds it. */
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: var(--lh);
+  color: var(--ink-strong);
+}
+
+.paragraph {
+  margin: 0;
+  max-width: 64ch;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: var(--lh-wide);
+  color: var(--ink-70);
+}
+
+/* Missing prose has to read as missing — see the component. Quiet and italic
+   rather than boxed or coloured: this is a note, not a warning. */
+.pending {
+  margin: 0;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 15px;
+  font-style: italic;
+  line-height: var(--lh-wide);
+  color: var(--ink-50);
+}
+
+/* --- Figures --------------------------------------------------------------
+   Wider than the reading measure on purpose. The paragraphs are capped at
+   64ch because that is how long a line should be to read; a screenshot of a
+   colour ramp has no such limit and is unreadable at 64ch of width. */
+
+.figure {
+  margin: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-md);
+  /* The library's pages are drawn on a near-white; without an edge they float
+     off the top of a light page. */
+  box-shadow: inset 0 0 0 1px var(--ink-20);
+}
+
+.caption {
+  max-width: 64ch;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 13px;
+  line-height: var(--lh-wide);
+  color: var(--ink-50);
+}

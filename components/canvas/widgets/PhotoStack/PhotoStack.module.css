@@ -33,6 +33,12 @@
      compositing layer inside the transformed world into the bargain. */
   box-shadow: inset 0 0 0 1px rgba(var(--ps-ink), 0.06),
     inset 0 1px 0 rgba(var(--ps-ink), 0.1);
+  /* The card is a squircle and `overflow: hidden` does not hold a transformed
+     descendant inside one — and every photo here is transformed, by the
+     carousel's own enter/exit. So the plate showed as a rim of `--ps-plate` at
+     each corner, outside the photo's tighter round corner. This clips against
+     the card's real shape. */
+  clip-path: border-box;
   outline: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -53,6 +59,12 @@
   inset: 0;
   overflow: hidden;
   border-radius: inherit;
+  /* `corner-shape` does not inherit on its own, so `border-radius: inherit`
+     alone gave this layer a plain rounded rect while the card around it is a
+     squircle — the fuller shape — and the difference showed as plate at the
+     corners. */
+  corner-shape: inherit;
+  clip-path: border-box;
 }
 
 .photo {

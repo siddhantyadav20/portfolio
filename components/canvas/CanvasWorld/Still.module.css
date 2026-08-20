@@ -1,5 +1,16 @@
-/* Stills for the card's preview of the board. Flat by design — at a sixth
-   scale a shadow is a smudge and a gradient is a solid. */
+/* Stills for the card's preview of the board.
+
+   Every measurement here is in *world* px — the slot is laid out at the
+   widget's real size (a record is a 320px box, the profile card is 480x544)
+   and the whole board is then scaled by a transform on an ancestor. So these
+   are written at the size the live widget is written at, and the card gets the
+   sixth-scale version for free.
+
+   Materials are the live widgets' own, taken from their modules rather than
+   approximated, so the preview and the canvas are the same board in the same
+   light: the receipt's paper and the terminal's shell carry a fixed colour in
+   both themes, and everything that is a *surface of the page* — the LinkedIn
+   card, the drawing stock — follows the theme like the rest of the site. */
 
 .art {
   display: block;
@@ -12,43 +23,365 @@
   object-fit: contain;
 }
 
-.plate {
+/* --- Photos --------------------------------------------------------------- */
+
+.photos {
+  position: relative;
   display: block;
   width: 100%;
   height: 100%;
-  /* A hairline, so a white card on a white desk still has an edge. */
-  box-shadow: inset 0 0 0 6px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  border-radius: 48px;
+  clip-path: border-box;
+  background-color: #0c0c0e;
 }
 
-/* Ruled lines standing in for writing. Chunky on purpose — at a sixth scale a
-   1px rule disappears, and these have to survive being shrunk. */
-.rules {
+/* The live widget's two-stop scrim: the top carries the label, the bottom the
+   bar that only exists on hover. */
+.photoScrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(12, 12, 14, 0.5) 0%,
+    transparent 24%,
+    transparent 56%,
+    rgba(12, 12, 14, 0.62) 100%
+  );
+}
+
+.photoLabel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding-inline: 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(12, 12, 14, 0.4);
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* --- LinkedIn ------------------------------------------------------------- */
+
+/* Figma's 254x280 card, padded 20, space-between — the same box the homepage
+   card is drawn at, which is why the widget is sized to it in content/canvas. */
+.linkedin {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 34px;
+  justify-content: space-between;
+  width: 100%;
   height: 100%;
-  padding: 0 15%;
+  padding: 20px;
+  overflow: hidden;
+  border-radius: 48px;
+  clip-path: border-box;
+  background-color: var(--surface-solid);
 }
 
-.rules i {
-  height: 22px;
-  border-radius: 11px;
-  background-color: rgba(0, 0, 0, 0.09);
+.liHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
 }
 
-.rules i:nth-child(2) { width: 74%; }
-.rules i:nth-child(4) { width: 58%; }
-.rules i:last-child { width: 40%; }
-
-:global(html[data-theme="dark"]) .rules i {
-  background-color: rgba(255, 255, 255, 0.1);
+.liWho {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
-.paper { background-color: var(--surface-solid); }
-.ink { background-color: #16181b; }
-.receipt { background-color: #f4f1ea; }
-.foil { background-color: #d5d1c9; }
+.liName {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+}
 
-:global(html[data-theme="dark"]) .receipt { background-color: #222222; }
-:global(html[data-theme="dark"]) .foil { background-color: #262626; }
+.liRole {
+  font-size: 12px;
+  color: var(--ink-60);
+}
+
+/* At rest this is the only blue on the card — see LinkedInCard, where the
+   hover flood is this same tile opened out to the full box. */
+.liTile {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: var(--blue-flood);
+}
+
+.liBlurb {
+  font-size: 22px;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.liCta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border-radius: var(--r-pill);
+  background-color: var(--blue-flood);
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* --- Receipt -------------------------------------------------------------- */
+
+/* Thermal paper, and it keeps its own colour in both themes exactly as the
+   live widget does — a receipt is an object on the desk, not a surface of the
+   page. Values lifted from Receipt.module.css. */
+.receipt {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  padding: 28px 22px;
+  overflow: hidden;
+  background-color: #f4f1ea;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: #2a2724;
+}
+
+:global(html[data-theme="dark"]) .receipt {
+  background-color: #222222;
+  color: #d9d9d9;
+}
+
+.rcTitle {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+.rcSub {
+  margin-top: -10px;
+  font-size: 13px;
+  text-align: center;
+  opacity: 0.55;
+}
+
+.rcRule {
+  height: 0;
+  border-top: 1px dashed currentColor;
+  opacity: 0.34;
+}
+
+.rcRows {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.rcRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  opacity: 0.72;
+}
+
+.rcTotal {
+  font-weight: 700;
+  opacity: 1;
+}
+
+.rcStamp {
+  align-self: center;
+  margin-top: auto;
+  padding: 6px 14px;
+  border: 2px solid #c8402f;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #c8402f;
+  rotate: -8deg;
+}
+
+:global(html[data-theme="dark"]) .rcStamp {
+  border-color: #e8554a;
+  color: #e8554a;
+}
+
+/* --- Terminal ------------------------------------------------------------- */
+
+/* Fixed colours, like the live one: the terminal is a terminal in both themes. */
+.terminal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 14px;
+  background-color: #16181b;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+.tmBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: 26px;
+  padding-inline: 12px;
+  background-color: #212429;
+}
+
+.tmBar i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.22);
+}
+
+.tmBody {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  font-size: 9px;
+  line-height: 1.35;
+  white-space: pre;
+}
+
+/* The block-glyph banner is drawn at the width it was authored for; letting it
+   wrap would turn eight readable letters into noise. */
+.tmBanner {
+  color: #4ade80;
+  font-size: 7px;
+  line-height: 1.05;
+}
+
+.tmDim {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.tmOk {
+  color: #4ade80;
+}
+
+.tmPrompt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  color: #e2e8f0;
+}
+
+/* The cursor, parked. Static: the preview is a picture of the board, and a
+   blinking caret on the homepage is motion nobody asked for. */
+.tmPrompt i {
+  width: 6px;
+  height: 11px;
+  background-color: #4ade80;
+}
+
+/* --- Scratch card --------------------------------------------------------- */
+
+.scratch {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 48px;
+  clip-path: border-box;
+  background: #f2f0eb;
+}
+
+:global(html[data-theme="dark"]) .scratch {
+  background: #222222;
+}
+
+/* Brushed aluminium — the four-stop base and the diagonal hairlines the live
+   card paints into its canvas, as a gradient pair. */
+.scFoil {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+      115deg,
+      rgba(0, 0, 0, 0.035) 0 2px,
+      rgba(255, 255, 255, 0.035) 2px 4px
+    ),
+    linear-gradient(135deg, #dedbd4 0%, #c9c5bc 38%, #d5d1c9 64%, #b6b1a7 100%);
+}
+
+:global(html[data-theme="dark"]) .scFoil {
+  background: repeating-linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0.025) 0 2px,
+      rgba(0, 0, 0, 0.05) 2px 4px
+    ),
+    linear-gradient(135deg, #2e2e2e 0%, #202020 38%, #262626 64%, #171717 100%);
+}
+
+.scPrompt {
+  position: relative;
+  padding: 8px 18px;
+  border: 1px dashed rgba(42, 40, 36, 0.35);
+  border-radius: var(--r-pill);
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(42, 40, 36, 0.6);
+}
+
+:global(html[data-theme="dark"]) .scPrompt {
+  border-color: rgba(217, 217, 217, 0.35);
+  color: rgba(217, 217, 217, 0.55);
+}
+
+/* --- Drawing surface ------------------------------------------------------ */
+
+/* The reference's 22px dotted lattice on paper stock. Nothing drawn on it —
+   the live one starts empty too. */
+.draw {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 48px;
+  clip-path: border-box;
+  background: radial-gradient(rgba(34, 34, 34, 0.09) 1.6px, transparent 1.6px) 0
+      0 / 22px 22px,
+    #faf9f6;
+  box-shadow: inset 0 0 0 1px rgba(34, 34, 34, 0.08);
+}
+
+:global(html[data-theme="dark"]) .draw {
+  background: radial-gradient(rgba(243, 243, 243, 0.09) 1.6px, transparent 1.6px)
+      0 0 / 22px 22px,
+    #1a1a1a;
+  box-shadow: inset 0 0 0 1px rgba(243, 243, 243, 0.08);
+}
+
+/* The copy button, which is the one control the live surface shows at rest. */
+.drawCopy {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(34, 34, 34, 0.1);
+}
+
+:global(html[data-theme="dark"]) .drawCopy {
+  background: rgba(34, 34, 34, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(243, 243, 243, 0.12);
+}

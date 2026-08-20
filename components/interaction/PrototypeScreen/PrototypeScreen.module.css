@@ -18,28 +18,58 @@
 
 /* Two layers, which is what Figma has: the app image, and the iOS furniture
    drawn over it. The poster is Figma's own screenshot — the exact image the
-   design composites — so at rest the card and the modal are the file. */
+   design composites — so at rest the card and the modal are the file.
+
+   ---------------------------------------------------------------------------
+   Why these are painted taller than the screen they sit in.
+
+   Both exports are 726x1574 and neither ends at the app. Measured down the
+   file: the tab bar's pill runs to row 1516, the app's own padding below it to
+   about 1539, and from there to the bottom is the phone's black bezel corners
+   with a sliver of the *next* screen behind them ("Not Started / Pending /
+   Completed"). Filled edge to edge that last part survives as the white band
+   reported under the tab bar.
+
+   1574 / 1540 = 1.0221, so painting the file 2.21% taller than the box and
+   anchoring it to the top puts everything below row 1540 past the bottom edge,
+   where `.screen`'s own `overflow: hidden` takes it. The extra height is
+   absorbed by `cover` cropping about a pixel off either side.
+
+   The cut is 1540 and not 1519, which is where a first pass put it: 1519 is
+   inside the app's bottom padding, so the tab bar ended up sitting flush on
+   the glass with nothing under it. The 23 rows between them are the gap the
+   design has below the bar, and they belong on screen. */
 .poster,
 .video {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
+  height: 102.21%;
   object-fit: cover;
+  object-position: 50% 0;
 }
 
 /* The recording is a different capture of the same app, and measures 1.0083x
    the screenshot's UI, anchored at the top-left — landmarked on the house
    thumbnail, which lands at x 26..146 in the screenshot and 26..147 in the
-   recording, top-left coincident in both. Scaling it back by that one factor
-   registers the two, so the app does not shift the instant the video appears.
+   recording, top-left coincident in both. One factor registers the two, so the
+   app does not shift the instant the video appears.
 
-   This is the whole of the correction. It lives on the video because that is
-   what is out of register; nothing else in the composition compensates for
-   anything. */
-.video {
-  transform: scale(0.99177);
+   It is applied to the *poster* rather than to the video, and that is the fix
+   for the second half of the same report — the thin white strip down the right
+   edge. Scaling the video down by 0.99177 registered it correctly but left it
+   0.8% short of the glass on the right and bottom, and what showed through the
+   gap was the poster underneath: the white dashboard, beside a recording of a
+   camera view. Scaling the poster *up* by the reciprocal registers exactly the
+   same pair, and this way the layer that overflows is the one that is clipped
+   rather than the one that leaves a hole. */
+.poster {
+  transform: scale(1.0083);
   transform-origin: 0 0;
+}
+
+.video {
   opacity: 0;
   transition: opacity 320ms ease;
 }
@@ -48,9 +78,15 @@
   opacity: 1;
 }
 
-/* Status bar, dynamic island and home indicator. Figma draws these as vector
-   layers over the app image; neither the screenshot nor the recording contains
-   them, so one overlay serves both states. */
+/* Status bar and dynamic island. Figma draws these as vector layers over the
+   app image; neither the screenshot nor the recording contains them, so one
+   overlay serves both states.
+
+   The file also carries a home indicator — a 683x1450 export with opaque bands
+   at rows 23..87 (status bar and island) and 1427..1436 (the indicator). The
+   mask keeps the top 97% and drops the rest, which removes the indicator
+   without touching the asset or the two bands that are wanted. The island band
+   ends at 6%, so there is a wide margin either side of the cut. */
 .chrome {
   position: absolute;
   inset: 0;
@@ -58,4 +94,9 @@
   height: 100%;
   object-fit: fill;
   pointer-events: none;
+
+  mask-image: linear-gradient(#000 0 0);
+  mask-size: 100% 97%;
+  mask-position: top;
+  mask-repeat: no-repeat;
 }

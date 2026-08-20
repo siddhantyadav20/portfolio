@@ -37,6 +37,7 @@ export default function AboutModal({ open, closing = false, onClose }: Props) {
       closing={closing}
       onClose={onClose}
       label="About Siddhant"
+      selectionTint="green"
       actions={<ThemeToggle />}
     >
       <div className={styles.inner}>

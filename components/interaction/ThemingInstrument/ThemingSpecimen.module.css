@@ -1,0 +1,114 @@
+/* The instrument as a figure in a column of prose. */
+
+.figure {
+  margin: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Sized by the column rather than by a fixed number, so the same block works
+   in the modal's 960px content and the route's narrower article. The ratio is
+   the artboard's; the instrument covers the box and the overflow is clipped
+   here. */
+.frame {
+  position: relative;
+  width: 100%;
+  /* The artboard's own ratio, uncapped. Capping the height and letting the
+     instrument cover the remainder chops the chart card mid-bar, which reads
+     as a broken screenshot rather than as a crop. */
+  aspect-ratio: 1440 / 1024;
+  overflow: hidden;
+  /* Approximate: this frame is as wide as the reading column, which is 960 on
+     both surfaces at desktop. The observer corrects it on the first frame —
+     this is what gets painted before that, and without JavaScript at all. */
+  --ds-scale: 0.667;
+  border-radius: var(--r-lg);
+  /* A hairline so a white shell on a white surface still has an edge. */
+  box-shadow: inset 0 0 0 1px var(--ink-20);
+}
+
+/* The hero's version: it is already inside a frame the modal drew, and a
+   second border around it would read as a screenshot of a window. */
+.bare {
+  position: absolute;
+  inset: 0;
+  display: block;
+  /* As above. The hero frames are 1120 in the modal and 960 on the route. */
+  --ds-scale: 0.72;
+}
+
+.caption {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-family: var(--font-ui), system-ui, sans-serif;
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  opacity: 0.32;
+  transition:
+    width 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 220ms ease;
+}
+
+.dot[data-on] {
+  width: 20px;
+  opacity: 1;
+}
+
+.name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: var(--lh);
+  color: var(--ink);
+  /* Rewritten from the loop, and the names differ in width; a fixed box keeps
+     the sentence after it from stepping sideways. */
+  min-width: 68px;
+}
+
+/* The vertical axis's readout — see the card's copy of this. */
+.mode {
+  --seam-mid: 55%;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: var(--lh);
+  color: var(--ink-50);
+  white-space: nowrap;
+}
+
+.mode::before {
+  content: "";
+  width: 20px;
+  height: 13px;
+  border-radius: 3px;
+  background: linear-gradient(
+    100deg,
+    #ffffff 0 var(--seam-mid),
+    #141a21 var(--seam-mid) 100%
+  );
+  box-shadow: inset 0 0 0 1px var(--ink-20);
+}
+
+.hint {
+  flex: 1;
+  min-width: 220px;
+  max-width: 56ch;
+  font-size: 13px;
+  line-height: var(--lh-wide);
+  color: var(--ink-50);
+}

@@ -583,7 +583,11 @@ export default function DesignEngineerCard() {
         fill="none"
         aria-hidden="true"
       >
-        <path ref={pathRef} d={ROUTE} stroke="#222222" strokeOpacity="0.32" strokeDasharray="3 3" />
+        {/* The stroke is a class rather than an attribute because it was
+            `#222222` — which is exactly the colour a card is in dark, so the
+            route between DES and ENG disappeared into the card it is drawn on.
+            It follows the ink now. */}
+        <path ref={pathRef} className={styles.route} d={ROUTE} strokeDasharray="3 3" />
 
         {/* The lit stretch behind the plane. Three windows of the same route,
             painted longest-first so they composite into a stepped falloff. */}

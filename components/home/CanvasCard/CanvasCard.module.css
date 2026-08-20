@@ -3,8 +3,44 @@
 
 .card {
   width: 322px;
+  /* 322 is wider than a 320px screen's content box. The preview inside is a
+     window onto the board rather than a laid-out composition, so letting the
+     card narrow just shows slightly less board — nothing reflows. */
+  max-width: 100%;
   height: 246px;
   flex: none;
+}
+
+/* The hairline that keeps the card off the page.
+
+   The preview paints the same `--page-base` the page does — deliberately, so
+   the board is continuous through the morph — and the canvas now paints that
+   same ground too, which is what the morph wanted and what left this card with
+   no edge of its own: three identical greys meeting with nothing between them.
+   A white hairline gives it one, and reads as the lip of a window rather than
+   as a border drawn around a picture.
+
+   A pseudo-element rather than an inset shadow on the card, because `.viewport`
+   is an opaque plate at `inset: 0` and would paint straight over one. Last in
+   the box's DOM order, so it sits above the board; the CTA carries `z-index: 2`
+   and stays above it. It inherits the card's shape so it follows the squircle,
+   and CardShell's `clip-path` keeps it inside. */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  corner-shape: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+
+/* White at a quarter is the requested edge and it does the job on a #111 page.
+   On the light page it is white-on-near-white and separates nothing — the same
+   hairline at the same weight, in ink, is the light theme's version of it. */
+:global(html[data-theme="light"]) .card::after {
+  box-shadow: inset 0 0 0 1px rgba(34, 34, 34, 0.1);
 }
 
 /* The window onto the board. `overflow: hidden` is inherited from CardShell;

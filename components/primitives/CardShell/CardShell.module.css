@@ -2,6 +2,24 @@
   position: relative;
   overflow: hidden;
 
+  /* `overflow: hidden` is not enough, and this is the fix for the Inspection
+     card's hand spilling out of its corners on hover.
+
+     Every card here is a squircle (`corner-shape: squircle`, see globals.css).
+     Chrome paints the *background* to that shape but clips a transformed
+     descendant against the plain border box, so anything with a transform —
+     the hand, at -12deg, running past the card's right edge — is simply not
+     clipped at the corners. Setting `corner-shape: round` made it clip
+     correctly, which is what pinned it to the squircle rather than to the
+     `will-change` on the device.
+
+     `clip-path: border-box` is a real clip against the element's own border
+     box *including* its radius and corner shape, so it holds the descendant
+     without giving up the squircle. It clips outer box-shadows too; the only
+     one below is `.glass`'s, at two percent over 24px, which is why that is an
+     acceptable trade here and would not be on a surface with a real shadow. */
+  clip-path: border-box;
+
   /* Written by the cursor-proximity controller; inert until then. */
   --prox-x: 0px;
   --prox-y: 0px;

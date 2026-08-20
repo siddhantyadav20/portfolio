@@ -1,0 +1,126 @@
+/* Two specimens side by side, each a drawn example over its ingredients.
+
+   The stages are painted in the library's own light mode rather than the
+   site's, and deliberately: a shadow made of #919eab is a statement about a
+   grey page, and showing it over this site's ink would be showing something
+   else. */
+
+.anatomy {
+  margin: 4px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.cell {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stage {
+  display: grid;
+  place-items: center;
+  height: 200px;
+  border-radius: var(--r-md);
+  background: #f9fafb; /* the library's own _docs content background */
+  box-shadow: inset 0 0 0 1px var(--ink-20);
+}
+
+/* `shadow/card`, exactly as the token composes it. */
+.paper {
+  width: 168px;
+  height: 108px;
+  border-radius: 16px; /* card/radius */
+  background: #ffffff; /* background/paper */
+  box-shadow:
+    0 12px 24px -4px #919eab1f,
+    0 0 2px 0 #919eab33;
+}
+
+/* `h1` — 64/80, weight 800, tracking 0. Rendered in the site's own display
+   face because Axiforma is not licensed here; the metrics are the library's. */
+.specimen {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 64px;
+  line-height: 80px;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: #1c252e; /* text-primary */
+}
+
+.recipe {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.token {
+  margin: 0;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.parts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.parts li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 13px;
+  line-height: var(--lh-wide);
+  color: var(--ink-60);
+  font-variant-numeric: tabular-nums;
+}
+
+.parts b {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.swatch {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--ink-20);
+}
+
+.swatch[data-swatch="12"] {
+  background: #919eab1f;
+}
+
+.swatch[data-swatch="20"] {
+  background: #919eab33;
+}
+
+.note {
+  margin: 0;
+  max-width: 46ch;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 13px;
+  line-height: var(--lh-wide);
+  color: var(--ink-50);
+}
+
+/* One column once two of these stop being readable side by side. The modal
+   and the route reach this at different page widths, so it is a plain media
+   query on the block rather than a breakpoint borrowed from either. */
+@media (max-width: 760px) {
+  .anatomy {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+}

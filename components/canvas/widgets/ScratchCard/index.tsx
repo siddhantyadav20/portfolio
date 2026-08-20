@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import { scratch as data } from "@/content/canvas";
 import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
 import { Coin, Wizard } from "./art";
+import { useVisible } from "@/lib/visible";
 import styles from "./ScratchCard.module.css";
 
 /* ===========================================================================
@@ -93,6 +94,7 @@ export default function ScratchCard() {
   const palette = theme === "dark" ? DARK : LIGHT;
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const visible = useVisible(canvasRef);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const downAt = useRef<{ x: number; y: number } | null>(null);
   const scratching = useRef(false);
@@ -193,10 +195,13 @@ export default function ScratchCard() {
   }, [drawFoil]);
 
   useEffect(() => {
-    if (idle.current) runIdle();
+    // The foil sheen is a continuous rAF loop. Off-screen or in a background
+    // tab it was still repainting the whole coin layer every frame; a static
+    // foil is the correct thing to leave behind.
+    if (idle.current && visible) runIdle();
     else drawFoil(null);
     return () => cancelAnimationFrame(raf.current);
-  }, [runIdle, drawFoil]);
+  }, [runIdle, drawFoil, visible]);
 
   /* --- The reveal ----------------------------------------------------------
      Fired from the scratch that crosses the threshold rather than from an

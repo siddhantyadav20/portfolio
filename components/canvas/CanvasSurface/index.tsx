@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useMounted } from "@/lib/clientValue";
-import CanvasWorld from "@/components/canvas/CanvasWorld";
+import CanvasWorldLive from "@/components/canvas/CanvasWorld/Live";
 import Confetti from "@/components/canvas/chrome/Confetti";
 import Dock from "@/components/canvas/chrome/Dock";
 import Minimap from "@/components/canvas/chrome/Minimap";
@@ -14,6 +14,7 @@ import ThemeToggle from "@/components/home/ThemeToggle";
 import { createCamera } from "@/lib/camera";
 import { frameDelta } from "@/lib/spring";
 import {
+  CANVAS_MORPH,
   clusterBounds,
   HOME,
   WORLD_H,
@@ -37,16 +38,9 @@ const ZOOM_STEP = 1.25;
  */
 const ZOOM_SENSITIVITY = 0.0022;
 
-/**
- * The name the Canvas card and this canvas share while morphing.
- *
- * Set inline by both, never in a module: CSS Modules scope
- * `view-transition-name` exactly as they scope a class, so written in a
- * stylesheet it reaches the browser mangled and every `::view-transition-*`
- * rule silently fails to match. globals.css documents the same trap for the
- * modal names.
- */
-export const CANVAS_MORPH = "canvas-frame";
+/** Re-exported for the canvas's own callers; defined in content/canvas.ts so
+ *  the homepage card can name the morph without importing this module. */
+export { CANVAS_MORPH };
 
 type Props = {
   /** Provided when the canvas is an overlay over the homepage. Omitted on the
@@ -55,11 +49,11 @@ type Props = {
 };
 
 /**
- * The canvas — pan, zoom, momentum. Nothing else yet.
+ * The canvas — pan, zoom, momentum, and the board itself.
  *
- * Deliberately still a skeleton: placeholder tiles rather than widgets, and no
- * card morph. The feel is decided here, and it is much easier to judge
- * momentum and rubber-banding against plain rectangles than against artwork.
+ * It began as a skeleton of placeholder tiles, because momentum and
+ * rubber-banding are far easier to judge against plain rectangles than against
+ * artwork. The widgets and the card morph have both landed since.
  *
  * ---------------------------------------------------------------------------
  * Why the transform is written in two places.
@@ -151,9 +145,17 @@ export default function CanvasSurface({ onClose }: Props) {
     const camera = createCamera(WORLD_W, WORLD_H);
     // The camera owns what reduced motion means — indirect moves land at once
     // and flicks don't throw — so nothing below has to branch on it.
-    camera.setReducedMotion(
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    );
+    //
+    // Read *and* subscribed. This effect deliberately never re-runs (rebuilding
+    // the camera mid-gesture would be worse than the bug), so a one-time read
+    // meant someone who turned the preference on while the canvas was open
+    // kept the full momentum until they reloaded. Every widget on the board
+    // already tracks the change reactively; the camera was the exception.
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onReducedMotion = () =>
+      camera.setReducedMotion(reducedMotion.matches);
+    onReducedMotion();
+    reducedMotion.addEventListener("change", onReducedMotion);
 
     /* The rAF handle is the *only* record of whether the loop is running.
        There used to be a `running` boolean alongside it, and the two could
@@ -167,6 +169,8 @@ export default function CanvasSurface({ onClose }: Props) {
        else, so the flag cannot outlive the frame it describes. */
     let frame = 0;
     let lastTime = 0;
+    /** Pending second leg of the Space "lift off". See the handler. */
+    let liftOff = 0;
 
     function render() {
       const { x, y, scale } = camera.state;
@@ -214,6 +218,11 @@ export default function CanvasSurface({ onClose }: Props) {
     function measure() {
       camera.setViewport(surface!.clientWidth, surface!.clientHeight);
       render();
+      // The minimap draws the viewport rectangle from the published state, and
+      // a resize changes that rectangle without moving the camera. Without
+      // this the rect stayed the old shape until the next pan — most visible
+      // on an orientation change, where it is wrong by a whole aspect ratio.
+      publish();
     }
 
     measure();
@@ -450,7 +459,11 @@ export default function CanvasSurface({ onClose }: Props) {
             const held = camera.state;
             const w = camera.toWorld(surface!.clientWidth / 2, surface!.clientHeight / 2);
             camera.flyTo(WORLD_W / 2, WORLD_H / 2, 0.35, 520);
-            window.setTimeout(() => {
+            // Tracked so the cleanup can cancel it. Closing the canvas mid
+            // lift-off used to leave this pending, and it fired against a
+            // camera whose effect had already torn down.
+            window.clearTimeout(liftOff);
+            liftOff = window.setTimeout(() => {
               camera.flyTo(w.x, w.y, held.scale, 620);
               start();
             }, 780);
@@ -472,6 +485,8 @@ export default function CanvasSurface({ onClose }: Props) {
 
     return () => {
       cancelAnimationFrame(frame);
+      window.clearTimeout(liftOff);
+      reducedMotion.removeEventListener("change", onReducedMotion);
       resizeObserver.disconnect();
       world.removeEventListener("focusin", onFocusIn);
       surface.removeEventListener("pointerdown", onPointerDown);
@@ -509,7 +524,7 @@ export default function CanvasSurface({ onClose }: Props) {
       // Handed over from the card, which released it as this mounted.
       style={{ viewTransitionName: CANVAS_MORPH }}
     >
-      <CanvasWorld ref={worldRef} />
+      <CanvasWorldLive ref={worldRef} />
 
       {/* Fixed to the viewport, deliberately outside the transformed world:
           these must not scale with the camera, and they are the only place on

@@ -4,13 +4,28 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
 import CtaPill from "@/components/primitives/CtaPill";
 import CanvasWorld from "@/components/canvas/CanvasWorld";
-import CanvasSurface, {
-  CANVAS_MORPH,
-} from "@/components/canvas/CanvasSurface";
-import { HOME } from "@/content/canvas";
+import { CANVAS_MORPH, HOME, PREVIEW_SCALE } from "@/content/canvas";
 import { canvas } from "@/content/site";
 import { canMorph, morph } from "@/lib/viewTransition";
 import styles from "./CanvasCard.module.css";
+
+/**
+ * The canvas surface, on demand.
+ *
+ * `CanvasWorld` above stays a static import — the card *is* the board, and the
+ * preview has to be in the server's HTML. What is deferred is everything that
+ * makes the board live: the camera, the chrome, and twelve widgets including
+ * an 856-line drawing canvas and a terminal. None of it can run until someone
+ * opens the canvas, and before this it was all in the homepage's first load.
+ *
+ * A plain dynamic `import()` rather than `next/dynamic`: the morph needs the
+ * module *resolved* before `startViewTransition` runs, and awaiting a promise
+ * is the only way to be sure of that. A Suspense fallback would be snapshotted
+ * instead of the canvas.
+ */
+type SurfaceModule = typeof import("@/components/canvas/CanvasSurface");
+const loadSurface = (): Promise<SurfaceModule> =>
+  import("@/components/canvas/CanvasSurface");
 
 /* ===========================================================================
    The Canvas card.
@@ -34,7 +49,6 @@ import styles from "./CanvasCard.module.css";
  *  0.13 puts about 2500x1900 of the world across a 322x246 card — wide enough
  *  that the card is full rather than half desk, and still coarse enough that
  *  the clusters read as an arrangement rather than as confetti. */
-const PREVIEW_SCALE = 0.13;
 
 /** How far the board drifts under the pointer, in card px. Small: this is a
  *  card saying "there is more of me", not a parallax showpiece. */
@@ -56,6 +70,8 @@ const REST = {
 
 export default function CanvasCard() {
   const [open, setOpen] = useState(false);
+  /** Held in state rather than rendered through Suspense — see loadSurface. */
+  const [Surface, setSurface] = useState<SurfaceModule["default"] | null>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
 
@@ -116,8 +132,17 @@ export default function CanvasCard() {
 
   /* --- Open and close ------------------------------------------------------ */
 
-  const openCanvas = useCallback(() => {
-    const update = () => setOpen(true);
+  const openCanvas = useCallback(async () => {
+    // The surface has to be *loaded* before the transition starts, for the same
+    // reason the case-study modal decodes its hero first: `morph` snapshots the
+    // new state inside `flushSync`, and a component that has not arrived yet
+    // renders nothing to snapshot. Awaiting here is the guarantee; hovering the
+    // card has usually already fetched it.
+    const mod = await loadSurface();
+    const update = () => {
+      setSurface(() => mod.default);
+      setOpen(true);
+    };
     if (!canMorph()) {
       update();
       return;
@@ -158,6 +183,25 @@ export default function CanvasCard() {
   }, []);
 
   /**
+   * The other ways `open` becomes true.
+   *
+   * The click path awaits the module itself, because it has a transition to
+   * keep. A deep link and the Back button have neither, so they can simply
+   * ask for the surface once they are already open and render it a frame
+   * later. Without this they set `open` and nothing appeared.
+   */
+  useEffect(() => {
+    if (!open || Surface) return;
+    let cancelled = false;
+    void loadSurface().then((m) => {
+      if (!cancelled) setSurface(() => m.default);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, Surface]);
+
+  /**
    * Push the state into the URL, so the canvas is shareable and Back closes it.
    *
    * The first run is skipped, and that is not defensive coding — it is a bug
@@ -191,9 +235,10 @@ export default function CanvasCard() {
         style={open ? undefined : { viewTransitionName: CANVAS_MORPH }}
       >
         <div ref={viewportRef} className={styles.viewport} aria-hidden="true">
+          {/* Preview by construction now — the live board is a separate
+              module the homepage never imports. See CanvasWorld/Live. */}
           <CanvasWorld
             ref={worldRef}
-            preview
             className={styles.world}
             style={{
               transform: `translate3d(${REST.x}px, ${REST.y}px, 0) scale(${PREVIEW_SCALE})`,
@@ -215,18 +260,21 @@ export default function CanvasCard() {
               }}
             />
           }
+          // Fetch the surface at the moment before the click, so awaiting it
+          // in openCanvas is normally already settled.
+          onMouseEnter={() => void loadSurface()}
           onClick={(e: React.MouseEvent) => {
             // Let modified clicks do what they always do — new tab, new window.
             if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
             e.preventDefault();
-            openCanvas();
+            void openCanvas();
           }}
         >
           {canvas.cta}
         </CtaPill>
       </CardShell>
 
-      {open && <CanvasSurface onClose={close} />}
+      {open && Surface && <Surface onClose={close} />}
     </>
   );
 }

@@ -3,8 +3,11 @@
 import { useEffect, useRef } from "react";
 import styles from "./CanvasCursor.module.css";
 
-/** Elements that keep their native cursor, because its shape carries meaning. */
-const NATIVE_CURSOR = 'input, textarea, select, [contenteditable="true"]';
+/** Elements that keep their native cursor, because its shape carries meaning:
+ *  the I-beam over text entry, and anything opting out with
+ *  `data-cursor="native"` — see the matching block in globals.css. */
+const NATIVE_CURSOR =
+  'input, textarea, select, [contenteditable="true"], [data-cursor="native"]';
 
 /** Opt-in attribute for the "View Project" variant, e.g. the Inspection card.
  *  Anything without it gets the default Page arrow. */
@@ -12,7 +15,8 @@ const VARIANT_TARGET = "[data-cursor]";
 
 /**
  * The site's cursor, replacing the OS arrow to give the page a designer's-canvas
- * feel. Two variants, both straight out of Figma's "Custom Cursors" component:
+ * feel. Two variants, both straight out of Figma's "Custom Cursors"
+ * component:
  *
  *   Page          the default — the arrow glyph, tip on the pointer.
  *   View Project  a 132px disc of tinted glass, centred on the pointer. Shown
@@ -21,6 +25,12 @@ const VARIANT_TARGET = "[data-cursor]";
  *                 else. The variant is read off the attribute rather than
  *                 hard-coded to a selector so the next card that needs one only
  *                 has to declare it.
+ *
+ * A third variant, Scrub, used to live here for the timeline's ruler, because
+ * `cursor: grab` could not: the `cursor: none` rule this component switches on
+ * is universal and `!important`. The ruler now opts out of the custom cursor
+ * altogether (`data-cursor="native"`) and wears the OS grab hand, which every
+ * user already knows — so the drawn chevrons went with it.
  *
  * It tracks the pointer 1:1 with no easing or lag — it is a cursor, not an
  * effect, and anything less than exact tracking reads as broken. Position is

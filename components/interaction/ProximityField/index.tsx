@@ -24,7 +24,7 @@ import {
    =========================================================================== */
 
 /** How close (px) the cursor gets to a card's edge before the page reacts. */
-const PROXIMITY_RANGE = 32;
+const PROXIMITY_RANGE = 56;
 
 /** Fraction of the full yield earned by merely approaching a card.
  *  Entering it takes the yield the rest of the way to 1. */

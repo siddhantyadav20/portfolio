@@ -1,0 +1,36 @@
+/* The element the sweep is written onto, and the diagonal that cuts the dark
+   copy back.
+
+   Everything the preview paints reads these three through inheritance, which
+   is the whole demonstration: one assignment on this element re-skins
+   forty-five elements below it, in two copies, without a component knowing.
+
+   The values here are also the rest state, so the instrument is correct before
+   any JavaScript runs and stays correct for anyone who never gets the loop —
+   reduced motion, touch, no hover, a crawler. #005982 is the real
+   `primary/main`. */
+
+.skin {
+  --ds-primary: #005982;
+  --ds-primary-tint: #00598214; /* primary/8% */
+  --ds-on-primary: #ffffff; /* primary/contrast-text */
+
+  position: absolute;
+  inset: 0;
+}
+
+/* The two percentages are rewritten per frame from the loop; these are the
+   rest position — REST_SEAM, skewed by SKEW. */
+.seam {
+  --seam-top: 67.1%;
+  --seam-bottom: 45.1%;
+
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(
+    var(--seam-top) 0,
+    100% 0,
+    100% 100%,
+    var(--seam-bottom) 100%
+  );
+}

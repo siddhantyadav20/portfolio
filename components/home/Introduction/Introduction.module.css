@@ -21,6 +21,21 @@
   object-fit: contain;
 }
 
+/* The theme picks the drawing. Only one is ever in flow, so the mark keeps its
+   place in the column either way — see index.tsx for why this is CSS and not a
+   `useSyncExternalStore` read. */
+.logoDark {
+  display: none;
+}
+
+:global(html[data-theme="dark"]) .logoLight {
+  display: none;
+}
+
+:global(html[data-theme="dark"]) .logoDark {
+  display: block;
+}
+
 .content {
   display: flex;
   flex-direction: column;

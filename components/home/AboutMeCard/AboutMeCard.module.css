@@ -49,7 +49,7 @@
   overflow: hidden;
   border: 1px solid var(--ink-20);
   border-radius: var(--r-pill);
-  background-color: #fff;
+  background-color: var(--surface-raised);
 }
 
 .portrait :global(img) {
@@ -111,6 +111,13 @@
 /* The material, as its own element rather than on `.pill`: `.liquid` carries a
    280ms transform transition for its hover states, and the loop writes a
    transform every frame. The two cannot share a box. */
+/* These sit at 72% — nearly opaque — because a tool mark has to stay readable
+   against whatever the disc happens to be drifting over. That is the value the
+   light theme wants and the one the dark theme cannot use: `--liquid-fill` is
+   white there, so 72% put three near-white discs on a #111 page, orbiting a
+   dark card. The override below is not a different material, it is the same
+   plate reading the dark theme's fill and taking it further, which is what an
+   opaque control does in both themes. */
 .glass {
   --liquid-body: 0.72;
   --liquid-gloss: 0.7;
@@ -123,6 +130,13 @@
   /* Tighter than the site default: this is a 40px disc, not a 64px control,
      and the stock three-shadow stack reads as a smudge at this size. */
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12), 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+:global(html[data-theme="dark"]) .glass {
+  --liquid-body: 0.86;
+  --liquid-gloss: 0.14;
+
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 4px 10px rgba(0, 0, 0, 0.34);
 }
 
 .pill img {

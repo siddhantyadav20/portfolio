@@ -6,18 +6,13 @@ import ModalSurface, {
   MODAL_VT,
   modalAction,
 } from "@/components/primitives/ModalSurface";
-import DeviceMockup, {
-  FRAME_MORPH,
-} from "@/components/interaction/DeviceMockup";
+import DeviceMockup from "@/components/interaction/DeviceMockup";
+import StudyLiveBlock from "@/components/work/StudyLiveBlock";
+import StudySections from "@/components/work/StudySections";
+import type { CaseStudy } from "@/content/work";
 import styles from "./CaseStudyModal.module.css";
 
-export type CaseStudy = {
-  slug: string;
-  title: string;
-  subtitle: string;
-  body: string;
-  meta: readonly { readonly label: string; readonly value: string }[];
-};
+export type { CaseStudy };
 
 type Props = {
   open: boolean;
@@ -34,6 +29,14 @@ type Props = {
  * restore, the plate's entry and exit — belongs to ModalSurface. What is left
  * here is this case study's own content, and the running prototype that the
  * card morphs into.
+ *
+ * The hero is pluggable (see `StudyHero`). Only the Inspection study has a
+ * recording, so only it pays for `DeviceMockup` and the playback controls —
+ * the other two render a still or no hero at all.
+ *
+ * The morph name comes off the study rather than being a constant, because
+ * more than one card carries one at rest and a shared `view-transition-name`
+ * aborts the transition for *both* of them. See `StudyMorphName`.
  */
 export default function CaseStudyModal({
   open,
@@ -72,6 +75,7 @@ export default function CaseStudyModal({
       closing={closing}
       onClose={onClose}
       label={study.title}
+      selectionTint="violet"
       actions={
         <>
           <ThemeToggle />
@@ -105,47 +109,81 @@ export default function CaseStudyModal({
 
             {/* Figma's "Mockup" frame, rebuilt from its layers so the device's
                 screen can hold the running prototype. */}
-            <div
-              className={`${styles.mockup} squircle`}
-              data-stage="hero"
-              style={{ viewTransitionName: FRAME_MORPH }}
-            >
-              <img
-                src="/media/inspection-modal-bg.jpg"
-                alt="A house being inspected"
-                className={styles.plate}
-              />
-              <DeviceMockup
-                className={styles.device}
-                play={playing}
-                restartSignal={restart}
-              />
+            {study.hero?.kind === "prototype" && (
+              <div
+                className={`${styles.mockup} squircle`}
+                data-stage="hero"
+                style={{ viewTransitionName: study.hero.morphName }}
+              >
+                <img
+                  src={study.hero.plate}
+                  alt={study.hero.plateAlt}
+                  className={styles.plate}
+                />
+                <DeviceMockup
+                  className={styles.device}
+                  play={playing}
+                  restartSignal={restart}
+                />
 
-              <div className={styles.playback}>
-                <button
-                  type="button"
-                  className={`${styles.playToggle} liquid`}
-                  onClick={replay}
-                >
-                  <ReplayGlyph />
-                  <span className="srOnly">Replay from the start</span>
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.playToggle} liquid`}
-                  onClick={togglePlaying}
-                >
-                  {playing ? <PauseGlyph /> : <PlayGlyph />}
-                  <span className="srOnly">
-                    {playing ? "Pause the prototype" : "Play the prototype"}
-                  </span>
-                </button>
+                <div className={styles.playback}>
+                  <button
+                    type="button"
+                    className={`${styles.playToggle} liquid`}
+                    onClick={replay}
+                  >
+                    <ReplayGlyph />
+                    <span className="srOnly">Replay from the start</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.playToggle} liquid`}
+                    onClick={togglePlaying}
+                  >
+                    {playing ? <PauseGlyph /> : <PlayGlyph />}
+                    <span className="srOnly">
+                      {playing ? "Pause the prototype" : "Play the prototype"}
+                    </span>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
-            <p className={styles.body} data-stage="body" style={MODAL_VT.body}>
-              {study.body}
-            </p>
+            {study.hero?.kind === "image" && (
+              <div
+                className={`${styles.mockup} squircle`}
+                data-stage="hero"
+                style={{ viewTransitionName: study.hero.morphName }}
+              >
+                <img
+                  src={study.hero.src}
+                  alt={study.hero.alt}
+                  width={study.hero.width}
+                  height={study.hero.height}
+                  className={styles.plate}
+                />
+              </div>
+            )}
+
+            {/* The far end of the Design System card's morph. The card is a
+                346px window onto the same running shell, so this does not
+                cross-fade a thumbnail into a photograph — the drawing grows,
+                and is still live when it arrives. */}
+            {study.hero?.kind === "live" && (
+              <div
+                className={`${styles.mockup} squircle`}
+                data-stage="hero"
+                style={{ viewTransitionName: study.hero.morphName }}
+              >
+                <StudyLiveBlock view={study.hero.view} bare />
+              </div>
+            )}
+
+            {study.body && (
+              <p className={styles.body} data-stage="body" style={MODAL_VT.body}>
+                {study.body}
+              </p>
+            )}
           </div>
 
           <div className={styles.separator} data-stage="rule" />
@@ -154,10 +192,22 @@ export default function CaseStudyModal({
             {study.meta.map((item) => (
               <div key={item.label} className={styles.metaItem}>
                 <dt className={styles.metaLabel}>{item.label}</dt>
-                <dd className={styles.metaValue}>{item.value}</dd>
+                {/* An em dash, not an empty cell: the row is part of the
+                    study's scaffold and should stay legible while unwritten. */}
+                <dd
+                  className={styles.metaValue}
+                  data-placeholder={item.value ? undefined : ""}
+                >
+                  {item.value ?? "—"}
+                </dd>
               </div>
             ))}
           </dl>
+
+          <StudySections
+            sections={study.sections}
+            className={styles.sections}
+          />
         </div>
       </div>
     </ModalSurface>

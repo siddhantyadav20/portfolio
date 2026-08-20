@@ -6,10 +6,9 @@ import CardShell from "@/components/primitives/CardShell";
 import GlassChip from "@/components/primitives/GlassChip";
 import { EXIT_MS } from "@/components/primitives/ModalSurface";
 import CaseStudyModal from "@/components/home/CaseStudyModal";
-import DeviceMockup, {
-  FRAME_MORPH,
-} from "@/components/interaction/DeviceMockup";
+import DeviceMockup from "@/components/interaction/DeviceMockup";
 import { inspection } from "@/content/site";
+import { inspectionPhotos } from "@/content/work/inspection-photos";
 import { canMorph, morph, warm } from "@/lib/viewTransition";
 import styles from "./InspectionExperience.module.css";
 
@@ -19,8 +18,14 @@ import styles from "./InspectionExperience.module.css";
  * These have to be decoded *before* the transition starts — see `warm`. That is
  * why only the screen used to look like it was animating: its poster was the
  * one file already cached, from the card.
+ *
+ * Read off the study rather than written twice, so changing the hero art can't
+ * leave the warm list pointing at a file the modal no longer paints.
  */
-const MODAL_ASSETS = ["/media/inspection-modal-bg.jpg"];
+const MODAL_ASSETS =
+  inspectionPhotos.hero?.kind === "prototype"
+    ? [inspectionPhotos.hero.plate]
+    : [];
 
 /**
  * The Inspection case-study card, both Figma variants in one component.
@@ -71,7 +76,7 @@ export default function InspectionExperience() {
   // the same tick as mount would be a second render pass for nothing.
   useEffect(() => {
     const wanted = new URLSearchParams(window.location.search).get("study");
-    if (wanted !== inspection.caseStudy.slug) return;
+    if (wanted !== inspectionPhotos.slug) return;
     const raf = requestAnimationFrame(() => setOpen(true));
     return () => cancelAnimationFrame(raf);
   }, []);
@@ -106,7 +111,11 @@ export default function InspectionExperience() {
         // The card itself is the thing that expands into the modal's mockup —
         // released the moment the modal owns it, since two live elements
         // sharing a name abort the transition.
-        style={open ? undefined : { viewTransitionName: FRAME_MORPH }}
+        style={
+          open || !inspectionPhotos.hero
+            ? undefined
+            : { viewTransitionName: inspectionPhotos.hero.morphName }
+        }
         data-cursor="view-project"
         onMouseEnter={() => {
           setHovered(true);
@@ -142,7 +151,7 @@ export default function InspectionExperience() {
         open={open}
         closing={closing}
         onClose={close}
-        study={inspection.caseStudy}
+        study={inspectionPhotos}
       />
     </>
   );

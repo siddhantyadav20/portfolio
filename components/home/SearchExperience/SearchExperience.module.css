@@ -1,4 +1,4 @@
-/* Figma node 244:9368 — 386x569, radius 48, surface #FFF @0.7 */
+/* Figma node 244:9368 — 386x626, radius 48, surface #FFF @0.7 */
 
 /* Fills col 3, which is the track that absorbs everything a viewport has
    past 1440 — so this card grows and the gutter between it and the Store
@@ -6,7 +6,7 @@
    that touch the right edge are anchored to it rather than sized. */
 .card {
   width: 100%;
-  height: 569px;
+  height: 626px;
   flex: none;
 }
 
@@ -53,11 +53,19 @@
   flex-direction: column;
   gap: 16px;
   padding: 16px;
-  border: 1px solid rgba(25, 25, 25, 0.05);
+  border: 1px solid var(--ink-20);
   border-radius: var(--r-md);
-  background-color: rgba(255, 255, 255, 0.9);
+  /* A raised plate on the card, not a white one. At 90% white this was the
+     brightest thing on the dark page — a lit search bar on an unlit card. */
+  background-color: var(--surface-raised);
   backdrop-filter: blur(12px);
+  /* The blue bloom is the card's one piece of colour and it survives the theme;
+     it just needs to be readable against a dark ground rather than a white one. */
   box-shadow: 0 0 24px rgba(31, 151, 221, 0.12);
+}
+
+:global(html[data-theme="dark"]) .search {
+  box-shadow: 0 0 28px rgba(31, 151, 221, 0.18);
 }
 
 .inputRow {
@@ -83,8 +91,25 @@
   color: var(--ink-strong);
 }
 
+/* No ring while typing.
+
+   A text field always matches `:focus-visible` — the spec says so regardless of
+   how focus arrived — so the global orange outline drew a rounded rectangle
+   around the input the moment anyone clicked into it, inside a plate that is
+   already the boundary. The plate takes the indicator instead, in the card's
+   own blue rather than in the site accent: this is the only surface on the page
+   that is blue, and an orange ring on it belonged to no one. */
+.input:focus-visible {
+  outline: none;
+}
+
+.search:focus-within {
+  border-color: rgba(31, 151, 221, 0.5);
+  box-shadow: 0 0 24px rgba(31, 151, 221, 0.22);
+}
+
 .input::placeholder {
-  color: rgba(25, 25, 25, 0.5);
+  color: var(--ink-50);
 }
 
 .input::-webkit-search-cancel-button {
@@ -117,7 +142,8 @@
   height: 36px;
   padding: 0 12px;
   border-radius: var(--r-pill);
-  background-color: rgba(25, 25, 25, 0.05);
+  /* Ink at 5%, so the chip is a shade of whatever plate it is on. */
+  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
   font-size: 12px;
   font-weight: 600;
   color: var(--ink-strong);
@@ -138,7 +164,7 @@
 
 .chip {
   position: absolute;
-  top: 473px;
+  top: 530px;
   right: 24px;
   display: flex;
   align-items: flex-end;

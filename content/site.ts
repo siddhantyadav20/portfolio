@@ -36,29 +36,13 @@ export const inspection = {
   video: "/media/inspection-prototype.mp4",
 
   /**
-   * The case-study modal (Figma "Case Study - Modal", node 62:3688). Everything
-   * below the mockup is first-pass copy standing in for the full write-up —
-   * the layout is final, the words are not.
+   * The study itself now lives in `content/work/inspection-photos.ts`, with the
+   * other two, behind one type. It moved because a case study has two surfaces
+   * — the modal here and the `/work/[slug]` route — and keeping it in the
+   * homepage's copy file made the route import homepage content to render a
+   * page the homepage isn't involved in.
    */
-  caseStudy: {
-    /** What the share button puts on the clipboard, and what opens the modal
-     *  on arrival — see `?study=` in InspectionExperience. */
-    slug: "inspection-photos",
-    title: "Capturing 200+ Inspection Photos",
-    subtitle:
-      "Cut reporting time by 13 minutes per inspection, across 20,000+ inspections daily",
-    body: "In early 2026, after launching an offline-first mobile app for conducting home inspections for inspectors based in US (in early 2025): we set out to redesign the camera flow which was one of the most crucial and highly used feature but was never designed to it’s full potential.",
-    meta: [
-      { label: "Product", value: "iOS, iPad + Android" },
-      { label: "Role", value: "Product Designer" },
-      { label: "Timeline", value: "Jan 2026 - Mar 2026" },
-      {
-        label: "Skills",
-        value:
-          "Product design, Stakeholder management, Interactive prototyping, User research & testing",
-      },
-    ],
-  },
+  studySlug: "inspection-photos",
 } as const;
 
 export const search = {
@@ -70,15 +54,17 @@ export const search = {
   after: "Search first",
   delta: "~ 51m saved",
   href: "/work/search",
+  studySlug: "search",
 } as const;
 
 export const designSystem = {
   eyebrow: "Scaling a",
   title: "Design System",
   subtitle: "across 12 products",
-  stat: "281 Reusable Token",
+  stat: "281 Reusable Tokens",
   statDetail: "Used across 12 products",
   href: "/work/design-system",
+  studySlug: "design-system",
 } as const;
 
 export const about = {
@@ -130,30 +116,96 @@ export const canvas = {
 } as const;
 
 /**
- * Timeline. Only the currently-active entry exists in the Figma design; the
- * other years are deliberately empty rather than invented. Phase 6 makes this
- * scrubbable — the shape is already per-year so nothing needs restructuring.
+ * Timeline.
+ *
+ * The ruler is a calendar. A milestone every year, a mark every month, and one
+ * number running through it: `at`, the position in years from day one. The
+ * scale rests at `start` and the visitor drags it anywhere between `min` and
+ * `max`.
+ *
+ * **The year is derived, not stored.** `Math.floor(dayOne + at)` reproduces
+ * every year Siddhant gave for these entries, which is the whole reason to
+ * compute it: dragging through a stretch with no entry of its own still moves
+ * the count and the date, and only the words hold. A stored year could only
+ * change where an entry happens to sit.
+ *
+ * `dayOne` is the one inferred number here. Siddhant gave (position, year)
+ * pairs, not dates; October 2021 is the earliest month that lands all nine on
+ * the year he wrote, and anything from October to December 2021 works
+ * identically. If day one was really some other month, this constant is the
+ * only thing that needs to move.
+ *
+ * Entries are step functions: whichever one is at or before the marker is the
+ * one showing, because a career is continuous — mid-2023 you were still doing
+ * what you started in early 2023. `title` is the bold line, `context` the
+ * quiet one above it.
+ *
+ * There used to be a `kind` here — "role" | "launch" | "focus" — and the scale
+ * drew a different bead shape for each. Both are gone. Three shapes nobody can
+ * decode without a legend is a puzzle rather than a scale, and Figma draws no
+ * bead at all: the dragger pointing at a mark is the whole indicator. What each
+ * moment *is* now lives where it can be read, in `context`.
+ *
+ * The eight `at` positions are the scale's coarse grain, though: a hard drag or
+ * a hard scroll steps to the next one and stops there, one per gesture, which
+ * is the only detent the card has left. See `land` in `lib/scrubber.ts`.
  */
 export const timeline = {
-  milestones: [-1, 0, 1, 2, 3, 4, 5] as const,
-  activeYear: 5,
-  entries: {
-    5: {
-      years: "5",
-      unit: "yr",
-      date: "2026",
-      company: "WIN Home Inspection",
-      role: "Product Designer",
+  /** The ruler's ends, in years from day one. */
+  min: -2,
+  max: 5,
+  /** Where the scale rests, and what "back to now" means. */
+  start: 5,
+  /** Day one as a fractional year — October 2021. See above. */
+  dayOne: 2021 + 9 / 12,
+
+  /* Sorted by `at`, and the component relies on that.
+
+     Every title and every context is one line at the card's width, and has to
+     stay that way: the readout swaps them in place while the scale moves under
+     a fixed marker, and a two-line entry between two one-line ones makes the
+     whole block jump each time the marker crosses it. The card enforces it
+     with `nowrap` and will ellipsize rather than wrap, so a long addition here
+     shows up as a cut word rather than as a silently reflowed card.
+
+     2020 is not here on purpose: Siddhant listed it, but it repeated the 2019
+     entry word for word, and as a step function -2 already covers it. Adding
+     it back would only make the card animate a change from "Student" to
+     "Student". */
+  entries: [
+    { at: -2, title: "Student", context: "B.Sc Computer Science" },
+    {
+      at: -0.7,
+      title: "Researching UX",
+      context: "B.Sc Computer Science",
     },
-  } as Record<number, TimelineEntry | undefined>,
-};
+    { at: 0, title: "UX Designer", context: "LikeMinds" },
+    { at: 0.8, title: "UX Designer", context: "Mistry.Store" },
+    { at: 2, title: "UX Design Specialist", context: "WIN" },
+    {
+      at: 2.8,
+      title: "Report Writing Tool",
+      context: "Multi-platform app launch",
+    },
+    {
+      at: 3.8,
+      title: "Order Management CRM",
+      context: "Web app launch",
+    },
+    { at: 4.3, title: "Task Completion Flow", context: "WIN, current focus" },
+  ] as const satisfies readonly TimelineEntry[],
+
+  /** The unit next to the count. */
+  unit: "yr",
+} as const;
 
 export type TimelineEntry = {
-  years: string;
-  unit: string;
-  date: string;
-  company: string;
-  role: string;
+  /** Years from day one. */
+  readonly at: number;
+  /** The bold line. One line at the card's width — see the note on `entries`. */
+  readonly title: string;
+  /** The quiet line above it. One line too. */
+  readonly context: string;
 };
 
 export const store = {

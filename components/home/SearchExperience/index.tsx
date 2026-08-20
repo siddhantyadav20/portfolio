@@ -1,29 +1,48 @@
+"use client";
+
 import CardShell from "@/components/primitives/CardShell";
 import GlassChip from "@/components/primitives/GlassChip";
+import CaseStudyModal from "@/components/home/CaseStudyModal";
+import { useStudyModal } from "@/components/work/useStudyModal";
 import { search } from "@/content/site";
+import { search as study } from "@/content/work/search";
 import styles from "./SearchExperience.module.css";
 
 /**
- * Phase 1 renders the Figma "Default" state exactly. The input and category
- * control are real, focusable elements so the card is already keyboard-usable,
- * but nothing is wired to a dataset yet — the functional search (typing,
- * loading, results) is Phase 3, and the results state isn't designed yet.
+ * The Figma "Default" state exactly. The input and category control are real,
+ * focusable elements so the card is already keyboard-usable, but nothing is
+ * wired to a dataset yet — the functional search (typing, loading, results) is
+ * a later phase, and the results state isn't designed yet.
+ *
+ * The title link used to point at `/work/search`, which did not exist. It now
+ * resolves, and a plain left click morphs into the study rather than
+ * navigating.
  */
 export default function SearchExperience() {
+  const { open, closing, close, onLinkClick, prefetch } = useStudyModal(study);
+
   return (
+    <>
     <CardShell radius={48} className={styles.card}>
       {/* The card holds a real input, so it can't itself be a link — the
           heading carries the case-study destination instead. */}
       <div className={styles.heading}>
         <h2 className={styles.title}>
-          <a href={search.href} className={styles.titleLink}>
+          <a
+            href={search.href}
+            className={styles.titleLink}
+            onMouseEnter={prefetch}
+            onClick={onLinkClick}
+          >
             {search.title}
           </a>
         </h2>
         <p className={styles.subtitle}>{search.subtitle}</p>
       </div>
 
-      <div className={styles.search}>
+      {/* `squircle` like every other rounded box on the site — this one was
+          the only surface still drawing a plain rounded rect. */}
+      <div className={`${styles.search} squircle`}>
         <div className={styles.inputRow}>
           <label htmlFor="remark-search" className="srOnly">
             Search inspection remarks
@@ -58,5 +77,13 @@ export default function SearchExperience() {
         <span className={styles.delta}>{search.delta}</span>
       </GlassChip>
     </CardShell>
+
+    <CaseStudyModal
+      open={open}
+      closing={closing}
+      onClose={close}
+      study={study}
+    />
+    </>
   );
 }

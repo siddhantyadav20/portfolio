@@ -71,6 +71,18 @@
   border-radius: 48px;
   overflow: hidden;
   background-color: var(--surface-solid);
+
+  /* Plain `overflow: hidden`, and deliberately *not* the `clip-path: border-box`
+     that CardShell needs.
+
+     On a box this size Chrome resolves that clip wrongly at the bottom-right
+     corner only: instead of the 48px squircle it draws an arc a few hundred
+     pixels across, which cut a bite out of the hero and sliced through the
+     pause button. Ruled out as a cause: the view-transition name, the
+     `aspect-ratio` height, and the playback controls — removing the clip is the
+     only thing that squares the corner. Nothing here needs it either, since the
+     plate is clipped correctly by `overflow` alone; what looked like a clipping
+     failure in this frame was the artwork's own baked corners (see `.plate`). */
 }
 
 .plate {
@@ -79,7 +91,22 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 12px;
+
+  /* No radius of its own: the frame's clip is the corner. It used to carry
+     12px, which is the radius that showed through when that clip was not
+     holding.
+
+     The 3% overfill is the second half of the same report, and it is about the
+     artwork rather than the CSS. `inspection-modal-bg.jpg` was exported with
+     its corners already rounded and flattened onto the light page grey — all
+     four corners of the file are a flat #EBEBEB out to about 40px. That baked
+     corner is tighter than the frame's 48px squircle, so a pale crescent sat
+     inside each corner of the hero, in both themes. Scaling the image a hair
+     past the frame puts its baked corners outside the clip and lets the real
+     corner be the frame's. Three percent off a full-bleed photograph is not a
+     crop anyone can see; re-exporting the plate without them would be the
+     better fix, and this needs no re-export. */
+  transform: scale(1.035);
 }
 
 /* Figma's "Background" (77:7493) — the hand's rect, and nothing else. The
@@ -123,13 +150,12 @@
 
 .playToggle:hover {
   --liquid-body: 0.62;
-  --liquid-shade: 0.13;
-  --liquid-gloss: 0.8;
-  --liquid-spec: 0.24;
+  --liquid-shade: var(--liquid-shade-hi);
+  --liquid-gloss: var(--liquid-gloss-hi);
+  --liquid-spec: var(--liquid-spec-hi);
 
   transform: scale(1.015);
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12),
-    0 8px 18px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--liquid-cast-hi);
 }
 
 .body {
@@ -144,7 +170,8 @@
   width: 600px;
   max-width: 100%;
   height: 0;
-  border-top: 1px dashed rgba(0, 0, 0, 0.25);
+  /* Ink rather than black: a black rule on a #111 page is not a rule. */
+  border-top: 1px dashed var(--ink-20);
 }
 
 .meta {
@@ -179,6 +206,13 @@
   font-size: 17px;
   line-height: var(--lh);
   color: var(--ink);
+}
+
+/* The long-form write-up, below the meta row. Same 960 measure as the meta so
+   the modal has one content edge rather than two. */
+.sections {
+  width: 100%;
+  max-width: 960px;
 }
 
 /* --- Narrow viewports ------------------------------------------------------

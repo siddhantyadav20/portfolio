@@ -18,13 +18,12 @@
 }
 
 .toggle:hover {
-  --liquid-body: 0.3;
-  --liquid-shade: 0.13;
-  --liquid-gloss: 0.8;
-  --liquid-spec: 0.28;
+  --liquid-body: var(--liquid-body-hi);
+  --liquid-shade: var(--liquid-shade-hi);
+  --liquid-gloss: var(--liquid-gloss-hi);
+  --liquid-spec: var(--liquid-spec-hi);
 
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.12),
-    0 8px 18px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--liquid-cast-hi);
 }
 
 .option {

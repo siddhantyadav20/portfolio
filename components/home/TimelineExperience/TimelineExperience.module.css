@@ -1,11 +1,70 @@
-/* Figma node 244:9388 — 275x327 visual box, no fill.
-   The ruler overhangs the top of the card by 92px, exactly as in Figma. */
+/* Figma node 244:9388, built upright and made draggable.
+
+   Every number below was read off the node and then checked against a 291x423
+   render of it, so the two agree. Figma's coordinates are in the card's own
+   space, origin top-left, scale flush right.
+
+   ---------------------------------------------------------------------------
+   Figma's x axis                                    (card 291 wide)
+
+      32   the content's left inset
+     189   the dragger, 13.856 wide, so it ends at 203
+     211   the marks: milestone 48, middle 32, filler 24 — all left-aligned,
+           so the milestone's right edge lands at 259
+     259   which is 32 from the card's right edge: the same inset as the left
+     263   the year numbers, 4px past the milestone's end
+     291   the card's right edge
+
+   The Scale frame itself is 195..259 — 64 wide with `pl-[16px]` — so the 16px
+   channel in front of the marks is Figma's, and it is what the dragger points
+   across. Here the whole set is written from the card's right edge rather than
+   from 291, so it survives a wider card: `.ruler` is 80 wide flush right, the
+   marks start at its 0, and the dragger sits at -22.
+
+   ---------------------------------------------------------------------------
+   Figma's y axis
+
+     -92   the Scale's top — it overhangs the card
+    61.5   the pitch between milestones, and it is exact:
+           2 + 6 + 17 + 6 + 1.5 + 6 + 17 + 6
+     170   the content's top
+     +30   the count's line box (20px at 150%)
+      +2   gap
+     +18   the year's line box (12px)
+     +12   gap
+      +1   the separator
+     +12   gap
+     +18   the company's line box (12px)
+      +2   gap
+   +22.5   the title's line box (15px)
+           —————
+     118   the content block, which is what Figma reports for it
+
+   ---------------------------------------------------------------------------
+   What this file changes, and why
+
+   Two lengths are not Figma's. The card is 330 wide rather than 291, because
+   Figma's placeholder title is "Telephony App" and the real ones run to "Order
+   Management CRM" — the extra 39px is all readout, every inset above is
+   untouched, and the card is right-aligned in a column half again its own
+   width, so it costs the composition nothing.
+
+   And the Scale is taller and hung higher: 436 rather than 371, at -156 rather
+   than -92, so it fades in just under the theme toggle. It has to be taller
+   because it is a moving tape now rather than a static picture — see index.tsx
+   — and a window that stops level with the reading has nothing to arrive
+   from. */
 
 .card {
   position: relative;
-  width: 275px;
-  height: 327px;
+  width: 330px;
+  height: 327px; /* Figma's */
   flex: none;
+
+  /* Where the Scale hangs. The only vertical number the breakpoint changes —
+     the marker and the mask are both written in terms of it and `--read`, so
+     moving the instrument moves everything on it. */
+  --ruler-top: -156px;
 
   --prox-x: 0px;
   --prox-y: 0px;
@@ -14,14 +73,74 @@
   will-change: transform;
 }
 
-/* --- Ruler ---------------------------------------------------------------- */
+/* --- The Scale ------------------------------------------------------------
+
+   A 436px window with an 801px tape sliding inside it. The marker sits at
+   `--read` (313) — card-y 157, within three pixels of where Figma parks its
+   dragger — which leaves 313 above it and 123 below.
+
+   Those two numbers are the reason `LOCK` exists in index.tsx: 123 below is
+   exactly two years of scale past `max`, so at rest the instrument is full to
+   its bottom edge instead of stopping dead at the reading.
+
+   Written as `right` so a card narrower than its design width takes the scale
+   with it instead of pushing it off the page. `height` must agree with
+   WINDOW_H in index.tsx — it is the divisor that turns the measured on-screen
+   height back into design pixels, which is how a drag stays stuck to the
+   finger while the proximity field is scaling the card. */
+.ruler {
+  position: absolute;
+  top: var(--ruler-top);
+  right: 0;
+  width: 80px;
+  height: 436px;
+}
+
+/* The clip, and the card's only highlight.
+
+   One static gradient does the work of everything this card used to paint per
+   frame: an accent glow that followed the pointer, the mark under the needle
+   growing, the year label scaling, and every tick brightening on hover. Six
+   ways of saying "you are here" became none — the tape is simply sharp where
+   the marker is and fades with distance in both directions, which is how a
+   picker wheel, a tape measure and a rotary dial all do it.
+
+   It can be static only because the marker is. That is the dividend the
+   inversion pays, and it is paid on every frame of every drag.
+
+   The top stop is the long one: that end runs up under the theme toggle, and
+   what should reach it is the suggestion of a scale, not a scale. */
+.window {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* Decoration. The grip below has to receive every pointer event that lands
+     anywhere on the scale. */
+  pointer-events: none;
+
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgb(0 0 0 / 0.22) 64px,
+    rgb(0 0 0 / 0.58) calc(var(--read) - 150px),
+    rgb(0 0 0 / 1) calc(var(--read) - 30px),
+    rgb(0 0 0 / 1) calc(var(--read) + 30px),
+    rgb(0 0 0 / 0.55) calc(var(--read) + 82px),
+    transparent 100%
+  );
+}
 
 .scale {
   position: absolute;
-  top: -92px;
-  left: 195px;
-  width: 80px;
-  height: 371px;
+  inset: 0 0 auto 0;
+  /* `height` and `transform` are both written by the component — see SCALE_H. */
+  will-change: transform;
+}
+
+/* Too fast to read: the marks soften rather than strobe. The blur is small on
+   purpose — this is the smear of a tape passing, not a depth-of-field. */
+.scale[data-fast] {
+  filter: blur(0.5px);
 }
 
 .group {
@@ -31,9 +150,21 @@
   height: 0;
 }
 
+/* Quiet, at Figma's own 40%. Two things wear it and they mean the same thing:
+   the years before day one, and the years past `max` that exist only so the
+   window has something in it. Neither is part of the recorded career. */
 .group[data-dim] {
   opacity: 0.4;
 }
+
+/* --- The marks -------------------------------------------------------------
+
+   Figma's three tiers at Figma's lengths and weights, all left-aligned on the
+   scale's 0 so their right edges step 48 / 32 / 24 and the hierarchy reads off
+   one edge.
+
+   Nothing here has a hover or an active state, and nothing lights up when the
+   marker reaches it. The triangle is the indicator; see index.tsx. */
 
 .milestone,
 .middle,
@@ -41,7 +172,7 @@
   position: absolute;
   left: 0;
   display: block;
-  border-radius: 1px;
+  border-radius: 12px; /* Figma rounds every mark fully */
   background-color: var(--accent);
 }
 
@@ -51,10 +182,11 @@
   height: 2px;
 }
 
+/* The half year. Positioned by the component like every other month — what
+   makes it the middle one is that it is longer. */
 .middle {
-  top: 31px;
   width: 32px;
-  height: 2px;
+  height: 1.5px;
   opacity: 0.4;
 }
 
@@ -64,6 +196,9 @@
   opacity: 0.4;
 }
 
+/* 4px past the milestone's right edge (48 + 4), vertically centred on its 2px
+   bar. Full strength, as Figma has it — the mask is what fades the distant
+   ones, so there is nothing left for a per-label highlight to do. */
 .number {
   position: absolute;
   top: -7px;
@@ -74,78 +209,288 @@
   color: var(--accent);
 }
 
-.dragger {
+/* --- The marker ------------------------------------------------------------
+
+   Figma's dragger: 22px left of the marks, 14 wide, so it stops 8px short and
+   points across the channel the Scale's own left padding opens up. It never
+   moves — the tape does.
+
+   This is the entire indicator. No bar across the tape, no bead at each
+   moment, no glow, because a triangle aimed at a mark has already said which
+   mark. */
+.marker {
   position: absolute;
-  left: 66px;
+  top: var(--read);
+  left: -22px;
   width: 14px;
   height: 14px;
+  margin-top: -7px;
+  color: var(--accent);
+  /* Replayed on every mount — and the component remounts this element each
+     time the reading crosses into another moment. */
+  animation: tick 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* --- Active entry --------------------------------------------------------- */
+/* The detent you can see, and with the vibration gone it is the only one a
+   drag has. Deliberately tiny and deliberately lateral: this is the triangle
+   being knocked back by a moment going past, not a thing announcing itself. */
+@keyframes tick {
+  0% {
+    transform: translateX(-2px) scale(1.18);
+  }
+  100% {
+    transform: none;
+  }
+}
 
+.glyph {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* The asset is drawn pointing up; turned a quarter to face the marks. */
+  transform: rotate(90deg);
+}
+
+/* --- The handle ------------------------------------------------------------
+
+   Wider than the scale it covers, because the scale is 80px of hairlines and
+   the thing you grab should not be. It reaches 40px left of the marks to take
+   in the marker, and 12px past each end.
+
+   `touch-action: none` is what makes a vertical swipe scrub instead of
+   scrolling the page, and it is scoped to this strip alone — everywhere else
+   on the card, and on every other card, touch still scrolls.
+
+   The cursor is the OS's. `data-cursor="native"` on the element takes it out
+   of the site's drawn cursor (see the block in globals.css) and
+   `--native-cursor` is the shape that comes through. `ns-resize` is the
+   platform's vertical bar with an arrow at each end — the standard shape for
+   "this drags up and down", drawn by the OS at whatever size and theme its
+   user has set. `cursor` is set too, for the case where CanvasCursor never
+   mounts at all. */
+.grip {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  bottom: -12px;
+  left: -40px;
+  touch-action: none;
+  border-radius: 12px;
+
+  --native-cursor: ns-resize;
+  cursor: ns-resize;
+}
+
+/* The site's global `:focus-visible` outline, declined: it was drawn round the
+   grip, and the grip is an invisible strip reaching well above the card into
+   the row overhead. The ring on the marker below is the substitute — it is on
+   the thing the arrow keys actually move, and it says which control has focus
+   rather than which quadrant.
+
+   `[data-pointer]` is what keeps that ring off the card after a mouse drag.
+   The grip is focused programmatically on pointerdown so the arrow keys work
+   the moment you let go, and Chrome scores a programmatic focus on a
+   `role="slider"` as focus-visible — which left a permanent ring around the
+   marker after every click. The component sets the attribute for the pointer
+   and clears it the moment a key is pressed; see `onDown` / `onKey`. */
+.grip:focus-visible {
+  outline: none;
+}
+
+.ruler:has(.grip:focus-visible:not([data-pointer])) .marker::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px var(--page-base),
+    0 0 0 4px var(--accent);
+}
+
+/* --- The readout -----------------------------------------------------------
+
+   Figma's Content block: left inset 32, top 170, and its rhythm of 12px
+   between the three groups and 2px inside them. The card used to carry a
+   headline above this ("Seven years on one ruler") and Figma has none — a card
+   whose payload is a live number does not need a sentence saying it is a
+   ruler.
+
+   180 wide rather than Figma's 115; see the note at the top of the file. It
+   stops 16px short of the marker, which is where the instrument begins. */
 .content {
   position: absolute;
-  top: 161px;
+  top: 170px;
   left: 32px;
-  width: 119px;
+  width: 180px;
 }
 
+/* Tabular figures, or the count jitters its own width as it runs — 4.3 to 3.8
+   is two glyph changes and the whole block would twitch on every month. */
+.years,
+.date {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 20px SemiBold with the unit at 12px Regular, both at Figma's -0.04em. */
 .years {
   font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.04em;
   line-height: var(--lh);
   color: var(--accent);
+  transition: opacity 200ms ease-out;
+}
+
+/* Before day one. The count holds at 0 while the date keeps moving, and the
+   dimming says the clock hasn't started rather than pretending it has. */
+.years[data-zero] {
+  opacity: 0.4;
 }
 
 .unit {
   margin-left: 2px;
   font-size: 12px;
   font-weight: 400;
-  letter-spacing: 0;
 }
 
 .date {
+  margin-top: 2px;
   font-size: 12px;
   font-weight: 400;
   line-height: var(--lh);
   color: var(--accent);
 }
 
+/* 80px, dashed, accent at 32% — Figma's Separator, node 244:9486. */
 .separator {
   width: 80px;
   margin: 12px 0;
   border: 0;
-  border-top: 1px dashed rgba(234, 88, 11, 0.32);
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 32%, transparent);
 }
 
-.company {
+/* The two lines swap when the tape crosses into another moment. They enter
+   from the side the tape came from, so the text moves with the drag rather
+   than against it.
+
+   Both directions are named rather than defaulted, which is what keeps the card
+   still on page load: until someone has moved it its direction is 0, and 0
+   matches neither rule.
+
+   The block's height is fixed at exactly two lines. Every title and every
+   context in `content/site.ts` is a one-liner by contract, and `nowrap` below
+   enforces it — but a fixed height means that even a future entry which
+   overflows moves nothing else on the card. */
+.entry {
+  height: 41px; /* 18 + 2 + 22.5, Figma's Company block, rounded up */
+}
+
+.entry[data-dir="1"],
+.entry[data-dir="-1"] {
+  animation: entry-in 260ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.entry[data-dir="1"] {
+  --from: 7px;
+}
+
+.entry[data-dir="-1"] {
+  --from: -7px;
+}
+
+@keyframes entry-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--from, 7px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* One line each, always. Eight entries swapping in place under a fixed marker,
+   some one line and some two, made the whole block jump every time the tape
+   crossed one — the card's most-repeated motion was a reflow. The copy is
+   written to fit; this is the guarantee, and it truncates rather than wraps so
+   an overlong addition shows up as a cut word instead of as a silent reflow. */
+.context,
+.title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.context {
+  margin-bottom: 2px;
   font-size: 12px;
   font-weight: 400;
   line-height: var(--lh);
   color: var(--ink-60);
-  white-space: nowrap;
 }
 
-.role {
+.title {
   font-size: 15px;
   font-weight: 600;
   line-height: var(--lh);
   color: var(--ink);
-  white-space: nowrap;
 }
 
-/* Ruler and content are absolutely placed, so keep the design box and pull the
-   overhanging ruler back inside once there's no room for it to bleed. */
+/* --- Dark -----------------------------------------------------------------
+
+   The scale is 80px of accent hairlines and nothing else, so it is the one
+   thing on this card with no surface to hold it up. At 0.4 on #f3f3f3 the
+   month marks are a delicate texture; at 0.4 on #111 they are a smudge. The
+   accent itself already lightens with the theme — this is the second half of
+   the same correction. */
+:global(html[data-theme="dark"]) .middle,
+:global(html[data-theme="dark"]) .filler {
+  opacity: 0.55;
+}
+
+:global(html[data-theme="dark"]) .group[data-dim] {
+  opacity: 0.45;
+}
+
+/* --- Reduced motion --------------------------------------------------------
+   The scrubber itself already lands every indirect move at once and refuses to
+   throw (see `setReducedMotion`). These are the decorations it can't reach.
+   The demonstration in index.tsx is gated in JS, not here: a card that moves
+   itself is motion whatever its duration. */
+@media (prefers-reduced-motion: reduce) {
+  .entry,
+  .marker {
+    animation: none;
+  }
+
+  .scale[data-fast] {
+    filter: none;
+  }
+
+  .years {
+    transition: none;
+  }
+}
+
+/* One column. The card takes the full width and the Scale hangs lower — there
+   is no theme toggle to reach up to here, and a 156px overhang would put the
+   fade straight through the card above.
+
+   `--ruler-top` is the only number this has to move: the marker and the mask
+   are written in terms of it, and the readout is at its own fixed inset. */
 @media (max-width: 1000px) {
   .card {
+    width: 100%;
     max-width: 100%;
-    height: 420px;
+    height: 360px;
+    --ruler-top: -60px;
   }
-  .scale {
-    top: 20px;
-  }
+
+  /* Everything left of the instrument — 80 for the scale, 22 for the marker
+     and 16 of gutter — rather than holding the desktop's fixed column and
+     leaving the rest of the row blank. */
   .content {
-    top: 250px;
+    left: 0;
+    width: calc(100% - 118px);
   }
 }

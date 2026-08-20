@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useMediaQuery } from "@/lib/clientValue";
 import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
 import { useSyncExternalStore } from "react";
+import { useVisible } from "@/lib/visible";
 import styles from "./DrawingCanvas.module.css";
 
 /* ===========================================================================
@@ -135,6 +136,7 @@ export default function DrawingCanvas() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
+  const visible = useVisible(surfaceRef);
   const cursorRef = useRef<HTMLDivElement>(null);
   const feTurb = useRef<SVGFETurbulenceElement>(null);
   const feDisp = useRef<SVGFEDisplacementMapElement>(null);
@@ -358,6 +360,10 @@ export default function DrawingCanvas() {
      like wet ink. */
   useEffect(() => {
     if (!useWobble) return;
+    // Wet ink is only worth simulating where someone can see it. Off-screen —
+    // which, on a 3000x3000 board, is most of the time — this loop was
+    // lerping filter attributes into a widget nobody was looking at.
+    if (!visible) return;
     let frame = 0;
     let seed = 0;
     let freq = 0;
@@ -392,7 +398,7 @@ export default function DrawingCanvas() {
     };
     frame = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(frame);
-  }, [hovered, useWobble]);
+  }, [hovered, useWobble, visible]);
 
   /* --- Pointer -------------------------------------------------------------- */
 
