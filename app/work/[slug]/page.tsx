@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import ThemeToggle from "@/components/home/ThemeToggle";
 import StudyLiveBlock from "@/components/work/StudyLiveBlock";
 import StudySections from "@/components/work/StudySections";
-import { STUDIES, getStudy, heroStill } from "@/content/work";
+import { STUDIES, getStudy, heroStill, studyHref } from "@/content/work";
 import styles from "./page.module.css";
 
 /**
@@ -36,12 +36,21 @@ export async function generateMetadata({
   return {
     title: study.title,
     description: study.subtitle,
-    alternates: { canonical: `/work/${study.slug}` },
+    alternates: { canonical: studyHref(study.slug) },
     openGraph: {
       title: study.title,
       description: study.subtitle,
-      url: `/work/${study.slug}`,
+      url: studyHref(study.slug),
       type: "article",
+    },
+    /** Not redundant with `openGraph`. Unset, these fall through to the root's
+     *  twitter block, so X advertised the homepage's title and description for
+     *  a URL LinkedIn was correctly showing as the study — one link, two
+     *  identities, depending on where it was pasted. */
+    twitter: {
+      card: "summary_large_image",
+      title: study.title,
+      description: study.subtitle,
     },
   };
 }
@@ -57,7 +66,7 @@ export default async function StudyPage({ params }: PageProps<"/work/[slug]">) {
   return (
     // The same purple the modal selects in, so a shared link reads as the
     // surface it stands in for. See "Selection" in globals.css.
-    <main className={styles.page} data-selection="violet">
+    <main id="main" className={styles.page} data-selection="violet">
       <header className={styles.bar}>
         <Link href="/" className={styles.back}>
           <span aria-hidden="true">&larr;</span> Back

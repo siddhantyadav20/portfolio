@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { report } from "@/lib/telemetry";
 
 /**
  * The last resort: a throw in the root layout itself.
@@ -17,6 +18,15 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error("[app] root layout error", error);
+    // `fatal`, because reaching this boundary means the root layout itself
+    // failed — globals.css, the fonts and the theme script are all gone, and
+    // the visitor is looking at the inline-styled fallback below.
+    report({
+      kind: "error",
+      message: error.message,
+      digest: error.digest,
+      fatal: true,
+    });
   }, [error]);
 
   return (
@@ -39,6 +49,9 @@ export default function GlobalError({
           </h1>
           <p style={{ margin: 0, lineHeight: 1.6, color: "rgba(34,34,34,0.7)" }}>
             The page failed to load.{" "}
+            {/* A plain anchor on purpose: the router is part of what failed
+                here, so this has to be a full document load, not a soft nav. */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/" style={{ color: "#ea580b" }}>
               Reload the homepage
             </a>

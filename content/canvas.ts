@@ -106,6 +106,41 @@ export type Widget = Placed &
 
 /* --- The board ------------------------------------------------------------- */
 
+/**
+ * What a screen reader calls a widget.
+ *
+ * Every slot on the board is `tabIndex={0}` so the Tab tour can walk it and
+ * the camera can follow — a lovely piece of navigation that, until this
+ * existed, announced twenty-two identical unnamed groups. The name comes off
+ * the widget's own data wherever the data already says it (a book has a title,
+ * a disc has a title and an artist, a sticker has a label), and falls back to
+ * what the thing is.
+ */
+export function widgetLabel(w: Widget): string {
+  switch (w.kind) {
+    case "disc":
+      return `${w.title} by ${w.artist} — press to play`;
+    case "book":
+      return `${w.title} by ${w.author} — press to open`;
+    case "sticker":
+      return `${w.label} sticker`;
+    case "photos":
+      return "Photographs";
+    case "profile":
+      return "About Siddhant Yadav";
+    case "linkedin":
+      return "LinkedIn";
+    case "receipt":
+      return "Receipt";
+    case "terminal":
+      return "Terminal";
+    case "scratch":
+      return "Scratch card";
+    case "draw":
+      return "Drawing canvas";
+  }
+}
+
 export const widgets: readonly Widget[] = [
   /* --- The centre ---------------------------------------------------------- */
     // h is the card's hugged height, not a reservation — the card sizes to its
@@ -315,7 +350,13 @@ export const terminal = {
   aboutNote: "  Open to new opportunities ✦",
   contact: [
     { text: "  ✉   siddhantyadav20@gmail.com", href: "mailto:siddhantyadav20@gmail.com" },
-    { text: "  in  linkedin.com/in/siddhant-yadav", href: "https://linkedin.com/in/siddhant-yadav" },
+    /* Display text stays short because it is set in a terminal; the href is
+       the real profile. They disagreed before, and the short form is not a
+       real slug — the link simply 404'd. */
+    {
+      text: "  in  linkedin.com/in/siddhant-yadav",
+      href: "https://www.linkedin.com/in/siddhant-yadav-9942021b2/",
+    },
     { text: "  ig  @designzoid_", href: "https://instagram.com/designzoid_" },
   ],
 

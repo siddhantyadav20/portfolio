@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useLazyStudyModal } from "@/components/home/CaseStudyModal/lazy";
 import { EXIT_MS } from "@/components/primitives/ModalSurface";
 import { heroStill, type CaseStudy } from "@/content/work";
 import { canMorph, morph, warm } from "@/lib/viewTransition";
+import { useStudyUrl } from "./useStudyUrl";
 
 /**
  * Opening and closing a case-study modal from a card.
@@ -12,15 +14,24 @@ import { canMorph, morph, warm } from "@/lib/viewTransition";
  * also drive the hover recording, and folding those beats in here would make
  * the hook a two-caller abstraction with a branch for one of them. What is
  * shared is everything else: the morph, the no-morph exit animation, the
- * `?study=` deep link, and letting modified clicks stay ordinary clicks.
+ * address bar (`useStudyUrl`), and letting modified clicks stay ordinary
+ * clicks.
  */
 export function useStudyModal(study: CaseStudy) {
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
+  const { Modal, setModal, load, warmModal } = useLazyStudyModal(open);
 
   const openStudy = useCallback(async () => {
-    if (!canMorph()) {
+    // Resolved before anything else moves — see `useLazyStudyModal`. Hovering
+    // has normally done this already; awaiting is the guarantee.
+    const Loaded = await load();
+    const update = () => {
+      setModal(() => Loaded);
       setOpen(true);
+    };
+    if (!canMorph()) {
+      update();
       return;
     }
     // Decode the hero before the transition starts, or the modal's half of the
@@ -33,8 +44,8 @@ export function useStudyModal(study: CaseStudy) {
     if (study.hero && study.hero.kind !== "live") {
       await warm(heroStill(study.hero).src);
     }
-    morph(() => setOpen(true));
-  }, [study.hero]);
+    morph(update);
+  }, [study.hero, load, setModal]);
 
   const close = useCallback(() => {
     if (canMorph()) {
@@ -50,20 +61,16 @@ export function useStudyModal(study: CaseStudy) {
     }, EXIT_MS);
   }, []);
 
-  // Arriving on a link the share button produced. A frame late on purpose:
-  // hydration has to finish first.
-  useEffect(() => {
-    const wanted = new URLSearchParams(window.location.search).get("study");
-    if (wanted !== study.slug) return;
-    const raf = requestAnimationFrame(() => setOpen(true));
-    return () => cancelAnimationFrame(raf);
-  }, [study.slug]);
+  // The address bar, in both directions: deep links and Back in, `/work/<slug>`
+  // out. See `useStudyUrl` — the morph above is what this hook does not share.
+  useStudyUrl(study.slug, open, setOpen);
 
-  /** Warms the hero so a click doesn't have to wait for it. */
+  /** Warms the modal's code and its hero, so a click has nothing to wait for. */
   const prefetch = useCallback(() => {
+    warmModal();
     if (!study.hero || study.hero.kind === "live") return;
     warm(heroStill(study.hero).src);
-  }, [study.hero]);
+  }, [study.hero, warmModal]);
 
   /**
    * Click handler for the card's real `<a href="/work/...">`. The anchor stays
@@ -79,5 +86,5 @@ export function useStudyModal(study: CaseStudy) {
     [openStudy],
   );
 
-  return { open, closing, close, openStudy, onLinkClick, prefetch };
+  return { Modal, open, closing, close, openStudy, onLinkClick, prefetch };
 }

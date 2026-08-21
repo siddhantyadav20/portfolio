@@ -1,4 +1,4 @@
-import { widgets, WORLD_H, WORLD_W, type Widget } from "@/content/canvas";
+import { widgetLabel, widgets, WORLD_H, WORLD_W, type Widget } from "@/content/canvas";
 import styles from "./CanvasWorld.module.css";
 
 /* ===========================================================================
@@ -69,6 +69,11 @@ export function Slot({
       // you can only reach by dragging is a keyboard dead end, and this is
       // the cheapest way out of that: focus order *is* a guided tour.
       tabIndex={preview ? -1 : 0}
+      /* And a tour needs the stops named. In the preview these are decoration
+         behind a single link, so they stay out of the tree entirely. */
+      role={preview ? undefined : "group"}
+      aria-label={preview ? undefined : widgetLabel(w)}
+      aria-hidden={preview ? true : undefined}
       style={{
         // Staggered by band, so arriving reads as the board being laid out
         // rather than switched on. Index-based: the data is authored in

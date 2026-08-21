@@ -1,14 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
 import GlassChip from "@/components/primitives/GlassChip";
 import { EXIT_MS } from "@/components/primitives/ModalSurface";
-import CaseStudyModal from "@/components/home/CaseStudyModal";
+import { useLazyStudyModal } from "@/components/home/CaseStudyModal/lazy";
 import DeviceMockup from "@/components/interaction/DeviceMockup";
 import { inspection } from "@/content/site";
 import { inspectionPhotos } from "@/content/work/inspection-photos";
+import { useStudyUrl } from "@/components/work/useStudyUrl";
 import { canMorph, morph, warm } from "@/lib/viewTransition";
 import styles from "./InspectionExperience.module.css";
 
@@ -52,12 +53,17 @@ export default function InspectionExperience() {
   const [hovered, setHovered] = useState(false);
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
+  const { Modal, setModal, load, warmModal } = useLazyStudyModal(open);
 
   const openStudy = useCallback(async () => {
+    // The modal's own code, resolved before anything moves — same reason as
+    // the assets below, and the same guarantee. See `useLazyStudyModal`.
+    const Loaded = await load();
     // Cleared alongside the open so the card isn't left playing behind the
     // modal. Safe under a view transition: the "old" snapshot is taken before
     // this callback runs, so it still catches the card hovered.
     const update = () => {
+      setModal(() => Loaded);
       setHovered(false);
       setOpen(true);
     };
@@ -69,17 +75,31 @@ export default function InspectionExperience() {
     // guarantee, not the mechanism. See MODAL_ASSETS.
     await Promise.all(MODAL_ASSETS.map(warm));
     morph(update);
-  }, []);
+  }, [load, setModal]);
 
-  // Arriving on a link the share button produced. Opened after a frame rather
-  // than during render: hydration has to finish first, and a state change in
-  // the same tick as mount would be a second render pass for nothing.
-  useEffect(() => {
-    const wanted = new URLSearchParams(window.location.search).get("study");
-    if (wanted !== inspectionPhotos.slug) return;
-    const raf = requestAnimationFrame(() => setOpen(true));
-    return () => cancelAnimationFrame(raf);
-  }, []);
+  /**
+   * Click handler for the card's real `<a href="/work/inspection-photos">`.
+   *
+   * The card was a `<button>` until now, which meant the one study the
+   * homepage leads with was the one study you could not cmd-click, could not
+   * open in a new tab, and no crawler could reach — `inspection.href` had been
+   * sitting in `content/site.ts` unreferenced the whole time. The other two
+   * study cards have always been anchors. Only a plain left click is upgraded
+   * to the morph; modified clicks stay ordinary clicks and get the route.
+   */
+  const onLinkClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      void openStudy();
+    },
+    [openStudy],
+  );
+
+  // Deep links, Back, and keeping `/work/inspection-photos` in the address bar
+  // while this is open. The one part of the modal plumbing this card does not
+  // need its own copy of.
+  useStudyUrl(inspectionPhotos.slug, open, setOpen);
 
   const close = useCallback(() => {
     if (canMorph()) {
@@ -103,8 +123,8 @@ export default function InspectionExperience() {
   return (
     <>
       <CardShell
-        as="button"
-        type="button"
+        as="a"
+        href={inspection.href}
         radius={48}
         surface="none"
         className={styles.card}
@@ -119,16 +139,17 @@ export default function InspectionExperience() {
         data-cursor="view-project"
         onMouseEnter={() => {
           setHovered(true);
-          // The moment before a click: start the modal's images now so the
-          // transition never has to wait for them.
+          // The moment before a click: start the modal's code and its images
+          // now, so the transition never has to wait for either.
+          warmModal();
           MODAL_ASSETS.forEach(warm);
         }}
         onMouseLeave={() => setHovered(false)}
-        onClick={openStudy}
+        onClick={onLinkClick}
         aria-label={`${inspection.title} — open case study`}
       >
         <Image
-          src="/media/inspection-bg.png"
+          src="/media/inspection-bg.jpg"
           alt=""
           width={750}
           height={1000}
@@ -147,12 +168,15 @@ export default function InspectionExperience() {
         <DeviceMockup className={styles.device} play={hovered} rewindOnStop />
       </CardShell>
 
-      <CaseStudyModal
-        open={open}
-        closing={closing}
-        onClose={close}
-        study={inspectionPhotos}
-      />
+      {/* Absent until something asks for it — see `useLazyStudyModal`. */}
+      {Modal && (
+        <Modal
+          open={open}
+          closing={closing}
+          onClose={close}
+          study={inspectionPhotos}
+        />
+      )}
     </>
   );
 }

@@ -42,3 +42,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Source material: Figma exports, the Framer originals, the raw inspection
+# recording. ~110MB, imported by nothing, excluded from typecheck and lint —
+# but cloned in full on every CI run. The single .mov in here is 45MB, about a
+# third of .git on its own.
+#
+# Adding this line does not untrack what is already committed. To stop
+# carrying it forward:
+#     git rm -r --cached references
+# Removing it from *history* is a rewrite and is not something to do casually.
+/references
+
+# Not source material and not ours — an APK that landed in references/photos.
+*.apk

@@ -137,7 +137,10 @@ export default function MusicPlayer() {
           tabIndex={playing ? 0 : -1}
           aria-hidden={playing ? undefined : true}
         >
-          <img src="/icons/player-prev.svg" alt="" width={88} height={88} />
+          <span
+            className={`inkIcon ${styles.stepGlyph}`}
+            style={{ ["--icon" as string]: "url(/icons/player-prev.svg)" }}
+          />
         </button>
 
         <button
@@ -148,12 +151,9 @@ export default function MusicPlayer() {
         >
           {/* Glyph only — the disc it sits on is drawn in CSS, because Figma
               blurs the artwork behind it and an SVG can't do that. */}
-          <img
-            src="/icons/player-play.svg"
-            alt=""
-            width={112}
-            height={112}
-            className={styles.playGlyph}
+          <span
+            className={`inkIcon ${styles.playGlyph}`}
+            style={{ ["--icon" as string]: "url(/icons/player-play.svg)" }}
           />
           <span className={styles.pauseGlyph} aria-hidden="true">
             <i />
@@ -169,14 +169,34 @@ export default function MusicPlayer() {
           tabIndex={playing ? 0 : -1}
           aria-hidden={playing ? undefined : true}
         >
-          <img src="/icons/player-next.svg" alt="" width={88} height={88} />
+          <span
+            className={`inkIcon ${styles.stepGlyph}`}
+            style={{ ["--icon" as string]: "url(/icons/player-next.svg)" }}
+          />
         </button>
       </div>
+
+      {/* What is playing, for anyone who cannot see the cover cross-fade.
+          Skipping changed the artwork, the dots and the play button's label
+          and said nothing: the covers are all `alt=""`, and a label on a
+          button you are still standing on is not reliably re-announced. This
+          is a permanently-mounted region whose text changes, which is the
+          shape screen readers actually watch. */}
+      <p className="srOnly" role="status">
+        {playing ? `Playing ${track.title}` : track.title}
+      </p>
 
       <GlassChip className={styles.chip}>
         <div className={styles.helper}>
           <span className={styles.label}>
-            <img src="/icons/music.svg" alt="" width={16} height={16} />
+            <span
+              className={`inkIcon ${styles.labelIcon}`}
+              style={{
+                ["--icon" as string]: "url(/icons/music.svg)",
+                width: 16,
+                height: 16,
+              }}
+            />
             {music.label}
           </span>
           <span className={styles.dot} aria-hidden="true" />

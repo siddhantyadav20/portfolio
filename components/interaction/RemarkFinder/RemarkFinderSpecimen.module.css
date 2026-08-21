@@ -1,0 +1,34 @@
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+/* Tall enough for the drill panel to hold every category at the width a
+   reading column gives it — the same thing the card shows, with room for two
+   more results. */
+.frame {
+  height: 420px;
+  padding: 20px;
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-lg);
+  background-color: var(--surface-raised);
+}
+
+.bare {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.caption {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: var(--lh);
+  color: var(--ink-60);
+}
+
+.disclosure {
+  color: var(--ink-40);
+}

@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { getImageProps } from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useMediaQuery, useMounted } from "@/lib/clientValue";
 import {
@@ -62,6 +63,17 @@ export default function Disc({
   // appear on tap and stay there, which is worse than not having it.
   const canHover = useMediaQuery("(hover: hover) and (pointer: fine)");
 
+  /* The sleeve, the label and the tooltip are all CSS backgrounds, which the
+     <Image> pipeline cannot reach — so these were the last raw originals on
+     the board, six album covers at 130-165KB apiece painted at 320px and
+     smaller. `getImageProps` resolves the same optimised URL an <Image> would
+     have requested, and a background can use that just as well. */
+  const art = useMemo(
+    () =>
+      getImageProps({ src: cover, alt: "", width: 480, height: 480 }).props.src,
+    [cover],
+  );
+
   return (
     <div
       className={styles.root}
@@ -105,7 +117,7 @@ export default function Disc({
           <span className={styles.grooves} />
           <span
             className={styles.centreLabel}
-            style={{ backgroundImage: `url(${cover})` }}
+            style={{ backgroundImage: `url(${art})` }}
           >
             <span className={styles.spindle} />
           </span>
@@ -115,7 +127,7 @@ export default function Disc({
       {/* The sleeve. */}
       <div
         className={`${styles.sleeve} squircle`}
-        style={{ backgroundImage: `url(${cover})` }}
+        style={{ backgroundImage: `url(${art})` }}
       />
 
       <AnimatePresence>
@@ -150,7 +162,7 @@ export default function Disc({
               >
                 <span
                   className={styles.npCover}
-                  style={{ backgroundImage: `url(${cover})` }}
+                  style={{ backgroundImage: `url(${art})` }}
                 />
                 <span className={styles.npText}>
                   <span className={styles.npLabel}>

@@ -34,8 +34,12 @@
    position so reading and tab order are unchanged. */
 .themeToggle {
   position: absolute;
-  top: var(--page-pad);
-  right: var(--page-pad);
+  /* `max(...)` rather than the bare token: with `viewport-fit=cover` set the
+     page draws into the notch, and this is the one control pinned close
+     enough to the top-right corner to land under a sensor housing in
+     landscape. The page box already does this on its other three sides. */
+  top: max(var(--page-pad), env(safe-area-inset-top, 0px));
+  right: max(var(--page-pad), env(safe-area-inset-right, 0px));
   z-index: 10;
 }
 
@@ -199,23 +203,12 @@
     gap: var(--gap);
   }
 
-  /* Introduction leads on mobile — the fastest way to say who this is — so the
-     column holding it comes first. */
-  .col2 {
-    order: -1;
-  }
-  .col1 {
-    order: 0;
-  }
-  .col3 {
-    order: 1;
-  }
-  .topRow {
-    order: 2;
-  }
-  .footerWrap {
-    order: 3;
-  }
+  /* No `order` here any more. Introduction still leads on mobile — the
+     fastest way to say who this is — but it leads because it comes first in
+     the markup now (see app/page.tsx), which moves the tab order and the
+     screen-reader order along with the paint. `order` moved only the paint,
+     so this block used to hand a phone visitor the Introduction visually and
+     the Inspection card on the first Tab. */
 
   .personality {
     margin-top: 0;
@@ -259,8 +252,14 @@
 
      What it can collide with is whatever is ordered *first*, which is `.col2`
      and so the Introduction. That block gets the clearance instead. */
+  /* Clearance for the pinned toggle, measured off the thing that has to
+     clear it rather than off an unrelated token. It was
+     `calc(var(--toggle-w) * 0.42)` — 47px derived from the toggle's *width*
+     — against a control that is 64px tall sitting at `--page-pad` from the
+     top. It did not collide only because the Introduction's first painted
+     element is a narrow left-aligned logo; anything wider would have hit it. */
   .col2 {
-    padding-top: calc(var(--toggle-w) * 0.42);
+    padding-top: calc(var(--page-pad) + var(--toggle-h) + var(--gap));
   }
 
   .topRow {

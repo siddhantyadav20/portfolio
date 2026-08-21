@@ -1,7 +1,7 @@
 import type { CaseStudy } from "./types";
 
 /**
- * Search — skeleton.
+ * Search — skeleton, with a hero that runs.
  *
  * Title and subtitle are the card's own copy from `content/site.ts`, so the
  * study and the card that opens it can never drift apart. Everything else is
@@ -12,6 +12,13 @@ import type { CaseStudy } from "./types";
  * meta scaffold and a marked "not written yet" block. That is deliberate — a
  * study that looks unfinished is honest; one padded with invented detail is
  * not, and this is a real project with real numbers behind it.
+ *
+ * The hero is the exception, and it is not a hole being filled with filler: it
+ * is the same instrument the homepage card runs, which demonstrates the change
+ * rather than describing it. A running specimen makes no claim that prose has
+ * to back — it shows the old drill-down and the search that replaced it, over a
+ * corpus it discloses as a sample. So this page can stop being the one study
+ * with no artwork without anybody writing a sentence they have not earned.
  */
 export const search: CaseStudy = {
   slug: "search",
@@ -27,7 +34,15 @@ export const search: CaseStudy = {
     { label: "Skills", value: null },
   ],
 
-  hero: null,
+  hero: {
+    kind: "live",
+    view: "remark-finder",
+    still: "/media/search.png",
+    alt: "The remark search: a query, and the remarks this inspector has used most, from four different categories.",
+    width: 823,
+    height: 591,
+    morphName: "search-frame",
+  },
 
   sections: null,
 };

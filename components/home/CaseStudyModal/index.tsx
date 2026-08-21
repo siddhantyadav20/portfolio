@@ -49,19 +49,21 @@ export default function CaseStudyModal({
   const [copied, setCopied] = useState(false);
 
   const share = useCallback(async () => {
-    // The slug the link carries is the same one that reopens this modal on
-    // arrival, so what lands on the clipboard is a link to the case study
-    // rather than just to the homepage it happens to live on.
-    const url = `${window.location.origin}/?study=${study.slug}`;
+    // Whatever the address bar says, which `useStudyUrl` has already made
+    // `/work/<slug>` — a real prerendered page with its own canonical and
+    // share card. This used to build `/?study=<slug>` by hand, and that URL
+    // serves the homepage to every crawler and link-preview bot: a case study
+    // pasted into Slack previewed as the homepage.
+    const url = window.location.href;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard denied — the link is announced below for screen readers, and
-      // there is nothing useful to say to everyone else.
+      // Clipboard denied — nothing useful to say to anyone, and the address
+      // bar now carries the same URL, so there is a way through regardless.
     }
-  }, [study.slug]);
+  }, []);
 
   const togglePlaying = useCallback(() => setPlaying((p) => !p), []);
   const replay = useCallback(() => {
@@ -90,12 +92,20 @@ export default function CaseStudyModal({
             ) : (
               <span className="inkIcon" style={{ ["--icon" as string]: "url(/icons/share.svg)", width: 20, height: 20 }} />
             )}
-            <span className="srOnly">
-              {copied
-                ? "Link copied to clipboard"
-                : "Copy a link to this case study"}
-            </span>
+            {/* The button's own name, which stays put. Swapping this text was
+                the whole of the previous announcement, and a label changing
+                underneath the control you are already focused on is not
+                reliably re-read. */}
+            <span className="srOnly">Copy a link to this case study</span>
           </button>
+
+          {/* The confirmation, in a region that exists before there is
+              anything to say. The comment on `share`'s catch has always
+              claimed "the link is announced below for screen readers" — this
+              is the region that finally makes that true. */}
+          <span className="srOnly" role="status">
+            {copied ? "Link copied to clipboard" : ""}
+          </span>
         </>
       }
     >

@@ -1,3 +1,4 @@
+import RemarkFinderSpecimen from "@/components/interaction/RemarkFinder/RemarkFinderSpecimen";
 import ThemingSpecimen from "@/components/interaction/ThemingInstrument/ThemingSpecimen";
 import TokenAnatomy from "./TokenAnatomy";
 import type { StudyLive } from "@/content/work";
@@ -28,5 +29,7 @@ export default function StudyLiveBlock({ view, bare, className }: Props) {
       return <ThemingSpecimen bare={bare} className={className} />;
     case "token-anatomy":
       return <TokenAnatomy />;
+    case "remark-finder":
+      return <RemarkFinderSpecimen bare={bare} className={className} />;
   }
 }

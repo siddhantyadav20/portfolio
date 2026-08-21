@@ -13,6 +13,9 @@ import { STUDIES, getStudy } from "@/content/work";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+/** The homepage card has always exported one; this one didn't, so every study
+ *  share went out with an unlabelled image. */
+export const alt = "Case study by Siddhant Yadav";
 
 export function generateStaticParams() {
   return STUDIES.map((study) => ({ slug: study.slug }));

@@ -31,7 +31,12 @@ export default function SiteFooter() {
         </p>
 
         <p className={styles.credit}>
-          <span className={styles.copyright}>{footer.copyright}</span>
+          {/* Server component, so this is the build's year baked into the
+              prerendered HTML — no hydration mismatch, and no literal to
+              remember to bump. */}
+          <span className={styles.copyright}>
+            © {new Date().getFullYear()} {footer.copyrightName}
+          </span>
           <span>{footer.credit}</span>
         </p>
 

@@ -1,9 +1,29 @@
 import type { Metadata } from "next";
 import CanvasSurface from "@/components/canvas/CanvasSurface";
 
+const DESCRIPTION = "A board of the things I read, listen to, build and keep.";
+
 export const metadata: Metadata = {
-  title: "Canvas — Siddhant Yadav",
-  description: "A board of the things I read, listen to, build and keep.",
+  /** Half a title. The root's `template` supplies the other half — spelling
+   *  out the full thing here ran it through the template anyway and shipped
+   *  `Canvas — Siddhant Yadav — Siddhant Yadav`. */
+  title: "Canvas",
+  description: DESCRIPTION,
+  /** Without this the root's `canonical: "/"` cascades down, and the canvas
+   *  spends its life in the sitemap telling crawlers it is the homepage. */
+  alternates: { canonical: "/canvas" },
+  /** Same: unset, every share of this URL previews as the homepage. */
+  openGraph: {
+    title: "Canvas — Siddhant Yadav",
+    description: DESCRIPTION,
+    url: "/canvas",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Canvas — Siddhant Yadav",
+    description: DESCRIPTION,
+  },
 };
 
 /**

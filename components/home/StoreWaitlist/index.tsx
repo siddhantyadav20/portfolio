@@ -271,7 +271,16 @@ export default function StoreWaitlist() {
             enterKeyHint="go"
             spellCheck={false}
             placeholder={store.placeholder}
+            id="waitlist-contact"
+            /* A real <label>, off-screen, rather than `aria-label` alone: a
+               placeholder disappears the moment there is a value, and this
+               field has no visible label of its own once expanded. */
             aria-label={store.placeholder}
+            /* Ties the field to the error text below, so the reason a
+               submission was refused is read as part of the field rather than
+               announced once and lost. */
+            aria-describedby="waitlist-hint"
+            aria-invalid={trouble === "invalid" || undefined}
             value={value}
             tabIndex={open ? undefined : -1}
             disabled={busy}
@@ -318,7 +327,7 @@ export default function StoreWaitlist() {
 
         {/* Rides in the 24px of slack the card already has under the pill, so
             an error costs no height and the column below never moves. */}
-        <p className={styles.hint} role="alert">
+        <p id="waitlist-hint" className={styles.hint} role="alert">
           {trouble ? store.errors[trouble] : ""}
         </p>
       </div>

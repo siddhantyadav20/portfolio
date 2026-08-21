@@ -107,8 +107,16 @@ function Art({
          it defers them more or less forever, so the card painted as a set of
          empty plates. They are fifteen small files, the card is the first
          thing this page has to say about the canvas, and the canvas gets
-         them from cache afterwards. */
+         them from cache afterwards.
+
+         Low priority alongside it, which is not a contradiction: `eager` says
+         fetch this now, `fetchPriority` says what to fetch it *instead of*.
+         Without the second half these sixteen went into the document head as
+         preloads at default priority — sixteen forty-pixel decorations
+         competing with the hero for the same connections, on a page whose LCP
+         is one of the things they were competing with. */
       loading="eager"
+      fetchPriority="low"
       className={`${styles.art} ${contain ? styles.contain : ""}`}
       style={{ borderRadius: radius }}
     />
@@ -134,6 +142,7 @@ function PhotosStill() {
           fill
           sizes={`${Math.round(320 * PREVIEW_SCALE)}px`}
           loading="eager"
+          fetchPriority="low"
           className={styles.art}
         />
       )}

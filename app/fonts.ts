@@ -1,5 +1,5 @@
 import localFont from "next/font/local";
-import { Newsreader, Outfit } from "next/font/google";
+import { Outfit } from "next/font/google";
 
 /**
  * Display face. Only the two weights the design actually uses are shipped
@@ -7,12 +7,22 @@ import { Newsreader, Outfit } from "next/font/google";
  *
  * NOTE: these are the trial files from the Canela Collection, copied in from
  * outside the repo so the app has no dependency on a personal filesystem path.
- * Swap in the licensed files at the same two paths before the site goes public.
+ * Swap in the licensed files before the site goes public — and run them
+ * through the same conversion as below, or the saving goes with them.
+ *
+ * WOFF2, not the OTFs they arrived as. Both faces are preloaded on every route
+ * because the display face sets the first thing anyone reads, so they sit
+ * squarely in the critical path — and as OTFs that was 147KB of it. The same
+ * outlines as WOFF2 are 42KB. Nothing else about them changes: same family,
+ * same two weights, same metrics.
+ *
+ *   fonttools:  f = TTFont("CanelaText-Medium.otf"); f.flavor = "woff2"
+ *               f.save("CanelaText-Medium.woff2")
  */
 export const canela = localFont({
   src: [
-    { path: "./fonts/CanelaText-Medium.otf", weight: "500", style: "normal" },
-    { path: "./fonts/CanelaText-Bold.otf", weight: "700", style: "normal" },
+    { path: "./fonts/CanelaText-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/CanelaText-Bold.woff2", weight: "700", style: "normal" },
   ],
   variable: "--font-display",
   display: "swap",
@@ -25,21 +35,5 @@ export const canela = localFont({
 export const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-ui",
-  display: "swap",
-});
-
-/**
- * Reading serif. Used only by the books on the canvas — their pages
- * and reading spread are set in it, because a book set in the UI face reads as
- * a card about a book rather than as a book.
- *
- * The reference loaded it from Google's CDN at runtime; self-hosted here like
- * Outfit, so the canvas makes no external request.
- */
-export const newsreader = Newsreader({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  style: ["normal", "italic"],
-  variable: "--font-serif",
   display: "swap",
 });

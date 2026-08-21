@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import CardShell from "@/components/primitives/CardShell";
 import GlassChip from "@/components/primitives/GlassChip";
-import CaseStudyModal from "@/components/home/CaseStudyModal";
 import ThemingInstrument, {
   PRESETS,
   REST_MODE,
@@ -34,7 +33,8 @@ import styles from "./DesignSystemExperience.module.css";
  * navigation.
  */
 export default function DesignSystemExperience() {
-  const { open, closing, close, onLinkClick, prefetch } = useStudyModal(study);
+  const { Modal, open, closing, close, onLinkClick, prefetch } =
+    useStudyModal(study);
 
   const cardRef = useRef<HTMLAnchorElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
@@ -117,12 +117,10 @@ export default function DesignSystemExperience() {
         </GlassChip>
       </CardShell>
 
-      <CaseStudyModal
-        open={open}
-        closing={closing}
-        onClose={close}
-        study={study}
-      />
+      {/* Absent until something asks for it — see `useLazyStudyModal`. */}
+      {Modal && (
+        <Modal open={open} closing={closing} onClose={close} study={study} />
+      )}
     </>
   );
 }

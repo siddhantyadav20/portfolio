@@ -1,5 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "./not-found.module.css";
+
+/** Without this a 404 inherits the root default and is titled
+ *  "Siddhant Yadav — Product Designer" — a dead link that reports itself to
+ *  the tab bar, and to anyone who pastes it, as the homepage.
+ *
+ *  No `robots` here: Next emits `noindex` for this boundary on its own, and
+ *  adding it produced two `<meta name="robots">` tags in the output. */
+export const metadata: Metadata = {
+  title: "Page not found",
+};
 
 /**
  * The 404.
@@ -13,7 +24,7 @@ import styles from "./not-found.module.css";
  */
 export default function NotFound() {
   return (
-    <main className={styles.page}>
+    <main id="main" className={styles.page}>
       <div className={styles.block}>
         <p className={styles.code}>404</p>
         <h1 className={styles.title}>That page isn’t here.</h1>

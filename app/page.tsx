@@ -24,22 +24,24 @@ export default function Home() {
   return (
     <>
       <ProximityField>
-        <main className={styles.page}>
+        <main id="main" className={styles.page}>
+          {/* Pinned to the page's top-right corner by this class rather than
+              laid out, so where it sits in the markup is free — and it is
+              first, because that is where it is painted. It used to live in
+              `.topRow`, which put it sixth in the tab order behind every card
+              on the page while sitting visually above all of them. */}
+          <ThemeToggle className={styles.themeToggle} />
+
+          {/* Source order is the *mobile* reading order, and the desktop grid
+              places every child explicitly by `grid-column`/`grid-row`, so
+              this costs the wide layout nothing.
+
+              It replaces a block of `order` declarations that reordered these
+              five visually and left the tab order following the markup — so a
+              phone visitor read the Introduction first and tabbed into the
+              Inspection card first. `order` moves paint, never focus; the only
+              way to move both is to move the markup. */}
           <div className={styles.band}>
-            <div className={styles.col1}>
-              <InspectionExperience />
-              <DesignSystemExperience />
-            </div>
-
-            <div className={styles.topRow}>
-              <AboutMeCard />
-              <DesignEngineerCard />
-              <CanvasCard />
-              {/* Pinned to the page's top-right corner by this class, not
-                  laid out by the row it sits in. See page.module.css. */}
-              <ThemeToggle className={styles.themeToggle} />
-            </div>
-
             <div className={styles.col2}>
               <Introduction className={styles.intro} />
               <StoreWaitlist />
@@ -49,9 +51,20 @@ export default function Home() {
               </div>
             </div>
 
+            <div className={styles.col1}>
+              <InspectionExperience />
+              <DesignSystemExperience />
+            </div>
+
             <div className={styles.col3}>
               <TimelineExperience />
               <SearchExperience />
+            </div>
+
+            <div className={styles.topRow}>
+              <AboutMeCard />
+              <DesignEngineerCard />
+              <CanvasCard />
             </div>
 
             <div className={styles.footerWrap}>

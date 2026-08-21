@@ -17,7 +17,7 @@ export const inspectionPhotos: CaseStudy = {
   subtitle:
     "Cut reporting time by 13 minutes per inspection, across 20,000+ inspections daily",
 
-  body: "In early 2026, after launching an offline-first mobile app for conducting home inspections for inspectors based in US (in early 2025): we set out to redesign the camera flow which was one of the most crucial and highly used feature but was never designed to it’s full potential.",
+  body: "In early 2026, after launching an offline-first mobile app for conducting home inspections for inspectors based in the US in early 2025, we set out to redesign the camera flow — one of the most crucial and most heavily used features, and one that had never been designed to its full potential.",
 
   meta: [
     { label: "Product", value: "iOS, iPad + Android" },

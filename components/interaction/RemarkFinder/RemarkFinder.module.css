@@ -1,0 +1,465 @@
+/* The Search card's instrument. Two flows in one frame, one of them leaving. */
+
+/* Registered, and so not inherited.
+
+   The same lesson CardShell and ThemingInstrument both write down: an
+   unregistered custom property is inherited by definition, so rewriting one per
+   frame invalidates the style of every element beneath it — here that is three
+   drill panels, twenty-odd rows and five results. Registered with
+   `inherits: false`, the invalidation stops at the element that reads it.
+
+   `--step` is a plain number rather than a length because the track is
+   translated by a percentage of itself; `<number>` is what `calc()` wants on
+   both sides of that. */
+@property --open {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --step {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.finder {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+}
+
+/* Everything the two flows contend over. The legend is deliberately outside
+   it — see the note in the markup. */
+.frame {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+/* --- The way it used to work ---------------------------------------------
+   Laid over the field rather than beside it, because that is what it was: the
+   same screen, before.
+
+   It shrinks very slightly as it leaves rather than growing. Both directions
+   read as "going", but only one of them reads as *folding away*, which is what
+   the card says is happening — and a panel that grows on its way out is also
+   wider than the frame holding it, which put seven pixels of it outside the
+   box at the design width. Clipping that at the frame is not an option: the
+   frame is also what carries the field's blue bloom, and `overflow: hidden`
+   would cut the one piece of colour the card has. */
+
+.drill {
+  /* Declared here and not on `.finder`, because `inherits: false` means here is
+     the only place it would be read from. That is the whole point of
+     registering it — the invalidation stops at this element instead of walking
+     three panels and twenty rows — but it also makes writing it onto an
+     ancestor a silent no-op, which is worth one line to say out loud. The loop
+     writes to this element and to `.drillTrack` directly, the way
+     ThemingInstrument writes `--seam-top` onto the seam rather than the skin. */
+  --open: 0;
+
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-md);
+  background-color: var(--surface-raised);
+  backdrop-filter: blur(12px);
+  /* The second half of the crossing, not all of it.
+
+     Fading one flow up while the other fades down at the same rate leaves both
+     of them half-legible across the middle of the transition, and two lists you
+     can read through each other is a dissolve — which is the one thing this
+     moment must not look like, because the card's claim is that one of these
+     replaced the other. The outgoing flow is gone by the midpoint (see
+     `nowEl.style.opacity` in the loop) and this one starts there. */
+  opacity: clamp(0, calc((var(--open) - 0.5) * 2), 1);
+  transform: scale(calc(1 - 0.03 * (1 - var(--open))));
+  transform-origin: 50% 24%;
+  pointer-events: none;
+}
+
+.drillTrack {
+  --step: 0;
+
+  display: flex;
+  width: 300%;
+  height: 100%;
+  /* The push. One transform for three panels, driven by the same channel the
+     tap pips are rounded from, so the count and the movement cannot disagree. */
+  transform: translateX(calc(var(--step) * -33.3333%));
+}
+
+.panel {
+  display: flex;
+  flex: 0 0 33.3333%;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  min-width: 0;
+}
+
+.crumb {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panelRows {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.panelRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 2px;
+  border-bottom: 1px solid var(--ink-10, rgba(0, 0, 0, 0.06));
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  min-width: 0;
+}
+
+.panelText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The row the demonstration taps. It lights rather than moves: a row that
+   slid would be a second thing travelling while the whole panel is already
+   travelling under it. */
+.panelRow[data-chosen] {
+  color: #1f97dd;
+  font-weight: 600;
+}
+
+.chevron {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-top: 1.5px solid var(--ink-40);
+  border-right: 1.5px solid var(--ink-40);
+  transform: rotate(45deg);
+}
+
+/* --- The way it works now -------------------------------------------------
+   The field and its results as one object, so the collapse can hand the frame
+   from one flow to the other with a single opacity rather than fading each
+   piece separately. */
+
+.now {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.plate {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  padding: 16px;
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-md);
+  background-color: var(--surface-raised);
+  backdrop-filter: blur(12px);
+  /* The card's one piece of colour, kept from the original Default state. */
+  box-shadow: 0 0 24px rgba(31, 151, 221, 0.12);
+}
+
+:global(html[data-theme="dark"]) .plate {
+  box-shadow: 0 0 28px rgba(31, 151, 221, 0.18);
+}
+
+/* No ring while typing.
+
+   Carried over from the card's own stylesheet, where it was worked out and
+   written down: a text field always matches `:focus-visible` regardless of how
+   focus arrived, so the global orange outline drew a rectangle inside a plate
+   that is already the boundary. The plate takes the indicator instead, in the
+   card's blue rather than the site accent. */
+.input:focus-visible {
+  outline: none;
+}
+
+.plate:focus-within {
+  border-color: rgba(31, 151, 221, 0.5);
+  box-shadow: 0 0 24px rgba(31, 151, 221, 0.22);
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 32px;
+}
+
+.icon {
+  display: flex;
+  flex: none;
+  width: 19px;
+  height: 20px;
+  opacity: 0.6;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-strong);
+}
+
+.input::placeholder {
+  color: var(--ink-50);
+}
+
+.input::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* --- The mic --------------------------------------------------------------
+   The other way in. Voice is not a novelty on this product: the person using
+   it is up a ladder or under a house, and the remark they want is the one they
+   would least like to thumb-type. */
+
+.mic {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background-color: #1f97dd;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.06);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mic:hover {
+  transform: scale(1.06);
+}
+
+.micIcon {
+  background-color: #fff;
+}
+
+/* The level meter replaces the icon while the dictation plays.
+
+   Deliberately a CSS animation and not a driven one. It is not reading a
+   signal — there is no microphone open — and a JavaScript loop writing five
+   heights per frame would be dressing that up as measurement. A keyframe loop
+   is the honest shape for a thing that is indicating "listening" rather than
+   reporting a level. */
+.meter {
+  position: absolute;
+  display: none;
+  align-items: center;
+  gap: 2px;
+  height: 14px;
+}
+
+.meter i {
+  width: 2px;
+  height: 4px;
+  border-radius: 1px;
+  background-color: #fff;
+  animation: meter 900ms ease-in-out infinite;
+}
+
+.meter i:nth-child(2) { animation-delay: 120ms; }
+.meter i:nth-child(3) { animation-delay: 240ms; }
+.meter i:nth-child(4) { animation-delay: 90ms; }
+.meter i:nth-child(5) { animation-delay: 300ms; }
+
+@keyframes meter {
+  0%, 100% { height: 4px; }
+  50% { height: 14px; }
+}
+
+.finder[data-listening] .micIcon { display: none; }
+.finder[data-listening] .meter { display: flex; }
+
+.finder[data-listening] .mic {
+  animation: pulse 1600ms ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(31, 151, 221, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(31, 151, 221, 0); }
+}
+
+/* Someone who asked for less motion still gets the field, the dictation and
+   the results — what stops is the decoration that was only ever indicating. */
+@media (prefers-reduced-motion: reduce) {
+  .meter i,
+  .finder[data-listening] .mic {
+    animation: none;
+  }
+  .meter i { height: 9px; }
+  .mic { transition: none; }
+}
+
+/* --- What it just did ----------------------------------------------------- */
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  min-height: 22px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: var(--lh);
+}
+
+.pips {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+}
+
+/* The tap counter. Same grammar as the Design System card's preset dots — an
+   active one stretches rather than grows, so the row never steps sideways. */
+.pip {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background-color: var(--ink);
+  opacity: 0.18;
+  transition:
+    width 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 220ms ease,
+    background-color 220ms ease;
+}
+
+.pip[data-on] {
+  width: 16px;
+  opacity: 1;
+  background-color: #1f97dd;
+}
+
+.count {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-50);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The chip that used to be a disabled `Select category`. */
+.scope {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-strong);
+  white-space: nowrap;
+}
+
+/* --- What it found -------------------------------------------------------- */
+
+.results {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  /* The old flow's list was the thing you scrolled. This one is not: five rows
+     is what the card can hold, and a scroll area inside a card only invites a
+     gesture that fights the page. The count in the legend is what says there
+     are more. */
+  overflow: hidden;
+}
+
+.row {
+  flex: none;
+  padding: 7px 10px;
+  border-radius: 10px;
+  /* Rows this inspector has never used sit at a lower contrast and without the
+     rule below — the ranking's decision, made visible, rather than a styling
+     choice about importance. */
+  opacity: 0.5;
+}
+
+.row[data-mine] {
+  opacity: 1;
+  background-color: color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.rowText {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  overflow: hidden;
+}
+
+.mark {
+  background: none;
+  color: #1f97dd;
+  font-weight: 700;
+}
+
+.rowMeta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: var(--lh);
+  color: var(--ink-40);
+}
+
+/* The evidence. Read down this column and the paths disagree with each other,
+   which is a set the drill-down above could not have produced. */
+.path {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.viaPath {
+  flex: none;
+  color: #1f97dd;
+}
+
+.used {
+  flex: none;
+  color: var(--green);
+}
+
+.row:not([data-mine]) .used {
+  color: var(--ink-40);
+}

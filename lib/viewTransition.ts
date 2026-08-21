@@ -11,12 +11,38 @@ import { flushSync } from "react-dom";
 const warmed = new Map<string, Promise<void>>();
 
 /**
+ * How long a caller will wait for an asset before opening without it.
+ *
+ * A cached image decodes in single-digit milliseconds, so in the normal case
+ * this timer is never reached and nothing about the transition changes. It is
+ * here for the case below.
+ */
+const WARM_TIMEOUT_MS = 400;
+
+/**
  * Fetch and decode an asset, once, and remember the promise.
  *
  * These have to be decoded *before* a transition starts. The modal mounts
  * inside `startViewTransition`'s callback and the browser snapshots the result
  * immediately — so an image that is still loading is captured as nothing, and
  * the card appears to expand into a blank panel.
+ *
+ * ---------------------------------------------------------------------------
+ * The timeout is not belt-and-braces. `decode()` on a detached <img> can
+ * simply never settle — neither resolving nor rejecting — and Chrome does it
+ * reliably for `/media/inspection-modal-bg.jpg`, a 2240px JPEG that loads
+ * perfectly well (`complete` true, `naturalWidth` 2240, HTTP 200) and then
+ * leaves its decode promise pending forever.
+ *
+ * Every caller awaits this before opening, so a promise that never settles is
+ * a card that never opens: click the Inspection study and nothing at all
+ * happens, with no error to find. Rejecting was already handled — the original
+ * note here said a resolved-either-way promise "keeps a failed asset from
+ * wedging the UI", which was the right intent against the wrong failure. This
+ * covers the one that actually occurs.
+ *
+ * Losing the race costs the morph its sharpest frame, which is the correct
+ * trade against not opening.
  */
 export function warm(src: string) {
   let p = warmed.get(src);
@@ -25,9 +51,13 @@ export function warm(src: string) {
       // createElement, not `new Image()` — callers import next/image as `Image`.
       const img = document.createElement("img");
       img.src = src;
-      // `decode` also waits for the bitmap, which is what the snapshot needs;
-      // a resolved-either-way promise keeps a failed asset from wedging the UI.
+      // `decode` also waits for the bitmap, which is what the snapshot needs.
       img.decode().then(resolve, () => resolve());
+      // `load` is the weaker signal — pixels fetched, not necessarily decoded —
+      // and the timer is weaker still. Whichever arrives first wins; the others
+      // resolve an already-settled promise, which is a no-op.
+      img.addEventListener("load", () => resolve(), { once: true });
+      setTimeout(resolve, WARM_TIMEOUT_MS);
     });
     warmed.set(src, p);
   }

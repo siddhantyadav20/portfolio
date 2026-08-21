@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { report } from "@/lib/telemetry";
 import styles from "./not-found.module.css";
 
 /**
@@ -21,15 +22,23 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // No error service is wired up yet. Logging unconditionally — rather than
-    // behind the NODE_ENV check the rest of the codebase uses — because this
-    // is the one place where staying quiet means a production failure leaves
-    // no trace at all.
+    // Logged unconditionally — rather than behind the NODE_ENV check the rest
+    // of the codebase uses — because the console is still the only place this
+    // shows up for whoever has the failing page open.
     console.error("[app] unhandled error", error);
+    // And reported, if a destination is configured. See `lib/telemetry`: this
+    // is the failure nobody would otherwise hear about, because the person it
+    // happened to has already closed the tab.
+    report({
+      kind: "error",
+      message: error.message,
+      digest: error.digest,
+      fatal: false,
+    });
   }, [error]);
 
   return (
-    <main className={styles.page}>
+    <main id="main" className={styles.page}>
       <div className={styles.block}>
         <p className={styles.code}>Error</p>
         <h1 className={styles.title}>Something went wrong.</h1>

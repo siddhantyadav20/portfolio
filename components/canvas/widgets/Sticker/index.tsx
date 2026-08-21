@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion, useAnimationControls } from "motion/react";
 import { useMediaQuery } from "@/lib/clientValue";
 import { buildFlight, FLIGHT_DURATION, TRACKS, type Track } from "./effects";
@@ -116,8 +117,19 @@ export default function Sticker({
         animate={body}
         initial={{ x: 0, y: 0, rotate: 0, scale: 1 }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={art} alt={label} className={styles.art} draggable={false} />
+        {/* Through the optimiser, not raw. `sticker-rocket.png` is a 2198px
+            PNG and this box is 200 world-px — at the canvas's 2.4x ceiling on
+            a 2x screen it needs 960, and it was shipping all 419KB of the
+            original. `fill` because `.body` is already a sized, positioned
+            box, so nothing about the layout moves. */}
+        <Image
+          src={art}
+          alt={label}
+          fill
+          sizes="480px"
+          className={styles.art}
+          draggable={false}
+        />
 
       </motion.div>
 

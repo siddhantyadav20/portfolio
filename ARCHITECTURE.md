@@ -1,7 +1,26 @@
 # Portfolio — Architecture
 
-**Status:** Proposal (Phase 0). Nothing implemented yet, no packages installed.
-**Last updated:** 2026-08-11
+> **Status: historical.** This is the Phase-0 proposal, written on 2026-08-11
+> before any code existed, and it is kept as a record of the reasoning rather
+> than as a description of the site. **Do not read it as documentation of the
+> code.** Several of its conclusions were reconsidered during the build:
+>
+> | It proposes | What was built |
+> |---|---|
+> | **D2**: case studies as parallel + intercepting routes (`@overlay/(.)work/[slug]`) | Real `/work/[slug]` routes plus a client modal that pushes the same URL — see `components/work/useStudyUrl.ts` |
+> | A folder layout with `content/case-studies/`, `components/case-study/`, `lib/hooks/` | `content/work/`, `components/work/`, flat `lib/` |
+> | Nothing about theming, and nothing about the canvas | Both exist and are a large share of the code |
+> | **D4** waitlist backend undecided | A Resend server action, `components/home/StoreWaitlist/submit.ts` |
+> | **D7** "1 Live Visitor" undecided | Resolved to `visitors: null` |
+>
+> **D3 is the one open decision that still matters**: Canela is a trial licence
+> and must be swapped before launch. See `app/fonts.ts`.
+>
+> For how the site actually works, read the code — it is commented heavily and
+> deliberately — starting from `app/page.tsx`, `PROJECT.md` for the brief, and
+> `README.md` for the map.
+
+**Last updated:** 2026-08-11 (superseded; header added 2026-08-20)
 
 ---
 
@@ -77,7 +96,7 @@ Accent colours (orange for the timeline / "Currently Building" / waitlist, Linke
 | Custom Cursors (`110:8477`) | View Project (132×132 frosted disc) · Page (24×24) |
 | Logo | Light · Dark |
 
-**Not designed anywhere** — flagged, not invented: About Me hover (the brief's tool-icon animation), Designer↔Engineer plane animation, Workspace hover, Timeline drag states, **search results UI**, and the Search / Design System case-study overlays.
+**Not designed anywhere** — flagged, not invented: About Me hover (the brief's tool-icon animation), Designer↔Engineer plane animation, Workspace hover, Timeline drag states, and the Search / Design System case-study overlays. (Search results UI was on this list; option 2 of D6 was taken — see below.)
 
 ---
 
@@ -169,7 +188,9 @@ Every unfinished piece of content is a `Slot` marked `placeholder`. In developme
 
 **I have not invented any content.** The metrics on the page (200+ photos, 13 minutes, 20,000+ properties, 104,122 remarks, 281 tokens, 12 products, ~51m saved) come from *your* Figma file and I'm treating them as yours. Everything not in Figma is a marked placeholder.
 
-Search dataset: `content/remarks.ts` holds ~20 clearly-labelled demo remarks behind a `searchRemarks(query, category)` function. Swapping in the real library later means replacing that one function body — the component only knows the function signature.
+Search dataset: `content/remarks.ts` holds 61 clearly-labelled demo remarks behind a `searchRemarks(query, category)` function, as planned — a little larger than the twenty first sketched, because the card's argument needs a corpus wide enough to be the wrong shape. Swapping in the real library later means replacing the array; `TAXONOMY` and the drill-down panels are derived from it, so both halves of the demonstration gain a remark at once and neither can be given a better dataset than the other.
+
+The file discloses what it is, and `SAMPLE_NOTE` puts that on screen next to anything counted. `LIBRARY_TOTAL` (104,122) is yours and is never used as a denominator for anything computed — every number the card states is true of the sixty-one rows actually loaded.
 
 ---
 
@@ -222,7 +243,7 @@ Built in from the start, not retrofitted.
 - **Custom cursor is purely visual.** The "View Project" disc is `aria-hidden`; the accessible name lives on the link. Keyboard focus produces the equivalent visual state.
 - **Overlay**: focus trap, restore focus to the originating card on close, `Escape` closes, background inert, `role="dialog"` + `aria-modal`.
 - **`prefers-reduced-motion`**: a single global block disables transitions/animations; the Inspection video shows a poster frame instead of playing; the timeline snaps rather than eases.
-- **Search**: real `<label>` (visually hidden), `role="status"` on the results region so screen readers hear result counts, full keyboard operation.
+- **Search**: real `<label>` (visually hidden) and full keyboard operation, both shipped. The recreated drill-down is `aria-hidden` and holds nothing focusable — it is a picture of a flow, not a flow, so the field stays the only thing a tab key or a screen reader finds. `role="status"` on the results region is still to do.
 - **Audio never autoplays.** The LinkedIn hover sound is opt-in and respects a mute preference; the music player starts paused.
 - **Theme toggle** is a real toggle with `aria-pressed`, and both themes must pass contrast — which is part of why the missing dark palette (D5) matters.
 
@@ -272,7 +293,7 @@ Phases 1–8 are not blocked on case-study writing. Each phase is one commit, or
 2. **Canela is a trial font.** Blocks legitimate deployment (D3).
 3. **Dark mode is half-designed.** A toggle and a dark logo exist; no dark composition does (D5).
 4. **The overlay is 60% empty in Figma.** Only Inspection's opening section is designed; the lower ~1200px is blank, and the Search / Design System overlays don't exist at all.
-5. **Search results have no design** (D6) — the one part of the Search experience the brief calls "functional" is the part Figma doesn't cover.
+5. ~~**Search results have no design** (D6)~~ — resolved: option 2, proposed from the card's own language. See D6.
 6. **"1 Live Visitor"** in the footer implies live infrastructure (D7).
 7. **Workspace is genuinely undefined.** I'm building a boundary, not a canvas — deliberately, per the brief.
 8. **Translucent surfaces over a gradient background** are the kind of thing that looks right in Figma and subtly wrong in a browser. Expect real time in Phase 13.
@@ -349,12 +370,24 @@ I'd suggest 2 — it gives you something concrete to react to. But a broken dark
 
 ---
 
-### D6 — Search results UI · **blocks Phase 3**
+### D6 — Search results UI · ~~blocks Phase 3~~ **resolved, option 2**
 
 Figma has Default / Typing / Typed / Searching — but **no results state**. The brief says results should "use the visual structure shown in Figma," and that structure doesn't exist.
 
 1. **You design the results state.** It's the interaction the whole card exists to demonstrate.
-2. **I propose one** from the card's existing visual language and you refine it.
+2. **I propose one** from the card's existing visual language and you refine it. ← taken
+
+A result is one row: the remark with the matched span in the card's blue, its
+taxonomy path underneath, and how many times this inspector has used it. Rows
+they have never used sit at half opacity and lose the row fill, which is the
+ranking's decision made visible rather than a styling opinion. Nothing new was
+invented for it — the plate, the blue, the pill and the ink ramp are all the
+Default state's.
+
+The path on every row is the load-bearing part. Read down that column after a
+search and the paths disagree with each other, which is a set the drill-down
+could not have produced — the evidence for the card's claim, legible without
+being told. Still yours to refine.
 3. Card expands and animates but returns a count only, no result rows.
 
 Option 1 is the honest answer for a *design* portfolio's most functional card — but option 2 unblocks me today. **Which?**

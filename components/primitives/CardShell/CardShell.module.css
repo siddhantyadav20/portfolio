@@ -1,3 +1,44 @@
+/* The proximity field's three channels, declared so they do NOT inherit.
+
+   This is the single most expensive thing on the homepage if it is left off,
+   and the reason is easy to miss: an unregistered custom property inherits, so
+   setting one on a card marks the whole subtree below it for style recalc —
+   the browser has to re-resolve every descendant to find out whether any of
+   them read it. None of them do. All four readers of these three
+   (`CardShell`, `Introduction`, `AboutMeCard`'s wrap, `TimelineExperience`)
+   read them in their own `transform`, on the very element the controller
+   writes to.
+
+   That cost scales with what a card contains, and the Design System card
+   contains 258 elements — two full 1440x1024 dashboards drawn into a 346x256
+   window. Since ProximityField writes these on every pointer move anywhere on
+   the page, moving the mouse over the footer was re-resolving that whole
+   dashboard. Measured on that card: 2.62ms per update unregistered, 0.11ms
+   registered — 23x, and the difference between a page that keeps its frame
+   budget and one that does not.
+
+   `syntax` also makes them typed, so the values arrive parsed rather than as
+   strings the transform has to re-tokenise each frame. The declarations in
+   `.card` below are now redundant with `initial-value`, and are kept because
+   they are where a reader looks to find out what a card's resting state is. */
+@property --prox-x {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --prox-y {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --prox-s {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
 .card {
   position: relative;
   overflow: hidden;

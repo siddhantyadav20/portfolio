@@ -42,125 +42,23 @@
   color: var(--ink);
 }
 
-/* --- The search surface (Figma "Search" component, Default state) --------- */
+/* --- The instrument ------------------------------------------------------
+   Anchored where the Figma "Search" plate was, and given the rest of the card
+   down to the outcome chip. That gap was always empty — the plate ended around
+   y=285 and the chip starts at 530 — because the results state it was waiting
+   for had not been designed. It is the results, the tap counter and the old
+   flow's panels now, and all three need the same box. */
 
-.search {
+.stage {
   position: absolute;
   top: 169px;
   left: 24px;
   right: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 16px;
-  border: 1px solid var(--ink-20);
-  border-radius: var(--r-md);
-  /* A raised plate on the card, not a white one. At 90% white this was the
-     brightest thing on the dark page — a lit search bar on an unlit card. */
-  background-color: var(--surface-raised);
-  backdrop-filter: blur(12px);
-  /* The blue bloom is the card's one piece of colour and it survives the theme;
-     it just needs to be readable against a dark ground rather than a white one. */
-  box-shadow: 0 0 24px rgba(31, 151, 221, 0.12);
-}
-
-:global(html[data-theme="dark"]) .search {
-  box-shadow: 0 0 28px rgba(31, 151, 221, 0.18);
-}
-
-.inputRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 32px;
-}
-
-.searchIcon {
-  display: flex;
-  flex: none;
-  width: 19px;
-  height: 20px;
-  opacity: 0.6;
-}
-
-.input {
-  flex: 1;
-  min-width: 0;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--ink-strong);
-}
-
-/* No ring while typing.
-
-   A text field always matches `:focus-visible` — the spec says so regardless of
-   how focus arrived — so the global orange outline drew a rounded rectangle
-   around the input the moment anyone clicked into it, inside a plate that is
-   already the boundary. The plate takes the indicator instead, in the card's
-   own blue rather than in the site accent: this is the only surface on the page
-   that is blue, and an orange ring on it belonged to no one. */
-.input:focus-visible {
-  outline: none;
-}
-
-.search:focus-within {
-  border-color: rgba(31, 151, 221, 0.5);
-  box-shadow: 0 0 24px rgba(31, 151, 221, 0.22);
-}
-
-.input::placeholder {
-  color: var(--ink-50);
-}
-
-.input::-webkit-search-cancel-button {
-  display: none;
-}
-
-.send {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--r-pill);
-  background-color: #1f97dd;
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.06);
-}
-
-/* Default state in Figma: nothing typed yet, so the action reads as inactive. */
-.send:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.category {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  align-self: flex-start;
-  height: 36px;
-  padding: 0 12px;
-  border-radius: var(--r-pill);
-  /* Ink at 5%, so the chip is a shade of whatever plate it is on. */
-  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-strong);
-}
-
-.category:disabled {
-  cursor: default;
-}
-
-/* Exported at its unrotated 4x8; Figma rotates it to point down. */
-.category :global(img) {
-  width: 4px;
-  height: 8px;
-  transform: rotate(-90deg);
+  height: 350px;
 }
 
 /* --- Outcome chip --------------------------------------------------------- */
+
 
 .chip {
   position: absolute;

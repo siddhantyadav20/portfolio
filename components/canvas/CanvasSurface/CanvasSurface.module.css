@@ -49,12 +49,23 @@
    to be white-on-dark in one theme and ink-on-light in the other. Masking a
    themed colour with a monochrome stencil gets both from one asset.
 
-   It lives on a pseudo-element on the fixed surface, so panning costs one
-   mask-position write per frame instead of repainting a 3000x3000 layer. The
-   camera writes --grid-pitch / --grid-x / --grid-y on `.surface`; custom
-   properties inherit into ::before, which is what makes that reachable at all. */
-.surface::before {
-  content: "";
+   It lives on a fixed element over the surface, so panning costs one
+   mask-position write per frame instead of repainting a 3000x3000 layer.
+
+   A real element and not `.surface::before`, which is what this was. A
+   pseudo-element cannot be written to, so the camera had to set
+   --grid-pitch / --grid-x / --grid-y on `.surface` and let them inherit in.
+   That inheritance is the problem: an unregistered custom property is
+   inherited by definition, so writing one on `.surface` marks its entire
+   subtree — the whole board, 609 elements — for style recalc, every frame of
+   every pan. Measured here: 8.14ms per frame for those three writes, against
+   0.01ms for the camera transform that actually moves the board. Registering
+   them `inherits: false` is not available, because then ::before would read
+   the initial value rather than the camera's.
+
+   Writing mask-size and mask-position straight onto an element with no
+   descendants costs 0.014ms — the same picture, 477x cheaper. */
+.grid {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -64,8 +75,9 @@
 
   mask-image: url("/media/workspace/grid.svg");
   mask-repeat: repeat;
-  mask-size: var(--grid-pitch, 80px) var(--grid-pitch, 80px);
-  mask-position: var(--grid-x, 0px) var(--grid-y, 0px);
+  /* Rest state only; the camera overwrites both inline from `render()`. */
+  mask-size: 80px 80px;
+  mask-position: 0 0;
 }
 
 /* --- Controls --------------------------------------------------------------

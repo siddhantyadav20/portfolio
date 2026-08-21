@@ -1,10 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image, { getImageProps } from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { photoCategories as cats } from "@/content/canvas";
 import { useMediaQuery } from "@/lib/clientValue";
 import styles from "./PhotoStack.module.css";
+
+/** One value, so the rendered photo and the neighbours warmed ahead of it
+ *  resolve to the same optimised URL — otherwise warming fetches a variant
+ *  nothing will ever display. */
+const PHOTO_SIZES = "768px";
 
 /* ===========================================================================
    The photo stack.
@@ -125,40 +131,49 @@ export default function PhotoStack() {
 
      The set is only added to after MIN_LOADER_MS, so a cached image cannot
      flash the loader on and straight back off. */
+  /* When the *displayed* image reports in.
+
+     This used to be a detached probe <img> pointed at the raw file. Now that
+     the photo itself goes through the optimiser those are two different URLs,
+     so the probe downloaded a second, larger copy of every photograph that was
+     never painted — 527KB of `me-garden.jpg` alongside the 122KB actually
+     shown. Reading the real element's load event costs nothing and cannot
+     drift from what the viewer is waiting for. */
+  // Stamped in an effect rather than at `useRef(Date.now())`, which is a call
+  // to an impure function during render.
+  const started = useRef(0);
   useEffect(() => {
-    if (!currentSrc || loaded.has(currentSrc)) return;
-    const started = Date.now();
-    let cancelled = false;
-    let timer = 0;
+    started.current = Date.now();
+  }, [currentSrc]);
 
-    const img = new Image();
-    const done = () => {
-      if (cancelled) return;
-      timer = window.setTimeout(
-        () => {
-          if (cancelled) return;
-          setLoaded((s) => new Set(s).add(currentSrc));
-        },
-        Math.max(0, MIN_LOADER_MS - (Date.now() - started)),
-      );
-    };
-    img.onload = done;
-    img.onerror = done;
-    img.src = currentSrc;
-    if (img.complete) done();
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [currentSrc, loaded]);
+  const onPhotoLoad = useCallback(() => {
+    const src = currentSrc;
+    if (!src) return;
+    // Held off until MIN_LOADER_MS so a cached image cannot flash the loader
+    // on and straight back off.
+    window.setTimeout(
+      () => setLoaded((s) => (s.has(src) ? s : new Set(s).add(src))),
+      Math.max(0, MIN_LOADER_MS - (Date.now() - started.current)),
+    );
+  }, [currentSrc]);
 
   /* Warm the neighbours in both directions, plus the next category's first —
      swiping goes both ways, so preloading only forward halves its use. */
   useEffect(() => {
     if (!cats.length) return;
+    /* Through the optimiser too, or this warms a URL the widget will never
+       ask for and pays twice for the privilege. `getImageProps` resolves the
+       exact `src` the <Image> below would request for these dimensions. */
     const warm = (src?: string) => {
-      if (src && !loaded.has(src)) new Image().src = src;
+      if (!src || loaded.has(src)) return;
+      const { props } = getImageProps({
+        src,
+        alt: "",
+        width: 768,
+        height: 768,
+        sizes: PHOTO_SIZES,
+      });
+      document.createElement("img").src = props.src;
     };
     if (photoIndex < photoCount - 1) warm(category?.photos[photoIndex + 1]?.src);
     else warm(cats[(safeCat + 1) % cats.length]?.photos[0]?.src);
@@ -313,13 +328,17 @@ export default function PhotoStack() {
             transition={{ duration: reduced ? 0.001 : 0.46, ease: [0.22, 1, 0.36, 1] }}
           >
             {currentSrc && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              /* Through the optimiser. These are 500-580KB camera JPEGs shown
+                 in a 320px box; `.layer` is `position: absolute; inset: 0`, so
+                 `fill` is a drop-in for the 100%/100% the CSS already set. */
+              <Image
                 src={currentSrc}
                 alt={current?.alt ?? ""}
                 draggable={false}
-                decoding="async"
+                fill
+                sizes={PHOTO_SIZES}
                 className={styles.photo}
+                onLoad={onPhotoLoad}
               />
             )}
           </motion.div>

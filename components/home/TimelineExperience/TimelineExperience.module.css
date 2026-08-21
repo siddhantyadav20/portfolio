@@ -493,4 +493,28 @@
     left: 0;
     width: calc(100% - 118px);
   }
+
+  /* Pull the drag strip back inside the card.
+
+     The *scale* is meant to overhang — it runs off the top of the card on
+     purpose, and clipping it would flatten the one gesture this component is
+     built around. The strip that listens for the drag is a different thing,
+     and it was overhanging too: 460px tall on a 360px card, reaching 72px
+     above and 28px below, every pixel of it carrying `touch-action: none`.
+
+     On a desktop that costs nothing — the cards sit side by side and there is
+     nothing above or below to collide with. Stacked on a phone it means the
+     bottom of the card above and the top of the card below are covered by an
+     invisible strip that swallows vertical swipes and scrubs the timeline
+     instead of scrolling the page. The comment at `.grip` claims the strip is
+     "scoped to this strip alone"; that stopped being true at this breakpoint.
+
+     The top is written against `--ruler-top` so it stays correct if the
+     instrument moves again. The bottom is what is left when the ruler's 436px
+     starts 60px above a 360px card: 436 - 60 - 360 = 16. */
+  .grip {
+    top: calc(-1 * var(--ruler-top));
+    bottom: 16px;
+    right: 0;
+  }
 }

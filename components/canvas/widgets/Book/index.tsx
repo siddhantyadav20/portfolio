@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useMediaQuery, useMounted } from "@/lib/clientValue";
 import type { Widget } from "@/content/canvas";
@@ -152,8 +153,16 @@ export default function Book({ book }: { book: BookWidget }) {
           className={`${styles.front} squircle`}
           style={{ transform: `translateZ(${D}px) rotateY(${coverAngle}deg)` }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={book.cover} alt={book.title} className={styles.coverArt} />
+          {/* Through the optimiser. `book-japanese-design.png` is 611KB for a
+              board this size — `.front` is already `position: absolute; inset:
+              0`, so `fill` changes nothing about the layout or the hinge. */}
+          <Image
+            src={book.cover}
+            alt={book.title}
+            fill
+            sizes="480px"
+            className={styles.coverArt}
+          />
           <span className={styles.sheen} aria-hidden="true" />
           {/* The inside of the board, seen once it swings past 90deg. */}
           <span className={styles.boardBack} aria-hidden="true" />

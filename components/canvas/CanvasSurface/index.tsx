@@ -10,6 +10,8 @@ import Dock from "@/components/canvas/chrome/Dock";
 import Minimap from "@/components/canvas/chrome/Minimap";
 import Oneko from "@/components/canvas/chrome/Oneko";
 import Shortcuts from "@/components/canvas/chrome/Shortcuts";
+import { useModalShell } from "@/lib/modalShell";
+import { newsreader } from "@/app/fonts-serif";
 import ThemeToggle from "@/components/home/ThemeToggle";
 import { createCamera } from "@/lib/camera";
 import { frameDelta } from "@/lib/spring";
@@ -71,6 +73,13 @@ type Props = {
 export default function CanvasSurface({ onClose }: Props) {
   const mounted = useMounted();
   const surfaceRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  /* An overlay over the homepage, or the standalone `/canvas` route? `onClose`
+     is the tell — overlays have one, the route does not. Read here as well as
+     at the render below, because the keyboard shell is a hook and hooks cannot
+     wait for a value computed after the early return. */
+  const overlayShell = onClose !== undefined && mounted;
 
   /* Chrome state. The camera itself stays outside React — these are only what
      the chrome needs to draw, published once a frame by the loop below. */
@@ -89,6 +98,10 @@ export default function CanvasSurface({ onClose }: Props) {
   const flyToCluster = useRef<(c: Cluster) => void>(() => {});
   const flyToPoint = useRef<(x: number, y: number) => void>(() => {});
   const worldRef = useRef<HTMLDivElement>(null);
+  /** The drafting grid. A real element rather than `.surface::before`, so the
+   *  camera can write its mask straight onto a node with no descendants — see
+   *  `render()`. */
+  const gridRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   /**
@@ -113,33 +126,67 @@ export default function CanvasSurface({ onClose }: Props) {
    * the camera mid-gesture. Two listeners is the cheap, correct answer; the
    * alternative (a ref written during render) is what React 19 now flags.
    */
+  /**
+   * Who gets Escape, in order, before the canvas does.
+   *
+   * 1. The shortcuts sheet. It is drawn over the canvas and opened with `/`,
+   *    and until this existed Escape went straight past it and closed the
+   *    whole canvas underneath — dismissing a help sheet by demolishing the
+   *    thing it was explaining.
+   * 2. A widget with a text field. The terminal is a real prompt, and closing
+   *    the canvas because someone abandoned a half-typed command would be its
+   *    own small betrayal. Blur instead; a second Escape closes as usual.
+   */
+  const onEscape = useCallback(() => {
+    if (shortcuts) {
+      setShortcuts(false);
+      return true;
+    }
+    const active = document.activeElement;
+    if (
+      active instanceof HTMLElement &&
+      (active.tagName === "INPUT" ||
+        active.tagName === "TEXTAREA" ||
+        active.isContentEditable)
+    ) {
+      active.blur();
+      return true;
+    }
+    return false;
+  }, [shortcuts]);
+
+  /**
+   * Escape, the Tab trap, initial focus, the scroll lock and handing focus
+   * back to the Canvas card — the same shell the case-study modals wear.
+   *
+   * Only as an overlay. On `/canvas` the board *is* the page: there is nothing
+   * behind it to trap focus away from, nothing to scroll, and nothing to hand
+   * focus back to.
+   */
+  useModalShell({
+    active: overlayShell,
+    rootRef: surfaceRef,
+    onClose: close,
+    initialFocusRef: closeRef,
+    onEscape,
+  });
+
+  // On the standalone route the shell is inert, so Escape needs its own path
+  // to the same two guards — there is no canvas to close, only a sheet to
+  // dismiss and a prompt to leave.
   useEffect(() => {
+    if (overlayShell) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key !== "Escape") return;
-      // Widgets with a text field of their own get Escape first — the terminal
-      // is a real prompt, and closing the whole canvas because someone
-      // abandoned a half-typed command would be its own small betrayal. Blur
-      // instead, and a second Escape closes as usual.
-      const active = document.activeElement;
-      if (
-        active instanceof HTMLElement &&
-        (active.tagName === "INPUT" ||
-          active.tagName === "TEXTAREA" ||
-          active.isContentEditable)
-      ) {
-        active.blur();
-        return;
-      }
-      e.preventDefault();
-      close();
+      if (e.key === "Escape") onEscape();
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [close]);
+  }, [overlayShell, onEscape]);
 
   useEffect(() => {
     const surface = surfaceRef.current;
     const world = worldRef.current;
+    const grid = gridRef.current;
     if (!surface || !world) return;
 
     const camera = createCamera(WORLD_W, WORLD_H);
@@ -175,12 +222,19 @@ export default function CanvasSurface({ onClose }: Props) {
     function render() {
       const { x, y, scale } = camera.state;
       world!.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`;
-      // The grid lives on `.surface::before` and is a mask, not a background —
-      // see the module. A pseudo-element can't be written to directly, so the
-      // camera sets custom properties on the host and the mask reads them.
-      surface!.style.setProperty("--grid-pitch", `${GRID * scale}px`);
-      surface!.style.setProperty("--grid-x", `${x}px`);
-      surface!.style.setProperty("--grid-y", `${y}px`);
+      // Written straight onto the grid element, which has no descendants.
+      //
+      // This used to set --grid-pitch / --grid-x / --grid-y on `.surface` and
+      // let them inherit into a `::before`. Custom properties inherit, so each
+      // of those three writes marked the whole board — 609 elements — for
+      // style recalc, once per frame for the length of every pan: 8.14ms a
+      // frame, against 0.01ms for the transform on the line above that does
+      // the actual moving. See the note in the stylesheet.
+      if (grid) {
+        const pitch = `${GRID * scale}px`;
+        grid.style.maskSize = `${pitch} ${pitch}`;
+        grid.style.maskPosition = `${x}px ${y}px`;
+      }
     }
 
     /* The chrome needs the camera's state to draw the minimap, but the camera
@@ -517,13 +571,28 @@ export default function CanvasSurface({ onClose }: Props) {
   const overlay = onClose !== undefined;
   if (overlay && !mounted) return null;
 
+
   const tree = (
     <div
       ref={surfaceRef}
-      className={styles.surface}
+      /* The reading serif comes in here rather than from the root layout, so
+         the routes with no books on them do not pay to preload it. This one
+         element covers both surfaces: the `/canvas` route and the overlay the
+         homepage card morphs into are the same component. */
+      className={`${styles.surface} ${newsreader.variable}`}
+      /* As an overlay this covers the homepage completely, so it owes a screen
+         reader the same announcement a modal does — without these it was an
+         anonymous <div> that focus could be inside of with nothing to say why.
+         On the route it is the page itself and needs neither. */
+      role={overlay ? "dialog" : undefined}
+      aria-modal={overlay ? true : undefined}
+      aria-label={overlay ? "Canvas" : undefined}
       // Handed over from the card, which released it as this mounted.
       style={{ viewTransitionName: CANVAS_MORPH }}
     >
+      {/* Above the surface's ground, below everything else. */}
+      <div ref={gridRef} className={styles.grid} aria-hidden="true" />
+
       <CanvasWorldLive ref={worldRef} />
 
       {/* Fixed to the viewport, deliberately outside the transformed world:
@@ -536,6 +605,7 @@ export default function CanvasSurface({ onClose }: Props) {
         <ThemeToggle />
 
         <button
+          ref={closeRef}
           type="button"
           className={`${styles.action} liquid`}
           onClick={close}

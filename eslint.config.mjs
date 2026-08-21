@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The Framer originals the canvas widgets were ported from. Kept for
+    // reference, never built, and linting them only buries real findings.
+    "references/**",
   ]),
 ]);
 

@@ -14,6 +14,34 @@
   /* Shares the middle column's flexibility with LinkedIn. */
   flex: 0 1 auto;
   min-width: 0;
+
+  /* --- Transport ink ------------------------------------------------------
+     Every glyph in the card is drawn the way the rest of the site draws its
+     icons — `.inkIcon`, the SVG as a stencil over `currentColor` — instead of
+     as an <img> carrying the fill Figma baked in (white, #D9D9D9, white @0.8).
+     Nothing about the geometry moves: the spans keep the exported 88 and 112
+     canvases and the same offsets, so each glyph lands on the pixels it did
+     before. Only where its colour comes from changed, and now one pair of
+     tokens themes all four.
+
+     The light values below are Figma's, unchanged. */
+  --player-glyph: #ffffff;
+  --player-disc: rgba(255, 255, 255, 0.15); /* paused: a white film */
+  --player-disc-on: rgba(34, 34, 34, 0.6); /* playing, and the skip buttons */
+}
+
+/* This card is a photograph in both themes, so dark is not the usual invert:
+   white is still the only ink that reads on artwork. What changes is how far
+   it is pushed — #ededed rather than pure white, the same step back from
+   white the dark theme takes with `--ink`, because a 112px glyph at #fff over
+   a dark cover halates — and what it sits on. The paused disc stops being a
+   white film and becomes the dark glass every other control wears in this
+   theme (#1c1c1e, `--liquid-fill`), and the discs that were already dark go
+   deeper still, toward the #111 page. */
+:global(html[data-theme="dark"]) .card {
+  --player-glyph: #ededed;
+  --player-disc: rgba(28, 28, 30, 0.5);
+  --player-disc-on: rgba(17, 17, 17, 0.65);
 }
 
 /* --- Cover ---------------------------------------------------------------- */
@@ -114,7 +142,7 @@
   width: 64px;
   height: 64px;
   border-radius: 60px;
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--player-disc);
   backdrop-filter: blur(12px);
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
   transition: background-color 300ms ease,
@@ -122,7 +150,7 @@
 }
 
 .playing .play {
-  background-color: rgba(34, 34, 34, 0.6);
+  background-color: var(--player-disc-on);
 }
 
 .play:hover {
@@ -136,7 +164,7 @@
   inset: -24px;
   width: 112px;
   height: 112px;
-  max-width: none;
+  color: var(--player-glyph);
   transition: opacity 220ms ease;
 }
 
@@ -161,7 +189,7 @@
   width: 4px;
   height: 20px;
   border-radius: 12px;
-  background-color: #ffffff;
+  background-color: var(--player-glyph);
 }
 
 .step {
@@ -169,7 +197,7 @@
   width: 40px;
   height: 40px;
   border-radius: 20px;
-  background-color: rgba(34, 34, 34, 0.6);
+  background-color: var(--player-disc-on);
   backdrop-filter: blur(12px);
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
   opacity: 0;
@@ -185,12 +213,14 @@
   pointer-events: auto;
 }
 
-.step img {
+/* Left on Figma's 88 canvas for the same reason as the play glyph: the
+   offsets are the export's, not a second set of coordinates. */
+.stepGlyph {
   position: absolute;
   inset: -24px;
   width: 88px;
   height: 88px;
-  max-width: none;
+  color: var(--player-glyph);
 }
 
 /* --- Listening To --------------------------------------------------------- */
@@ -229,6 +259,15 @@
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+/* music.svg was exported at fill-opacity 0.8, and as a stencil that opacity
+   survives in the mask — so the glyph paints `--player-glyph` at 80%, which is
+   exactly the alpha the label text beside it carries. Its colour is set here
+   rather than inherited for that reason: inheriting `.label`'s own 0.8 would
+   multiply the two and leave the note dimmer than the words. */
+.labelIcon {
+  color: var(--player-glyph);
 }
 
 .label {

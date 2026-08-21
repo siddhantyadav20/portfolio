@@ -29,19 +29,18 @@ export function useVisible(
   ref: RefObject<Element | null>,
   rootMargin = "200px",
 ): boolean {
-  const [onScreen, setOnScreen] = useState(false);
+  // No observer (very old browsers, some test environments) — assume visible
+  // rather than silently freezing the widget. Decided at init rather than in
+  // the effect below so the fallback costs no extra render.
+  const [onScreen, setOnScreen] = useState(
+    () => typeof IntersectionObserver === "undefined",
+  );
   const [foreground, setForeground] = useState(true);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
-    // No observer (very old browsers, some test environments) — assume visible
-    // rather than silently freezing the widget.
-    if (typeof IntersectionObserver === "undefined") {
-      setOnScreen(true);
-      return;
-    }
+    if (typeof IntersectionObserver === "undefined") return;
 
     const io = new IntersectionObserver(
       ([entry]) => setOnScreen(entry.isIntersecting),

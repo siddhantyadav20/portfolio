@@ -51,7 +51,10 @@ export type StudyMedia = {
  * `content/work` is imported by a server route and must stay data — the
  * renderer maps the name to a client island. See `StudyLiveBlock`.
  */
-export type StudyLive = "theming-instrument" | "token-anatomy";
+export type StudyLive =
+  | "theming-instrument"
+  | "token-anatomy"
+  | "remark-finder";
 
 /** A titled run of paragraphs in the long-form body. */
 export type StudySection = {
@@ -89,7 +92,10 @@ export type StudySection = {
  * pair of rules in `globals.css` (the `::view-transition-group` z-index and
  * the `object-fit: cover` on old/new) or the snapshot stretches in flight.
  */
-export type StudyMorphName = "inspection-frame" | "design-system-frame";
+export type StudyMorphName =
+  | "inspection-frame"
+  | "design-system-frame"
+  | "search-frame";
 
 type HeroBox = {
   /** Intrinsic size. The `/work` route renders the hero through `next/image`,

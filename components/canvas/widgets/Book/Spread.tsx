@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "motion/react";
 import type { Widget } from "@/content/canvas";
 import styles from "./Spread.module.css";
@@ -57,8 +58,14 @@ export default function Spread({
           delay: reduced ? 0 : 0.05,
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={book.cover} alt={book.title} className={styles.coverArt} />
+        {/* Through the optimiser, same as the closed board's. */}
+        <Image
+          src={book.cover}
+          alt={book.title}
+          fill
+          sizes="600px"
+          className={styles.coverArt}
+        />
         {/* The fold. Without it the cover reads as a floating card. */}
         <span className={styles.gutter} aria-hidden="true" />
       </motion.div>

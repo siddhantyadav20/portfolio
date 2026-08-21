@@ -22,10 +22,25 @@
 
   display: block;
   width: 420px;
-  height: 640px;
+  /* Height follows width instead of being pinned, so the box keeps the
+     proportion the composition was drawn against no matter how narrow it
+     gets. Pinned at 640 it did not: the card squeezed to a phone's width
+     while staying 640 tall, and every layer inside — which is placed in
+     absolute pixels against a 420-wide box — stayed where it was. The device
+     ran off the right edge and `overflow: hidden` took 59% of it. */
+  aspect-ratio: 420 / 640;
   flex: none;
 
-  /* It is a <button>: strip the UA chrome without disturbing CardShell. */
+  /* Everything inside is sized in `cqw` — hundredths of *this* box's width —
+     so the whole composite scales as one object. 100cqw is the 420px the
+     design was drawn at, which is why the desktop rendering is unchanged to
+     the pixel; below that the photograph, the device, the title and the chip
+     all shrink together instead of drifting apart. */
+  container-type: inline-size;
+
+  /* Left over from when this was a <button>, and kept: it is an <a> now — so
+     the study is cmd-clickable and crawlable — and every one of these is inert
+     on an anchor. Cheaper than proving the negative if it ever changes back. */
   padding: 0;
   border: 0;
   text-align: left;
@@ -56,12 +71,12 @@
 
 .title {
   position: absolute;
-  top: 24px;
-  left: 24px;
-  width: 223px;
+  top: 5.7143cqw;
+  left: 5.7143cqw;
+  width: 53.0952cqw;
   font-family: var(--font-display), Georgia, serif;
   font-weight: 700;
-  font-size: 28px;
+  font-size: 6.6667cqw;
   line-height: var(--lh);
   color: #ebebeb;
 }
@@ -72,25 +87,25 @@
    its own width plus the 24px inset, so nothing is left peeking. */
 .chip {
   position: absolute;
-  bottom: 24px;
-  left: 24px;
+  bottom: 5.7143cqw;
+  left: 5.7143cqw;
   /* Figma is 10/12 inside a 1px green stroke, for a 149px-wide chip. The
      stroke went when the glass went neutral, so the padding absorbs its
      width and the box stays the size the design gives it. */
-  padding: 11px 13px;
+  padding: 2.619cqw 3.0952cqw;
   transition: transform var(--shift), opacity 420ms ease 120ms;
 }
 
 .stat {
-  width: 123px;
-  font-size: 14px;
+  width: 29.2857cqw;
+  font-size: 3.3333cqw;
   font-weight: 500;
   line-height: var(--lh);
   color: #ffffff;
 }
 
 .card:hover .chip {
-  transform: translateX(calc(-100% - 24px));
+  transform: translateX(calc(-100% - 5.7143cqw));
   opacity: 0;
   transition: transform var(--shift), opacity 300ms ease;
 }
@@ -115,10 +130,10 @@
 .device {
   top: 0;
   left: 0;
-  width: 456.915px;
-  height: 659.684px;
+  width: 108.7893cqw;
+  height: 157.0676cqw;
   transform-origin: 0 0;
-  transform: translate(179.428px, 156.265px) rotate(-12.29deg);
+  transform: translate(42.721cqw, 37.206cqw) rotate(-12.29deg);
   transition: transform var(--shift);
   will-change: transform;
 }
@@ -127,12 +142,12 @@
    gesture it already had: the same straightening to -0.65deg, and the same
    travel, scaled by the 1.1003 the device itself grew by. */
 .card:hover .device {
-  transform: translate(69.53px, 164.73px) rotate(-0.65deg);
+  transform: translate(16.5548cqw, 39.2214cqw) rotate(-0.65deg);
 }
 
-/* This card is a fixed photographic composite — its layers are placed against
-   a 420x640 box. Stretching it would strand the artwork, so it keeps its
-   design width and only ever shrinks to avoid overflow. */
+/* The card never grows past its design width — the composite is a photograph
+   and upscaling it would only soften it — but it is free to shrink, and now
+   the contents shrink with it rather than being cropped away. */
 @media (max-width: 1000px) {
   .card {
     max-width: 100%;

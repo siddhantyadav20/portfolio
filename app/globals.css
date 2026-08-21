@@ -113,8 +113,12 @@
   --col-3-offset: 28px; /* col 3 starts 28px below col 2 */
 
   /* The theme toggle is pinned to the page's top-right corner rather than
-     flowed, so the top row has to reserve its width. */
+     flowed, so the top row has to reserve its width — and, once the columns
+     stack, whatever ends up under it has to reserve its height. Both are
+     declared because both are needed; the height used to be approximated
+     from the width, which is how the mobile clearance ended up 17px short. */
   --toggle-w: 112px;
+  --toggle-h: 64px;
 
   /* How far up from the bottom edge the blur ramp reaches. Figma draws it as a
      44px bar; it is built here as a gradient with no edge of its own, so it
@@ -248,6 +252,43 @@ html[data-canvas-cursor] [data-cursor="native"] * {
 }
 
 /* ==========================================================================
+   Skip link
+
+   Parked off-screen rather than hidden: `display: none` and `visibility:
+   hidden` both take an element out of the tab order, which is the one thing
+   this must never leave. It travels back into view on focus only, so it costs
+   a mouse user nothing and is the first thing a keyboard user meets.
+   ========================================================================== */
+
+.skipLink {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
+  background-color: var(--surface-raised);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: var(--glass-shadow);
+
+  /* Clear of the viewport, and clear of any scrollbar it might otherwise
+     lengthen — `transform` moves the paint without moving the layout box. */
+  transform: translateY(calc(-100% - 16px));
+  transition: transform 160ms ease;
+}
+
+/* `:focus`, not `:focus-visible`. There is no way to reach this with a mouse —
+   it is the first thing in the document and invisible until focused — so the
+   keyboard-only heuristic buys nothing here, and it costs: a link focused
+   programmatically (a hash landing, a focus restore) fails `:focus-visible`
+   and would stay parked off-screen while holding focus. */
+.skipLink:focus {
+  transform: none;
+}
+
+/* ==========================================================================
    Focus
    Visible for keyboard users, absent for mouse users.
    ========================================================================== */
@@ -258,20 +299,57 @@ html[data-canvas-cursor] [data-cursor="native"] * {
   border-radius: 4px;
 }
 
-/* Suppressed on the glass controls and the case-study card by request. Worth
-   knowing rather than rediscovering: these are the site's interactive controls,
-   and with no outline and no substitute they no longer satisfy WCAG 2.4.7 for
-   anyone navigating by keyboard. Deleting this block puts it back. */
+/* The outer ring is suppressed on the glass controls and the case-study cards
+   by request — an orange rectangle floating off the edge of a liquid pill was
+   the objection, and it is a fair one. What replaced it for a long time was
+   nothing, which left the site's *entire* control set with no keyboard focus
+   state at all: both CTAs, the theme toggle, the modal's close and share
+   buttons, the About pills, the canvas dock, and two of the three case-study
+   cards. That is WCAG 2.4.7, and it is also just hard to use.
+
+   So the ring moves inside instead of going away. `outline-offset` takes a
+   negative value, which draws the outline *within* the element's own border
+   box and follows its radius — no extra element, no box-shadow to coordinate
+   with `--liquid-cast`, and nothing added outside the control's footprint, so
+   no layout or spacing changes anywhere.
+
+   Two treatments, because these are two materials:
+
+     glass    A hairline in `--ink` plus the lift the same plate already wears
+              on hover. Both halves are the control's own vocabulary, and
+              `--ink` inverts with the theme, so it is dark on the white plate
+              and light on the dark one without a second rule.
+
+     cards    `--accent`, because a case-study card is a photograph and ink
+              has nothing to guarantee contrast against. Set further in, where
+              the artwork is already dimmed by the card's own scrim. */
 .liquid:focus-visible,
-[data-cursor="view-project"]:focus-visible,
 /* The theme toggle wears `.liquid` on its wrapper, but focus lands on the two
-   buttons inside it — so descendants have to be covered too. */
-.liquid :focus-visible,
+   buttons inside it — so descendants have to be covered too, and the ring
+   belongs on the button that actually has focus rather than on the pair. */
+.liquid :focus-visible {
+  outline: 2px solid var(--ink-70);
+  outline-offset: -4px;
+
+  --liquid-body: var(--liquid-body-hi);
+  --liquid-shade: var(--liquid-shade-hi);
+  --liquid-gloss: var(--liquid-gloss-hi);
+  --liquid-spec: var(--liquid-spec-hi);
+}
+
+[data-cursor="view-project"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -8px;
+}
+
 /* A closing modal handing focus back to the card that opened it. Escape counts
    as keyboard input, so without this the card is ringed the moment the modal
    goes — see `restoreFocus` in ModalSurface, which sets this only for as long
-   as focus stays where it was put. Tabbing to the card still rings it. */
-[data-focus-restore]:focus-visible {
+   as focus stays where it was put. Tabbing to the card still rings it.
+
+   Last, so it wins over both blocks above at equal specificity. */
+[data-focus-restore]:focus-visible,
+.liquid[data-focus-restore]:focus-visible {
   outline: none;
 }
 
@@ -308,11 +386,28 @@ html[data-canvas-cursor] [data-cursor="native"] * {
   background-color: var(--select-green);
 }
 
-/* Content whose destination or data source isn't decided yet. Visually
-   identical to the finished thing (fidelity is the point of this phase) but
-   inert, and greppable in the DOM via [data-placeholder]. */
+/* Content whose destination or data source isn't decided yet: inert, and
+   greppable in the DOM via [data-placeholder].
+
+   These used to be visually identical to the finished thing, on the argument
+   that fidelity was the point of the phase. That argument does not survive
+   contact with a visitor. A control that looks exactly like the working
+   control beside it, and does nothing when pressed, does not read as
+   unfinished — it reads as broken, and the site gets blamed for a bug rather
+   than credited with a roadmap. "Go to Store" sat next to a working "Copy
+   Email" and was indistinguishable from it.
+
+   So they now say what they are. The canvas scratch card had worked this out
+   already (`.cta[data-placeholder]`, a dashed outline); this is the same idea
+   at site scale and deliberately quiet — a step back in weight, not a
+   disabled-grey. Anything that wants a stronger treatment can still override
+   it locally. */
 [data-placeholder] {
   cursor: default;
+  opacity: 0.45;
+  /* Reads as "not yet" rather than "switched off": the element keeps its own
+     colour and shape and simply sits back. */
+  filter: saturate(0.7);
 }
 
 .srOnly {
@@ -345,9 +440,8 @@ html[data-canvas-cursor] [data-cursor="native"] * {
    fixed size so the same class serves 8px chevrons and 24px suns.
 
    NOT for the brand and accent glyphs — tool-figma, tool-claude,
-   tool-after-effects, linkedin, dragger. Those are coloured on purpose, and
-   recolouring a logo to match the theme would be wrong even where it looked
-   better.
+   tool-after-effects, linkedin. Those are coloured on purpose, and recolouring
+   a logo to match the theme would be wrong even where it looked better.
    ========================================================================== */
 
 .inkIcon {
@@ -654,6 +748,7 @@ html[data-canvas-cursor] [data-cursor="native"] * {
    which is what keeps the group animation a pure scale and translate. */
 ::view-transition-group(inspection-frame),
 ::view-transition-group(design-system-frame),
+::view-transition-group(search-frame),
 ::view-transition-group(about-portrait) {
   z-index: 1;
   animation-duration: 560ms;
@@ -675,6 +770,8 @@ html[data-canvas-cursor] [data-cursor="native"] * {
 ::view-transition-new(inspection-frame),
 ::view-transition-old(design-system-frame),
 ::view-transition-new(design-system-frame),
+::view-transition-old(search-frame),
+::view-transition-new(search-frame),
 ::view-transition-old(about-portrait),
 ::view-transition-new(about-portrait) {
   width: 100%;

@@ -13,7 +13,7 @@ export type MaybeHref = string | null;
 export const intro = {
   title: "Hi, I’m Siddhant",
   tagline: "I design tools for people who work with their hands, not a mouse.",
-  note: "- Less, but better",
+  note: "— Less, but better",
   /** Used by the Copy Email button. */
   email: "siddhantyadav20@gmail.com",
   storeHref: null as MaybeHref,
@@ -49,10 +49,14 @@ export const search = {
   title: "Searching amidst a chaos",
   subtitle: "of 104,122 remarks",
   placeholder: "What did you observe?",
-  category: "Select category",
+
+  /* `category: "Select category"` used to live here, naming a disabled button
+     on the card. The control it named is gone — the old flow's category step is
+     played out by the instrument now and then replaced by a live count of how
+     many categories the answer spanned, so there is no copy left to hold. */
   before: "Navigation first",
   after: "Search first",
-  delta: "~ 51m saved",
+  delta: "~51m saved",
   href: "/work/search",
   studySlug: "search",
 } as const;
@@ -265,7 +269,7 @@ export const music = {
   tracks: [
     {
       title: "Ode to the Mets",
-      cover: "/media/track-ode-to-the-mets.png",
+      cover: "/media/track-ode-to-the-mets.jpg",
       src: "/audio/ode-to-the-mets.mp3" as MaybeHref,
       duration: 409,
     },
@@ -277,13 +281,13 @@ export const music = {
     },
     {
       title: "Read my Mind",
-      cover: "/media/track-read-my-mind.png",
+      cover: "/media/track-read-my-mind.jpg",
       src: "/audio/read-my-mind.mp3" as MaybeHref,
       duration: 244,
     },
     {
       title: "Wavin’ Flag",
-      cover: "/media/track-wavin-flag.png",
+      cover: "/media/track-wavin-flag.jpg",
       src: "/audio/wavin-flag.mp3" as MaybeHref,
       duration: 221,
     },
@@ -308,7 +312,10 @@ export const linkedin = {
 } as const;
 
 export const footer = {
-  copyright: "© 2026 Siddhant Yadav",
+  /** The name only. `SiteFooter` prefixes the year, which it reads from the
+   *  clock at build time rather than from a literal that quietly goes stale
+   *  the first January after it was written. */
+  copyrightName: "Siddhant Yadav",
   credit: "Designed on Figma. Built using Claude + Qwen.",
   /**
    * No presence service is connected yet, so the count is an em dash rather
@@ -318,5 +325,8 @@ export const footer = {
   visitors: null as number | null,
   visitorsLabel: "Live Visitors",
   makingOf: null as MaybeHref,
-  linkedinHref: null as MaybeHref,
+  /** The same profile the LinkedIn card links to — there is only one, and the
+   *  footer icon sat inert next to a working card link because this was null
+   *  rather than because the destination was unknown. */
+  linkedinHref: linkedin.href as MaybeHref,
 } as const;

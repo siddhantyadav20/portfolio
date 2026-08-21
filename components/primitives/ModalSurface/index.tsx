@@ -2,10 +2,8 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useModalShell } from "@/lib/modalShell";
 import styles from "./ModalSurface.module.css";
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /** Must match the exit transition in ModalSurface.module.css. */
 export const EXIT_MS = 240;
@@ -33,32 +31,6 @@ export const MODAL_VT = {
 /** The glass disc the close button wears. Exported so a modal's own actions —
  *  Share, and whatever comes after it — can match it without redeclaring it. */
 export const modalAction = styles.action;
-
-/**
- * Hand focus back to whatever opened the modal, without drawing a focus ring
- * around it.
- *
- * The ring is the bug: close with Escape and the browser's `:focus-visible`
- * heuristic sees a keypress as the last input, so restoring focus to the card
- * paints an orange outline around a card nobody is navigating to. Blanket-
- * suppressing the outline on the card would fix it by removing the indicator
- * for keyboard users too, which is the wrong trade.
- *
- * So the suppression is scoped to this one restore: `data-focus-restore` is set
- * for exactly as long as focus sits where we put it, and is dropped the moment
- * focus moves on. Tab back to the card afterwards and the ring is there.
- */
-function restoreFocus(opener: HTMLElement | null) {
-  if (!opener?.focus) return;
-
-  opener.setAttribute("data-focus-restore", "");
-  opener.addEventListener(
-    "blur",
-    () => opener.removeAttribute("data-focus-restore"),
-    { once: true },
-  );
-  opener.focus();
-}
 
 type Props = {
   open: boolean;
@@ -101,21 +73,32 @@ export default function ModalSurface({
   const overlayRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
+  // Escape, the Tab trap, initial focus, the scroll lock and the restore —
+  // all of it shared with the canvas overlay now. See `lib/modalShell`.
+  useModalShell({
+    active: open,
+    rootRef: overlayRef,
+    onClose,
+    initialFocusRef: closeRef,
+  });
+
   useEffect(() => {
     if (!open) return;
-
-    // Whatever launched the modal gets focus back when it closes.
-    const opener = document.activeElement as HTMLElement | null;
-    const body = document.body;
-    const scrollLock = body.style.overflow;
-    body.style.overflow = "hidden";
 
     // ProximityField watches for this and stops writing transforms to the cards
     // behind us — they're invisible under an opaque overlay, and a card still
     // easing when the closing snapshot is taken drags on the morph back.
     document.documentElement.setAttribute("data-modal-open", "");
 
-    closeRef.current?.focus();
+    /* And the page behind goes `inert`.
+       The modal renders its own <h1> and portals it to <body>, alongside the
+       homepage's — so with a case study open a screen reader could reach two
+       first-level headings and the whole page under the overlay. `inert` takes
+       the lot out of the accessibility tree and the tab order in one attribute,
+       which is also a second belt on the focus trap. Not on <body>, which
+       would include the modal: on the page's own root, which is its sibling. */
+    const page = document.getElementById("main");
+    page?.setAttribute("inert", "");
 
     // One frame late, so the browser has a painted "before" to transition from.
     // Written to the DOM rather than to state: it is a purely visual flag, and
@@ -125,44 +108,12 @@ export default function ModalSurface({
       overlayRef.current?.setAttribute("data-enter", ""),
     );
 
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-
-      if (e.key !== "Tab") return;
-
-      // Focus containment: Tab off either end wraps to the other.
-      const root = overlayRef.current;
-      if (!root) return;
-      const items = Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE));
-      if (items.length === 0) return;
-
-      const first = items[0];
-      const last = items[items.length - 1];
-      const active = document.activeElement;
-
-      if (e.shiftKey && (active === first || !root.contains(active))) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    }
-
-    document.addEventListener("keydown", onKeyDown);
-
     return () => {
       cancelAnimationFrame(raf);
-      document.removeEventListener("keydown", onKeyDown);
       document.documentElement.removeAttribute("data-modal-open");
-      body.style.overflow = scrollLock;
-      restoreFocus(opener);
+      page?.removeAttribute("inert");
     };
-  }, [open, onClose]);
+  }, [open]);
 
   // Nothing to portal into during SSR — and nothing to portal, since `open`
   // starts false and only a click can flip it.

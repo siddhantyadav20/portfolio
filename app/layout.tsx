@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 import CanvasCursor from "@/components/interaction/CanvasCursor";
 import { intro, linkedin } from "@/content/site";
 import { THEME_SCRIPT } from "@/lib/theme";
-import { canela, newsreader, outfit } from "./fonts";
+import { canela, outfit } from "./fonts";
+import WebVitals from "./vitals";
 import "./globals.css";
 
 /**
@@ -11,12 +12,37 @@ import "./globals.css";
  * `metadataBase` is what turns every relative `openGraph.url` and image path
  * below into the absolute URL the crawlers require — without it Next warns and
  * falls back to localhost, which is how a shared link ends up previewing
- * nothing. Set `NEXT_PUBLIC_SITE_URL` in the deployment; the fallback is only
- * so local builds are quiet.
+ * nothing.
+ *
+ * The production domain used to be a silent fallback, and silence was the
+ * problem: a preview deploy with the variable unset built happily and shipped
+ * canonicals, `og:url`s and a sitemap all pointing at the live site. Every
+ * preview quietly told crawlers it was production. Now an unset variable is
+ * only tolerated where it is genuinely harmless — `next dev`, and the
+ * `next build` a developer runs locally to check something compiles.
+ *
+ * Vercel, Netlify and GitHub Actions all set CI=true, which is the tell.
  */
-const SITE = new URL(
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://siddhantyadav.com",
-);
+const FALLBACK = "https://siddhantyadav.com";
+
+function resolveSite() {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  if (configured) return configured;
+
+  if (process.env.CI) {
+    throw new Error(
+      "NEXT_PUBLIC_SITE_URL is unset. Set it to this deployment's own origin " +
+        "— falling back to " +
+        FALLBACK +
+        " would publish production canonicals, og:url and sitemap entries " +
+        "from a build that is not production. See .env.example.",
+    );
+  }
+
+  return FALLBACK;
+}
+
+const SITE = new URL(resolveSite());
 
 export const metadata: Metadata = {
   metadataBase: SITE,
@@ -52,15 +78,30 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f3f3f3" },
-    { media: "(prefers-color-scheme: dark)", color: "#1b1c1e" },
+    { media: "(prefers-color-scheme: dark)", color: "#111111" },
   ],
+  /**
+   * The page draws into the notch and the home-indicator area rather than
+   * being letterboxed away from them, and the layout pads itself back off the
+   * hardware with `env(safe-area-inset-*)`.
+   *
+   * Without this line those `env()` calls are not merely approximate — they
+   * resolve to their `0px` fallback and do nothing at all. There are six of
+   * them (`app/page.module.css`, `app/work/[slug]/page.module.css`) and every
+   * one was dead code until this was set.
+   */
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${canela.variable} ${outfit.variable} ${newsreader.variable}`}
+      /* Newsreader is deliberately absent: it is only ever used by the books
+         on the canvas, so it rides with `CanvasSurface` instead of being
+         declared for every route. See `app/fonts-serif.ts` for what that
+         actually saves and where. */
+      className={`${canela.variable} ${outfit.variable}`}
       // The pre-paint script writes data-theme here before React sees the
       // document, so the server's markup and the client's disagree by design.
       // Without this, React "corrects" the attribute back off on hydration and
@@ -91,9 +132,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             }),
           }}
         />
+        {/* First stop on every page.
+            The homepage puts roughly forty focusable things — three case-study
+            cards, the timeline slider, the waitlist, the search field, the
+            music transport — ahead of its own prose, and until this existed a
+            keyboard or switch user had to walk all of them on every visit.
+            Off-screen until focused; see `.skipLink` in globals.css. */}
+        <a href="#main" className="skipLink">
+          Skip to content
+        </a>
         {children}
         {/* Site-wide, so the canvas cursor survives navigation. */}
         <CanvasCursor />
+        {/* Renders nothing; reports nothing unless configured. */}
+        <WebVitals />
       </body>
     </html>
   );

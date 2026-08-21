@@ -19,6 +19,31 @@
   inset: 0;
 }
 
+/* The seam's two percentages, declared so they do NOT inherit.
+
+   `.seam` is the only element that reads them — they exist to feed its
+   `clip-path` and nothing else — but an *unregistered* custom property is
+   inherited by definition, so rewriting one per frame invalidated the style of
+   every element below it. Below `.seam` is a whole 1440x1024 dashboard, so the
+   loop was re-resolving ~120 elements to move one polygon. Measured on the
+   homepage card: 1.19ms per update before, 0.04ms after.
+
+   `--seam-mid` is deliberately NOT here. The legend paints it in
+   `.presetMode::before`, and a pseudo-element takes the initial value of a
+   non-inherited property rather than its originating element's — registering
+   it would silently flatten that swatch to one colour. */
+@property --seam-top {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 67.1%;
+}
+
+@property --seam-bottom {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 45.1%;
+}
+
 /* The two percentages are rewritten per frame from the loop; these are the
    rest position — REST_SEAM, skewed by SKEW. */
 .seam {
