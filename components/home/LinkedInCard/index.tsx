@@ -101,7 +101,11 @@ export default function LinkedInCard() {
   useEffect(() => () => chime.current?.dispose(), []);
 
   return (
-    <CardShell radius={48} className={`${styles.card} ${lit ? styles.lit : ""}`}>
+    <CardShell
+      radius={48}
+      className={`${styles.card} ${lit ? styles.lit : ""}`}
+      data-card="linkedin"
+    >
       <Face />
 
       <a

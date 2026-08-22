@@ -566,6 +566,7 @@ export default function DesignEngineerCard() {
     <CardShell
       radius={32}
       className={styles.card}
+      data-card="design-engineer"
       data-focus={focus}
       onPointerEnter={() => onEnter.current?.()}
       onPointerLeave={() => onLeave.current?.()}

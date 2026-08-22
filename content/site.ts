@@ -17,6 +17,25 @@ export const intro = {
   /** Used by the Copy Email button. */
   email: "siddhantyadav20@gmail.com",
   storeHref: null as MaybeHref,
+
+  /**
+   * The CV, and the first thing a recruiter looks for.
+   *
+   * CONTENT-INTAKE.md 6.1 asked for this and it had nowhere to land: the file
+   * sat in `references/`, which is excluded from the build. Same `MaybeHref`
+   * convention as the rest of this file, so removing the PDF renders the link
+   * as a visibly-marked placeholder rather than a 404.
+   */
+  resumeHref: "/siddhant-yadav-cv.pdf" as MaybeHref,
+
+  /**
+   * The palette's own field, two rows above the Search card's
+   * "What did you observe?".
+   *
+   * The rhyme is the argument: the Search study is subtitled "Navigation first
+   * to search first", and this is that finding applied to the site making it.
+   */
+  searchPlaceholder: "What do you want to know?",
 } as const;
 
 /* Titles are single strings that wrap naturally at the width Figma gives them,
@@ -259,10 +278,16 @@ export const store = {
  * The files come from `references/music player/`. They are streamed, never
  * preloaded, so nothing is fetched until someone presses play.
  *
- * `duration` is the fallback clock only — measured off each file, but the
- * player prefers the decoded `duration` once the browser reports one, so
- * these never have to be exact. A track with `src: null` still works: the
- * transport runs on this number instead.
+ * What ships is a 25-second excerpt of each, not the record. Eight complete
+ * commercial recordings in `public/` was 35MB and a licensing posture nobody
+ * would defend; the card only ever needed enough of a track to say what it is.
+ * See `scripts/trim-audio.mjs`, which cuts them losslessly at frame boundaries
+ * and can be re-run to move where a preview opens.
+ *
+ * `duration` is the fallback clock only — the length of the excerpt, but the
+ * player prefers the decoded `duration` once the browser reports one, so these
+ * never have to be exact. A track with `src: null` still works: the transport
+ * runs on this number instead.
  */
 export const music = {
   label: "Listening to",
@@ -271,25 +296,25 @@ export const music = {
       title: "Ode to the Mets",
       cover: "/media/track-ode-to-the-mets.jpg",
       src: "/audio/ode-to-the-mets.mp3" as MaybeHref,
-      duration: 409,
+      duration: 25,
     },
     {
       title: "I Feel it Coming",
       cover: "/media/track-i-feel-it-coming.png",
       src: "/audio/i-feel-it-coming.mp3" as MaybeHref,
-      duration: 297,
+      duration: 25,
     },
     {
       title: "Read my Mind",
       cover: "/media/track-read-my-mind.jpg",
       src: "/audio/read-my-mind.mp3" as MaybeHref,
-      duration: 244,
+      duration: 25,
     },
     {
       title: "Wavin’ Flag",
       cover: "/media/track-wavin-flag.jpg",
       src: "/audio/wavin-flag.mp3" as MaybeHref,
-      duration: 221,
+      duration: 25,
     },
   ],
 } as const;

@@ -1,0 +1,603 @@
+/* The palette.
+
+   Sizing note: the panel is a fixed-height column, not a box that grows with
+   its results. A panel that resizes on every keystroke makes the row under
+   your cursor move while you are reaching for it. */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+
+  /* Above the site's own "over everything" tier, below the cursor.
+
+     `ModalSurface` and `CanvasSurface` both sit at 900 — that is the layer for
+     a surface that covers the page — and `CanvasCursor` sits at the maximum,
+     because with `cursor: none` set globally it has to paint over all of them.
+     The palette opens *on top of* a case study and *on top of* the board, so
+     it needs its own step above 900 rather than a place inside it.
+
+     It was 60, which is a fine number for a page that has no full-screen
+     surfaces and wrong for this one: ⌘K on `/canvas` opened the panel
+     underneath the board. It was focused, it was typed into, and it was
+     completely invisible. */
+  z-index: 950;
+  display: grid;
+  place-items: start center;
+  padding: clamp(16px, 12vh, 140px) 20px 20px;
+  background-color: color-mix(in srgb, var(--ink) 38%, transparent);
+  backdrop-filter: blur(5px);
+  animation: fade 160ms ease;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  /* Wide enough for a list and a picture side by side. It was 620 when it was
+     only a list; the peek column is what earns the rest. */
+  width: min(900px, 100%);
+  max-height: min(560px, 76vh);
+  border-radius: var(--r-xl);
+  background-color: var(--surface-raised);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+
+  opacity: 0;
+  transform: translateY(10px) scale(0.99);
+  /* The house curve. Same one every view transition and the modal plate use. */
+  transition:
+    opacity 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.panel[data-enter] {
+  opacity: 1;
+  transform: none;
+}
+
+/* --- The field ----------------------------------------------------------- */
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--ink-20);
+}
+
+.glyph {
+  --icon: url(/icons/search.svg);
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  background-color: var(--ink-40);
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  color: var(--ink-strong);
+}
+
+.input::placeholder {
+  color: var(--ink-40);
+}
+
+/* No ring on the field.
+
+   The global `:focus-visible` rule is the right default everywhere else, and
+   here it drew a hard rectangle around an input that is focused for the entire
+   life of the panel — a permanent box, indicating nothing, since there is
+   nowhere else for focus to be. What the keyboard user actually needs to see
+   is which *row* is selected, and that is the highlight on the row plus
+   `aria-activedescendant`. This is the standard combobox arrangement, not a
+   removed affordance. */
+.input:focus,
+.input:focus-visible {
+  outline: none;
+}
+
+.esc {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  min-height: 28px;
+  padding: 3px 8px;
+  border: 1px solid var(--ink-20);
+  border-radius: 7px;
+  background: none;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  color: var(--ink-40);
+  cursor: pointer;
+}
+
+.esc:hover {
+  color: var(--ink-70);
+  border-color: var(--ink-40);
+}
+
+.escGlyph {
+  display: none;
+  font-size: 13px;
+}
+
+/* Where there is no Escape key, the control says so. The 44px is the tap
+   target every other control on this site is sized to. */
+@media (hover: none), (max-width: 600px) {
+  .escKey {
+    display: none;
+  }
+
+  .escGlyph {
+    display: block;
+  }
+
+  .esc {
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: var(--r-pill);
+  }
+}
+
+/* --- Results and peek ----------------------------------------------------- */
+
+/* The list is a fixed column and the peek takes the rest, so the rows do not
+   reflow as you arrow between a row with a picture and one without. */
+.body {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Beside a peek column, a row stacks its label over its hint instead of
+   setting them side by side.
+
+   Side-by-side is right when the list is the whole panel and there is room for
+   both. In 400px it was not: "SaaS · PropTech · Product Design · 2026 · 10 min
+   read" became "SaaS · PropTech · Produ…", and every label wrapped to two
+   lines to make room for a hint that had been cut to nothing. Stacked, the
+   label gets the full width and the hint is legible under it. */
+.body .row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.body .hint {
+  max-width: 100%;
+  text-align: left;
+}
+
+.results {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+  border-right: 1px solid var(--ink-20);
+}
+
+/* --- Peek ----------------------------------------------------------------- */
+
+.peek {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+  animation: peekIn 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes peekIn {
+  from {
+    opacity: 0;
+    /* Two pixels. Enough to read as *arriving* rather than as a swap, and not
+       enough to look like a card sliding in from somewhere. */
+    transform: translateY(2px);
+  }
+}
+
+.peekInner {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.peekImage {
+  width: 100%;
+  border-radius: var(--r-sm);
+  /* Fixed box, because the column must not resize as you arrow between a wide
+     screenshot and a tall book cover — the list beside it would jump.
+
+     `contain` rather than `cover`: a hero crops harmlessly, but a book cover
+     cropped to 4:3 loses its title, and the covers are the whole reason the
+     books are worth previewing. The tinted ground behind is what makes a
+     letterboxed cover read as deliberate. */
+  /* 16:10 rather than 4:3. At this column width 4:3 was 345px of picture, which
+     pushed the title, the paragraph and the facts below the fold on every
+     study — a preview you have to scroll is not a preview. */
+  aspect-ratio: 16 / 10;
+  max-height: 240px;
+  object-fit: contain;
+  background-color: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+
+.peekText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.peekEyebrow {
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.peekTitle {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ink-strong);
+}
+
+.peekBody {
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  line-height: var(--lh-read);
+  color: var(--ink-60);
+  /* Four lines. A preview that runs longer than the list beside it stops being
+     a preview. */
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.peekFacts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ink-20);
+}
+
+.peekFact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+}
+
+.peekFact dt {
+  color: var(--ink-40);
+}
+
+.peekFact dd {
+  color: var(--ink-strong);
+  text-align: right;
+}
+
+/* The outcome tile, wearing the wash it wears on the page. */
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 22px 20px 20px;
+  border-radius: var(--r-md);
+  background-color: var(--peek-wash, color-mix(in srgb, var(--ink) 5%, transparent));
+}
+
+.peek[data-tint="amber"] .figure {
+  background-color: var(--wash-amber);
+}
+
+.peek[data-tint="teal"] .figure {
+  background-color: var(--wash-teal);
+}
+
+.peek[data-tint="violet"] .figure {
+  background-color: var(--wash-violet);
+}
+
+.figureValue {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-strong);
+}
+
+.figureLabel {
+  margin-top: 8px;
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+}
+
+.figureNote {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--ink-60);
+}
+
+.groupLabel {
+  padding: 12px 12px 6px;
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  scroll-margin: 8px;
+}
+
+/* Driven by `data-active` rather than `:hover`, so the pointer and the arrow
+   keys cannot disagree about which row is the one Enter will run. Moving the
+   mouse sets `active`; that is the only thing hover does. */
+.row[data-active="true"] {
+  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--ink-strong);
+  /* Two lines, then stop. Some labels are whole sentences — a study's insight
+     heading is one — and a row that grows to four lines stops being a row. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hint {
+  flex: 0 1 auto;
+  max-width: 42%;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--ink-40);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mark {
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* --- Nothing found -------------------------------------------------------- */
+
+.empty {
+  flex: 1 1 auto;
+  padding: 34px 24px;
+  text-align: center;
+}
+
+.emptyLead {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--ink-60);
+}
+
+.suggest {
+  margin-top: 12px;
+  padding: 7px 14px;
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-pill);
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--ink-70);
+  cursor: pointer;
+}
+
+.suggest em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+/* --- An answer ------------------------------------------------------------ */
+
+.answer {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px 24px 24px;
+}
+
+.answerTitle {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink-strong);
+}
+
+.answerLead {
+  margin-top: 8px;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  line-height: var(--lh-read);
+  color: var(--ink-60);
+}
+
+.answerRows {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.answerRow {
+  display: grid;
+  grid-template-columns: 116px 1fr;
+  gap: 16px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  text-align: left;
+  font: inherit;
+}
+
+.answerRowGo {
+  cursor: pointer;
+}
+
+.answerRowGo:hover {
+  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.answerLabel {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--ink-40);
+  padding-top: 2px;
+}
+
+.answerValue {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--ink-strong);
+}
+
+.answerNote {
+  font-size: 12px;
+  color: var(--ink-50);
+}
+
+.answerFoot {
+  margin-top: 16px;
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  line-height: var(--lh-wide);
+  color: var(--ink-40);
+}
+
+/* --- Footer --------------------------------------------------------------- */
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex: 0 0 auto;
+  padding: 10px 18px;
+  border-top: 1px solid var(--ink-20);
+}
+
+.toast,
+.hints {
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  color: var(--ink-40);
+}
+
+.toast {
+  color: var(--ink-60);
+}
+
+.hints kbd {
+  padding: 2px 5px;
+  margin: 0 2px;
+  border: 1px solid var(--ink-20);
+  border-radius: 5px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10.5px;
+}
+
+/* --- Narrow --------------------------------------------------------------- */
+
+/* No ⌘K on a phone, so the field in the Introduction card is the only door and
+   this is the whole screen when it opens. README flags the ≤1000px layout as a
+   holding pattern; this is built for the sheet it will become rather than a
+   scaled-down desktop panel. */
+/* No room for two columns. The peek is dropped rather than stacked under the
+   list: stacking would push the results below the fold, and on a narrow screen
+   the list *is* the feature. Everything the peek showed is still in the row's
+   own label and hint. */
+@media (max-width: 860px) {
+  .panel {
+    width: min(620px, 100%);
+  }
+
+  .body {
+    grid-template-columns: 1fr;
+  }
+
+  .results {
+    border-right: none;
+  }
+
+  .peek {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .backdrop {
+    padding: 0;
+    place-items: stretch;
+  }
+
+  .panel {
+    width: 100%;
+    max-height: none;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .hints {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .peek {
+    animation: none;
+  }
+
+  .panel {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}

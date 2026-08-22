@@ -126,6 +126,7 @@ export default function InspectionExperience() {
         as="a"
         href={inspection.href}
         radius={48}
+        data-card="inspection"
         surface="none"
         className={styles.card}
         // The card itself is the thing that expands into the modal's mockup —

@@ -8,6 +8,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
+import { levenshtein } from "@/lib/match";
 import { terminal as data } from "@/content/canvas";
 import styles from "./Terminal.module.css";
 
@@ -173,28 +174,15 @@ function gapFor(l: Line) {
   }
 }
 
-/** Edit distance, for "did you mean". */
-function levenshtein(a: string, b: string) {
-  const dp: number[][] = Array.from({ length: a.length + 1 }, () =>
-    new Array<number>(b.length + 1).fill(0),
-  );
-  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
-  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
-  for (let i = 1; i <= a.length; i++) {
-    for (let j = 1; j <= b.length; j++) {
-      dp[i][j] = Math.min(
-        dp[i - 1][j] + 1,
-        dp[i][j - 1] + 1,
-        dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
-      );
-    }
-  }
-  return dp[a.length][b.length];
-}
-
 /** Nearest command within two edits, or nothing. Two is the useful cut-off:
  *  it catches a typo and a missing letter, and stops short of suggesting
- *  "tools" for "help". */
+ *  "tools" for "help".
+ *
+ *  `lib/match` also offers `didYouMean`, and this deliberately does not use it.
+ *  That one scales its threshold with word length and says nothing at all below
+ *  four characters, which is right for the palette's index and wrong here: the
+ *  whole command set is short, and "hlp" has to still reach "help". Shared
+ *  distance function, local cut-off. */
 function suggest(word: string, pool: readonly string[]) {
   let best: string | null = null;
   let bestD = Infinity;

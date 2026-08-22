@@ -230,6 +230,7 @@ export default function CanvasCard() {
         radius={24}
         surface="solid"
         className={styles.card}
+        data-card="canvas"
         // Released the moment the canvas owns it: two live elements sharing a
         // view-transition name abort the transition.
         style={open ? undefined : { viewTransitionName: CANVAS_MORPH }}

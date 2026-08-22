@@ -469,6 +469,7 @@ export default function AboutMeCard() {
           as="button"
           type="button"
           radius={32}
+          data-card="about"
           static
           className={styles.card}
           onPointerEnter={() => {

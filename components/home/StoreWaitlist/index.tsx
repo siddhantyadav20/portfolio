@@ -214,6 +214,7 @@ export default function StoreWaitlist() {
   return (
     <CardShell
       radius={32}
+      data-card="store"
       className={[styles.card, won ? styles.won : "", phase === "closing" ? styles.closing : ""]
         .filter(Boolean)
         .join(" ")}

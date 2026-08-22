@@ -100,6 +100,7 @@ export default function MusicPlayer() {
     <CardShell
       radius={48}
       surface="solid"
+      data-card="music"
       className={`${styles.card} ${playing ? styles.playing : ""}`}
       role="group"
       aria-label="Music player"

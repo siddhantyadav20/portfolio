@@ -48,6 +48,7 @@ export default function DesignSystemExperience() {
         ref={cardRef}
         href={designSystemCopy.href}
         radius={48}
+        data-card="design-system"
         className={styles.card}
         aria-label={`${designSystemCopy.eyebrow} ${designSystemCopy.title} ${designSystemCopy.subtitle} — open case study`}
         data-cursor="view-project"

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import CanvasCursor from "@/components/interaction/CanvasCursor";
+import PaletteHost from "@/components/palette/PaletteHost";
 import { intro, linkedin } from "@/content/site";
 import { THEME_SCRIPT } from "@/lib/theme";
 import { canela, outfit } from "./fonts";
@@ -142,6 +143,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         {children}
+        {/* Site-wide, and deliberately here rather than on the homepage: ⌘K has
+            to work on a case study and on the canvas too. Ships only the
+            hotkey listener; the panel itself is fetched on first open. */}
+        <PaletteHost />
         {/* Site-wide, so the canvas cursor survives navigation. */}
         <CanvasCursor />
         {/* Renders nothing; reports nothing unless configured. */}

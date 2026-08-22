@@ -573,6 +573,7 @@ export default function TimelineExperience() {
       className={styles.card}
       ref={cardRef}
       data-prox-card=""
+      data-card="timeline"
       style={{ "--read": `${READ_Y}px` } as React.CSSProperties}
     >
       <div className={styles.ruler}>

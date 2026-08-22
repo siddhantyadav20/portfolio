@@ -1,9 +1,9 @@
 .intro {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: calc(40 * var(--u));
   align-items: flex-start;
-  width: 372px;
+  width: calc(372 * var(--u));
   max-width: 100%;
 
   /* Written by the proximity controller; identity until then, so the resting
@@ -16,8 +16,8 @@
 }
 
 .logo {
-  width: 52px;
-  height: 40px;
+  width: calc(52 * var(--u));
+  height: calc(40 * var(--u));
   object-fit: contain;
 }
 
@@ -39,42 +39,107 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: calc(24 * var(--u));
   width: 100%;
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: calc(4 * var(--u));
 }
 
 .title {
   font-family: var(--font-display), Georgia, serif;
   font-weight: 500;
-  font-size: 44px;
+  font-size: calc(44 * var(--u));
   line-height: var(--lh);
   letter-spacing: -0.02em;
   color: var(--ink);
 }
 
 .tagline {
-  font-size: 24px;
+  font-size: calc(24 * var(--u));
   font-weight: 400;
   line-height: var(--lh);
   color: var(--ink);
 }
 
 .note {
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   font-weight: 400;
   line-height: var(--lh);
   color: var(--ink-70);
 }
 
+/* The palette's front door.
+
+   Sized in `--u` like everything else in this card, so it scales with the
+   composition rather than sitting at a fixed size inside a card that does not.
+
+   It rhymes with the Search card's field two rows down on purpose — same
+   height, same pill, same quiet placeholder — because that card is the study
+   arguing search beats navigation and this is the site taking the advice. */
+.search {
+  display: flex;
+  align-items: center;
+  gap: calc(10 * var(--u));
+  width: 100%;
+  padding: calc(11 * var(--u)) calc(14 * var(--u));
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-pill);
+  background-color: var(--surface-glass);
+  cursor: text;
+  transition: border-color 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.search:hover {
+  border-color: var(--ink-40);
+}
+
+.searchIcon {
+  width: calc(16 * var(--u));
+  height: calc(16 * var(--u));
+  flex: 0 0 auto;
+  background-color: var(--ink-40);
+}
+
+.searchLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  font-size: calc(14 * var(--u));
+  color: var(--ink-40);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Hidden where there is no ⌘ to press. Advertising a keyboard shortcut to
+   somebody holding a phone is noise dressed as an affordance — and this field
+   is tappable, which is the whole reason it exists. */
+@media (hover: none), (pointer: coarse) {
+  .searchKey {
+    display: none;
+  }
+}
+
+.searchKey {
+  flex: 0 0 auto;
+  padding: calc(2 * var(--u)) calc(7 * var(--u));
+  border: 1px solid var(--ink-20);
+  border-radius: calc(6 * var(--u));
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: calc(10.5 * var(--u));
+  color: var(--ink-40);
+}
+
+/* Three pills where Figma drew two, so they are allowed to wrap rather than
+   squeezing the composition. */
 .ctas {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: calc(16 * var(--u));
 }
 
 .srOnlyEmail {
@@ -87,9 +152,9 @@
 
 @media (max-width: 1000px) {
   .title {
-    font-size: 36px;
+    font-size: calc(36 * var(--u));
   }
   .tagline {
-    font-size: 20px;
+    font-size: calc(20 * var(--u));
   }
 }

@@ -519,3 +519,27 @@ export const PREVIEW_SCALE = 0.13;
  * it. The surface is loaded on demand instead; see CanvasCard.
  */
 export const CANVAS_MORPH = "canvas-frame";
+
+/**
+ * The board's keymap.
+ *
+ * Lives here rather than beside the sheet that used to render it, because two
+ * surfaces read it now: the command palette answers "keyboard shortcuts" with
+ * this list, and `CanvasSurface` binds the keys themselves. A keymap that is
+ * documented in one file and implemented in another is a keymap that drifts,
+ * and this is the half that both can share.
+ *
+ * Tuned in the Framer reference's CommandPalette and carried over unchanged.
+ */
+export const SHORTCUTS: readonly (readonly [string, string])[] = [
+  ["Drag / two fingers", "Pan the board"],
+  ["\u2318 / Ctrl + scroll", "Zoom"],
+  ["Pinch", "Zoom, on a trackpad or touch"],
+  ["+ / \u2212", "Zoom in and out"],
+  ["R", "Back to the middle"],
+  ["Tab", "Walk the board, one thing at a time"],
+  ["Space", "Lift off"],
+  ["C", "Confetti"],
+  ["/ or ?", "This list"],
+  ["Esc", "Close the canvas"],
+];

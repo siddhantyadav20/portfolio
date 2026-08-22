@@ -28,6 +28,8 @@
    cannot cheat by giving search a better dataset than navigation.
    =========================================================================== */
 
+import { prefixAt, tokenize, wordStarts } from "@/lib/match";
+
 export type Remark = {
   readonly text: string;
   readonly category: string;
@@ -214,17 +216,6 @@ export type Hit = {
   readonly viaPath: boolean;
 };
 
-/** Word starts in a string: index of every character that begins a word. */
-function wordStarts(text: string): number[] {
-  const starts: number[] = [];
-  for (let i = 0; i < text.length; i++) {
-    if (/[a-z0-9]/.test(text[i]) && (i === 0 || !/[a-z0-9]/.test(text[i - 1]))) {
-      starts.push(i);
-    }
-  }
-  return starts;
-}
-
 /**
  * How much this inspector's own history is worth against how well the text
  * matched.
@@ -252,7 +243,7 @@ const LIBRARY_WEIGHT = 4;
  * may reach for it after typing, and most people never do.
  */
 export function searchRemarks(query: string, category?: string): Hit[] {
-  const tokens = query.toLowerCase().split(/[^a-z0-9]+/i).filter(Boolean);
+  const tokens = tokenize(query);
 
   const pool = category
     ? REMARKS.filter((r) => r.category === category)
@@ -281,7 +272,7 @@ export function searchRemarks(query: string, category?: string): Hit[] {
     let matchedAll = true;
 
     for (const token of tokens) {
-      const at = starts.find((i) => text.startsWith(token, i));
+      const at = prefixAt(text, starts, token);
       if (at !== undefined) {
         marks.push([at, token.length]);
         // The first word of a remark is what an inspector scans, so a hit there
@@ -289,7 +280,7 @@ export function searchRemarks(query: string, category?: string): Hit[] {
         quality += at === 0 ? 3 : 2;
         continue;
       }
-      if (pathStarts.some((i) => path.startsWith(token, i))) {
+      if (prefixAt(path, pathStarts, token) !== undefined) {
         quality += 1;
         viaPath = true;
         continue;
@@ -320,3 +311,38 @@ export function searchRemarks(query: string, category?: string): Hit[] {
  *  what they saw. No amount of navigating gets you that set. */
 export const spreadOf = (hits: readonly Hit[]) =>
   new Set(hits.map((h) => h.remark.category)).size;
+
+/**
+ * What the old flow would have cost to reach one particular remark.
+ *
+ * `OLD_PATH_WIDTHS` above answers this for the one route the unattended
+ * demonstration drills. This answers it for whichever remark somebody actually
+ * took, which is the difference between a claim the card makes and a claim the
+ * card makes about you: pick "Vertical crack in the foundation wall" and the
+ * card can say it was three taps and twenty-two rows down a branch you had to
+ * guess, because it walked the same tree to find out.
+ *
+ * Every number here is counted off `TAXONOMY`, so it moves when the corpus
+ * moves and cannot be tuned to flatter the argument.
+ */
+export type OldPathCost = {
+  /** Category, subcategory, remark — the depth of the tree, not an estimate. */
+  readonly taps: number;
+  /** Rows you would have read on the way: every category, then every
+   *  subcategory under the one you chose, then every remark under that. */
+  readonly rowsRead: number;
+};
+
+export function oldPathCostOf(remark: Remark): OldPathCost {
+  const category = TAXONOMY.find((c) => c.name === remark.category);
+  const sub = category?.subcategories.find(
+    (s) => s.name === remark.subcategory,
+  );
+  const rows = sub?.remarks ?? [];
+
+  return {
+    taps: OLD_PATH_TAPS,
+    rowsRead:
+      TAXONOMY.length + (category?.subcategories.length ?? 0) + rows.length,
+  };
+}

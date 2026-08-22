@@ -9,7 +9,6 @@ import Confetti from "@/components/canvas/chrome/Confetti";
 import Dock from "@/components/canvas/chrome/Dock";
 import Minimap from "@/components/canvas/chrome/Minimap";
 import Oneko from "@/components/canvas/chrome/Oneko";
-import Shortcuts from "@/components/canvas/chrome/Shortcuts";
 import { useModalShell } from "@/lib/modalShell";
 import { newsreader } from "@/app/fonts-serif";
 import ThemeToggle from "@/components/home/ThemeToggle";
@@ -18,11 +17,13 @@ import { frameDelta } from "@/lib/spring";
 import {
   CANVAS_MORPH,
   clusterBounds,
+  widgets,
   HOME,
   WORLD_H,
   WORLD_W,
   type Cluster,
 } from "@/content/canvas";
+import { openPalette, registerCanvasJump } from "@/lib/palette";
 import type { CameraState } from "@/lib/camera";
 import styles from "./CanvasSurface.module.css";
 
@@ -84,7 +85,6 @@ export default function CanvasSurface({ onClose }: Props) {
   /* Chrome state. The camera itself stays outside React — these are only what
      the chrome needs to draw, published once a frame by the loop below. */
   const [cluster, setCluster] = useState<Cluster | null>(null);
-  const [shortcuts, setShortcuts] = useState(false);
   const [confetti, setConfetti] = useState(0);
   const [view, setView] = useState<{ cam: CameraState; w: number; h: number }>({
     cam: { x: 0, y: 0, scale: 1 },
@@ -129,19 +129,17 @@ export default function CanvasSurface({ onClose }: Props) {
   /**
    * Who gets Escape, in order, before the canvas does.
    *
-   * 1. The shortcuts sheet. It is drawn over the canvas and opened with `/`,
-   *    and until this existed Escape went straight past it and closed the
-   *    whole canvas underneath — dismissing a help sheet by demolishing the
-   *    thing it was explaining.
-   * 2. A widget with a text field. The terminal is a real prompt, and closing
-   *    the canvas because someone abandoned a half-typed command would be its
-   *    own small betrayal. Blur instead; a second Escape closes as usual.
+   * A widget with a text field. The terminal is a real prompt, and closing the
+   * canvas because someone abandoned a half-typed command would be its own
+   * small betrayal. Blur instead; a second Escape closes as usual.
+   *
+   * The shortcuts sheet used to be first in this list, because Escape would
+   * otherwise sail past it and close the whole canvas underneath — dismissing
+   * a help sheet by demolishing the thing it was explaining. The palette
+   * renders that keymap now, and it stops Escape itself: it is a focus-trapped
+   * surface over this one, so the key never reaches here while it is open.
    */
   const onEscape = useCallback(() => {
-    if (shortcuts) {
-      setShortcuts(false);
-      return true;
-    }
     const active = document.activeElement;
     if (
       active instanceof HTMLElement &&
@@ -153,7 +151,7 @@ export default function CanvasSurface({ onClose }: Props) {
       return true;
     }
     return false;
-  }, [shortcuts]);
+  }, []);
 
   /**
    * Escape, the Tab trap, initial focus, the scroll lock and handing focus
@@ -336,6 +334,25 @@ export default function CanvasSurface({ onClose }: Props) {
       start();
     };
 
+    /* And the same two moves, offered to the command palette.
+
+       Registered here rather than exposed as props because the palette is
+       lazily loaded and site-wide, and neither side should import the other:
+       see the note beside `registerCanvasJump`. A widget is flown to at its
+       centre — `x`/`y` on the board are top-left corners.
+
+       This is the palette's best trick and the board's weakest spot. Twenty-two
+       things live out here and the dock offers five places; before this,
+       finding one particular book meant panning until it appeared. */
+    const unregisterJump = registerCanvasJump(({ widget, cluster }) => {
+      if (cluster) {
+        flyToCluster.current(cluster as Cluster);
+        return;
+      }
+      const w = widgets.find((x) => x.id === widget);
+      if (w) flyToPoint.current(w.x + w.w / 2, w.y + w.h / 2);
+    });
+
     const resizeObserver = new ResizeObserver(measure);
     resizeObserver.observe(surface);
 
@@ -501,8 +518,13 @@ export default function CanvasSurface({ onClose }: Props) {
           return;
         case "/":
         case "?":
+          /* Handed to the command palette, which renders the same keymap out
+             of `content/canvas`. There used to be a sheet here doing it
+             separately; two surfaces documenting one set of keys is how the
+             two stop agreeing, and the sheet never had a focus trap — Tab
+             walked out of the help and into the board it was explaining. */
           e.preventDefault();
-          setShortcuts((v) => !v);
+          openPalette({ answer: "shortcuts" });
           return;
         case " ":
           // Lift off: a hard zoom out and back, so you see the whole board and
@@ -549,6 +571,7 @@ export default function CanvasSurface({ onClose }: Props) {
       surface.removeEventListener("pointercancel", onPointerUp);
       surface.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKeyDown);
+      unregisterJump();
     };
   }, []);
 
@@ -633,12 +656,11 @@ export default function CanvasSurface({ onClose }: Props) {
       <button
         type="button"
         className={styles.hint}
-        onClick={() => setShortcuts(true)}
+        onClick={() => openPalette({ answer: "shortcuts" })}
       >
         press <kbd>/</kbd> for shortcuts
       </button>
 
-      <Shortcuts open={shortcuts} onClose={() => setShortcuts(false)} />
       <Confetti fire={confetti} />
       <Oneko />
     </div>

@@ -21,9 +21,18 @@ import styles from "./SearchExperience.module.css";
  * What sits there now runs the change. It plays the old drill-down once when
  * scrolled into view — eight categories, four subcategories, four remarks
  * alphabetically, three taps counted off on the pips — then folds those panels
- * away and searches. Both halves read the same rows out of `content/remarks.ts`,
- * so the comparison cannot cheat, and the field is real afterwards: type in it
- * and the same matcher runs. See `RemarkFinder`.
+ * away, searches, and takes the top result into the report. Both halves read
+ * the same rows out of `content/remarks.ts`, so the comparison cannot cheat,
+ * and everything it just did is real afterwards: type in the field and the same
+ * matcher runs, pick a row and it joins the report with what that row would
+ * have cost down the tree, press the tap counter and the old flow plays again.
+ * See `RemarkFinder`.
+ *
+ * That ending is why the chip below can stay as it is. `~51m saved` is a field
+ * number from the real product and nothing on this card could prove it — but
+ * the line above it now reports the same arithmetic at the scale of one visit,
+ * counted off the rows on screen, so the chip reads as the same claim at scale
+ * rather than as an assertion the card left unsupported.
  *
  * The card still cannot be an anchor — it holds a real input, and an input
  * inside a link is neither — so the heading carries the case-study destination
@@ -35,7 +44,7 @@ export default function SearchExperience() {
 
   return (
     <>
-      <CardShell radius={48} className={styles.card}>
+      <CardShell radius={48} className={styles.card} data-card="search">
         <div className={styles.heading}>
           <h2 className={styles.title}>
             <a
