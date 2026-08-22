@@ -4,21 +4,25 @@ import Image from "next/image";
 import { useState } from "react";
 import CtaPill from "@/components/primitives/CtaPill";
 import { intro } from "@/content/site";
+import { copyToClipboard } from "@/lib/clipboard";
 import styles from "./Introduction.module.css";
 
 export default function Introduction({ className }: { className?: string }) {
   const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   async function copyEmail() {
-    try {
-      await navigator.clipboard.writeText(intro.email);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard denied — the address is still announced below for screen
-      // readers and can be selected manually.
-      setCopied(false);
+    /* Two attempts, then give up honestly — see `lib/clipboard`. This used to
+       be a bare `navigator.clipboard.writeText` in a try/catch that set
+       `copied` back to false, so a browser that refused the clipboard left
+       the button reading "Copy Email" and doing nothing visible. */
+    if (!(await copyToClipboard(intro.email))) {
+      setFailed(true);
+      window.setTimeout(() => setFailed(false), 6000);
+      return;
     }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -68,7 +72,7 @@ export default function Introduction({ className }: { className?: string }) {
           onClick={copyEmail}
           icon={<span className="inkIcon" style={{ ["--icon" as string]: "url(/icons/chat.svg)", width: 20, height: 20 }} />}
         >
-          {copied ? "Copied!" : "Copy Email"}
+          {copied ? "Copied!" : failed ? intro.email : "Copy Email"}
         </CtaPill>
 
         <CtaPill
@@ -84,6 +88,7 @@ export default function Introduction({ className }: { className?: string }) {
 
       <p className={styles.srOnlyEmail} aria-live="polite">
         {copied ? `Copied ${intro.email} to clipboard` : ""}
+        {failed ? `Copying was blocked. The address is ${intro.email}` : ""}
       </p>
     </section>
   );

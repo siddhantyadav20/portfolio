@@ -1,52 +1,256 @@
-/* The long-form body of a case study. Reading measure, not card measure:
-   these are paragraphs someone is meant to sit and read, so the column is
-   capped well below the surface that holds it. */
+/* The long-form body of a case study — Figma 476:11386 and everything under
+   it. The reader is 1120 wide; headings and eyebrows are capped at 960 inside
+   that, which is the file's own second measure and the thing that keeps a
+   28px display line from running the full width of the frame. */
 
 .sections {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  /* Figma's Content frame: 80 between every top-level block, with a dashed
+     rule occupying one of those slots between each pair of sections. */
+  gap: 80px;
+  width: 100%;
+}
+
+/* The same rule `StudyReader` draws under the intro — see there for why it is
+   ink rather than the file's black. */
+.separator {
+  width: 100%;
+  height: 0;
+  border-top: 1px dashed var(--ink-20);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 64px;
+  /* The rail scrolls here, so a heading landing flush against the top edge of
+     the scrollport is a heading with no room above it. */
+  scroll-margin-top: 96px;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* --- The eyebrow ---------------------------------------------------------
+   An 8px dot and a line of blue caps — Figma 476:11200. */
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 960px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: var(--lh-read);
+  color: var(--blue-bright);
+}
+
+.marker {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background-color: currentColor;
 }
 
 .heading {
+  max-width: 960px;
   margin: 0;
   font-family: var(--font-display), Georgia, serif;
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 700;
-  line-height: var(--lh);
-  color: var(--ink-strong);
+  line-height: var(--lh-read);
+  color: var(--ink);
+}
+
+/* --- Prose ---------------------------------------------------------------
+   17px at 170%, which is the reader's body setting throughout. No `max-width`
+   in ch here: the column is already 832 or 1120 wide by the design's own
+   measure, and a second cap inside it would produce a ragged right edge that
+   is in neither. */
+
+.prose,
+.asideBody,
+.noteBody {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
 }
 
 .paragraph {
   margin: 0;
-  max-width: 64ch;
-  font-family: var(--font-ui), system-ui, sans-serif;
-  font-size: 16px;
-  line-height: var(--lh-wide);
+  font-size: 17px;
+  line-height: var(--lh-read);
+  color: var(--ink-70);
+  white-space: pre-wrap;
+}
+
+/* --- The aside ------------------------------------------------------------
+   Figma 529:11824: a 240px lead, a 48px gutter, and the rest. */
+
+.aside {
+  display: flex;
+  align-items: flex-start;
+  gap: 48px;
+  width: 100%;
+}
+
+.lead {
+  flex: none;
+  width: 240px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: var(--lh-read);
+  color: var(--ink);
+}
+
+.asideBody {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* The figure inside the aside's column. Figma 529:12034 — 12px down to its
+   label, and the label right-aligned to the frame. */
+.inlineFigure {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+}
+
+.shot {
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.shotImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* A strip of replacement text over the screenshot. White ground, because it
+   is standing in for a white row in the board underneath — and deliberately
+   *not* themed: it is part of the photograph, and a dark strip over a light
+   screenshot would read as a redaction rather than as a ticket title. */
+.overlay {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  background-color: #ffffff;
+  font-size: 11px;
+  line-height: var(--lh-read);
+  color: #222222;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* --- The note ------------------------------------------------------------
+   Figma 548:12177 — a beat inside the section, not a new one. */
+
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.noteEyebrow {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: var(--lh-read);
+  color: var(--ink);
+}
+
+.noteHeading {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: var(--lh-read);
+  color: var(--ink);
+}
+
+/* 24px below the heading rather than the 12 the eyebrow gets, so the pair
+   above reads as one unit. Figma 548:12177 puts 95 between the two frames;
+   the 12px gap inside the heading pair accounts for the rest. */
+.noteBody {
+  margin-top: 12px;
+}
+
+/* --- The insight ---------------------------------------------------------
+   Figma 548:12210. A wash of the accent at 10%, 24px in on three sides and
+   32 at the bottom — the extra 8 is the illustration's room. */
+
+.insight {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 24px 24px 32px;
+  border-radius: var(--r-lg);
+  background-color: var(--accent-wash);
+  overflow: hidden;
+}
+
+.insightEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: var(--lh-read);
+  color: var(--accent);
+}
+
+.insightHeading {
+  /* The width the illustration leaves, rather than a measure — 903 of the
+     panel's 1072 in the file. Written as an inset off the panel's own width
+     so it keeps clearing the artwork when the reader is narrower than the
+     design; as a flat 903px the heading ran straight under the inspector at
+     any width below 1440. */
+  max-width: calc(100% - 170px);
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: var(--lh-read);
+  color: var(--ink);
+}
+
+.insightBody {
+  max-width: calc(100% - 170px);
+  margin: 0;
+  font-size: 17px;
+  line-height: var(--lh-read);
   color: var(--ink-70);
 }
 
-/* Missing prose has to read as missing — see the component. Quiet and italic
-   rather than boxed or coloured: this is a note, not a warning. */
-.pending {
-  margin: 0;
-  font-family: var(--font-ui), system-ui, sans-serif;
-  font-size: 15px;
-  font-style: italic;
-  line-height: var(--lh-wide);
-  color: var(--ink-50);
+/* 154x254, hung off the bottom right corner and clipped by the panel — so a
+   little under half of it is showing, which is what the file draws. */
+.insightFigure {
+  position: absolute;
+  right: -24px;
+  bottom: -42px;
+  width: 154px;
+  height: 254px;
+  object-fit: cover;
+  pointer-events: none;
 }
 
-/* --- Figures --------------------------------------------------------------
-   Wider than the reading measure on purpose. The paragraphs are capped at
-   64ch because that is how long a line should be to read; a screenshot of a
-   colour ramp has no such limit and is unreadable at 64ch of width. */
+/* --- Figures at the full measure ----------------------------------------- */
 
 .figure {
   margin: 4px 0 0;
@@ -67,8 +271,57 @@
 
 .caption {
   max-width: 64ch;
-  font-family: var(--font-ui), system-ui, sans-serif;
   font-size: 13px;
   line-height: var(--lh-wide);
   color: var(--ink-50);
+}
+
+/* Missing prose has to read as missing — see the component. Quiet and italic
+   rather than boxed or coloured: this is a note, not a warning. */
+.pending {
+  margin: 0;
+  font-size: 15px;
+  font-style: italic;
+  line-height: var(--lh-wide);
+  color: var(--ink-50);
+}
+
+/* --- Narrow viewports ----------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .sections,
+  .section {
+    gap: 40px;
+  }
+
+  .heading {
+    font-size: 24px;
+  }
+
+  /* The lead stops being a margin note and becomes what it is — the first
+     line of the block. */
+  .aside {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .lead {
+    width: 100%;
+  }
+
+  .paragraph,
+  .insightBody {
+    font-size: 16px;
+  }
+
+  .noteHeading,
+  .insightHeading {
+    font-size: 20px;
+  }
+
+  /* At 154px on a phone the inspector is standing on the last two lines of
+     the panel rather than beside them. */
+  .insightFigure {
+    display: none;
+  }
 }

@@ -1,0 +1,153 @@
+/* The reader's two pieces of furniture: the progress bar across the top and
+   the section rail down the left edge. Figma 474:11197 and 544:12173.
+
+   Both are `position: fixed`, which is what the design draws and what the
+   modal needs — the overlay is itself a fixed box with its own scrollbar, so
+   an element sticking to the *page* would scroll away inside it. Neither has
+   a transformed ancestor at rest, so `fixed` resolves against the viewport on
+   both surfaces. */
+
+/* --- Scroll progress ------------------------------------------------------
+   4px tall, drawn at 116 wide in Figma — a moment in the animation rather than
+   a width. Scaled from the left rather than sized, so the browser can keep the
+   whole thing on the compositor. */
+
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 5;
+
+  width: 100%;
+  height: 4px;
+  background-color: var(--blue-bright);
+
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+
+  /* No transition, deliberately. The width is rewritten on every animation
+     frame the page scrolls, so a transition can only make it lag — and it is
+     also a live CSSTransition sitting permanently on `transform`, which is
+     what pinned the bar to its start value whenever the browser throttled the
+     tab's animation timeline: the inline `scaleX` kept updating and the
+     computed style kept reporting the transition's frozen output. */
+  will-change: transform;
+}
+
+/* --- The rail -------------------------------------------------------------
+   Left 24, vertically centred, 8px apart. A line is 24x2 at rest and 32x3
+   when it is the section you are in — the active one gains a pixel of weight
+   as well as eight of length, so it reads as current at a glance rather than
+   only in comparison with its neighbours. The 12px radius on a 2px box is
+   simply "fully round", and is Figma's number rather than a rounding of it. */
+
+.rail {
+  position: fixed;
+  top: 50%;
+  left: 24px;
+  z-index: 5;
+  transform: translateY(-50%);
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  user-select: none;
+}
+
+.link {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  /* A 2px line is not a pointer target. The padding grows the hit area in
+     both directions and the negative margin takes it back out of the layout,
+     so the lines stay 8px apart while each row is eight or nine pixels of
+     button — a target four times the height of the thing it is drawn around,
+     with two pixels still clear between one row and the next. */
+  padding: 3px 8px 3px 0;
+  margin: -3px 0;
+  background: none;
+  border: none;
+}
+
+.line {
+  flex: none;
+  width: 24px;
+  height: 2px;
+  border-radius: 12px;
+  background-color: var(--blue-bright);
+  opacity: 0.4;
+  transition: width 350ms cubic-bezier(0.4, 0, 0.2, 1),
+    height 250ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms ease;
+}
+
+.link[data-active] .line {
+  width: 32px;
+  height: 3px;
+  opacity: 1;
+}
+
+/* Under the pointer a resting line gains opacity and a little length —
+   deliberately stopping short of the active line's 32, so hovering one can
+   never be mistaken for the section you are actually in. The active line has
+   nowhere to go and just holds still while its label opens. */
+.link:hover .line,
+.link:focus-visible .line {
+  width: 28px;
+  opacity: 0.75;
+}
+
+.link[data-active]:hover .line,
+.link[data-active]:focus-visible .line {
+  width: 32px;
+  opacity: 1;
+}
+
+/* Absolutely positioned, and that is load-bearing rather than tidy.
+
+   In flow the label is an 11px line of text inside a row built around a 2px
+   rule, so `align-items: center` gave every row eleven pixels of height and
+   the rail's gap came out at three times what it was set to. Out of flow the
+   row is exactly as tall as its line and the gap is the gap.
+
+   `left: 100%` resolves against the button's padding box — the line plus its
+   8px of hit area — so the 6px here lands the label Figma's 14px clear of the
+   line, and it tracks the line as it grows. */
+.label {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-left: 6px;
+
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink-70);
+
+  opacity: 0;
+  transform: translate(-6px, -50%);
+  transition: opacity 250ms ease,
+    transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.label[data-shown] {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.link[data-active] .label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Below the design's frame the rail has nowhere to stand: 24px from the left
+   edge of a phone is inside the text column, and the labels would open across
+   it. The progress bar stays — it costs no width. */
+@media (max-width: 900px) {
+  .rail {
+    display: none;
+  }
+}

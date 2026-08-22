@@ -7,6 +7,7 @@
 :root {
   /* --- Ink ------------------------------------------------------------- */
   --ink: #222222;
+  --ink-80: rgba(34, 34, 34, 0.8);
   --ink-70: rgba(34, 34, 34, 0.7);
   --ink-60: rgba(34, 34, 34, 0.6);
   --ink-50: rgba(34, 34, 34, 0.5);
@@ -17,6 +18,10 @@
   /* --- Accents --------------------------------------------------------- */
   --accent: #ea580b; /* orange: timeline, "Currently Building", waitlist */
   --blue: #1178ab; /* LinkedIn */
+  /* The reader's own blue — section markers, the scroll progress bar, the
+     quick-links rail, an outcome's number. Brighter than --blue, which is
+     LinkedIn's and has a card to sit on; this one is ink on the page. */
+  --blue-bright: #1f97dd;
   --green: #58a942; /* positive deltas */
   --red: #ef3340;
   --live: #ee6a5f; /* live-visitor dot */
@@ -63,6 +68,21 @@
   /* Figma's only shadow on the plain (non-liquid) glass surfaces. Two percent. */
   --glass-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
 
+  /* --- Case-study washes -------------------------------------------------
+     Four tinted panels in the reader, all built the same way: a hue at the
+     top-left corner falling to almost-nothing by the middle of the box. In
+     light the fall-off is toward white, which is what a wash over paper does;
+     in dark there is no white to fall toward, so both ends are the hue itself
+     at two low alphas over the #111 ground. Endpoints rather than finished
+     gradients, so the one 128deg ramp is written once, in the component. */
+  --wash-amber: #fffbe5;
+  --wash-teal: #e5fffc;
+  --wash-violet: #fae5ff;
+  --wash-to: rgba(255, 255, 255, 0.4);
+
+  /* The insight panel — Figma's accent at 10%. */
+  --accent-wash: rgba(234, 88, 11, 0.1);
+
   /* Write `backdrop-filter` ONLY — never pair it with a hand-written
      `-webkit-backdrop-filter`. Turbopack's Lightning CSS treats the pair as one
      author intent, keeps whichever came last, and drops the other; with the
@@ -82,6 +102,11 @@
   /* --- Type ------------------------------------------------------------ */
   --lh: 1.5; /* 150% on essentially everything */
   --lh-wide: 1.6; /* 160% in the footer */
+  /* 170%, and only inside a case study. Every text node in the reader's Figma
+     frame carries it — helpers, subtitle, prose, captions, the stat cards —
+     and the one exception is the 40px display title, which stays at --lh.
+     That is a reading page setting its own measure, not a stray value. */
+  --lh-read: 1.7;
 
   /* --- Page geometry (from the 1440 Figma frame) -----------------------
      The page is padded 32px on every side and the one repeating gutter is
@@ -190,7 +215,12 @@ video {
 
 button,
 input,
-select {
+select,
+/* `textarea` was missing, and it is the one form element the browser gives a
+   monospace default — so the case study's comment box rendered its
+   placeholder and everything typed into it in Courier while every other
+   field on the site inherited Outfit. */
+textarea {
   font: inherit;
   color: inherit;
   background: none;
@@ -959,6 +989,7 @@ html[data-theme="dark"] {
   /* Not pure white: #ededed against the page below lands around 14:1, which
      is comfortably past AAA without the halation pure white causes on dark. */
   --ink: #ededed;
+  --ink-80: rgba(237, 237, 237, 0.8);
   --ink-70: rgba(237, 237, 237, 0.7);
   --ink-60: rgba(237, 237, 237, 0.6);
   --ink-50: rgba(237, 237, 237, 0.5);
@@ -972,6 +1003,7 @@ html[data-theme="dark"] {
      as glowing rather than as ink. */
   --accent: #ff8a4c;
   --blue: #4bb4e6;
+  --blue-bright: #55c2f5;
   --green: #7ed15f;
   --red: #ff6470;
   --live: #ff8b80;
@@ -999,6 +1031,17 @@ html[data-theme="dark"] {
 
   /* One step up from the card, for controls drawn on top of one. */
   --surface-raised: #2c2c2e;
+
+  /* The reader's washes. A 100%-lightness tint has nothing to lighten on a
+     #111 page — #fffbe5 over black is a flat cream rectangle — so each one
+     drops to its hue at a low alpha, and the ramp falls to a plain white film
+     rather than to white. */
+  --wash-amber: rgba(255, 214, 10, 0.14);
+  --wash-teal: rgba(64, 230, 210, 0.14);
+  --wash-violet: rgba(214, 122, 255, 0.14);
+  --wash-to: rgba(255, 255, 255, 0.04);
+
+  --accent-wash: rgba(255, 138, 76, 0.12);
 
   /* Shadow does almost no work on a dark ground — light does. The card's
      edge has to come from a highlight, so the "shadow" here is a hairline. */

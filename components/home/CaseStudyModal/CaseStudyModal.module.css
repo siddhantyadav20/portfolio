@@ -1,249 +1,33 @@
-/* Figma "Case Study - Modal" — node 62:3688, a 1440-wide frame.
-   Content column 1120 (so 160 either side), text blocks 960 inside that.
+/* The one thing this modal draws that is not either the shell or the study:
+   what the Share button says when the browser refuses the clipboard.
 
-   The plate, its entry and exit, and the control cluster live in
-   ModalSurface.module.css — everything here is this modal's own content.
-   Blocks carry `data-stage` so the shell can stage them on the no-morph path. */
+   Beside the button rather than under it, because the cluster it lives in is
+   a fixed row at the top left and there is nothing below it to push. */
 
-.inner {
-  max-width: var(--page-w);
-  margin: 0 auto;
-  padding: 0 48px 160px;
-}
-
-.content {
+.fallback {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 64px;
-  width: 100%;
-  max-width: 1120px;
-  margin: 0 auto;
+  gap: 2px;
+  max-width: min(420px, 50vw);
+  padding: 10px 14px;
+  border-radius: var(--r-sm);
+  background-color: var(--surface-raised);
+  box-shadow: var(--glass-shadow);
 }
 
-.intro {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 64px;
-  width: 100%;
-}
-
-/* The `view-transition-name`s for this modal are set inline in index.tsx, not
-   here: CSS Modules scopes them the same way it scopes class names, so a name
-   written in this file arrives in the browser as
-   `CaseStudyModal-module__NKAC5q__modal-title` and the `::view-transition-*`
-   selectors in globals.css never match it. Inline styles are not scoped. */
-.titleBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  max-width: 960px;
-}
-
-.title {
-  font-family: var(--font-display), Georgia, serif;
-  font-weight: 700;
-  font-size: 40px;
-  line-height: var(--lh-wide);
-  color: var(--ink);
-}
-
-.subtitle {
-  font-size: 24px;
+.fallbackLabel {
+  font-size: 12px;
   line-height: var(--lh);
   color: var(--ink-70);
 }
 
-/* --- The mockup ------------------------------------------------------------
-   Figma node 68:4844 — 1120x700, radius 48. Built from its three layers rather
-   than shipped as one flat export, because the screen has to be live.
-
-   Every offset below is Figma's, expressed against the 1120x700 frame so the
-   whole composite scales with the viewport instead of stranding the device
-   when the modal is narrower than the design. */
-
-.mockup {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1120 / 700;
-  border-radius: 48px;
-  overflow: hidden;
-  background-color: var(--surface-solid);
-
-  /* Plain `overflow: hidden`, and deliberately *not* the `clip-path: border-box`
-     that CardShell needs.
-
-     On a box this size Chrome resolves that clip wrongly at the bottom-right
-     corner only: instead of the 48px squircle it draws an arc a few hundred
-     pixels across, which cut a bite out of the hero and sliced through the
-     pause button. Ruled out as a cause: the view-transition name, the
-     `aspect-ratio` height, and the playback controls — removing the clip is the
-     only thing that squares the corner. Nothing here needs it either, since the
-     plate is clipped correctly by `overflow` alone; what looked like a clipping
-     failure in this frame was the artwork's own baked corners (see `.plate`). */
-}
-
-.plate {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-
-  /* No radius of its own: the frame's clip is the corner. It used to carry
-     12px, which is the radius that showed through when that clip was not
-     holding.
-
-     The 3% overfill is the second half of the same report, and it is about the
-     artwork rather than the CSS. `inspection-modal-bg.jpg` was exported with
-     its corners already rounded and flattened onto the light page grey — all
-     four corners of the file are a flat #EBEBEB out to about 40px. That baked
-     corner is tighter than the frame's 48px squircle, so a pale crescent sat
-     inside each corner of the hero, in both themes. Scaling the image a hair
-     past the frame puts its baked corners outside the clip and lets the real
-     corner be the frame's. Three percent off a full-bleed photograph is not a
-     crop anyone can see; re-exporting the plate without them would be the
-     better fix, and this needs no re-export. */
-  transform: scale(1.035);
-}
-
-/* Figma's "Background" (77:7493) — the hand's rect, and nothing else. The
-   screen's position inside it belongs to DeviceMockup, which the card renders
-   too. It runs off the bottom of the frame and is clipped, as in Figma. */
-.device {
-  left: 30.143%; /* 337.6 / 1120 */
-  top: 8.436%; /* 59.05 / 700 */
-  width: 57.571%; /* 644.8 / 1120 */
-  height: 132.993%; /* 930.949 / 700 */
-}
-
-/* Not in Figma. The recording runs on its own here, and anything that plays
-   without being asked needs a way to be told to stop. */
-.playback {
-  position: absolute;
-  right: 24px;
-  bottom: 24px;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.playToggle {
-  /* The only glass on the site that sits on a photograph rather than the page.
-     The plate is carrying a dark driveway here, so it takes more white to stay
-     a light control and none of the colour boost — see --liquid-sat. */
-  --liquid-body: 0.5;
-  --liquid-sat: 100%;
-
-  position: relative;
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: var(--r-pill);
-  color: var(--ink);
-}
-
-.playToggle:hover {
-  --liquid-body: 0.62;
-  --liquid-shade: var(--liquid-shade-hi);
-  --liquid-gloss: var(--liquid-gloss-hi);
-  --liquid-spec: var(--liquid-spec-hi);
-
-  transform: scale(1.015);
-  box-shadow: var(--liquid-cast-hi);
-}
-
-.body {
-  width: 100%;
-  max-width: 960px;
-  font-size: 24px;
+/* Selectable, and allowed to be selected — this is the whole point of the
+   fallback, so it opts out of the site's `user-select` rules by being plain
+   text in a plain element, and wraps rather than truncating. */
+.fallbackUrl {
+  font-size: 12px;
   line-height: var(--lh);
   color: var(--ink);
-}
-
-.separator {
-  width: 600px;
-  max-width: 100%;
-  height: 0;
-  /* Ink rather than black: a black rule on a #111 page is not a rule. */
-  border-top: 1px dashed var(--ink-20);
-}
-
-.meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 64px;
-  width: 100%;
-  max-width: 960px;
-}
-
-.metaItem {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: none;
-}
-
-/* Skills runs long and is the only column allowed to take the slack. */
-.metaItem:last-child {
-  flex: 1 0 0;
-  min-width: 240px;
-}
-
-.metaLabel {
-  font-size: 15px;
-  line-height: var(--lh);
-  color: var(--ink-70);
-}
-
-.metaValue {
-  font-weight: 500;
-  font-size: 17px;
-  line-height: var(--lh);
-  color: var(--ink);
-}
-
-/* The long-form write-up, below the meta row. Same 960 measure as the meta so
-   the modal has one content edge rather than two. */
-.sections {
-  width: 100%;
-  max-width: 960px;
-}
-
-/* --- Narrow viewports ------------------------------------------------------
-   The design is a fixed 1440 frame; below it everything simply gets closer
-   together. Nothing reflows, because nothing in the layout is side-by-side
-   except the meta row, which already wraps. */
-
-@media (max-width: 900px) {
-  .inner {
-    padding: 0 24px 96px;
-  }
-
-  .content,
-  .intro {
-    gap: 40px;
-  }
-
-  .title {
-    font-size: 30px;
-  }
-
-  .subtitle,
-  .body {
-    font-size: 18px;
-  }
-
-  .mockup {
-    border-radius: 28px;
-  }
-
-  .meta {
-    gap: 32px;
-  }
+  overflow-wrap: anywhere;
+  user-select: all;
 }

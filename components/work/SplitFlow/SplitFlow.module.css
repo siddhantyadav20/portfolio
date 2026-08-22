@@ -1,0 +1,118 @@
+/* Figma 529:12119. Every number here is the number in the file, in a unit that
+   is 1px at the design's own width and shrinks with the container.
+
+   `--u` is the whole trick: `100cqw / 644` makes one unit one 644th of the
+   available width, so the diagram — boxes, type, arrowheads, the illustration
+   — scales as a single drawing. A percentage layout would have scaled the
+   boxes and left 14px text sitting in them.
+
+   Below the design frame it stops: the unit locks to 1px and the panel scrolls
+   sideways instead. Past a certain point a proportional diagram is not a
+   smaller diagram, it is an unreadable one. */
+
+.scroll {
+  container-type: inline-size;
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.flow {
+  --u: calc(100cqw / var(--w));
+
+  position: relative;
+  width: calc(var(--w) * var(--u));
+  height: calc(var(--h) * var(--u));
+  /* The arrows are `currentColor` so they follow the theme rather than
+     carrying Figma's baked #222; 50% is the opacity the export measures. */
+  color: var(--ink-50);
+}
+
+@media (max-width: 900px) {
+  .flow {
+    --u: 1px;
+  }
+}
+
+/* --- Boxes ---------------------------------------------------------------
+   A near-transparent white on the panel's own white, with a 15% hairline —
+   the fill is doing almost nothing and the border is the shape. */
+
+.box {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  padding: calc(16 * var(--u));
+  border: 1px solid var(--ink-20);
+  border-radius: calc(8 * var(--u));
+  background-color: rgb(255 255 255 / 0.1);
+}
+
+.boxText {
+  font-size: calc(14 * var(--u));
+  line-height: var(--lh-read);
+  color: var(--ink-80);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.boxLine {
+  display: block;
+}
+
+/* --- The branch chips ----------------------------------------------------
+   YES and NO, sitting on the rule they label. Opaque, because that is what
+   makes them read as a break in the line rather than as floating text. */
+
+.chip {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  background-color: var(--surface-raised);
+  font-size: calc(13 * var(--u));
+  font-weight: 500;
+  line-height: var(--lh-read);
+  color: var(--ink-50);
+}
+
+/* --- Task labels ---------------------------------------------------------
+   The two halves the diagram exists to separate, so they carry the blue. */
+
+.task {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: calc(2 * var(--u));
+  color: var(--blue-bright);
+  white-space: nowrap;
+}
+
+.taskIndex {
+  font-size: calc(12 * var(--u));
+  line-height: var(--lh-read);
+}
+
+.taskName {
+  font-size: calc(14 * var(--u));
+  font-weight: 500;
+  line-height: var(--lh-read);
+}
+
+.arrow {
+  position: absolute;
+  overflow: visible;
+}
+
+/* A wrapper rather than the image itself, because `next/image` with `fill`
+   needs a positioned box to fill and the box is what carries the `--u`
+   geometry. Figma mirrors this instance; the same file is used unflipped in
+   the insight panel, so the flip is here rather than in a second export. */
+.figure {
+  position: absolute;
+  display: block;
+  transform: scaleX(-1);
+}
+
+.figure img {
+  object-fit: contain;
+}

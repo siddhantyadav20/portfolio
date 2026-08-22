@@ -5,10 +5,15 @@ import type { CaseStudy } from "./types";
 
 export type {
   CaseStudy,
+  StudyBlock,
+  StudyCaption,
+  StudyExhibit,
   StudyHero,
   StudyLive,
   StudyMedia,
   StudyMeta,
+  StudyOutcome,
+  StudyOverlay,
   StudySection,
 } from "./types";
 export { heroStill } from "./types";

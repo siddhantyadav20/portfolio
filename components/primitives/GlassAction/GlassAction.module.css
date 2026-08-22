@@ -1,0 +1,48 @@
+/* Figma 67:4229 — 64x64, radius 60, wearing the same liquid glass as the CTAs. */
+
+.action {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 60px;
+  color: var(--ink);
+}
+
+.action:hover {
+  --liquid-body: var(--liquid-body-hi);
+  --liquid-shade: var(--liquid-shade-hi);
+  --liquid-gloss: var(--liquid-gloss-hi);
+  --liquid-spec: var(--liquid-spec-hi);
+
+  transform: scale(1.015);
+  box-shadow: var(--liquid-cast-hi);
+}
+
+/* The two strokes are laid over each other in a grid cell rather than
+   absolutely positioned, so the glyph has a box of its own and the button's
+   `place-items: center` is what centres it. */
+.cross {
+  display: grid;
+  place-items: center;
+  width: 18.212px;
+  height: 18.212px;
+}
+
+.bar {
+  grid-area: 1 / 1;
+  width: 2px;
+  height: 23.756px;
+  border-radius: 12px;
+  background-color: currentColor;
+}
+
+.bar:first-child {
+  transform: rotate(-45deg);
+}
+
+.bar:last-child {
+  transform: rotate(45deg);
+}

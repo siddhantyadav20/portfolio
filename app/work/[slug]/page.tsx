@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-import { notFound } from "next/navigation";
 import ThemeToggle from "@/components/home/ThemeToggle";
-import StudyLiveBlock from "@/components/work/StudyLiveBlock";
-import StudySections from "@/components/work/StudySections";
-import { STUDIES, getStudy, heroStill, studyHref } from "@/content/work";
+import GlassAction, { CloseGlyph } from "@/components/primitives/GlassAction";
+import StudyReader from "@/components/work/StudyReader";
+import { STUDIES, getStudy, studyHref } from "@/content/work";
+import { notFound } from "next/navigation";
 import styles from "./page.module.css";
 
 /**
@@ -14,12 +12,16 @@ import styles from "./page.module.css";
  * The primary way into a study is the homepage card morphing into
  * `CaseStudyModal`, exactly as the Canvas card morphs into `CanvasSurface`.
  * This route is the same fallback `app/canvas/page.tsx` is: a shared link, an
- * opened-in-new-tab, a crawler, JavaScript disabled. Both surfaces read the
- * same `content/work` entry, so neither can tell a different story.
+ * opened-in-new-tab, a crawler, JavaScript disabled.
  *
- * Until this file existed, `search.href` and `designSystem.href` pointed at
- * 404s — and they were rendered as live anchors, so the homepage was shipping
- * two dead links.
+ * It used to be a *different layout* over the same data — a narrower column of
+ * prose with a "← Back" link where the modal has its control cluster, no
+ * outcomes, no rail, and a flat still where the modal runs the prototype. So
+ * the Share button handed out a link that opened something other than what the
+ * person who copied it was looking at. Both surfaces now render `StudyReader`,
+ * and the only thing this file still owns is the chrome around it: the same
+ * two clusters the modal draws, with the close going home instead of popping
+ * an overlay.
  */
 
 export function generateStaticParams() {
@@ -67,69 +69,18 @@ export default async function StudyPage({ params }: PageProps<"/work/[slug]">) {
     // The same purple the modal selects in, so a shared link reads as the
     // surface it stands in for. See "Selection" in globals.css.
     <main id="main" className={styles.page} data-selection="violet">
-      <header className={styles.bar}>
-        <Link href="/" className={styles.back}>
-          <span aria-hidden="true">&larr;</span> Back
-        </Link>
+      {/* Share is deliberately absent from this surface and not a gap: the
+          address bar already holds exactly the URL the modal's button copies,
+          and a control that duplicates the browser's own is a control that
+          has to be explained. */}
+      <div className={styles.controls}>
         <ThemeToggle />
-      </header>
+        <GlassAction href="/" label="Close this case study">
+          <CloseGlyph />
+        </GlassAction>
+      </div>
 
-      <article className={styles.article}>
-        <div className={styles.titleBlock}>
-          <h1 className={styles.title}>{study.title}</h1>
-          <p className={styles.subtitle}>{study.subtitle}</p>
-        </div>
-
-        {/* The prototype hero is the modal's own trick — it needs a client
-            component and a recording — so it renders here as a still, which is
-            what a shared link or a crawler should get.
-
-            A `live` hero is different: it is DOM, it server-renders at its rest
-            state, and it costs no image at all. Downgrading it to a screenshot
-            on the one surface a recruiter is most likely to open in a new tab
-            would be throwing the argument away to save nothing. */}
-        {study.hero?.kind === "live" && (
-          <div className={`${styles.hero} ${styles.heroLive} squircle`}>
-            <StudyLiveBlock view={study.hero.view} bare />
-          </div>
-        )}
-
-        {study.hero && study.hero.kind !== "live" && (
-          <div className={`${styles.hero} squircle`}>
-            <Image
-              src={heroStill(study.hero).src}
-              alt={heroStill(study.hero).alt}
-              width={study.hero.width}
-              height={study.hero.height}
-              className={styles.heroImage}
-              // The hero is this page's LCP element, and there is nothing above
-              // it that could displace it.
-              priority
-              sizes="(max-width: 1024px) 100vw, 960px"
-            />
-          </div>
-        )}
-
-        {study.body && <p className={styles.body}>{study.body}</p>}
-
-        <div className={styles.separator} />
-
-        <dl className={styles.meta}>
-          {study.meta.map((item) => (
-            <div key={item.label} className={styles.metaItem}>
-              <dt className={styles.metaLabel}>{item.label}</dt>
-              <dd
-                className={styles.metaValue}
-                data-placeholder={item.value ? undefined : ""}
-              >
-                {item.value ?? "—"}
-              </dd>
-            </div>
-          ))}
-        </dl>
-
-        <StudySections sections={study.sections} />
-      </article>
+      <StudyReader study={study} />
     </main>
   );
 }

@@ -94,3 +94,32 @@ export function morph(update: () => void, settled?: () => void) {
   // still has to run or the card is left frozen in its hovered state.
   transition.finished.catch(() => {}).finally(() => settled?.());
 }
+
+/**
+ * The parts of a modal's open/close transition that are choreographed against
+ * a card's morph — their timings live in globals.css.
+ *
+ * Set inline by the consumer rather than in a CSS module, because CSS Modules
+ * scopes `view-transition-name` exactly as it scopes a class name: written in
+ * a stylesheet, `modal-title` reaches the browser as
+ * `Something-module__NKAC5q__modal-title` and every `::view-transition-*` rule
+ * silently fails to match. Inline styles aren't scoped.
+ *
+ * Anything inside the overlay *without* a name of its own rides with the
+ * plate. `plate` and `controls` are applied by `ModalSurface`; the three
+ * content names are handed to whichever blocks a given modal wants staged, in
+ * reading order.
+ *
+ * Here rather than on `ModalSurface` because `StudyReader` carries these names
+ * and also renders on the `/work/<slug>` route, which is a server component —
+ * importing them out of a `"use client"` module would have pulled the whole
+ * modal shell into a route that never opens one.
+ */
+export const MODAL_VT = {
+  title: { viewTransitionName: "modal-title" },
+  body: { viewTransitionName: "modal-body" },
+  meta: { viewTransitionName: "modal-meta" },
+} as const;
+
+/** Must match the exit transition in ModalSurface.module.css. */
+export const EXIT_MS = 240;

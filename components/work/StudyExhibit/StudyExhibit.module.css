@@ -1,0 +1,80 @@
+/* Figma 529:11981 — the panel, and the label under it.
+
+   The panel is 1120x609 in the file with 64px of side padding, 32px top and
+   bottom, and a 64px gutter between the recording and the card. Those stay in
+   pixels: they are the frame, and the frame should not breathe. What gives is
+   the two children, both of which carry their own aspect ratio. */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+}
+
+.panel {
+  display: flex;
+  align-items: center;
+  gap: 64px;
+  padding: 32px 64px;
+  border-radius: var(--r-xl);
+  background-color: var(--surface-glass);
+  overflow: hidden;
+}
+
+/* The recording's slot — 236x502 at the design's width, shrinking with the
+   panel but never growing past it. */
+.slot {
+  flex: 0 1 236px;
+  min-width: 0;
+  aspect-ratio: 236 / 502;
+  border-radius: var(--r-lg);
+  background-color: var(--surface-raised);
+  /* Marked as unwritten rather than dressed up: an empty frame that looks
+     finished reads as a broken image. */
+  border: 1px dashed var(--ink-40);
+}
+
+.card {
+  flex: 1 1 0;
+  min-width: 0;
+  align-self: stretch;
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  border-radius: var(--r-lg);
+  /* A second, denser film on the panel's own — Figma's rgba(255,255,255,0.6)
+     over rgba(255,255,255,0.4). */
+  background-color: color-mix(in srgb, var(--surface-solid) 60%, transparent);
+  overflow: hidden;
+}
+
+.cardTitle {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: var(--lh-read);
+  color: var(--ink);
+  text-align: center;
+}
+
+/* Below the design frame the recording and the diagram stop being side by
+   side — 236px of phone next to a 644px diagram inside a phone-width column
+   is neither of them. */
+@media (max-width: 900px) {
+  .panel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+    padding: 20px;
+    border-radius: var(--r-lg);
+  }
+
+  .slot {
+    flex: none;
+    width: 160px;
+    align-self: center;
+  }
+}

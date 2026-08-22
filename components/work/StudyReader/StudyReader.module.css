@@ -1,0 +1,305 @@
+/* Figma "Case Study - Modal" — node 62:3688, a 1440-wide frame.
+   Content column 1120 (so 160 either side), text blocks 960 inside that.
+
+   The plate, its entry and exit, and the control clusters live in
+   ModalSurface.module.css and in the route's own module — everything here is
+   the study itself, and is identical on both surfaces.
+   Blocks carry `data-stage` so the modal shell can stage them on the
+   no-morph path. */
+
+.inner {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 0 48px 160px;
+}
+
+/* Figma's Content frame: 80 between the intro, the rule, and each section. */
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 80px;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* --- The introduction — Figma 71:7448 ------------------------------------ */
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+  width: 100%;
+  scroll-margin-top: 96px;
+}
+
+/* The `view-transition-name`s for this reader are set inline in the TSX, not
+   here: CSS Modules scopes them the same way it scopes class names, so a name
+   written in this file arrives in the browser as
+   `StudyReader-module__NKAC5q__modal-title` and the `::view-transition-*`
+   selectors in globals.css never match it. Inline styles are not scoped. */
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+}
+
+/* --- Helpers — Figma 328:10064 -------------------------------------------
+   "SaaS · PropTech · Product Design · 2026 · 10 min read". Wraps rather than
+   scrolls: on a phone this is three lines of small grey type, which is fine,
+   and a horizontally scrolling line of metadata is not. */
+
+.helpers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 20px;
+  line-height: var(--lh-read);
+  color: var(--ink-70);
+  text-align: center;
+}
+
+.helper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+/* 6px at 25% ink, which is the file's own ellipse rather than a character. */
+.dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background-color: rgb(from var(--ink) r g b / 0.25);
+}
+
+.title {
+  width: 100%;
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 40px;
+  /* The one place in the reader that is not 170%: the display face sets its
+     own leading, and Figma's 60px on 40px is exactly 150%. */
+  line-height: var(--lh);
+  color: var(--ink);
+  text-align: center;
+}
+
+.subtitle {
+  width: 100%;
+  margin: 0;
+  font-size: 22px;
+  line-height: var(--lh-read);
+  color: var(--ink-70);
+  text-align: center;
+}
+
+/* The opening paragraph, for a study whose design still has one. */
+.body {
+  width: 100%;
+  max-width: 960px;
+  font-size: 17px;
+  line-height: var(--lh-read);
+  color: var(--ink-70);
+}
+
+/* --- Outcomes — Figma 548:12203 ------------------------------------------ */
+
+.outcomes {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.outcomeRow {
+  display: flex;
+  gap: 32px;
+  width: 100%;
+}
+
+/* Figma 529:11936 — a 128deg wash from a tint in the top-left corner to
+   almost nothing by the middle of the card. The angle and the two stops are
+   the file's; only the endpoints change per card, which is why they are
+   custom properties and this is one rule rather than three. */
+.outcome {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  border-radius: var(--r-lg);
+  background-image: linear-gradient(
+    128.3deg,
+    var(--wash) 4.71%,
+    var(--wash-to) 55.79%
+  );
+}
+
+.outcome[data-tint="amber"] {
+  --wash: var(--wash-amber);
+}
+
+.outcome[data-tint="teal"] {
+  --wash: var(--wash-teal);
+}
+
+.outcome[data-tint="violet"] {
+  --wash: var(--wash-violet);
+}
+
+.outcomeFigure {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.outcomeValue,
+.outcomeLabel {
+  margin: 0;
+  font-weight: 600;
+  line-height: var(--lh-read);
+  color: var(--blue);
+}
+
+.outcomeValue {
+  font-size: 24px;
+}
+
+.outcomeLabel {
+  font-size: 14px;
+}
+
+.outcomeNote {
+  margin: 0;
+  font-size: 15px;
+  line-height: var(--lh-read);
+  color: var(--ink-70);
+}
+
+.outcomeFootnote {
+  margin: 0;
+  font-size: 15px;
+  line-height: var(--lh-read);
+  color: var(--ink-70);
+}
+
+/* --- The rule — Figma 529:11959 ------------------------------------------
+   Full width, dashed. Ink rather than black: a black rule on a #111 page is
+   not a rule. */
+
+.separator {
+  width: 100%;
+  height: 0;
+  border-top: 1px dashed var(--ink-20);
+}
+
+/* --- The meta list -------------------------------------------------------
+   Only for a study that has not been through the redesign; one with a
+   `helpers` line has said all of this above the title. */
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 64px;
+  width: 100%;
+  max-width: 960px;
+  margin: 0;
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: none;
+}
+
+/* Skills runs long and is the only column allowed to take the slack. */
+.metaItem:last-child {
+  flex: 1 0 0;
+  min-width: 240px;
+}
+
+.metaLabel {
+  font-size: 15px;
+  line-height: var(--lh);
+  color: var(--ink-70);
+}
+
+.metaValue {
+  margin: 0;
+  font-weight: 500;
+  font-size: 17px;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+/* --- Narrow viewports ------------------------------------------------------
+   The design is a fixed 1440 frame; below it everything simply gets closer
+   together. The one thing that reflows is the outcome row, which is three
+   cards side by side and nothing else in the layout is. */
+
+@media (max-width: 900px) {
+  .inner {
+    padding: 0 24px 96px;
+  }
+
+  .content,
+  .intro {
+    gap: 40px;
+  }
+
+  .titleBlock,
+  .titleGroup {
+    gap: 20px;
+  }
+
+  .helpers {
+    font-size: 15px;
+    gap: 8px;
+  }
+
+  .helper {
+    gap: 8px;
+  }
+
+  .title {
+    font-size: 30px;
+  }
+
+  .subtitle {
+    font-size: 18px;
+  }
+
+  .body {
+    font-size: 16px;
+  }
+
+  .outcomeRow {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .meta {
+    gap: 32px;
+  }
+}

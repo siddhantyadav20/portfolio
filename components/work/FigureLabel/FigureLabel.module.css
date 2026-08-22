@@ -1,0 +1,36 @@
+/* Figma 529:11967. 8px apart, 12px type throughout, and the whole row sits at
+   the right edge of the figure it belongs to. */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-end;
+  font-size: 12px;
+  line-height: var(--lh-read);
+  text-align: center;
+}
+
+.index {
+  color: var(--ink-50);
+}
+
+.label {
+  font-weight: 500;
+  color: var(--ink-80);
+}
+
+/* 28px tall with 12px of side padding and a fully round end — Figma's own
+   pill, and the same shape the site's other chips use. */
+.tag {
+  display: grid;
+  place-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: var(--r-pill);
+  background-color: var(--surface);
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  color: var(--ink-50);
+  white-space: nowrap;
+}

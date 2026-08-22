@@ -2,35 +2,16 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import GlassAction, { CloseGlyph } from "@/components/primitives/GlassAction";
 import { useModalShell } from "@/lib/modalShell";
 import styles from "./ModalSurface.module.css";
 
-/** Must match the exit transition in ModalSurface.module.css. */
-export const EXIT_MS = 240;
-
-/**
- * The parts of the open/close transition that are choreographed against a
- * card's morph — their timings live in globals.css.
- *
- * Set inline by the consumer rather than in a module, because CSS Modules
- * scopes `view-transition-name` exactly as it scopes a class name: written in a
- * stylesheet, `modal-title` reaches the browser as
- * `Something-module__NKAC5q__modal-title` and every `::view-transition-*` rule
- * silently fails to match. Inline styles aren't scoped.
- *
- * Anything inside the overlay *without* a name of its own rides with the plate.
- * `plate` and `controls` are applied by this component; the three content names
- * are handed to whichever blocks a given modal wants staged, in reading order.
- */
-export const MODAL_VT = {
-  title: { viewTransitionName: "modal-title" },
-  body: { viewTransitionName: "modal-body" },
-  meta: { viewTransitionName: "modal-meta" },
-} as const;
-
-/** The glass disc the close button wears. Exported so a modal's own actions —
- *  Share, and whatever comes after it — can match it without redeclaring it. */
-export const modalAction = styles.action;
+/* `EXIT_MS` and `MODAL_VT` used to live here and now live in
+   `lib/viewTransition.ts`, alongside the rest of the morph's vocabulary —
+   `StudyReader` needs the names and also renders on a server route, which
+   cannot import them out of a `"use client"` module without dragging the
+   whole shell along. Re-exported so the existing callers are unchanged. */
+export { EXIT_MS, MODAL_VT } from "@/lib/viewTransition";
 
 type Props = {
   open: boolean;
@@ -39,8 +20,11 @@ type Props = {
   onClose: () => void;
   /** Announced as the dialog's name. */
   label: string;
-  /** Controls placed left of the close button — the theme toggle, Share, etc. */
+  /** Controls placed left of the close button — the theme toggle, and
+   *  whatever else a given reader puts beside it. */
   actions?: ReactNode;
+  /** The cluster in the *opposite* corner — Figma puts Share at top left. */
+  leading?: ReactNode;
   /**
    * Which text-selection tint this reader carries. Omitted, it keeps the
    * homepage's orange — see "Selection" in globals.css.
@@ -48,6 +32,34 @@ type Props = {
   selectionTint?: "violet" | "green";
   children: ReactNode;
 };
+
+/**
+ * Escape, when the thing you are escaping from is a half-written sentence.
+ *
+ * A case study now carries a comment box, and closing the whole reader on the
+ * first Escape would throw away whatever was typed into it with no warning and
+ * no undo — the modal is portalled and unmounted, so the draft is simply gone.
+ *
+ * So the first Escape leaves the field and the second closes the reader, which
+ * is what a text editor does and what the muscle memory expects. An *empty*
+ * field is not worth the extra keystroke: there is nothing to lose, so Escape
+ * closes as it always did.
+ *
+ * `useModalShell` was written with this hook already in place — see its
+ * `onEscape`, which names this exact case. It just had no caller until now.
+ */
+function escapeFromField(): boolean {
+  const el = document.activeElement;
+
+  const editable =
+    el instanceof HTMLTextAreaElement ||
+    (el instanceof HTMLInputElement && !["button", "submit", "checkbox", "radio"].includes(el.type));
+
+  if (!editable || !el.value.trim()) return false;
+
+  el.blur();
+  return true;
+}
 
 /**
  * The full-bleed reader every modal on the site is built in.
@@ -67,6 +79,7 @@ export default function ModalSurface({
   onClose,
   label,
   actions,
+  leading,
   selectionTint,
   children,
 }: Props) {
@@ -80,6 +93,7 @@ export default function ModalSurface({
     rootRef: overlayRef,
     onClose,
     initialFocusRef: closeRef,
+    onEscape: escapeFromField,
   });
 
   useEffect(() => {
@@ -130,25 +144,21 @@ export default function ModalSurface({
       {...(closing ? { "data-exit": "" } : {})}
       {...(selectionTint ? { "data-selection": selectionTint } : {})}
     >
-      {/* Deliberately unnamed for the view transition. `view-transition-name`
-          makes an element a backdrop root, and every control in here is
-          `.liquid` — whose frost is a `backdrop-filter`, which inside a
-          backdrop root has nothing behind it to filter. Named, the cluster sat
-          over the case study's hero photograph with no blur at all. See the
-          note beside `::view-transition-group(*)` in globals.css. */}
+      {/* Both clusters are deliberately unnamed for the view transition.
+          `view-transition-name` makes an element a backdrop root, and every
+          control in them is `.liquid` — whose frost is a `backdrop-filter`,
+          which inside a backdrop root has nothing behind it to filter. Named,
+          the cluster sat over the case study's hero photograph with no blur at
+          all. See the note beside `::view-transition-group(*)` in
+          globals.css. */}
+      {leading && <div className={styles.leading}>{leading}</div>}
+
       <div className={styles.controls}>
         {actions}
 
-        <button
-          ref={closeRef}
-          type="button"
-          className={`${styles.action} liquid`}
-          onClick={onClose}
-        >
-          <span className={`${styles.bar} ${styles.barBack}`} />
-          <span className={`${styles.bar} ${styles.barForward}`} />
-          <span className="srOnly">Close</span>
-        </button>
+        <GlassAction ref={closeRef} label="Close" onClick={onClose}>
+          <CloseGlyph />
+        </GlassAction>
       </div>
 
       {children}
