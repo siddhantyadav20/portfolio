@@ -26,6 +26,23 @@ jobs:
 
       - run: npm ci
 
+      # Before the typecheck, and this is why every run of this job failed from
+      # the day it was added.
+      #
+      # `PageProps` and `LayoutProps` are globals Next *generates* from the
+      # route files — they are not written by hand and not in node_modules, so
+      # `tsc` cannot resolve them until something has produced them. Locally
+      # that something is the last `next dev` or `next build`, which is why the
+      # typecheck passes on a developer's machine and has never passed here: a
+      # fresh checkout has no `.next/types` and this step ran before the build
+      # that would have written it.
+      #
+      # `typegen` writes exactly those definitions and nothing else, so the
+      # cheap checks stay cheap rather than being reordered behind a build. It
+      # needs no environment: it reads the route files, it does not render
+      # them.
+      - run: npx next typegen
+
       - run: npm run typecheck
       - run: npm run lint
 
