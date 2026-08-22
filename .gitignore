@@ -44,15 +44,30 @@ yarn-error.log*
 next-env.d.ts
 
 # Source material: Figma exports, the Framer originals, the raw inspection
-# recording. ~110MB, imported by nothing, excluded from typecheck and lint —
-# but cloned in full on every CI run. The single .mov in here is 45MB, about a
-# third of .git on its own.
+# recording, and the eight full-length tracks the shipped previews are cut
+# from. ~110MB, imported by nothing, excluded from typecheck and lint.
 #
-# Adding this line does not untrack what is already committed. To stop
-# carrying it forward:
-#     git rm -r --cached references
-# Removing it from *history* is a rewrite and is not something to do casually.
+# Untracked as of the commit that added the audio previews, so a depth-1 CI
+# clone no longer pulls it. It is still in *history* — removing it from there
+# is a rewrite and is not something to do casually.
+#
+# No longer on disk here either: it was deleted in the pre-launch clean-out,
+# and Siddhant keeps the originals in his own backup. `scripts/trim-audio.mjs`
+# reads it when it is present and falls back to `public/` when it is not, so
+# the script still runs — it just cannot re-cut a preview from a full-length
+# master any more without the folder being restored first. The rule stays so
+# that restoring it never re-tracks 110MB by accident.
 /references
 
 # Not source material and not ours — an APK that landed in references/photos.
 *.apk
+
+# The content intake questionnaire — the gaps the site is waiting on words for,
+# and the table recording where the published CV and this site disagree.
+#
+# A working document between Siddhant and whoever is helping him write, and it
+# reads as one: it names which numbers contradict each other and which of them
+# undersell him. This repository is public, and a recruiter who finds it should
+# find the work, not the notes about what the work is still missing. Kept on
+# disk, kept out of the repo.
+/CONTENT-INTAKE.md
