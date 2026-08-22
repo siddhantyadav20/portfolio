@@ -31,10 +31,29 @@ import "server-only";
    that does not exist yet: an obvious gap beats a plausible fake.
    =========================================================================== */
 
-const URL_ =
-  process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
-const TOKEN =
-  process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
+/**
+ * The first of these names that carries an actual value.
+ *
+ * `??` would be wrong here and it is worth saying why, because the failure is
+ * silent and the setup flow walks straight into it: importing this repo,
+ * Vercel reads `.env.example` and offers every key in it, so a project can
+ * very easily end up with `UPSTASH_REDIS_REST_URL` defined and *empty*. An
+ * empty string is neither null nor undefined, so `??` would hold onto it and
+ * never look at the name the database actually injected — leaving the site
+ * reporting "not connected" with a working Redis attached to it.
+ */
+function firstSet(...values: (string | undefined)[]): string | undefined {
+  return values.find((value) => value && value.trim().length > 0);
+}
+
+const URL_ = firstSet(
+  process.env.UPSTASH_REDIS_REST_URL,
+  process.env.KV_REST_API_URL,
+);
+const TOKEN = firstSet(
+  process.env.UPSTASH_REDIS_REST_TOKEN,
+  process.env.KV_REST_API_TOKEN,
+);
 
 /**
  * Whether there is a store to talk to at all. Checked before every call, and
