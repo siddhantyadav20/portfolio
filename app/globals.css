@@ -1083,54 +1083,108 @@ html[data-theme="dark"] {
 
    The homepage on somebody's first arrival, while `BootSequence` draws it.
 
-   The page is *dimmed, not hidden*, and the distinction is the whole design.
-   `display: none` or `visibility: hidden` would give the sequence nothing to
-   measure — a card with no box has no `getBoundingClientRect()` — and would
-   take the content out of the accessibility tree, so a screen reader would be
-   told to wait five seconds for an animation it cannot see. At `opacity: 0`
+   THE CARDS ANIMATE THEMSELVES. The overlay draws a wireframe on top; what
+   fills in underneath is the real card, on a delay the component writes onto
+   the element as `--boot-at`. Each card arrives while its neighbours are still
+   being drawn, so the page assembles rather than being revealed all at once —
+   which is what the first version did, and it read as a diagram of a loading
+   sequence rather than as a page coming together.
+
+   Because the thing that animates *is* the card, the hand-over is exact by
+   construction. There is no second copy of the layout to keep in step, and
+   nothing to measure twice.
+
+   THE PAGE IS DIMMED, NEVER HIDDEN. `display: none` would leave the sequence
+   nothing to measure — an element with no box has no `getBoundingClientRect()`
+   — and would take the content out of the accessibility tree, so a screen
+   reader would be told to wait out an animation it cannot see. At `opacity: 0`
    the layout is real, measurable and announced; it is only invisible.
 
    Set before first paint by `BOOT_SCRIPT`, removed by the component. If the
    JavaScript never runs, the attribute is never set and none of this applies.
    =========================================================================== */
 
+:root {
+  /* A damped spring, sampled out of lib/spring.ts. Overshoots ~4% and settles.
+     See `springEasing` there for why this is a `linear()` and not a bézier. */
+  --spring: linear(
+    0, 0.093, 0.29, 0.506, 0.696, 0.841, 0.939, 0.998, 1.028, 1.038, 1.037,
+    1.03, 1.019, 1.009, 1.002, 0.998, 0.996, 0.997, 0.999, 1
+  );
+  /* The same spring, barely underdamped — for the ground, which should settle
+     rather than bounce. */
+  --spring-soft: linear(
+    0, 0.12, 0.35, 0.57, 0.74, 0.86, 0.93, 0.97, 0.99, 1
+  );
+}
+
 html[data-booting] body {
   /* The sequence draws what is above the fold and expects it to stay there. */
   overflow: hidden;
 }
 
-html[data-booting] #main {
+/* Everything the sequence has not reached yet. A card is invisible until its
+   own beat, and `--boot-at` is written onto it by the component; the fallback
+   keeps a card that was never measured from being stranded. */
+html[data-booting] [data-boot-card] {
   opacity: 0;
-  /* The cards arrive from a hair under their real size — the same hair the
-     overlay leaves on — so the two motions meet rather than cross. */
-  transform: scale(0.994);
-  /* Nothing under the overlay should react to a pointer crossing it: the
-     proximity field would be pushing cards around behind a screen nobody can
-     see through. */
+  animation: bootCardIn 620ms var(--spring) var(--boot-at, 0ms) forwards;
+}
+
+/* Arriving from slightly under, and slightly out of focus.
+
+   The blur is the part that does the work, and it is the one thing here
+   borrowed wholesale from how a phone opens an app: a surface that scales up
+   *and* resolves reads as coming toward you, where scale alone reads as a box
+   being stretched. It costs one composited filter for half a second. */
+@keyframes bootCardIn {
+  from {
+    opacity: 0;
+    transform: scale(0.972);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* The chrome that is not a card — the theme toggle, the footer, the bottom
+   blur ramp. It has no frame drawn for it, so it simply arrives last, once the
+   grid has begun to go. */
+html[data-booting] #main > *:not([data-boot-card]),
+html[data-booting] .skipLink {
+  opacity: 0;
+  animation: bootChromeIn 500ms var(--spring-soft) 3200ms forwards;
+}
+
+@keyframes bootChromeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Nothing under the overlay should react to a pointer crossing it: the
+   proximity field would be pushing cards around behind a screen nobody can see
+   through. */
+html[data-booting] #main {
   pointer-events: none;
 }
 
-/* The hand-over. The overlay fades out over the same beat, so for a few
-   hundred milliseconds both are partly present and the wireframe is sitting
-   exactly on the card it drew. */
-html[data-booting] #main,
-#main {
-  transition:
-    opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Nothing to transition *from* on any other page or any later visit, and a
-   transition on `#main` is not something the rest of the site should inherit
-   for free — so it is cleared the moment the attribute goes. */
-html:not([data-booting]) #main {
-  opacity: 1;
-  transform: none;
+/* Skipping collapses the schedule instead of cutting the animation. */
+html[data-boot-skip] [data-boot-card],
+html[data-boot-skip] #main > *:not([data-boot-card]),
+html[data-boot-skip] .skipLink {
+  animation-delay: 0ms !important;
+  animation-duration: 220ms !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-booting] #main {
+  html[data-booting] [data-boot-card],
+  html[data-booting] #main > *:not([data-boot-card]),
+  html[data-booting] .skipLink {
     opacity: 1;
-    transform: none;
+    animation: none;
   }
 }

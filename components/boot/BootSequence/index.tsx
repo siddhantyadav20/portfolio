@@ -7,26 +7,35 @@ import styles from "./BootSequence.module.css";
 /* ===========================================================================
    The site, drawing itself.
 
-   A loading screen for a design portfolio has an obvious trap: it is time
-   taken from somebody looking at the work, spent on something that is not the
-   work. The only version worth building is one where the waiting *is* a piece
-   of the work — so this does not spin. It measures the homepage's real bento
-   grid and then draws it, frame by frame, the way the file it came from was
-   drawn: a rectangle dragged out, its dimensions ticking up beside it, corner
-   handles snapping on when it lands.
+   A loading screen on a design portfolio is time taken from looking at the
+   work and spent on something that is not the work. The only version worth
+   building is one where the waiting *is* a piece of the work — so this does
+   not spin. It draws the bento grid the way the file it came from was drawn: a
+   frame dragged out, held for a beat, and then filled with the thing it was a
+   drawing of.
 
-   THE ONE IDEA THAT MAKES IT WORK: the wireframes are not a picture of the
-   layout, they are measured from it. Every frame is positioned at the exact
-   `getBoundingClientRect()` of a real card and given that card's real corner
-   radius, so the hand-over at the end is a cross-fade between two things
-   occupying the same pixels. Nothing slides into place, because nothing was
-   ever out of place — which is the whole difference between this and the
-   jumpy version where a loader's idea of the layout and the layout itself
-   disagree by four pixels and the eye catches every one of them.
+   TWO IDEAS DO ALL THE WORK.
 
-   It also means this cannot drift. Re-flow the grid, change a card's radius,
-   add a card: the sequence re-measures on the next arrival and is correct,
-   because it has no opinion of its own about where anything is.
+   1. THE CARDS ANIMATE THEMSELVES. The overlay draws a wireframe over each
+      card, but what fills in underneath is the real card, on its own timer.
+      The first version faded the whole page up at the end, which meant four
+      seconds of outlines and then everything at once — a diagram of a loading
+      sequence rather than a page assembling. Now each card commits while its
+      neighbours are still being drawn, so something is always resolving and
+      the content starts arriving at about a second instead of at four.
+
+   2. IT MOVES IN A WAVE, NOT IN ORDER. Frames are ordered by distance from the
+      Introduction — the card a reader's eye goes to first — so the sequence
+      travels outward from a focal point. Reading order gave every card the
+      same stagger and read as a metronome. A wave has a place to look.
+
+   The motion is a real spring, sampled out of `lib/spring.ts` into a CSS
+   `linear()` at module scope. Cards overshoot about four percent and settle,
+   which is the difference between a card arriving and a card being placed.
+
+   Nothing here runs a frame loop. The component measures once, writes two
+   custom properties per card, and the compositor does the rest — which is why
+   it stays smooth while React is still hydrating the page underneath.
    =========================================================================== */
 
 type Frame = {
@@ -35,80 +44,40 @@ type Frame = {
   readonly w: number;
   readonly h: number;
   readonly radius: number;
-  /** The Figma-ish layer name shown while it draws. */
-  readonly name: string;
+  /** Milliseconds from the start of the run. */
+  readonly at: number;
 };
 
-/**
- * The beats, as fractions of `BOOT_MS`.
- *
- * Fractions rather than milliseconds so the whole thing retimes from one
- * constant: asked for four seconds instead of five, every stagger, stroke and
- * fade moves with it and none of them need touching.
- */
-const DRAW_FROM = 0.08;
-const DRAW_TO = 0.66; // all frames drawn by here
-/* There is deliberately no separate "select everything" beat between the last
-   frame landing and the hand-over. It was in the first plan and it was dead
-   time: the handles pop on as each frame finishes, so by the time the last one
-   lands the whole board is already sitting there selected. Adding a moment to
-   announce a state the screen is already in is how five seconds becomes six. */
-const HANDOVER = 0.78; // real cards begin to appear
+/* --- The beats, as fractions of BOOT_MS ---------------------------------- */
 
-/** How long one frame takes to draw itself, as a fraction of the run. */
-const STROKE = 0.12;
+/** When the first frame starts drawing. */
+const DRAW_FROM = 0.08;
+/** How long the last frame waits before it starts. */
+const DRAW_SPAN = 0.5;
+/**
+ * The gap between a frame appearing and its card filling in.
+ *
+ * Expressed here and again as a percentage inside the frame's keyframes, which
+ * have to agree: the wireframe begins leaving on the same beat the card begins
+ * arriving, so the two pass through each other rather than one waiting for the
+ * other to finish. See `frameLife` in the stylesheet.
+ */
+const COMMIT_LAG = 0.105;
+/** When the canvas underneath starts to go. */
+const GROUND_OUT = 0.7;
 
 /**
  * Which elements get a frame.
  *
- * `CardShell` marks every card it renders, and the Introduction marks itself
+ * `CardShell` marks every card it renders and the Introduction marks itself
  * passive — between them that is the bento grid and nothing else. Reading the
- * DOM rather than listing the cards means a card added later is drawn without
- * anybody remembering to come back here.
+ * DOM rather than listing the cards means a card added later joins the
+ * sequence without anybody remembering to come back here.
  */
 const CARDS = "[data-prox-card], [data-prox-passive]";
 
-function titleCase(slug: string) {
-  return slug
-    .split("-")
-    .map((w) => w[0].toUpperCase() + w.slice(1))
-    .join(" ");
-}
-
-/**
- * Measure the real grid.
- *
- * Only what is on screen: the footer and anything below the fold would be
- * drawn off the edge of the overlay, and a designer's file does not open
- * scrolled somewhere else either. Sorted into reading order — top to bottom,
- * then left to right within a row — so the sequence works across the page the
- * way a person would rather than in whatever order the DOM happens to be in.
- */
-function measure(): Frame[] {
-  const seen = Array.from(document.querySelectorAll<HTMLElement>(CARDS));
-  const vh = window.innerHeight;
-
-  return seen
-    .map((el) => {
-      const r = el.getBoundingClientRect();
-      const radius = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
-      const slug = el.dataset.card;
-      return {
-        x: Math.round(r.x),
-        y: Math.round(r.y),
-        w: Math.round(r.width),
-        h: Math.round(r.height),
-        radius,
-        name: slug ? titleCase(slug) : "Frame",
-      };
-    })
-    .filter((f) => f.w > 40 && f.h > 40 && f.y < vh - 40 && f.y + f.h > 40)
-    .sort((a, b) => {
-      // Same row if their tops are within a card's height of each other.
-      const row = Math.abs(a.y - b.y) < 80 ? 0 : a.y - b.y;
-      return row || a.x - b.x;
-    });
-}
+/** The card the wave starts from. */
+const FOCAL = '[data-card="introduction"]';
 
 export default function BootSequence() {
   /* Read once, during the first render, and never again.
@@ -122,39 +91,19 @@ export default function BootSequence() {
   const [booting] = useState(isBooting);
 
   const [frames, setFrames] = useState<Frame[] | null>(null);
-  const [phase, setPhase] = useState<"draw" | "handover" | "gone">("draw");
   const done = useRef(false);
 
   /**
    * End it, from anywhere.
    *
-   * Idempotent because three things race to call it: the timer, the skip, and
-   * the unmount. Whichever gets there first wins and the rest are no-ops.
+   * Idempotent because three things race to call it: the timer, the skip and
+   * the failsafe. Whichever arrives first wins and the rest are no-ops.
    */
   const finish = useCallback(() => {
     if (done.current) return;
     done.current = true;
-
-    /* Both at once, and this ordering is the whole hand-over.
-
-       Revealing the page *starts* the cross-fade rather than ending it: the
-       real cards fade up from `opacity: 0` at exactly the rects the wireframes
-       are occupying, while the overlay fades down over the same beat. For a
-       few hundred milliseconds both are half-present and sitting on the same
-       pixels, which is what reads as the drawing becoming the thing.
-
-       The first version revealed the page *after* the overlay had gone, and
-       the result was a second of blank screen between the two — the sketch
-       vanished, nothing replaced it, and then the homepage appeared. Same
-       assets, same timings, and completely wrong. */
-    setPhase("handover");
     revealPage();
-
-    // Only once the cross-fade is over does the overlay stop existing.
-    window.setTimeout(() => {
-      setPhase("gone");
-      markSeen();
-    }, BOOT_MS * (1 - HANDOVER) + 120);
+    markSeen();
   }, []);
 
   useEffect(() => {
@@ -162,31 +111,80 @@ export default function BootSequence() {
 
     /* Measured when the fonts are ready, and not before.
 
-       Two things had to be true and only one of them was obvious. The obvious
-       one: a rect read on mount is a rect of the layout mid-assembly — Canela
-       is a webfont, every heading reflows when it lands, and frames measured
-       before that are drawn a few pixels off the cards they are supposed to
-       become. `document.fonts.ready` is the actual signal for "the layout has
-       stopped moving", so it is the one to wait on.
+       Canela is a webfont and every heading reflows when it lands, so a rect
+       read before that is a rect of the layout mid-assembly and the frames are
+       drawn a few pixels off the cards they are supposed to become.
+       `document.fonts.ready` is the actual signal for "the layout has stopped
+       moving".
 
-       The one that cost an hour: the first version waited on
-       `requestAnimationFrame` instead, which is the same mistake `useStudyUrl`
-       and the palette's tour both document. Frames do not run in a
-       backgrounded tab — and opening a link in a background tab is how people
-       open links — so anybody who did that got a page held behind an overlay
-       that had measured nothing and drawn nothing. A promise resolves either
+       Deliberately not `requestAnimationFrame`, which is the mistake this
+       replaced and the same one `useStudyUrl` and the palette's tour both
+       document: frames do not run in a backgrounded tab, and opening a link in
+       a background tab is how people open links. A promise resolves either
        way. */
     let cancelled = false;
+
     const draw = () => {
       if (cancelled) return;
       window.scrollTo(0, 0);
-      setFrames(measure());
+
+      const els = Array.from(document.querySelectorAll<HTMLElement>(CARDS));
+      const vh = window.innerHeight;
+
+      const onScreen = els
+        .map((el) => ({ el, r: el.getBoundingClientRect() }))
+        .filter(
+          ({ r }) => r.width > 40 && r.height > 40 && r.y < vh - 40 && r.y + r.height > 40,
+        );
+      if (onScreen.length === 0) return;
+
+      /* The wave's origin: the middle of the Introduction if it is on screen,
+         and the middle of the viewport if it is not. */
+      const focal = document.querySelector<HTMLElement>(FOCAL)?.getBoundingClientRect();
+      const ox = focal ? focal.x + focal.width / 2 : window.innerWidth / 2;
+      const oy = focal ? focal.y + focal.height / 2 : vh / 2;
+
+      const ordered = onScreen
+        .map((c) => ({
+          ...c,
+          d: Math.hypot(c.r.x + c.r.width / 2 - ox, c.r.y + c.r.height / 2 - oy),
+        }))
+        .sort((a, b) => a.d - b.d);
+
+      const step = ordered.length > 1 ? (DRAW_SPAN * BOOT_MS) / (ordered.length - 1) : 0;
+
+      const out: Frame[] = ordered.map((c, i) => {
+        const at = DRAW_FROM * BOOT_MS + i * step;
+
+        /* The card is told when to arrive, and arrives on its own.
+
+           Written straight to the element rather than held in React state: the
+           real cards are not this component's to render, and eleven re-renders
+           to move eleven numbers would be work for nothing. The stylesheet
+           picks them up — see "Boot" in globals.css. */
+        c.el.dataset.bootCard = "";
+        c.el.style.setProperty(
+          "--boot-at",
+          `${Math.round(at + COMMIT_LAG * BOOT_MS)}ms`,
+        );
+
+        return {
+          x: Math.round(c.r.x),
+          y: Math.round(c.r.y),
+          w: Math.round(c.r.width),
+          h: Math.round(c.r.height),
+          radius: parseFloat(getComputedStyle(c.el).borderTopLeftRadius) || 0,
+          at: Math.round(at),
+        };
+      });
+
+      setFrames(out);
     };
 
     /* `fonts.ready` resolves on its own schedule, and on a cold cache that can
-       be slower than the sequence is long. The race keeps the sequence
-       honest: whichever arrives first wins, and a font landing late costs a
-       few pixels of accuracy rather than the whole animation. */
+       be slower than the sequence is long. Whichever arrives first wins, and a
+       font landing late costs a few pixels of accuracy rather than the whole
+       animation. */
     const fallback = window.setTimeout(draw, 400);
     if (document.fonts) {
       void document.fonts.ready.then(() => {
@@ -195,12 +193,19 @@ export default function BootSequence() {
       });
     }
 
-    const timer = window.setTimeout(finish, BOOT_MS * HANDOVER);
+    /* Skippable, and it does not cut.
 
-    /* Skippable, and it has to be. Five seconds is a long time to hold
-       somebody who came here to look at three case studies, and the polite
-       version of a long animation is one that stops the moment you ask. */
-    const skip = () => finish();
+       Five seconds is a long time to hold somebody who came here to read three
+       case studies, and the polite version of a long animation is one that
+       stops the moment you ask. It stops by bringing everything home fast
+       rather than by disappearing — `data-boot-skip` collapses every delay and
+       shortens every duration, so a skip two seconds in still looks like the
+       sequence finishing. Nothing on this site should ever appear to be cut
+       off mid-gesture. */
+    const skip = () => {
+      document.documentElement.setAttribute("data-boot-skip", "");
+      window.setTimeout(finish, 260);
+    };
     for (const e of ["keydown", "pointerdown", "wheel", "touchstart"]) {
       window.addEventListener(e, skip, { once: true, passive: true });
     }
@@ -208,39 +213,58 @@ export default function BootSequence() {
     return () => {
       cancelled = true;
       window.clearTimeout(fallback);
-      window.clearTimeout(timer);
       for (const e of ["keydown", "pointerdown", "wheel", "touchstart"]) {
         window.removeEventListener(e, skip);
       }
     };
   }, [booting, finish]);
 
+  /* The clock starts when the frames do, not when this mounted.
+
+     Every animation in the sequence is timed from the moment the cards are
+     measured — which is when the overlay renders and when `--boot-at` lands on
+     each card — and measuring waits on the fonts. The first version started
+     the finishing timer in the effect above instead, so on any load where
+     Canela took a moment the overlay was torn down while the last cards were
+     still arriving: the sequence was cut short by exactly however long the
+     fonts had taken, which is both invisible in testing and different on every
+     machine. Same clock for both, or they drift. */
+  useEffect(() => {
+    if (!frames) return;
+    const timer = window.setTimeout(finish, BOOT_MS);
+    return () => window.clearTimeout(timer);
+  }, [frames, finish]);
+
   /* The last resort.
 
-     Everything above can fail in ways this file cannot foresee — a thrown
-     measure, a timer a background tab never fires — and the failure mode is
-     the worst one available: a portfolio that is permanently invisible behind
-     an overlay. So one unconditional timer, well past the end of the run,
-     puts the page back no matter what happened. It costs nothing when the
-     sequence works, because by then there is nothing left to reveal. */
+     Everything above can fail in ways this file cannot foresee, and the
+     failure mode is the worst one available: a portfolio permanently behind an
+     overlay. One unconditional timer, well past the end of the run, puts the
+     page back whatever happened. It costs nothing when the sequence works,
+     because by then there is nothing left to reveal. */
   useEffect(() => {
     if (!booting) return;
-    const bail = window.setTimeout(revealPage, BOOT_MS * 2);
+    const bail = window.setTimeout(() => {
+      revealPage();
+      document.documentElement.removeAttribute("data-boot-skip");
+    }, BOOT_MS * 2);
     return () => window.clearTimeout(bail);
   }, [booting]);
 
-  if (!booting || !frames || phase === "gone") return null;
-
-  const step = frames.length > 1 ? (DRAW_TO - DRAW_FROM) / frames.length : 0;
+  if (!booting || !frames) return null;
 
   return (
     <div
       className={styles.boot}
-      data-phase={phase}
-      style={{ "--run": `${BOOT_MS}ms` } as React.CSSProperties}
+      style={
+        {
+          "--run": `${BOOT_MS}ms`,
+          "--ground-out": `${GROUND_OUT * BOOT_MS}ms`,
+        } as React.CSSProperties
+      }
       /* Not announced. A screen reader gets the real page immediately — it was
          never hidden from the accessibility tree, only from the eye — and
-         narrating a decorative animation would be an interruption, not
+         narrating a decorative animation would be an interruption rather than
          information. */
       aria-hidden="true"
     >
@@ -258,52 +282,15 @@ export default function BootSequence() {
             rx={f.radius}
             /* `pathLength` normalises the perimeter to 1 so one dash rule
                draws every rectangle at the same rate regardless of size —
-               without it a small card finishes long before a large one and
-               the sequence loses its beat. */
+               without it a small card finishes long before a large one and the
+               wave loses its shape. */
             pathLength={1}
-            style={{ "--d": `${(DRAW_FROM + i * step) * BOOT_MS}ms` } as React.CSSProperties}
+            style={{ "--d": `${f.at}ms` } as React.CSSProperties}
           />
         ))}
       </svg>
-
-      {frames.map((f, i) => (
-        <div
-          key={i}
-          className={styles.label}
-          style={
-            {
-              transform: `translate(${f.x}px, ${f.y + f.h}px)`,
-              "--d": `${(DRAW_FROM + i * step) * BOOT_MS}ms`,
-            } as React.CSSProperties
-          }
-        >
-          <span className={styles.name}>{f.name}</span>
-          <span className={styles.size}>
-            {f.w} × {f.h}
-          </span>
-        </div>
-      ))}
-
-      {/* The corner handles, drawn once every frame has landed. */}
-      {frames.map((f, i) => (
-        <div
-          key={i}
-          className={styles.handles}
-          style={
-            {
-              transform: `translate(${f.x}px, ${f.y}px)`,
-              width: f.w,
-              height: f.h,
-              "--d": `${(DRAW_FROM + i * step + STROKE) * BOOT_MS}ms`,
-            } as React.CSSProperties
-          }
-        >
-          <i /><i /><i /><i />
-        </div>
-      ))}
 
       <p className={styles.hint}>Press any key to skip</p>
     </div>
   );
 }
-

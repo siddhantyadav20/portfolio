@@ -1,46 +1,46 @@
-/* The arrival sequence.
+/* The arrival sequence — the canvas and the wireframes.
 
-   Everything here is timed off `--run`, the one duration the component passes
-   down, and offset by each element's own `--d`. No JavaScript drives a frame
-   of it: the whole sequence is declarative, which is what keeps it smooth
-   while React is still hydrating the page underneath. */
+   The cards themselves are not styled here. They are the real homepage cards
+   and they animate under "Boot" in globals.css, on delays this component
+   writes onto them. This file only draws what is *over* them.
+
+   Every duration is a fraction of `--run`, the one number the component passes
+   down, so retiming the whole sequence is one constant. */
 
 .boot {
   position: fixed;
   inset: 0;
-  /* Above every surface on the site — the palette sits at 950 and the canvas
-     at 900 — because for these five seconds this *is* the site. */
+  /* Above every surface on the site — the palette sits at 950, the canvas at
+     900 — because for these five seconds this is the site. */
   z-index: 990;
   overflow: hidden;
-  background-color: var(--page-base);
-  animation: groundOut calc(var(--run) * 0.22) cubic-bezier(0.16, 1, 0.3, 1)
-    forwards;
-  animation-play-state: paused;
-}
+  pointer-events: none;
 
-/* The overlay only starts leaving once the component says so. Pausing an
-   animation rather than swapping a class means the exit runs from wherever
-   the entry got to, which is what makes skipping mid-draw look deliberate
-   instead of like a cut. */
-.boot[data-phase="handover"] {
-  animation-play-state: running;
-}
+  /* TRANSPARENT, and this is the fix that made the sequence work.
 
-@keyframes groundOut {
-  to {
-    opacity: 0;
-    /* A breath of scale, in the same direction the real cards are arriving
-       from. The two motions are the same motion, which is the point. */
-    transform: scale(1.01);
-  }
+     It was `background-color: var(--page-base)` — an opaque sheet the same
+     colour as the page, which seemed harmless because it matched. It was not:
+     the cards commit *underneath* this element, so an opaque ground meant
+     every card that had already arrived stayed invisible until the whole
+     overlay faded at the end. The progressive assembly was happening and
+     nobody could see it; what you got was four seconds of wireframes and then
+     the page, which is precisely the version this replaced.
+
+     Nothing is lost by removing it. The body is already `--page-base`, so the
+     empty state looks identical — and now a card that has arrived is visible
+     the moment it arrives. Each layer below fades itself out on its own beat
+     rather than being carried out by a parent. */
+  background-color: transparent;
 }
 
 /* --- The canvas ----------------------------------------------------------- */
 
-/* Figma's dot grid. Faint enough to read as paper rather than as a texture. */
+/* Figma's dot grid, arriving as a zoom-to-fit: a hair too large, settling. The
+   scale is what makes it read as a *file being opened* rather than a texture
+   being faded in. */
 .grid {
   position: absolute;
-  inset: -1px;
+  inset: -2px;
   background-image: radial-gradient(
     circle at 1px 1px,
     color-mix(in srgb, var(--ink) 14%, transparent) 1px,
@@ -48,12 +48,29 @@
   );
   background-size: 24px 24px;
   opacity: 0;
-  animation: fadeIn calc(var(--run) * 0.07) ease forwards;
+  transform: scale(1.06);
+  /* In as a zoom-to-fit, out once enough of the page has arrived that a grid
+     over it would just be litter. The two are one animation so the grid never
+     sits at full strength over a finished card. */
+  animation: gridLife var(--ground-out) var(--spring-soft) forwards;
 }
 
-@keyframes fadeIn {
-  to {
+@keyframes gridLife {
+  0% {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+  18% {
     opacity: 1;
+    transform: none;
+  }
+  62% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: none;
   }
 }
 
@@ -65,140 +82,59 @@
   overflow: visible;
 }
 
+/* One frame's whole life: drawn, held, and then handed over.
+
+   The percentages matter and are not free choices. The hand-over begins at
+   58%, which is `COMMIT_LAG` expressed against this animation's length — the
+   card underneath starts arriving on exactly that beat. The wireframe scales
+   *up* and blurs on the way out while the card scales up from slightly under
+   and unblurs, so the two cross through each other rather than one waiting for
+   the other. That crossing is what reads as a morph; a plain cross-fade, which
+   is what this was first, reads as two separate things. */
 .rect {
-  fill: color-mix(in srgb, var(--blue) 5%, transparent);
+  fill: color-mix(in srgb, var(--blue) 4%, transparent);
   stroke: var(--blue-bright);
-  /* One physical pixel at any zoom, the way a vector tool draws a selection. */
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
 
-  /* `pathLength` is 1 on the element, so the perimeter is 1 unit long however
-     big the rectangle is. The dash is that whole length, offset by it — an
+  /* `pathLength` is 1 on the element, so the perimeter is one unit however big
+     the rectangle is. The dash is that whole length, offset by it — an
      invisible outline — and pulling the offset to zero draws it on, corner by
-     corner, starting from the top left exactly as a drag would. */
+     corner, from the top left exactly as a drag would. */
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   opacity: 0;
 
-  animation:
-    draw calc(var(--run) * 0.12) cubic-bezier(0.65, 0, 0.35, 1) forwards,
-    fillIn calc(var(--run) * 0.1) ease-out forwards;
-  animation-delay: var(--d), calc(var(--d) + var(--run) * 0.1);
+  transform-origin: center;
+  transform-box: fill-box;
+
+  animation: frameLife calc(var(--run) * 0.18) linear var(--d) forwards;
 }
 
-@keyframes draw {
-  from {
+@keyframes frameLife {
+  0% {
     stroke-dashoffset: 1;
     opacity: 1;
+    transform: scale(1);
   }
-  to {
+  /* Drawn. Fast — a confident drag, not a plotter. */
+  34% {
     stroke-dashoffset: 0;
     opacity: 1;
+    transform: scale(1);
   }
-}
-
-/* The wash arrives after the outline closes, never with it — a fill that
-   appears while the shape is still being drawn reads as a rectangle wiping in,
-   not as one being drawn. */
-@keyframes fillIn {
-  from {
-    fill: color-mix(in srgb, var(--blue) 0%, transparent);
-  }
-  to {
-    fill: color-mix(in srgb, var(--blue) 6%, transparent);
-  }
-}
-
-/* --- The measurement badge ------------------------------------------------ */
-
-.label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  /* Sits just under the frame's bottom-left corner, where Figma puts it. */
-  margin-top: 7px;
-  opacity: 0;
-  /* Shown while the frame is being drawn and gone once it lands, which is what
-     the real thing does — a dimension chip belongs to the drag, not to the
-     shape. It also fixes a crowding problem: the top row's cards sit a gutter
-     apart, so two chips that stayed up overlapped each other and neither was
-     readable. */
-  animation: badge calc(var(--run) * 0.2) ease-out forwards;
-  animation-delay: var(--d);
-  white-space: nowrap;
-}
-
-@keyframes badge {
-  0% {
-    opacity: 0;
-    transform: translateY(-3px);
-  }
-  20%,
-  62% {
+  /* Held, so the shape registers as a shape before it becomes a card. */
+  58% {
+    stroke-dashoffset: 0;
     opacity: 1;
-    transform: none;
+    transform: scale(1);
   }
   100% {
+    stroke-dashoffset: 0;
     opacity: 0;
-    transform: none;
-  }
-}
-
-.name {
-  font-family: var(--font-ui);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--blue-bright);
-}
-
-.size {
-  padding: 2px 6px;
-  border-radius: 4px;
-  background-color: var(--blue-bright);
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 10px;
-  color: #fff;
-}
-
-/* --- Selection handles ---------------------------------------------------- */
-
-.handles {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  animation: pop calc(var(--run) * 0.05) cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  animation-delay: var(--d);
-}
-
-.handles i {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border: 1.5px solid var(--blue-bright);
-  border-radius: 1px;
-  background-color: var(--page-base);
-}
-
-/* The four corners, each pulled half a handle outside the frame so it straddles
-   the stroke the way a real handle does. */
-.handles i:nth-child(1) { top: -4px; left: -4px; }
-.handles i:nth-child(2) { top: -4px; right: -4px; }
-.handles i:nth-child(3) { bottom: -4px; left: -4px; }
-.handles i:nth-child(4) { bottom: -4px; right: -4px; }
-
-@keyframes pop {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  to {
-    opacity: 1;
-    transform: none;
+    /* Outward, matching the card's inward arrival. */
+    transform: scale(1.03);
+    filter: blur(6px);
   }
 }
 
@@ -213,15 +149,42 @@
   font-size: 11px;
   color: var(--ink-40);
   opacity: 0;
-  /* Late, and quiet. Offered to somebody who has decided they have waited
-     long enough, rather than advertised to somebody who has just arrived. */
-  animation: fadeIn calc(var(--run) * 0.1) ease forwards;
-  animation-delay: calc(var(--run) * 0.45);
+  /* Late and quiet: offered to somebody who has decided they have waited long
+     enough, not advertised to somebody who has just arrived. */
+  animation: hintLife calc(var(--run) * 0.42) ease forwards calc(var(--run) * 0.3);
+}
+
+@keyframes hintLife {
+  0% {
+    opacity: 0;
+  }
+  22% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Skipping brings everything home rather than cutting it. */
+:global(html[data-boot-skip]) .rect,
+:global(html[data-boot-skip]) .grid,
+:global(html[data-boot-skip]) .boot {
+  animation-delay: 0ms !important;
+  animation-duration: 200ms !important;
+}
+
+:global(html[data-boot-skip]) .hint {
+  opacity: 0;
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* The pre-paint script already refuses to start under this setting, so this
-     is only a second belt for a preference changed mid-visit. */
+  /* The pre-paint script already refuses to start under this setting; this is
+     a second belt for a preference changed mid-visit. */
   .boot {
     display: none;
   }

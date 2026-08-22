@@ -126,3 +126,48 @@ export const clamp01 = (v: number) => clamp(v, 0, 1);
 
 /** Smoothstep. */
 export const smooth = (t: number) => t * t * (3 - 2 * t);
+
+/**
+ * A spring, frozen into a CSS easing curve.
+ *
+ * `linear()` takes a list of output values sampled at even intervals and
+ * interpolates between them, which makes it the one CSS easing function that
+ * can describe a shape a cubic-bézier cannot — including the overshoot and
+ * settle of an underdamped spring. So the same integrator the canvas camera
+ * and the timeline's dial run on can be sampled once, at module scope, and
+ * handed to the compositor as a string.
+ *
+ * The point is not novelty. A cubic-bézier decelerating into its target is the
+ * house curve everywhere on this site and it is right for a surface arriving
+ * where it was asked to go. It is wrong for something that should feel like it
+ * has *mass* — a card settling into place overshoots a little and comes back,
+ * and every attempt to fake that with an ease-out reads as slightly wrong in a
+ * way people notice without being able to name.
+ *
+ * Sampled rather than integrated at runtime: the browser animates this off the
+ * main thread, and nothing has to run a physics loop for five seconds.
+ *
+ * @param settleMs  How long until it is done moving.
+ * @param zeta      Damping ratio. Below 1 overshoots; 0.7 is one small bounce.
+ * @param samples   Resolution. 40 is smooth to the eye and short enough to read.
+ */
+export function springEasing(settleMs: number, zeta: number, samples = 40) {
+  const omega = omegaFor(settleMs);
+  const seconds = settleMs / 1000;
+  const dt = seconds / samples;
+  const c = chan(0);
+  const points: string[] = [];
+
+  for (let i = 0; i <= samples; i++) {
+    // Rounded hard: three decimals is well under a pixel on any property this
+    // drives, and the untrimmed floats made the rule unreadable in devtools.
+    points.push(c.v.toFixed(3));
+    spring(c, 1, omega, zeta, dt);
+  }
+
+  // Always land exactly on the target. Sampling can stop a thousandth short,
+  // and a card that settles at 0.999 opacity is a card that never quite
+  // arrives.
+  points[points.length - 1] = "1";
+  return `linear(${points.join(",")})`;
+}
