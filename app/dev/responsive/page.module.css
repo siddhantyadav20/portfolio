@@ -1,0 +1,91 @@
+/* The bench's own chrome. Deliberately unlike the site: this is a tool, and it
+   should never be mistaken for a surface anyone designed. */
+
+.bench {
+  min-height: 100vh;
+  padding: 12px;
+  background: #2a2a2e;
+  color: #e8e8ea;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.bar {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 0 4px 12px;
+  font-size: 12px;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.path {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hint {
+  margin-left: auto;
+  opacity: 0.45;
+}
+
+/* Scrolls sideways rather than wrapping: the widths are meant to be compared
+   against each other, and a 1440 that has wrapped under a 390 is not a
+   comparison. */
+.rail {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.frame {
+  flex: none;
+  margin: 0;
+}
+
+.label {
+  padding-bottom: 6px;
+  font-size: 11px;
+  opacity: 0.55;
+}
+
+/* A white ground under every viewport, so a card that fails to paint its own
+   background is visible as a hole rather than hidden by the bench's dark. */
+.viewport {
+  display: block;
+  border: 0;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* --- Fit-to-screen ---------------------------------------------------------
+   A viewport wider than this window cannot be seen whole, and scrolling a rail
+   sideways is a poor way to judge a composition. Scaling the frame down with a
+   transform shows all of it while the iframe still lays out at its true width,
+   so nothing about the rendering being judged has changed.
+
+   The figure reserves the scaled box; the iframe is scaled from its top-left
+   corner inside it. */
+
+.rail[data-fit] .frame {
+  width: calc(var(--fit-w) * var(--k));
+  height: calc(var(--fit-h) * var(--k) + 20px);
+  overflow: hidden;
+}
+
+.rail[data-fit] .viewport {
+  transform: scale(var(--k));
+  transform-origin: 0 0;
+}
+
+.rail[data-fit] {
+  /* Enough to bring 2560 inside a laptop window, and a round number so the
+     arithmetic when measuring off a screenshot stays easy. */
+  --k: 0.5;
+}

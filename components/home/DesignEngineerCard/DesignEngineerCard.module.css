@@ -8,7 +8,7 @@
 .card {
   flex: 1 1 auto;
   min-width: 0;
-  height: 116px;
+  height: calc(116 * var(--u));
 }
 
 /* Stretching is only meaningful while the top row is a single line. Once it
@@ -17,7 +17,7 @@
 @media (max-width: 1000px) {
   .card {
     flex: none;
-    width: 260px;
+    width: calc(260 * var(--u));
     max-width: 100%;
   }
 }
@@ -31,13 +31,13 @@
 }
 
 .start {
-  top: 16px;
-  left: 16px;
+  top: calc(16 * var(--u));
+  left: calc(16 * var(--u));
 }
 
 .dest {
-  top: 47px;
-  right: 16px;
+  top: calc(47 * var(--u));
+  right: calc(16 * var(--u));
   align-items: flex-end;
 }
 
@@ -45,7 +45,7 @@
 .abbrTo {
   font-family: var(--font-display), Georgia, serif;
   font-weight: 700;
-  font-size: 22px;
+  font-size: calc(22 * var(--u));
   line-height: var(--lh);
 }
 
@@ -74,7 +74,7 @@
 
 .labelFrom,
 .labelTo {
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 400;
   line-height: var(--lh);
 }
@@ -123,11 +123,22 @@
   top: 0;
   left: 0;
   display: block;
-  width: max(114.21px, calc(114.21px + 100% - 260px));
-  height: 35.43px;
+  /* 114.21 design px at the drawn width, growing with whatever the card
+     absorbs past 260. Both constants are design pixels, so both take `--u` —
+     left absolute they held the route at its full length inside a card that
+     had shrunk, and it hung 10px out of the right edge at 1001. */
+  width: max(calc(114.21 * var(--u)), calc(100% - 145.79 * var(--u)));
+  height: calc(35.43 * var(--u));
   overflow: visible;
   transform-origin: 0 0;
-  transform: matrix(0.9961, -0.0886, -0.0886, -0.9961, 73.43, 78.336);
+  /* Figma's exported matrix, with its translation split out so it can scale.
+     `matrix()` takes bare numbers and cannot carry a `calc()`, so the two
+     translate components — the only part of this that is a measurement rather
+     than a rotation — move into their own function. T x M composes to exactly
+     the matrix Figma exported, and `index.tsx` reads the *computed* transform,
+     which the browser resolves back to a single matrix either way. */
+  transform: translate(calc(73.43 * var(--u)), calc(78.336 * var(--u)))
+    matrix(0.9961, -0.0886, -0.0886, -0.9961, 0, 0);
 }
 
 /* The unflown route. Ink at a third, so it is a dashed line on the card in
@@ -157,13 +168,13 @@
    plan view says "climbing". */
 .planeBadge {
   position: absolute;
-  top: 29.03px;
-  left: 74.5px;
+  top: calc(29.03 * var(--u));
+  left: calc(74.5 * var(--u));
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: calc(32 * var(--u));
+  height: calc(32 * var(--u));
   border: 1px solid var(--ink-20);
   border-radius: 50%;
   /* The disc the plane rides in. `--surface-raised` rather than #ffffff: it sits
@@ -176,8 +187,8 @@
 }
 
 .plane {
-  width: 14.3px;
-  height: 15.56px;
+  width: calc(14.3 * var(--u));
+  height: calc(15.56 * var(--u));
   /* Figma's angle. It is exactly the route's tangent here plus 90deg, which is
      what tells you the plane was meant to fly the route rather than sit on it —
      the flight keeps that relationship the whole way round. */
@@ -196,10 +207,10 @@
 
 .thrust {
   position: absolute;
-  top: 29.03px;
-  left: 74.5px;
-  width: 32px;
-  height: 32px;
+  top: calc(29.03 * var(--u));
+  left: calc(74.5 * var(--u));
+  width: calc(32 * var(--u));
+  height: calc(32 * var(--u));
   opacity: var(--thrust, 0);
   will-change: transform, opacity;
   pointer-events: none;
@@ -223,8 +234,8 @@
   position: absolute;
   left: 50%;
   top: 84%;
-  width: 10px;
-  height: 34px;
+  width: calc(10 * var(--u));
+  height: calc(34 * var(--u));
   transform: translateX(-50%) scaleY(calc(0.45 + 0.55 * var(--thrust, 0)));
   transform-origin: 50% 0;
   border-radius: 50%;
@@ -269,14 +280,14 @@
 }
 
 .puffRing {
-  width: 20px;
-  height: 7px;
-  margin: -3.5px 0 0 -10px;
+  width: calc(20 * var(--u));
+  height: calc(7 * var(--u));
+  margin: calc(-3.5 * var(--u)) 0 0 calc(-10 * var(--u));
 }
 
 .grain {
-  width: 5px;
-  height: 4px;
+  width: calc(5 * var(--u));
+  height: calc(4 * var(--u));
   margin: -2px 0 0 -2.5px;
 }
 
@@ -294,8 +305,8 @@
 .dust[data-puff] .grain:last-child {
   animation-delay: 70ms;
   animation-duration: 700ms;
-  --grain-x: -22px;
-  --grain-y: 5px;
+  --grain-x: calc(-22 * var(--u));
+  --grain-y: calc(5 * var(--u));
 }
 
 @keyframes de-dust-ring {

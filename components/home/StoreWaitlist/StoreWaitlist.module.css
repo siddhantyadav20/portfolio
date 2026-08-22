@@ -30,10 +30,10 @@
      width the column is narrower than 506 and the card gives width back rather
      than overflowing it. */
   width: 100%;
-  max-width: 506px;
+  max-width: calc(506 * var(--u));
   margin-inline: auto;
-  min-height: 219px;
-  padding: 24px;
+  min-height: calc(219 * var(--u));
+  padding: calc(24 * var(--u));
   flex: none;
 
   /* Success palette. Local rather than global tokens: nothing else on the site
@@ -67,7 +67,7 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: calc(20 * var(--u));
   align-items: flex-start;
   width: 100%;
 }
@@ -75,12 +75,12 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: calc(12 * var(--u));
   width: 100%;
 }
 
 .eyebrow {
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   font-weight: 600;
   line-height: var(--lh);
   color: var(--accent);
@@ -89,19 +89,19 @@
 .titleBlock {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: calc(6 * var(--u));
 }
 
 .title {
   font-family: var(--font-display), Georgia, serif;
   font-weight: 700;
-  font-size: 20px;
+  font-size: calc(20 * var(--u));
   line-height: var(--lh);
   color: var(--ink);
 }
 
 .description {
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   font-weight: 400;
   line-height: var(--lh);
   color: var(--ink-60);
@@ -118,11 +118,11 @@
   display: flex;
   align-items: center;
   flex: none;
-  width: 138px;
+  width: calc(138 * var(--u));
   max-width: 100%;
-  height: 40px;
-  padding-left: 12px;
-  padding-right: 12px;
+  height: calc(40 * var(--u));
+  padding-left: calc(12 * var(--u));
+  padding-right: calc(12 * var(--u));
   border: 1px solid rgba(234, 88, 11, 0.2);
   border-radius: var(--r-pill);
   /* The design is a plain fill with an orange hairline, and it stays that in
@@ -138,8 +138,8 @@
 }
 
 .cta[data-open] {
-  width: 340px;
-  padding-right: 6px;
+  width: calc(340 * var(--u));
+  padding-right: calc(6 * var(--u));
 }
 
 /* Resting hover is the pill lifting a hair — no colour change, because the
@@ -177,8 +177,8 @@
   position: relative;
   display: inline-block;
   flex: none;
-  width: 20px;
-  height: 20px;
+  width: calc(20 * var(--u));
+  height: calc(20 * var(--u));
   border-radius: var(--r-pill);
   background-color: #ededed;
 }
@@ -202,7 +202,7 @@
   top: 50%;
   left: 50%;
   width: 2px;
-  height: 8px;
+  height: calc(8 * var(--u));
   border-radius: 1px;
   background-color: var(--accent);
   transform: translate(-50%, -50%);
@@ -218,10 +218,10 @@
    it draws in exactly the place Figma puts it — 12 padding, 20 icon, 6 gap. */
 .label {
   position: absolute;
-  left: 38px;
+  left: calc(38 * var(--u));
   top: 50%;
   translate: 0 -50%;
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 500;
   line-height: var(--lh);
   color: var(--accent);
@@ -259,8 +259,8 @@
 .field {
   flex: 1;
   min-width: 0;
-  margin-left: 6px;
-  font-size: 12px;
+  margin-left: calc(6 * var(--u));
+  font-size: calc(12 * var(--u));
   font-weight: 500;
   line-height: var(--lh);
   color: var(--ink);
@@ -290,10 +290,10 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: calc(6 * var(--u));
   flex: none;
   width: 0;
-  height: 28px;
+  height: calc(28 * var(--u));
   padding: 0;
   border-radius: var(--r-pill);
   background-color: var(--accent);
@@ -305,9 +305,9 @@
 }
 
 .cta[data-open] .join {
-  width: 68px;
-  padding-left: 6px;
-  padding-right: 12px;
+  width: calc(68 * var(--u));
+  padding-left: calc(6 * var(--u));
+  padding-right: calc(12 * var(--u));
   opacity: 1;
 }
 
@@ -321,13 +321,13 @@
    loader takes the middle. Must follow the `:disabled` rule above — the button
    is disabled while it is sending, and this state is not dimmed. */
 .cta[data-open] .join[data-busy] {
-  width: 28px;
+  width: calc(28 * var(--u));
   padding: 0;
   opacity: 1;
 }
 
 .joinLabel {
-  font-size: 11px;
+  font-size: calc(11 * var(--u));
   font-weight: 600;
   line-height: var(--lh);
   color: #ffffff;
@@ -350,7 +350,7 @@
    is twelve spokes and a travelling gap. `--dia` is the only thing that
    changes between the one in the button and the one riding the disc. */
 .spinner {
-  --dia: 14px;
+  --dia: calc(14 * var(--u));
   position: absolute;
   left: 50%;
   top: 50%;
@@ -390,10 +390,10 @@
    announced when it arrives rather than on mount. */
 .hint {
   position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 4px;
-  font-size: 12px;
+  left: calc(24 * var(--u));
+  right: calc(24 * var(--u));
+  bottom: calc(4 * var(--u));
+  font-size: calc(12 * var(--u));
   line-height: var(--lh);
   color: var(--red);
 }
@@ -444,8 +444,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 24px;
+  gap: calc(6 * var(--u));
+  padding: calc(24 * var(--u));
   pointer-events: none;
 }
 
@@ -454,8 +454,8 @@
    which is the point `liftOff` in index.tsx flies to. */
 .art {
   position: relative;
-  width: 146px;
-  height: 109px;
+  width: calc(146 * var(--u));
+  height: calc(109 * var(--u));
   flex: none;
 }
 
@@ -533,8 +533,8 @@
   top: 0;
   display: grid;
   place-items: center;
-  width: 43px;
-  height: 43px;
+  width: calc(43 * var(--u));
+  height: calc(43 * var(--u));
   border-radius: 50%;
   background-color: var(--accent);
   translate: -50% -50%;
@@ -546,7 +546,7 @@
    spinning and only stops once it is most of the way there. Without it there
    is a beat of bare orange between the button going and the artwork arriving. */
 .discSpin {
-  --dia: 18px;
+  --dia: calc(18 * var(--u));
   opacity: 1;
   animation: fade 240ms ease 140ms forwards;
 }
@@ -554,14 +554,14 @@
 .winTitle {
   font-family: var(--font-display), Georgia, serif;
   font-weight: 700;
-  font-size: 20px;
+  font-size: calc(20 * var(--u));
   line-height: var(--lh);
   color: var(--ink);
   animation: rise 520ms var(--out) calc(var(--flight) + 140ms) backwards;
 }
 
 .winSub {
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   line-height: var(--lh);
   color: var(--ink-60);
   text-align: center;

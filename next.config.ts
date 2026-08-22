@@ -60,8 +60,22 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           /* Nothing here is meant to be framed, and not being frameable is
              what stops the page being used as the invisible layer in a
-             clickjack. */
-          { key: "X-Frame-Options", value: "DENY" },
+             clickjack.
+
+             `SAMEORIGIN` in development, and only there. Figma has no phone
+             frames for this site, so the mobile layouts are designed in the
+             browser — and the only way to see three viewport widths at once,
+             live, is to frame the site in itself (`/dev/responsive`). `DENY`
+             refuses that from its own origin too.
+
+             The relaxation costs nothing real: the threat is a *hostile* site
+             framing this one, `SAMEORIGIN` still refuses every origin but our
+             own, and `next dev` is bound to localhost. Production is
+             untouched — anything deployed still says DENY. */
+          {
+            key: "X-Frame-Options",
+            value: process.env.NODE_ENV === "development" ? "SAMEORIGIN" : "DENY",
+          },
           /* Send the origin to other sites, the full URL to our own. Without
              this a case-study URL leaks in the Referer of every outbound
              click. */

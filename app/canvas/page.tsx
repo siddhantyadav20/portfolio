@@ -29,12 +29,12 @@ export const metadata: Metadata = {
 /**
  * The canvas as a route.
  *
- * The homepage will open the canvas as an overlay that morphs out of the
- * Canvas card, because that transition is most of the point. This route
- * exists anyway, for the cases the overlay cannot serve: a shared link, an
- * opened-in-new-tab, a crawler, and JavaScript disabled. It is also, for now,
- * the only way to see the canvas at all — the card is not wired up until the
- * morph lands.
+ * The homepage opens the canvas as an overlay that morphs out of the Canvas
+ * card, because that transition is most of the point — see
+ * `components/home/CanvasCard`, which intercepts the click and interpolates
+ * the card's board into this one. This route is what that cannot serve: a
+ * shared link, an opened-in-new-tab, a crawler, and JavaScript disabled. The
+ * card's CTA is a real `<a href="/canvas">` for exactly that reason.
  *
  * `content.canvas.href` has always pointed here. Until this file existed it
  * pointed at a 404.

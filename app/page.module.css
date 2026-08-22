@@ -27,6 +27,98 @@
   position: relative; /* the theme toggle is pinned to this box */
   width: 100%;
   padding: var(--page-pad) var(--page-pad) 96px;
+
+  /* The measuring stick for the whole desktop composition.
+
+     `100cqw` is this element's *content* box. At 1001 and up the horizontal
+     padding is moved off `.page` and onto `.band` as a margin (see the media
+     query below), which makes the content box the full page width — so `--u`
+     can be a fraction of 1440 rather than of 1376, and the page padding
+     scales along with everything else instead of staying at a fixed 32.
+     Leaving it on `.page` was circular: the padding would have had to be
+     derived from a unit derived from the padding. */
+  container-type: inline-size;
+}
+
+/* ==========================================================================
+   One design pixel
+
+   The composition is a fixed 1440 frame: 1376 of band, split 386 | 540 | 386
+   with 32px gutters, and every card places its contents in absolute pixels
+   against its own Figma width. Between 1000 and 1440 that had no answer. The
+   grid squeezed the two flexible tracks and left the rigid ones alone, so at
+   1001px the Search card was **0px wide** and the Designer/Engineer card was
+   too — both had collapsed entirely, on a layout that is supposed to be the
+   desktop one.
+
+   `--u` is one pixel of the 1440 design, expressed as a fraction of whatever
+   width we actually have. Every geometric value in the composition — tracks,
+   gutters, the page padding, card boxes, the type inside them — is restated as
+   a multiple of it, so the whole page is one uniform scale of the 1440 frame
+   at every width from 1001 up. Nothing is capped and nothing is centred: at
+   1920 the page is the same composition at 1.333x, page padding included.
+
+   The one cost is resolution. `inspection-hand.png` is a 692px source painted
+   at 587 at the design width, so it has about 1.18x of headroom — fine to
+   ~1700, visibly soft by 2560. That is an asset to re-export, not a reason to
+   stop scaling.
+
+
+   Registered as a `<length>`, which is the load-bearing part: an unregistered
+   custom property is substituted as raw text, so `cqw` inside it would be
+   re-resolved against whichever container it is *used* in — and the cards are
+   about to become containers themselves. Registered, it computes to an
+   absolute length here and inherits as that length.
+   ========================================================================== */
+
+@property --u {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 1px;
+}
+
+@media (min-width: 1001px) {
+  /* Every inset moves onto `.band` as a margin. `.page` cannot express them
+     itself: it is the query container, and a container cannot read its own
+     `cqw` — which is exactly the circularity that kept the padding stuck at a
+     fixed 32 before. */
+  .page {
+    padding: 0;
+  }
+
+  .band,
+  .themeToggle {
+    --u: calc(100cqw / 1440);
+  }
+
+  .band {
+    /* 32 top and sides, 96 bottom — the page's old padding, now scaling. The
+       deeper bottom is the sticky blur bar's clearance. */
+    margin: calc(32 * var(--u)) calc(32 * var(--u)) calc(96 * var(--u));
+    --gap: calc(32 * var(--u));
+    --col-1: calc(386 * var(--u));
+    --col-2: calc(540 * var(--u));
+    --overhang: calc(34 * var(--u));
+    --gap-lg: calc(118 * var(--u));
+    --gap-personality: calc(48 * var(--u));
+    --row-top: calc(164 * var(--u));
+    --col-3-offset: calc(28 * var(--u));
+    /* The top row reserves this on its right for the pinned toggle. It has to
+       scale in step with the toggle itself or the Designer/Engineer card
+       slides under it — see ThemeToggle.module.css, which now takes its size
+       from the same two tokens instead of repeating the numbers. */
+    --toggle-w: calc(112 * var(--u));
+    --toggle-h: calc(64 * var(--u));
+  }
+
+  .themeToggle {
+    --toggle-w: calc(112 * var(--u));
+    --toggle-h: calc(64 * var(--u));
+    /* The notch `max()` below is a phone concern and there is no phone at
+       these widths, so this is the plain scaled inset. */
+    top: calc(32 * var(--u));
+    right: calc(32 * var(--u));
+  }
 }
 
 /* Pinned rather than flowed: 32px off the top and right at any width, exactly
@@ -43,10 +135,8 @@
   z-index: 10;
 }
 
-/* No max-width: the side padding is 32px at every viewport, which is what the
-   design asks for. Every gutter stays 32px too, so the width a viewport has
-   beyond 1440 has to be *absorbed by a card* rather than by a gap — col 3 is
-   the track that grows, and the Search card grows with it. */
+/* 1376 design pixels of band inside 1440 of page, at every width — the two
+   32px insets are `.band`'s own margin from 1001 up, so they scale with it. */
 .band {
   display: grid;
   grid-template-columns:
@@ -59,7 +149,11 @@
   grid-template-rows: var(--row-top) auto auto;
   column-gap: var(--gap);
   row-gap: var(--gap);
-  width: 100%;
+  /* No `width: 100%`. The insets are this element's margin from 1001 up, and a
+     block box at 100% of its containing block plus margins is 100% *plus* the
+     margins — it overflowed the page by exactly 2x32u. Left to `auto` it
+     resolves to containing block minus margins, which is the 1376 the band is
+     supposed to be. */
 }
 
 /* --- Column 1 : Inspection, Design System -------------------------------- */

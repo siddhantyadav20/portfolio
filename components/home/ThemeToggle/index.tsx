@@ -54,13 +54,11 @@ function Option({ theme, active }: { theme: Theme; active: boolean }) {
       aria-pressed={active}
       onClick={() => writeTheme(theme)}
     >
+      {/* Sized in the stylesheet rather than inline, because 24 is a design
+          pixel and has to scale with the rest of the control. */}
       <span
-        className="inkIcon"
-        style={{
-          ["--icon" as string]: `url(/icons/${icon}.svg)`,
-          width: 24,
-          height: 24,
-        }}
+        className={`inkIcon ${styles.glyph}`}
+        style={{ ["--icon" as string]: `url(/icons/${icon}.svg)` }}
       />
       <span className="srOnly">{label}</span>
     </button>

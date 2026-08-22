@@ -25,7 +25,7 @@
 .finder {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: calc(12 * var(--u));
   width: 100%;
   height: 100%;
 }
@@ -37,7 +37,7 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: calc(12 * var(--u));
   min-height: 0;
 }
 
@@ -100,13 +100,13 @@
   display: flex;
   flex: 0 0 33.3333%;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 16px;
+  gap: calc(6 * var(--u));
+  padding: calc(12 * var(--u)) calc(16 * var(--u));
   min-width: 0;
 }
 
 .crumb {
-  font-size: 11px;
+  font-size: calc(11 * var(--u));
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -125,11 +125,11 @@
 .panelRow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 32px;
+  gap: calc(8 * var(--u));
+  height: calc(32 * var(--u));
   padding: 0 2px;
   border-bottom: 1px solid var(--ink-10, rgba(0, 0, 0, 0.06));
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   font-weight: 500;
   color: var(--ink);
   min-width: 0;
@@ -153,8 +153,8 @@
 
 .chevron {
   flex: none;
-  width: 5px;
-  height: 5px;
+  width: calc(5 * var(--u));
+  height: calc(5 * var(--u));
   border-top: 1.5px solid var(--ink-40);
   border-right: 1.5px solid var(--ink-40);
   transform: rotate(45deg);
@@ -169,7 +169,7 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: calc(12 * var(--u));
   min-height: 0;
 }
 
@@ -177,7 +177,7 @@
   position: relative;
   z-index: 1;
   flex: none;
-  padding: 16px;
+  padding: calc(16 * var(--u));
   border: 1px solid var(--ink-20);
   border-radius: var(--r-md);
   background-color: var(--surface-raised);
@@ -209,22 +209,22 @@
 .inputRow {
   display: flex;
   align-items: center;
-  gap: 12px;
-  height: 32px;
+  gap: calc(12 * var(--u));
+  height: calc(32 * var(--u));
 }
 
 .icon {
   display: flex;
   flex: none;
-  width: 19px;
-  height: 20px;
+  width: calc(19 * var(--u));
+  height: calc(20 * var(--u));
   opacity: 0.6;
 }
 
 .input {
   flex: 1;
   min-width: 0;
-  font-size: 15px;
+  font-size: calc(15 * var(--u));
   font-weight: 500;
   color: var(--ink-strong);
 }
@@ -248,8 +248,8 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: calc(32 * var(--u));
+  height: calc(32 * var(--u));
   border-radius: var(--r-pill);
   background-color: #1f97dd;
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.06);
@@ -276,12 +276,12 @@
   display: none;
   align-items: center;
   gap: 2px;
-  height: 14px;
+  height: calc(14 * var(--u));
 }
 
 .meter i {
   width: 2px;
-  height: 4px;
+  height: calc(4 * var(--u));
   border-radius: 1px;
   background-color: #fff;
   animation: meter 900ms ease-in-out infinite;
@@ -318,6 +318,9 @@
   }
   .meter i { height: 9px; }
   .mic { transition: none; }
+  /* The tick still appears — it is the confirmation that a remark landed in
+     the report, and confirmation is information. What goes is its scale-in. */
+  .tick { transition: opacity 200ms ease; transform: rotate(-45deg); }
 }
 
 /* --- What it just did ----------------------------------------------------- */
@@ -325,26 +328,46 @@
 .legend {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: calc(10 * var(--u));
   flex: none;
-  min-height: 22px;
-  font-size: 12px;
+  min-height: calc(22 * var(--u));
+  font-size: calc(12 * var(--u));
   font-weight: 500;
   line-height: var(--lh);
 }
 
+/* The tap counter, which is also the control that replays what it counts.
+
+   It carries a hit area the dots do not: 7px circles are a readout, and a
+   readout you are meant to press has to be pressable at the size a finger
+   arrives at. The padding is cancelled by an equal negative margin, so the
+   legend lays out against the dots exactly as it did when they were a span. */
 .pips {
   display: flex;
   align-items: center;
-  gap: 5px;
   flex: none;
+  padding: calc(6 * var(--u)) calc(8 * var(--u));
+  margin: calc(-6 * var(--u)) calc(-8 * var(--u));
+  border-radius: var(--r-pill);
+  transition: background-color 180ms ease;
+}
+
+.pips:hover,
+.pips:focus-visible {
+  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.pipRow {
+  display: flex;
+  align-items: center;
+  gap: calc(5 * var(--u));
 }
 
 /* The tap counter. Same grammar as the Design System card's preset dots — an
    active one stretches rather than grows, so the row never steps sideways. */
 .pip {
-  width: 7px;
-  height: 7px;
+  width: calc(7 * var(--u));
+  height: calc(7 * var(--u));
   border-radius: 999px;
   background-color: var(--ink);
   opacity: 0.18;
@@ -355,7 +378,7 @@
 }
 
 .pip[data-on] {
-  width: 16px;
+  width: calc(16 * var(--u));
   opacity: 1;
   background-color: #1f97dd;
 }
@@ -372,10 +395,10 @@
 /* The chip that used to be a disabled `Select category`. */
 .scope {
   flex: none;
-  padding: 3px 9px;
+  padding: calc(3 * var(--u)) calc(9 * var(--u));
   border-radius: var(--r-pill);
   background-color: color-mix(in srgb, var(--ink) 7%, transparent);
-  font-size: 11px;
+  font-size: calc(11 * var(--u));
   font-weight: 600;
   color: var(--ink-strong);
   white-space: nowrap;
@@ -397,13 +420,19 @@
 }
 
 .row {
+  position: relative;
   flex: none;
-  padding: 7px 10px;
-  border-radius: 10px;
+  padding: calc(7 * var(--u)) calc(34 * var(--u)) calc(7 * var(--u)) calc(10 * var(--u));
+  border-radius: calc(10 * var(--u));
+  cursor: pointer;
   /* Rows this inspector has never used sit at a lower contrast and without the
      rule below — the ranking's decision, made visible, rather than a styling
      choice about importance. */
   opacity: 0.5;
+  transition:
+    opacity 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .row[data-mine] {
@@ -411,8 +440,84 @@
   background-color: color-mix(in srgb, var(--ink) 4%, transparent);
 }
 
+/* Reachable, and it says so. A row a pointer is over comes up to full contrast
+   whatever the ranking thought of it — the dimming is the ranking talking, not
+   a claim that the row is unavailable. */
+.row:hover {
+  opacity: 1;
+  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+/* The keyboard's cursor. Not the same thing as being in the report — this is
+   where Enter would land, so it is drawn as an aim rather than as a state, in
+   the card's blue and with a ring the pointer's hover deliberately does not
+   get. Two cursors on screen at once is how a combobox stops making sense. */
+.row[data-active] {
+  opacity: 1;
+  background-color: color-mix(in srgb, #1f97dd 10%, transparent);
+  box-shadow: inset 0 0 0 1px rgba(31, 151, 221, 0.35);
+}
+
+/* In the report. The tick is the whole indicator: a row that is in the report
+   is not less available — pressing it again takes it back out — so nothing
+   here dims, moves or strikes it through. */
+.row[data-in-report] {
+  opacity: 1;
+}
+
+.tick {
+  position: absolute;
+  top: 50%;
+  right: calc(12 * var(--u));
+  width: calc(11 * var(--u));
+  height: calc(6 * var(--u));
+  margin-top: calc(-4 * var(--u));
+  border-left: 1.75px solid var(--green);
+  border-bottom: 1.75px solid var(--green);
+  border-bottom-left-radius: 1px;
+  transform: rotate(-45deg) scale(0.6);
+  opacity: 0;
+  transition:
+    opacity 200ms ease,
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.row[data-in-report] .tick {
+  opacity: 1;
+  transform: rotate(-45deg) scale(1);
+}
+
+/* --- The dead end --------------------------------------------------------
+   Designed, rather than left as the empty box a `.filter()` returns.
+
+   It is also the only place the card can make its point in the negative: five
+   characters bought a certainty the old flow could not sell at any number of
+   taps, because down a tree an empty branch and a wrong guess look identical. */
+
+.blank {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: calc(4 * var(--u));
+  padding: calc(14 * var(--u)) calc(10 * var(--u)) 0;
+}
+
+.blankTitle {
+  font-size: calc(13 * var(--u));
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.blankNote {
+  font-size: calc(12 * var(--u));
+  font-weight: 500;
+  line-height: var(--lh);
+  color: var(--ink-50);
+}
+
 .rowText {
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   font-weight: 500;
   line-height: 1.35;
   color: var(--ink);
@@ -432,9 +537,9 @@
 .rowMeta {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: calc(8 * var(--u));
   margin-top: 2px;
-  font-size: 11px;
+  font-size: calc(11 * var(--u));
   font-weight: 500;
   line-height: var(--lh);
   color: var(--ink-40);

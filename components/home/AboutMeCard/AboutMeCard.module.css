@@ -9,8 +9,8 @@
 .wrap {
   position: relative;
   flex: none;
-  width: 134px;
-  height: 116px;
+  width: calc(134 * var(--u));
+  height: calc(116 * var(--u));
 
   /* Written by the cursor-proximity controller; inert until then. */
   --prox-x: 0px;
@@ -27,7 +27,7 @@
   justify-content: space-between;
   width: 100%;
   height: 100%;
-  padding: 12px 0;
+  padding: calc(12 * var(--u)) 0;
   text-align: center;
 }
 
@@ -35,8 +35,8 @@
    pills are thrown and swells as it catches them again. */
 .photo {
   display: block;
-  width: 32px;
-  height: 32px;
+  width: calc(32 * var(--u));
+  height: calc(32 * var(--u));
   transform: scale(var(--photo-s, 1));
 }
 
@@ -65,7 +65,7 @@
 }
 
 .eyebrow {
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 400;
   line-height: var(--lh);
   color: var(--ink-40);
@@ -74,7 +74,7 @@
 .title {
   font-family: var(--font-display), Georgia, serif;
   font-weight: 700;
-  font-size: 20px;
+  font-size: calc(20 * var(--u));
   line-height: var(--lh);
   color: var(--ink);
 }
@@ -99,9 +99,9 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 40px;
-  height: 40px;
-  margin: -20px 0 0 -20px;
+  width: calc(40 * var(--u));
+  height: calc(40 * var(--u));
+  margin: calc(-20 * var(--u)) 0 0 calc(-20 * var(--u));
 
   /* Behind the portrait, at rest — the loop opens both of these. */
   opacity: 0;
@@ -143,9 +143,9 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 24px;
-  height: 24px;
-  margin: -12px 0 0 -12px;
+  width: calc(24 * var(--u));
+  height: calc(24 * var(--u));
+  margin: calc(-12 * var(--u)) 0 0 calc(-12 * var(--u));
   /* The three marks have three different aspect ratios; contain keeps each one
      its own shape inside a shared box. */
   object-fit: contain;

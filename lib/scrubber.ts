@@ -320,8 +320,17 @@ export function createScrubber(
         c.v += c.vel * dt;
 
         // Thrown into an end. The spring inherits the speed and decelerates
-        // through the boundary, reverses and settles as one motion — capped,
-        // so the needle never leaves its window on the way through.
+        // through the boundary, reverses and settles as one motion.
+        //
+        // The cap bounds that excursion but does not hold it inside
+        // `RUBBER_REACH`, which is worth saying because the obvious reading is
+        // that it does. A *pull* can never exceed 0.38 years, because the band
+        // is asymptotic. A *bounce* starts outside the target already moving
+        // outwards, and a critically damped spring cannot overshoot its target
+        // but must still decelerate through whatever excess it inherited — so
+        // the hardest throw MAX_THROW allows peaks around 0.60 years past the
+        // end, roughly 32px, before it turns round. It is back inside in about
+        // 200ms. See `tests/scrubber.test.ts`, which pins the real bound.
         if (c.v > max || c.v < min) {
           c.vel = clamp(c.vel, -MAX_THROW, MAX_THROW);
           springTo(clamp(c.v, min, max), BOUNCE_SETTLE);

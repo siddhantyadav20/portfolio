@@ -57,14 +57,14 @@
 
 .card {
   position: relative;
-  width: 330px;
-  height: 327px; /* Figma's */
+  width: calc(330 * var(--u));
+  height: calc(327 * var(--u)); /* Figma's */
   flex: none;
 
   /* Where the Scale hangs. The only vertical number the breakpoint changes —
      the marker and the mask are both written in terms of it and `--read`, so
      moving the instrument moves everything on it. */
-  --ruler-top: -156px;
+  --ruler-top: calc(-156 * var(--u));
 
   --prox-x: 0px;
   --prox-y: 0px;
@@ -92,8 +92,8 @@
   position: absolute;
   top: var(--ruler-top);
   right: 0;
-  width: 80px;
-  height: 436px;
+  width: calc(80 * var(--u));
+  height: calc(436 * var(--u));
 }
 
 /* The clip, and the card's only highlight.
@@ -178,20 +178,20 @@
 
 .milestone {
   top: 0;
-  width: 48px;
+  width: calc(48 * var(--u));
   height: 2px;
 }
 
 /* The half year. Positioned by the component like every other month — what
    makes it the middle one is that it is longer. */
 .middle {
-  width: 32px;
+  width: calc(32 * var(--u));
   height: 1.5px;
   opacity: 0.4;
 }
 
 .filler {
-  width: 24px;
+  width: calc(24 * var(--u));
   height: 1px;
   opacity: 0.4;
 }
@@ -201,9 +201,9 @@
    ones, so there is nothing left for a per-label highlight to do. */
 .number {
   position: absolute;
-  top: -7px;
-  left: 52px;
-  font-size: 10px;
+  top: calc(-7 * var(--u));
+  left: calc(52 * var(--u));
+  font-size: calc(10 * var(--u));
   font-weight: 600;
   line-height: var(--lh);
   color: var(--accent);
@@ -221,10 +221,10 @@
 .marker {
   position: absolute;
   top: var(--read);
-  left: -22px;
-  width: 14px;
-  height: 14px;
-  margin-top: -7px;
+  left: calc(-22 * var(--u));
+  width: calc(14 * var(--u));
+  height: calc(14 * var(--u));
+  margin-top: calc(-7 * var(--u));
   color: var(--accent);
   /* Replayed on every mount — and the component remounts this element each
      time the reading crosses into another moment. */
@@ -270,12 +270,12 @@
    mounts at all. */
 .grip {
   position: absolute;
-  top: -12px;
-  right: -8px;
-  bottom: -12px;
-  left: -40px;
+  top: calc(-12 * var(--u));
+  right: calc(-8 * var(--u));
+  bottom: calc(-12 * var(--u));
+  left: calc(-40 * var(--u));
   touch-action: none;
-  border-radius: 12px;
+  border-radius: calc(12 * var(--u));
 
   --native-cursor: ns-resize;
   cursor: ns-resize;
@@ -300,7 +300,7 @@
 .ruler:has(.grip:focus-visible:not([data-pointer])) .marker::after {
   content: "";
   position: absolute;
-  inset: -5px;
+  inset: calc(-5 * var(--u));
   border-radius: 50%;
   box-shadow:
     0 0 0 2px var(--page-base),
@@ -319,9 +319,9 @@
    stops 16px short of the marker, which is where the instrument begins. */
 .content {
   position: absolute;
-  top: 170px;
-  left: 32px;
-  width: 180px;
+  top: calc(170 * var(--u));
+  left: calc(32 * var(--u));
+  width: calc(180 * var(--u));
 }
 
 /* Tabular figures, or the count jitters its own width as it runs — 4.3 to 3.8
@@ -333,7 +333,7 @@
 
 /* 20px SemiBold with the unit at 12px Regular, both at Figma's -0.04em. */
 .years {
-  font-size: 20px;
+  font-size: calc(20 * var(--u));
   font-weight: 600;
   letter-spacing: -0.04em;
   line-height: var(--lh);
@@ -349,13 +349,13 @@
 
 .unit {
   margin-left: 2px;
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 400;
 }
 
 .date {
   margin-top: 2px;
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 400;
   line-height: var(--lh);
   color: var(--accent);
@@ -363,8 +363,8 @@
 
 /* 80px, dashed, accent at 32% — Figma's Separator, node 244:9486. */
 .separator {
-  width: 80px;
-  margin: 12px 0;
+  width: calc(80 * var(--u));
+  margin: calc(12 * var(--u)) 0;
   border: 0;
   border-top: 1px dashed color-mix(in srgb, var(--accent) 32%, transparent);
 }
@@ -391,11 +391,11 @@
 }
 
 .entry[data-dir="1"] {
-  --from: 7px;
+  --from: calc(7 * var(--u));
 }
 
 .entry[data-dir="-1"] {
-  --from: -7px;
+  --from: calc(-7 * var(--u));
 }
 
 @keyframes entry-in {
@@ -423,14 +423,14 @@
 
 .context {
   margin-bottom: 2px;
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 400;
   line-height: var(--lh);
   color: var(--ink-60);
 }
 
 .title {
-  font-size: 15px;
+  font-size: calc(15 * var(--u));
   font-weight: 600;
   line-height: var(--lh);
   color: var(--ink);
@@ -482,8 +482,8 @@
   .card {
     width: 100%;
     max-width: 100%;
-    height: 360px;
-    --ruler-top: -60px;
+    height: calc(360 * var(--u));
+    --ruler-top: calc(-60 * var(--u));
   }
 
   /* Everything left of the instrument — 80 for the scale, 22 for the marker
@@ -514,7 +514,7 @@
      starts 60px above a 360px card: 436 - 60 - 360 = 16. */
   .grip {
     top: calc(-1 * var(--ruler-top));
-    bottom: 16px;
+    bottom: calc(16 * var(--u));
     right: 0;
   }
 }

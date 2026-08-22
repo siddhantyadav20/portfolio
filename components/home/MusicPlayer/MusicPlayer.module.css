@@ -9,8 +9,8 @@
    Figma variants is CSS and there is no second component. */
 
 .card {
-  width: 254px;
-  height: 280px;
+  width: calc(254 * var(--u));
+  height: calc(280 * var(--u));
   /* Shares the middle column's flexibility with LinkedIn. */
   flex: 0 1 auto;
   min-width: 0;
@@ -95,7 +95,7 @@
   top: 0;
   left: 0;
   width: 0;
-  height: 4px;
+  height: calc(4 * var(--u));
   background-color: rgba(255, 255, 255, 0.4);
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
   opacity: 0;
@@ -118,13 +118,13 @@
    misfire.) */
 .controls {
   position: absolute;
-  top: 65px;
+  top: calc(65 * var(--u));
   left: 0;
   right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: calc(16 * var(--u));
 }
 
 /* The discs are built here rather than taken from the export, because the one
@@ -138,10 +138,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 64px;
-  height: 64px;
-  border-radius: 60px;
+  gap: calc(6 * var(--u));
+  width: calc(64 * var(--u));
+  height: calc(64 * var(--u));
+  border-radius: calc(60 * var(--u));
   background-color: var(--player-disc);
   backdrop-filter: blur(12px);
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
@@ -161,9 +161,9 @@
    the file puts it without a second set of coordinates to keep in sync. */
 .playGlyph {
   position: absolute;
-  inset: -24px;
-  width: 112px;
-  height: 112px;
+  inset: calc(-24 * var(--u));
+  width: calc(112 * var(--u));
+  height: calc(112 * var(--u));
   color: var(--player-glyph);
   transition: opacity 220ms ease;
 }
@@ -175,7 +175,7 @@
 /* Two bars, exactly as Figma builds them — 4x20, radius 12, 6px apart. */
 .pauseGlyph {
   display: flex;
-  gap: 6px;
+  gap: calc(6 * var(--u));
   opacity: 0;
   transition: opacity 220ms ease;
 }
@@ -186,17 +186,17 @@
 
 .pauseGlyph i {
   display: block;
-  width: 4px;
-  height: 20px;
-  border-radius: 12px;
+  width: calc(4 * var(--u));
+  height: calc(20 * var(--u));
+  border-radius: calc(12 * var(--u));
   background-color: var(--player-glyph);
 }
 
 .step {
   position: relative;
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
+  width: calc(40 * var(--u));
+  height: calc(40 * var(--u));
+  border-radius: calc(20 * var(--u));
   background-color: var(--player-disc-on);
   backdrop-filter: blur(12px);
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
@@ -217,9 +217,9 @@
    offsets are the export's, not a second set of coordinates. */
 .stepGlyph {
   position: absolute;
-  inset: -24px;
-  width: 88px;
-  height: 88px;
+  inset: calc(-24 * var(--u));
+  width: calc(88 * var(--u));
+  height: calc(88 * var(--u));
   color: var(--player-glyph);
 }
 
@@ -246,19 +246,19 @@
   );
 
   position: absolute;
-  bottom: 28px;
-  left: 24px;
+  bottom: calc(28 * var(--u));
+  left: calc(24 * var(--u));
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  width: 206px;
-  padding: 10px 12px;
+  gap: calc(6 * var(--u));
+  width: calc(206 * var(--u));
+  padding: calc(10 * var(--u)) calc(12 * var(--u));
 }
 
 .helper {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: calc(6 * var(--u));
 }
 
 /* music.svg was exported at fill-opacity 0.8, and as a stencil that opacity
@@ -273,8 +273,8 @@
 .label {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 15px;
+  gap: calc(4 * var(--u));
+  font-size: calc(15 * var(--u));
   font-weight: 500;
   line-height: var(--lh);
   color: rgba(255, 255, 255, 0.8);
@@ -282,14 +282,14 @@
 }
 
 .dot {
-  width: 4px;
-  height: 4px;
+  width: calc(4 * var(--u));
+  height: calc(4 * var(--u));
   border-radius: var(--r-pill);
   background-color: rgba(255, 255, 255, 0.2);
 }
 
 .count {
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   font-weight: 500;
   line-height: var(--lh);
   color: rgba(255, 255, 255, 0.8);
@@ -298,7 +298,7 @@
 .track {
   font-family: var(--font-display), Georgia, serif;
   font-weight: 500;
-  font-size: 15px;
+  font-size: calc(15 * var(--u));
   line-height: var(--lh);
   color: #ffffff;
   white-space: nowrap;
@@ -312,18 +312,18 @@
    across a skip (keyed by title), so the stretch animates. */
 .bars {
   position: absolute;
-  bottom: 12px;
+  bottom: calc(12 * var(--u));
   left: 0;
   right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: calc(5 * var(--u));
 }
 
 .bar,
 .barActive {
-  height: 4px;
+  height: calc(4 * var(--u));
   border-radius: var(--r-pill);
   background-color: rgba(255, 255, 255, 0.6);
   transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -331,11 +331,11 @@
 }
 
 .bar {
-  width: 4px;
+  width: calc(4 * var(--u));
 }
 
 .barActive {
-  width: 12px;
+  width: calc(12 * var(--u));
   background-color: #ffffff;
 }
 

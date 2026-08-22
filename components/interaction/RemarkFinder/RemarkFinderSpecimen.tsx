@@ -43,7 +43,10 @@ export default function RemarkFinderSpecimen({ bare = false, className }: Props)
       <figcaption className={styles.caption}>
         The old flow, then the one that replaced it — both reading the same
         rows. Type in the field, or press the mic: the matcher is real and the
-        ranking puts the remarks you have written before at the top.{" "}
+        ranking puts the remarks you have written before at the top. Arrow down
+        and press return, or click a row, and it goes into the report, with what
+        reaching it down the tree would have cost. The three dots under the
+        field replay the old way.{" "}
         <span className={styles.disclosure}>
           Running on {REMARKS.length} demo remarks across {TAXONOMY.length}{" "}
           categories, standing in for the{" "}

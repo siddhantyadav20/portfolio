@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        # `references/` is ~110MB of source material tracked in this repo and
-        # imported by nothing. The build does not read it and neither does the
-        # type checker (see tsconfig's `exclude`), so there is no reason to
-        # pull the history that carries it.
+        # `references/` is ~110MB of source material that used to be tracked
+        # here and is imported by nothing. It is untracked now, so the tip
+        # commit no longer carries it — but the history still does, and a full
+        # clone would still pay for it.
         with:
           fetch-depth: 1
 
@@ -29,9 +29,21 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
 
+      # The pure logic everything that moves is built on: the spring
+      # integrator, the timeline's dial, and the search matcher behind the
+      # site's boldest numbers. No jsdom and no component tests — see
+      # vitest.config.ts for why that is deliberate rather than unfinished.
+      - run: npm test
+
       # The real gate. Type errors and lint are cheap; a build that fails on a
       # missing env var or a bad metadata export is what actually breaks a
       # deploy, and it is the one thing nobody runs locally before pushing.
       - run: npm run build
         env:
           NEXT_PUBLIC_SITE_URL: https://siddhantyadav.com
+
+      # Real-user vitals (app/vitals.tsx) report a regression after strangers
+      # have paid for it. This is the half that stops one: the homepage's JS
+      # and everything in public/, against committed ceilings. Runs after the
+      # build because that is where the numbers come from.
+      - run: npm run budget

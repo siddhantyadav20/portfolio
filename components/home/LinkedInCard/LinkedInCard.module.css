@@ -35,18 +35,18 @@
   /* The flood's resting window and the tile are cut from one set of numbers.
      The tile's top is the card's 20px padding plus the 4px a 40px tile is
      inset inside the 48px header row. */
-  --logo-size: 40px;
-  --logo-top: 24px;
-  --logo-right: 20px;
-  --logo-radius: 12px;
+  --logo-size: calc(40 * var(--u));
+  --logo-top: calc(24 * var(--u));
+  --logo-right: calc(20 * var(--u));
+  --logo-radius: calc(12 * var(--u));
 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  width: 254px;
-  height: 280px;
-  padding: 20px;
+  width: calc(254 * var(--u));
+  height: calc(280 * var(--u));
+  padding: calc(20 * var(--u));
   /* Shares the middle column's flexibility with the music player. */
   flex: 0 1 auto;
   min-width: 0;
@@ -72,7 +72,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
+  padding: calc(20 * var(--u));
 
   /* `--blue-flood`, not `--blue`. The dark theme lifts `--blue` to #4bb4e6 so
      it stays legible as *ink* on a dark ground; used here it made the flood a
@@ -176,34 +176,34 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: calc(16 * var(--u));
   width: 100%;
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 48px;
+  gap: calc(10 * var(--u));
+  height: calc(48 * var(--u));
 }
 
 .who {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 4px;
+  gap: calc(4 * var(--u));
   min-width: 0;
 }
 
 .name {
-  font-size: 17px;
+  font-size: calc(17 * var(--u));
   font-weight: 600;
   line-height: var(--lh);
   color: var(--ink);
 }
 
 .role {
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 400;
   line-height: var(--lh);
   color: var(--ink-60);
@@ -221,7 +221,7 @@
 }
 
 .blurb {
-  font-size: 22px;
+  font-size: calc(22 * var(--u));
   font-weight: 400;
   line-height: var(--lh);
 }
@@ -252,12 +252,12 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 44px;
-  padding: 11px 16px 11px 6px;
+  height: calc(44 * var(--u));
+  padding: calc(11 * var(--u)) calc(16 * var(--u)) calc(11 * var(--u)) calc(6 * var(--u));
   border-radius: var(--r-pill);
   background-color: var(--blue-flood);
   box-shadow: 0 0 2px 4px rgba(56, 124, 249, 0.3);
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   font-weight: 600;
   color: #ffffff;
 }

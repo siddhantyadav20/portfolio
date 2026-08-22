@@ -2,12 +2,12 @@
    Deliberately wider than col 3: it straddles the col 2/3 boundary. */
 
 .card {
-  width: 322px;
+  width: calc(322 * var(--u));
   /* 322 is wider than a 320px screen's content box. The preview inside is a
      window onto the board rather than a laid-out composition, so letting the
      card narrow just shows slightly less board — nothing reflows. */
   max-width: 100%;
-  height: 246px;
+  height: calc(246 * var(--u));
   flex: none;
 }
 
@@ -71,15 +71,15 @@
 
 .cta {
   position: absolute;
-  top: 182px;
-  left: 101px;
-  width: 205px;
+  top: calc(182 * var(--u));
+  left: calc(101 * var(--u));
+  width: calc(205 * var(--u));
   z-index: 2;
 }
 
 @media (max-width: 1000px) {
   .card {
     width: 100%;
-    max-width: 322px;
+    max-width: calc(322 * var(--u));
   }
 }

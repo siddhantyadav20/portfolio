@@ -11,10 +11,13 @@
   display: flex;
   flex: none;
   gap: 0;
-  width: 112px;
-  height: 64px;
-  padding: 8px;
-  border-radius: 60px;
+  /* The same two tokens `app/page.module.css` reserves space from, rather
+     than the numbers again. They are 112 and 64 at 1440 and scale with the
+     rest of the composition below it. */
+  width: var(--toggle-w);
+  height: var(--toggle-h);
+  padding: calc(8 * var(--u));
+  border-radius: calc(60 * var(--u));
 }
 
 .toggle:hover {
@@ -32,9 +35,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  /* Two of these sit inside a 112x64 shell with 8px of padding, so they
+     have to shrink with it — left at 48 they were taller than the shell's
+     inner box the moment the composition scaled down. */
+  width: calc(48 * var(--u));
+  height: calc(48 * var(--u));
   border-radius: var(--r-pill);
+}
+
+.glyph {
+  width: calc(24 * var(--u));
+  height: calc(24 * var(--u));
 }
 
 /* The selected half. `--surface-solid` rather than the #ffffff Figma draws,

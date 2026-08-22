@@ -2,23 +2,23 @@
 
 .card {
   display: block;
-  width: 386px;
-  height: 578px;
+  width: calc(386 * var(--u));
+  height: calc(578 * var(--u));
   flex: none;
 }
 
 .heading {
   position: absolute;
-  top: 24px;
-  left: 24px;
+  top: calc(24 * var(--u));
+  left: calc(24 * var(--u));
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 223px;
+  gap: calc(8 * var(--u));
+  width: calc(223 * var(--u));
 }
 
 .eyebrow {
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   font-weight: 400;
   line-height: var(--lh);
   color: var(--ink-60);
@@ -27,7 +27,7 @@
 .title {
   font-family: var(--font-display), Georgia, serif;
   font-weight: 700;
-  font-size: 28px;
+  font-size: calc(28 * var(--u));
   line-height: var(--lh);
   color: var(--ink);
 }
@@ -40,12 +40,12 @@
    transition — see index.tsx. */
 .shotFrame {
   position: absolute;
-  top: 160px;
-  left: 40px;
+  top: calc(160 * var(--u));
+  left: calc(40 * var(--u));
   right: 0;
-  height: 256px;
+  height: calc(256 * var(--u));
   overflow: hidden;
-  border-radius: 12px 0 0 12px;
+  border-radius: calc(12 * var(--u)) 0 0 calc(12 * var(--u));
 
   /* The scale the instrument would measure for itself. Stated here because
      this frame is a known 346x256 and, until the ResizeObserver has run, the
@@ -59,22 +59,22 @@
    decoration of it. */
 .presets {
   position: absolute;
-  top: 432px;
-  left: 40px;
+  top: calc(432 * var(--u));
+  left: calc(40 * var(--u));
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: calc(12 * var(--u));
 }
 
 .dots {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: calc(6 * var(--u));
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
+  width: calc(8 * var(--u));
+  height: calc(8 * var(--u));
   border-radius: 999px;
   opacity: 0.32;
   transition:
@@ -85,18 +85,18 @@
 /* The active stop stretches rather than growing: a wider pill reads as
    "you are here" without the row shifting under it. */
 .dot[data-on] {
-  width: 20px;
+  width: calc(20 * var(--u));
   opacity: 1;
 }
 
 .presetName {
-  font-size: 12px;
+  font-size: calc(12 * var(--u));
   font-weight: 500;
   line-height: var(--lh);
   color: var(--ink-50);
   /* The label is rewritten from the loop and the names differ in width; a
      fixed box keeps the dots from stepping sideways as it changes. */
-  min-width: 62px;
+  min-width: calc(62 * var(--u));
 }
 
 /* What the vertical axis is doing. The swatch tracks the seam continuously,
@@ -107,8 +107,8 @@
 
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: calc(6 * var(--u));
+  font-size: calc(12 * var(--u));
   font-weight: 500;
   line-height: var(--lh);
   color: var(--ink-40);
@@ -117,9 +117,9 @@
 
 .presetMode::before {
   content: "";
-  width: 20px;
-  height: 13px;
-  border-radius: 3px;
+  width: calc(20 * var(--u));
+  height: calc(13 * var(--u));
+  border-radius: calc(3 * var(--u));
   /* #ffffff and #141a21 are the library's own `background/default` in its two
      modes — the swatch is the tokens, not an illustration of them. */
   background: linear-gradient(
@@ -132,17 +132,17 @@
 
 .chip {
   position: absolute;
-  top: 488px;
-  left: 24px;
+  top: calc(488 * var(--u));
+  left: calc(24 * var(--u));
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  width: 163px;
-  padding: 10px 12px;
+  gap: calc(4 * var(--u));
+  width: calc(163 * var(--u));
+  padding: calc(10 * var(--u)) calc(12 * var(--u));
 }
 
 .stat {
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   font-weight: 600;
   line-height: var(--lh);
   color: var(--ink);
@@ -150,7 +150,7 @@
 }
 
 .statDetail {
-  font-size: 13px;
+  font-size: calc(13 * var(--u));
   font-weight: 500;
   line-height: var(--lh);
   color: var(--green);

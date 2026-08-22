@@ -10,9 +10,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  height: 48px;
-  padding: 10px 16px;
+  /* Sized in design pixels so the pill scales with the composition it sits
+     in. Outside `.band` — the case-study chrome, the modals — `--u` is its
+     registered 1px default, so those render exactly as before. */
+  gap: calc(6 * var(--u));
+  height: calc(48 * var(--u));
+  padding: calc(10 * var(--u)) calc(16 * var(--u));
   border-radius: var(--r-pill);
 }
 
@@ -42,8 +45,8 @@
 .icon {
   display: flex;
   flex: none;
-  width: 20px;
-  height: 20px;
+  width: calc(20 * var(--u));
+  height: calc(20 * var(--u));
 }
 
 .icon :global(img),
@@ -54,7 +57,7 @@
 
 .label {
   font-weight: 600;
-  font-size: 14px;
+  font-size: calc(14 * var(--u));
   line-height: var(--lh);
   color: var(--ink);
   white-space: nowrap;
