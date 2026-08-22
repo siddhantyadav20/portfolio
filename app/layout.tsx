@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import BootSequence from "@/components/boot/BootSequence";
 import CanvasCursor from "@/components/interaction/CanvasCursor";
 import PaletteHost from "@/components/palette/PaletteHost";
 import { intro, linkedin } from "@/content/site";
+import { BOOT_SCRIPT } from "@/lib/boot";
 import { THEME_SCRIPT } from "@/lib/theme";
 import { canela, outfit } from "./fonts";
 import WebVitals from "./vitals";
@@ -110,9 +112,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
-        {/* Must be inline and in <head>: it has to run before first paint.
-            See THEME_SCRIPT. */}
+        {/* Both must be inline and in <head>: they have to run before first
+            paint. THEME_SCRIPT decides which palette the first frame is drawn
+            in; BOOT_SCRIPT decides whether this is somebody's first arrival,
+            which the stylesheet needs to know before it paints the page it
+            would otherwise have to hide a moment later. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
       </head>
       <body>
         {/* Who this is, in the form a search engine will actually read. The
@@ -143,6 +149,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         {children}
+        {/* First arrival only, homepage only, and it takes itself down. */}
+        <BootSequence />
         {/* Site-wide, and deliberately here rather than on the homepage: ⌘K has
             to work on a case study and on the canvas too. Ships only the
             hotkey listener; the panel itself is fetched on first open. */}

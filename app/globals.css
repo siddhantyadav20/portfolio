@@ -1076,3 +1076,61 @@ html[data-theme="dark"] {
   --liquid-cast-hi: 0 1px 2px rgba(0, 0, 0, 0.55),
     0 4px 10px rgba(0, 0, 0, 0.4), 0 12px 28px rgba(0, 0, 0, 0.28);
 }
+
+/* ===========================================================================
+   Boot
+   ===========================================================================
+
+   The homepage on somebody's first arrival, while `BootSequence` draws it.
+
+   The page is *dimmed, not hidden*, and the distinction is the whole design.
+   `display: none` or `visibility: hidden` would give the sequence nothing to
+   measure — a card with no box has no `getBoundingClientRect()` — and would
+   take the content out of the accessibility tree, so a screen reader would be
+   told to wait five seconds for an animation it cannot see. At `opacity: 0`
+   the layout is real, measurable and announced; it is only invisible.
+
+   Set before first paint by `BOOT_SCRIPT`, removed by the component. If the
+   JavaScript never runs, the attribute is never set and none of this applies.
+   =========================================================================== */
+
+html[data-booting] body {
+  /* The sequence draws what is above the fold and expects it to stay there. */
+  overflow: hidden;
+}
+
+html[data-booting] #main {
+  opacity: 0;
+  /* The cards arrive from a hair under their real size — the same hair the
+     overlay leaves on — so the two motions meet rather than cross. */
+  transform: scale(0.994);
+  /* Nothing under the overlay should react to a pointer crossing it: the
+     proximity field would be pushing cards around behind a screen nobody can
+     see through. */
+  pointer-events: none;
+}
+
+/* The hand-over. The overlay fades out over the same beat, so for a few
+   hundred milliseconds both are partly present and the wireframe is sitting
+   exactly on the card it drew. */
+html[data-booting] #main,
+#main {
+  transition:
+    opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Nothing to transition *from* on any other page or any later visit, and a
+   transition on `#main` is not something the rest of the site should inherit
+   for free — so it is cleared the moment the attribute goes. */
+html:not([data-booting]) #main {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-booting] #main {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,0 +1,228 @@
+/* The arrival sequence.
+
+   Everything here is timed off `--run`, the one duration the component passes
+   down, and offset by each element's own `--d`. No JavaScript drives a frame
+   of it: the whole sequence is declarative, which is what keeps it smooth
+   while React is still hydrating the page underneath. */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  /* Above every surface on the site — the palette sits at 950 and the canvas
+     at 900 — because for these five seconds this *is* the site. */
+  z-index: 990;
+  overflow: hidden;
+  background-color: var(--page-base);
+  animation: groundOut calc(var(--run) * 0.22) cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
+  animation-play-state: paused;
+}
+
+/* The overlay only starts leaving once the component says so. Pausing an
+   animation rather than swapping a class means the exit runs from wherever
+   the entry got to, which is what makes skipping mid-draw look deliberate
+   instead of like a cut. */
+.boot[data-phase="handover"] {
+  animation-play-state: running;
+}
+
+@keyframes groundOut {
+  to {
+    opacity: 0;
+    /* A breath of scale, in the same direction the real cards are arriving
+       from. The two motions are the same motion, which is the point. */
+    transform: scale(1.01);
+  }
+}
+
+/* --- The canvas ----------------------------------------------------------- */
+
+/* Figma's dot grid. Faint enough to read as paper rather than as a texture. */
+.grid {
+  position: absolute;
+  inset: -1px;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in srgb, var(--ink) 14%, transparent) 1px,
+    transparent 0
+  );
+  background-size: 24px 24px;
+  opacity: 0;
+  animation: fadeIn calc(var(--run) * 0.07) ease forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* --- The frames ----------------------------------------------------------- */
+
+.svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.rect {
+  fill: color-mix(in srgb, var(--blue) 5%, transparent);
+  stroke: var(--blue-bright);
+  /* One physical pixel at any zoom, the way a vector tool draws a selection. */
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+
+  /* `pathLength` is 1 on the element, so the perimeter is 1 unit long however
+     big the rectangle is. The dash is that whole length, offset by it — an
+     invisible outline — and pulling the offset to zero draws it on, corner by
+     corner, starting from the top left exactly as a drag would. */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+
+  animation:
+    draw calc(var(--run) * 0.12) cubic-bezier(0.65, 0, 0.35, 1) forwards,
+    fillIn calc(var(--run) * 0.1) ease-out forwards;
+  animation-delay: var(--d), calc(var(--d) + var(--run) * 0.1);
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+    opacity: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* The wash arrives after the outline closes, never with it — a fill that
+   appears while the shape is still being drawn reads as a rectangle wiping in,
+   not as one being drawn. */
+@keyframes fillIn {
+  from {
+    fill: color-mix(in srgb, var(--blue) 0%, transparent);
+  }
+  to {
+    fill: color-mix(in srgb, var(--blue) 6%, transparent);
+  }
+}
+
+/* --- The measurement badge ------------------------------------------------ */
+
+.label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Sits just under the frame's bottom-left corner, where Figma puts it. */
+  margin-top: 7px;
+  opacity: 0;
+  /* Shown while the frame is being drawn and gone once it lands, which is what
+     the real thing does — a dimension chip belongs to the drag, not to the
+     shape. It also fixes a crowding problem: the top row's cards sit a gutter
+     apart, so two chips that stayed up overlapped each other and neither was
+     readable. */
+  animation: badge calc(var(--run) * 0.2) ease-out forwards;
+  animation-delay: var(--d);
+  white-space: nowrap;
+}
+
+@keyframes badge {
+  0% {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  20%,
+  62% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+
+.name {
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--blue-bright);
+}
+
+.size {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: var(--blue-bright);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+  color: #fff;
+}
+
+/* --- Selection handles ---------------------------------------------------- */
+
+.handles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  animation: pop calc(var(--run) * 0.05) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--d);
+}
+
+.handles i {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid var(--blue-bright);
+  border-radius: 1px;
+  background-color: var(--page-base);
+}
+
+/* The four corners, each pulled half a handle outside the frame so it straddles
+   the stroke the way a real handle does. */
+.handles i:nth-child(1) { top: -4px; left: -4px; }
+.handles i:nth-child(2) { top: -4px; right: -4px; }
+.handles i:nth-child(3) { bottom: -4px; left: -4px; }
+.handles i:nth-child(4) { bottom: -4px; right: -4px; }
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- The way out ---------------------------------------------------------- */
+
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--ink-40);
+  opacity: 0;
+  /* Late, and quiet. Offered to somebody who has decided they have waited
+     long enough, rather than advertised to somebody who has just arrived. */
+  animation: fadeIn calc(var(--run) * 0.1) ease forwards;
+  animation-delay: calc(var(--run) * 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The pre-paint script already refuses to start under this setting, so this
+     is only a second belt for a preference changed mid-visit. */
+  .boot {
+    display: none;
+  }
+}
