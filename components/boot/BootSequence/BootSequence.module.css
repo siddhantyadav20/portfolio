@@ -1,334 +1,128 @@
-/* The drafting table.
+/* The signature.
 
-   The cards themselves are not styled here — they are the real homepage cards
-   and they animate under "Boot" in globals.css, on delays this component
-   writes onto them. This file draws only what sits *over* them.
+   Five classes and four keyframes, where the version this replaced had
+   eighteen and eleven. That reduction is the design, not a side effect of it.
 
-   The palette is two colours and nothing else: the page's own ink, and one
-   blue. Every line is a hairline. That restraint is the whole difference
-   between a technical drawing and a theme — the moment a third colour or a
-   thicker stroke arrives it stops reading as an instrument.
-
-   Every duration is a fraction of `--run`, so retiming the sequence is one
-   constant in the component. */
+   The cards are not styled here — they are the real homepage cards and they
+   arrive under "Boot" in globals.css, on delays the component writes onto
+   them. This file draws only the mark. */
 
 .boot {
   position: fixed;
   inset: 0;
   /* Above every surface on the site — the palette sits at 950, the canvas at
-     900 — because for these seconds this is the site. */
+     900 — because for these three seconds this is the site. */
   z-index: 990;
-  overflow: hidden;
   pointer-events: none;
 
-  /* TRANSPARENT, deliberately. The cards commit *underneath* this element, so
-     an opaque ground — even one the same colour as the page — hides every card
-     that has already arrived until the whole overlay leaves. That was the bug
-     that made an earlier version look like four seconds of wireframes followed
-     by a page. Each layer below fades itself out on its own beat instead. */
-  background-color: transparent;
-  color: var(--blue-bright);
+  /* Transparent. `body` already paints `--page-base` and its fixed 97deg wash,
+     so the ground is the real page rather than a stand-in that has to be faded
+     out later. No grid, no rulers, no plate. */
+  background: none;
 }
 
-/* --- The grid ------------------------------------------------------------- */
+/* The mark's whole journey, expressed once.
 
-.grid {
+   The element is positioned at the *destination* — the real logo's measured
+   rect — and then transformed away from it. So the animation runs a FLIP
+   backwards: at 100% the transform is identity, which means the overlay is
+   sitting exactly on the real logo with no arithmetic left to be wrong. */
+.flight {
   position: absolute;
-  inset: -2px;
-  background-image: radial-gradient(
-    circle at 1px 1px,
-    color-mix(in srgb, var(--ink) 13%, transparent) 1px,
-    transparent 0
-  );
-  background-size: 24px 24px;
-  opacity: 0;
-  transform: scale(1.05);
-  animation: gridLife var(--board-out) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: center;
+  transform: translate(var(--dx), var(--dy)) scale(var(--k));
+  animation: fly var(--fly) var(--spring) var(--hold) forwards;
 }
 
-@keyframes gridLife {
-  0% { opacity: 0; transform: scale(1.05); }
-  12% { opacity: 1; transform: none; }
-  74% { opacity: 1; transform: none; }
-  100% { opacity: 0; transform: none; }
-}
-
-/* --- The rulers ----------------------------------------------------------- */
-
-.rulers {
-  position: absolute;
-  inset: 0;
-}
-
-.ruler {
-  position: absolute;
-  background-color: color-mix(in srgb, var(--page-base) 82%, transparent);
-  backdrop-filter: blur(2px);
-  /* One hairline of ink where the ruler meets the board. */
-  --edge: color-mix(in srgb, var(--ink) 16%, transparent);
-  /* Ticks every 10px, taller every 50. The real convention, not an
-     approximation of it — see the research note in index.tsx. */
-  --minor: color-mix(in srgb, var(--ink) 26%, transparent);
-  --major: color-mix(in srgb, var(--ink) 46%, transparent);
-}
-
-.top,
-.bottom {
-  left: 0;
-  right: 0;
-  height: 22px;
-  background-image:
-    repeating-linear-gradient(to right, var(--minor) 0 1px, transparent 1px 10px),
-    repeating-linear-gradient(to right, var(--major) 0 1px, transparent 1px 50px);
-  background-size: 100% 5px, 100% 9px;
-  background-repeat: repeat-x;
-}
-
-.top {
-  top: 0;
-  border-bottom: 1px solid var(--edge);
-  background-position: 0 100%, 0 100%;
-  transform: translateY(-100%);
-  animation: rulerIn 420ms var(--spring-soft) 60ms forwards;
-}
-
-.bottom {
-  bottom: 0;
-  border-top: 1px solid var(--edge);
-  background-position: 0 0, 0 0;
-  transform: translateY(100%);
-  animation: rulerIn 420ms var(--spring-soft) 180ms forwards;
-}
-
-.left,
-.right {
-  top: 0;
-  bottom: 0;
-  width: 22px;
-  background-image:
-    repeating-linear-gradient(to bottom, var(--minor) 0 1px, transparent 1px 10px),
-    repeating-linear-gradient(to bottom, var(--major) 0 1px, transparent 1px 50px);
-  background-size: 5px 100%, 9px 100%;
-  background-repeat: repeat-y;
-}
-
-.left {
-  left: 0;
-  border-right: 1px solid var(--edge);
-  background-position: 100% 0, 100% 0;
-  transform: translateX(-100%);
-  animation: rulerIn 420ms var(--spring-soft) 120ms forwards;
-}
-
-.right {
-  right: 0;
-  border-left: 1px solid var(--edge);
-  background-position: 0 0, 0 0;
-  transform: translateX(100%);
-  animation: rulerIn 420ms var(--spring-soft) 240ms forwards;
-}
-
-/* In from their own edge, out the same way. Four edges arriving 60ms apart is
-   the ambient layer the research calls for — the thing that is moving while
-   nothing important is, so the scene is never still and never busy. */
-@keyframes rulerIn {
-  to { transform: none; }
+@keyframes fly {
+  to {
+    transform: none;
+  }
 }
 
 .mark {
-  position: absolute;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 8.5px;
-  line-height: 1;
-  color: color-mix(in srgb, var(--ink) 42%, transparent);
-  letter-spacing: 0.02em;
-}
-
-.top .mark { top: 4px; transform: translateX(3px); }
-.left .mark { left: 4px; transform: translateY(3px); }
-
-/* --- The frames ----------------------------------------------------------- */
-
-/* A frame is drawn where a hand put it — a little off, a little rotated — and
-   then tidied. The two transforms are one animation so the straightening
-   cannot start before the drawing has finished. */
-.frame {
-  transform-origin: var(--cx) var(--cy);
-  transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
-  opacity: 0;
-  animation:
-    frameIn 180ms ease-out var(--d) forwards,
-    tidy 620ms var(--spring) var(--tidy) forwards,
-    frameOut 420ms cubic-bezier(0.4, 0, 1, 1) calc(var(--tidy) + 340ms) forwards;
-}
-
-@keyframes frameIn { to { opacity: 1; } }
-
-/* The gesture the whole sequence is built around: loose becomes exact. */
-@keyframes tidy {
-  to { transform: translate(0, 0) rotate(0deg); }
-}
-
-/* Out through the card arriving underneath — scaling up and blurring while the
-   card scales up from slightly under and unblurs, so the two cross rather than
-   one waiting for the other. A plain cross-fade reads as two things; this
-   reads as one becoming the other. */
-@keyframes frameOut {
-  to { opacity: 0; filter: blur(5px); }
-}
-
-.rect {
-  fill: color-mix(in srgb, var(--blue) 4%, transparent);
-  stroke: currentColor;
-  stroke-width: 1.25;
-  vector-effect: non-scaling-stroke;
-  /* `pathLength` is 1, so the perimeter is one unit however big the rectangle
-     is: one dash rule draws every frame at the same rate, and the wave keeps
-     its shape. */
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: draw 260ms cubic-bezier(0.65, 0, 0.35, 1) var(--d) forwards;
-}
-
-@keyframes draw { to { stroke-dashoffset: 0; } }
-
-/* The anchors a pen drops at each corner, landing as the stroke closes. */
-.anchor {
-  fill: var(--page-base);
-  stroke: currentColor;
-  stroke-width: 1.25;
-  vector-effect: non-scaling-stroke;
-  opacity: 0;
-  animation: anchorIn 160ms var(--spring) calc(var(--d) + 200ms) forwards;
-}
-
-@keyframes anchorIn { to { opacity: 1; } }
-
-/* The faint trace of where the hand has been. */
-.trail {
-  fill: none;
-  stroke: color-mix(in srgb, var(--blue-bright) 16%, transparent);
-  stroke-width: 1;
-  stroke-dasharray: 1;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  vector-effect: non-scaling-stroke;
-  animation:
-    draw var(--pen-run) linear 0ms forwards,
-    frameOut 360ms ease-in var(--tidy) forwards;
-}
-
-/* --- The pen -------------------------------------------------------------- */
-
-.penWrap {
-  position: absolute;
-  top: 0;
-  left: 0;
-  offset-rotate: 0deg;
-  offset-distance: 0%;
-  opacity: 0;
-  animation:
-    penTravel var(--pen-run) cubic-bezier(0.42, 0, 0.58, 1) forwards,
-    penFade 260ms ease forwards,
-    penOut 240ms ease-in var(--pen-run) forwards;
-}
-
-@keyframes penTravel { to { offset-distance: 100%; } }
-@keyframes penFade { to { opacity: 1; } }
-@keyframes penOut { to { opacity: 0; transform: scale(0.9); } }
-
-.pen {
-  position: absolute;
-  /* Sized here, not left to the `width` attribute.
-
-     `.penWrap` is an absolutely-positioned element with no dimensions of its
-     own — it exists only to be moved along the offset-path — and an SVG inside
-     a zero-width box resolved to zero width too, presentation attribute and
-     all. The nib was in the DOM, positioned correctly, travelling the path,
-     and 0px wide. */
-  width: 26px;
-  height: 26px;
-  /* And released from the reset.
-
-     `globals.css` gives every svg `max-width: 100%`, which is right for
-     artwork in a column and fatal here: the percentage resolves against
-     `.penWrap`, which is a zero-width positioning anchor, so `max-width`
-     computed to 0 and clamped the nib to nothing. Height was fine, which is
-     why it looked like the element simply was not there rather than like a
-     sizing bug. */
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Released from the global `svg { max-width: 100% }`, which resolves against
+     a parent that is only a positioning box. */
   max-width: none;
-  /* The nib is the point, so the icon hangs from its own tip. */
-  top: -3px;
-  left: -3px;
-  color: var(--blue-bright);
-  /* Two shadows: a tight one so the nib holds its edge against a card, and a
-     wide soft one so it never disappears into the ruler it crosses. It has to
-     stay legible over both, and it crosses both. */
-  filter:
-    drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18))
-    drop-shadow(0 2px 10px rgba(255, 255, 255, 0.9));
 }
 
-/* The two hairlines running from the nib out to the rulers. This is what a
-   vector editor shows while you draw, and it is the detail that makes the pen
-   read as an instrument being used rather than as a mascot being flown. */
-.guideX,
-.guideY {
-  position: absolute;
-  background-color: color-mix(in srgb, var(--blue-bright) 34%, transparent);
+/* --- The two strokes ------------------------------------------------------
+
+   Each is laid down by a wipe travelling along its own stroke direction, which
+   is why they are two animations and not one: the Y is a stem and reads bottom
+   to top; the S is a fold and reads down its 45deg diagonal. A single wipe
+   across both would be a curtain rather than a hand.
+
+   `clip-path: polygon()` interpolates when the point count matches, so the
+   edge can be a diagonal without registering a custom property to animate. */
+
+/* --- The two strokes ------------------------------------------------------
+
+   Each is laid down by a wipe travelling along its own stroke direction, which
+   is why they are two animations and not one: the S is a fold and reads down
+   its 45deg diagonal; the Y is a stem and reads bottom to top. A single wipe
+   across both would be a curtain rather than a hand.
+
+   THE S GOES FIRST. It is the left half of a left-to-right ligature and the
+   dominant tone; writing the Y before it read backwards, the way watching
+   somebody cross a T before drawing it does.
+
+   THE POLYGONS ARE TIGHT TO THE SHAPE, and that is the difference between a
+   stroke and a flash. The first version swept from -60% to 260%, so full
+   coverage was reached about halfway through the duration and each stroke
+   appeared to snap complete while its animation was still running. These start
+   exactly clear of the shape and end exactly past it, so the edge is crossing
+   for the whole beat.
+
+   `clip-path: polygon()` interpolates when the point count matches, so the
+   edge can lean without registering a custom property to animate. Two points
+   are anchored and two travel — anchoring half of them is what makes the
+   degenerate "nothing visible" start state trivial to express. */
+
+/* The lean is 60% of the box height, not a full 100%: a steeper edge spends
+   most of its travel out beyond the glyph's top-left corner, and the first
+   version wasted about forty percent of the S's beat crossing empty space
+   before it touched anything. Start and end are set against the glyph's actual
+   bounds — just clear of it, and just past it. */
+.s {
+  clip-path: polygon(-50% -50%, 10% -50%, -50% 150%, -110% 150%);
+  animation: writeS var(--stroke) cubic-bezier(0.4, 0.02, 0.2, 1) var(--write)
+    forwards;
 }
 
-.guideX {
-  top: 0;
-  left: -100vw;
-  width: 200vw;
-  height: 1px;
+@keyframes writeS {
+  to {
+    clip-path: polygon(-50% -50%, 115% -50%, 55% 150%, -110% 150%);
+  }
 }
 
-.guideY {
-  left: 0;
-  top: -100vh;
-  height: 200vh;
-  width: 1px;
+.y {
+  clip-path: polygon(-50% 122%, 150% 102%, 150% 150%, -50% 150%);
+  animation: writeY var(--stroke) cubic-bezier(0.4, 0.02, 0.2, 1)
+    calc(var(--write) + var(--gap)) forwards;
 }
 
-/* --- The way out ---------------------------------------------------------- */
-
-.hint {
-  position: absolute;
-  left: 50%;
-  bottom: 34px;
-  transform: translateX(-50%);
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--ink) 34%, transparent);
-  opacity: 0;
-  animation: hintLife calc(var(--run) * 0.5) ease calc(var(--run) * 0.26) forwards;
+@keyframes writeY {
+  to {
+    clip-path: polygon(-50% 0%, 150% -20%, 150% 150%, -50% 150%);
+  }
 }
 
-@keyframes hintLife {
-  0% { opacity: 0; }
-  18% { opacity: 1; }
-  72% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* Skipping brings everything home rather than cutting it. */
-:global(html[data-boot-skip]) .boot *,
-:global(html[data-boot-skip]) .boot {
+/* Skipping brings the whole thing home rather than cutting it. */
+:global(html[data-boot-skip]) .flight,
+:global(html[data-boot-skip]) .y,
+:global(html[data-boot-skip]) .s {
   animation-delay: 0ms !important;
-  animation-duration: 240ms !important;
-}
-
-:global(html[data-boot-skip]) .hint {
-  opacity: 0;
-  animation: none !important;
+  animation-duration: 260ms !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
   /* The pre-paint script already refuses to start under this setting; this is
      a second belt for a preference changed mid-visit. */
-  .boot { display: none; }
+  .boot {
+    display: none;
+  }
 }

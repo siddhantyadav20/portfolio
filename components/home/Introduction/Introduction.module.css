@@ -15,25 +15,17 @@
   will-change: transform;
 }
 
+/* The mark. One SVG now, themed by `--mark-s` / `--mark-y`, where it used to
+   be two PNGs and a display swap. Sized in `--u` like everything else in this
+   card so it scales with the composition. */
 .logo {
   width: calc(52 * var(--u));
   height: calc(40 * var(--u));
-  object-fit: contain;
-}
-
-/* The theme picks the drawing. Only one is ever in flow, so the mark keeps its
-   place in the column either way — see index.tsx for why this is CSS and not a
-   `useSyncExternalStore` read. */
-.logoDark {
-  display: none;
-}
-
-:global(html[data-theme="dark"]) .logoLight {
-  display: none;
-}
-
-:global(html[data-theme="dark"]) .logoDark {
-  display: block;
+  /* Released from the global `svg { max-width: 100% }` for the same reason the
+     boot nib was: this sits in a flex column whose basis is content, and the
+     percentage was resolving against the wrong box. */
+  max-width: none;
+  flex: none;
 }
 
 .content {

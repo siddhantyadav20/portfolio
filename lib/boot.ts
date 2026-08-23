@@ -37,7 +37,7 @@ export const BOOT_ATTR = "data-booting";
  * survives being that long only because it is skippable and because it is
  * showing the visitor the actual page being assembled rather than a spinner.
  */
-export const BOOT_MS = 5000;
+export const BOOT_MS = 3000;
 
 /**
  * Runs in <head>, before anything is painted.

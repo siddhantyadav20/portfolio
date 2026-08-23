@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
+import LogoMark from "@/components/brand/LogoMark";
 import CtaPill from "@/components/primitives/CtaPill";
 import { intro } from "@/content/site";
 import { useMounted } from "@/lib/clientValue";
@@ -43,30 +43,21 @@ export default function Introduction({ className }: { className?: string }) {
       data-prox-passive=""
       data-card="introduction"
     >
-      {/* Two files, one mark. The logo is ink-on-nothing in light and a white
-          and grey cut in dark, so it cannot be recoloured with `currentColor`
-          the way the icon set can — it is two drawings.
+      {/* One mark, one element, both themes.
 
-          Both are in the DOM and CSS picks one, rather than reading the theme
-          in JS: the theme is set on <html> before first paint, so a stylesheet
-          swap is correct on the server's HTML and through a toggle, with no
-          frame of the wrong mark. They are 5KB and 18KB. */}
-      <Image
-        src="/media/logo.png"
-        alt="Siddhant Yadav"
-        width={52}
-        height={40}
-        className={`${styles.logo} ${styles.logoLight}`}
-        priority
-      />
-      <Image
-        src="/media/logo-dark.png"
-        alt=""
-        aria-hidden="true"
-        width={52}
-        height={40}
-        className={`${styles.logo} ${styles.logoDark}`}
-        priority
+          This was two `next/image` PNGs — one per theme, both always in the
+          DOM, CSS hiding whichever did not apply — because the mark is
+          two-tone and `currentColor` cannot carry two colours. As geometry it
+          is two fills and two tokens, so the swap is gone and so are 24KB of
+          bitmap. See `content/logo.ts` for where the paths came from.
+
+          `data-logo` is how the arrival sequence finds it: it renders this same
+          component, flies it here, and hands over. A CSS-module class would be
+          hashed and unreachable from the loader. */}
+      <LogoMark
+        className={styles.logo}
+        title="Siddhant Yadav"
+        data-logo=""
       />
 
       <div className={styles.content}>

@@ -15,6 +15,14 @@
   --ink-20: rgba(34, 34, 34, 0.2);
   --ink-strong: #191919;
 
+  /* --- The mark ---------------------------------------------------------
+     The logo is two-tone, which is why it shipped as two PNGs for so long —
+     `currentColor` can only carry one colour, so a bitmap per theme was the
+     only way. As geometry it is two fills, and two fills can be two tokens.
+     Values are the ones sampled out of the original exports. */
+  --mark-s: #1a1a1a;
+  --mark-y: #656565;
+
   /* --- Accents --------------------------------------------------------- */
   --accent: #ea580b; /* orange: timeline, "Currently Building", waitlist */
   --blue: #1178ab; /* LinkedIn */
@@ -90,6 +98,26 @@
      with no blur at all. Every glass surface on this site was silently flat
      until that duplication came out. Lightning adds whatever prefixes the
      browserslist actually needs on its own. */
+
+  /* --- Motion -----------------------------------------------------------
+     A damped spring, sampled out of `lib/spring.ts` by `springEasing()` — the
+     same integrator the canvas camera and the timeline's dial run on. It
+     overshoots about four percent and settles.
+
+     `linear()` is the one easing function that can describe a shape a
+     cubic-bezier cannot, which is the whole reason it is here: a surface
+     arriving on an ease-out reads as being *placed*, and the same surface on a
+     spring reads as having mass. Sampled at authoring time, so the compositor
+     animates it and nothing runs a physics loop.
+
+     Lives here rather than beside the sequence that first needed it: it is a
+     token, and the arrival sequence has already been rewritten four times. */
+  --spring: linear(
+    0, 0.093, 0.29, 0.506, 0.696, 0.841, 0.939, 0.998, 1.028, 1.038, 1.037,
+    1.03, 1.019, 1.009, 1.002, 0.998, 0.996, 0.997, 0.999, 1
+  );
+  /* Barely underdamped — for things that should settle rather than bounce. */
+  --spring-soft: linear(0, 0.12, 0.35, 0.57, 0.74, 0.86, 0.93, 0.97, 0.99, 1);
 
   /* --- Radii ----------------------------------------------------------- */
   --r-sm: 16px;
@@ -996,6 +1024,8 @@ html[data-theme="dark"] {
   --ink-40: rgba(237, 237, 237, 0.4);
   --ink-20: rgba(237, 237, 237, 0.2);
   --ink-strong: #ffffff;
+  --mark-s: #faf8f6;
+  --mark-y: #666666;
 
   /* --- Accents ---------------------------------------------------------
      Each one lifted in lightness and pulled back in saturation. The light
@@ -1081,67 +1111,63 @@ html[data-theme="dark"] {
    Boot
    ===========================================================================
 
-   The homepage on somebody's first arrival, while `BootSequence` draws it.
+   The homepage on somebody's first arrival, while `BootSequence` writes the
+   mark and hands it over.
 
-   THE CARDS ANIMATE THEMSELVES. The overlay draws a wireframe on top; what
-   fills in underneath is the real card, on a delay the component writes onto
-   the element as `--boot-at`. Each card arrives while its neighbours are still
-   being drawn, so the page assembles rather than being revealed all at once —
-   which is what the first version did, and it read as a diagram of a loading
-   sequence rather than as a page coming together.
-
-   Because the thing that animates *is* the card, the hand-over is exact by
-   construction. There is no second copy of the layout to keep in step, and
-   nothing to measure twice.
+   THE CARDS ANIMATE THEMSELVES. The component measures them, orders them by
+   distance from the Introduction and writes `--boot-at` onto each; the rest is
+   here. They arrive 45ms apart, which is the interval a wave wants — an
+   earlier version used 350ms and read as a queue rather than a gesture.
 
    THE PAGE IS DIMMED, NEVER HIDDEN. `display: none` would leave the sequence
-   nothing to measure — an element with no box has no `getBoundingClientRect()`
-   — and would take the content out of the accessibility tree, so a screen
-   reader would be told to wait out an animation it cannot see. At `opacity: 0`
-   the layout is real, measurable and announced; it is only invisible.
+   nothing to measure — an element with no box has no `getBoundingClientRect()`,
+   and the whole hand-over is built on measuring the real logo — and it would
+   take the content out of the accessibility tree, so a screen reader would be
+   told to wait out an animation it cannot see. At `opacity: 0` the layout is
+   real, measurable and announced; it is only invisible.
 
-   Set before first paint by `BOOT_SCRIPT`, removed by the component. If the
-   JavaScript never runs, the attribute is never set and none of this applies.
+   Set before first paint by `BOOT_SCRIPT`, removed by the component.
    =========================================================================== */
 
-:root {
-  /* A damped spring, sampled out of lib/spring.ts. Overshoots ~4% and settles.
-     See `springEasing` there for why this is a `linear()` and not a bézier. */
-  --spring: linear(
-    0, 0.093, 0.29, 0.506, 0.696, 0.841, 0.939, 0.998, 1.028, 1.038, 1.037,
-    1.03, 1.019, 1.009, 1.002, 0.998, 0.996, 0.997, 0.999, 1
-  );
-  /* The same spring, barely underdamped — for the ground, which should settle
-     rather than bounce. */
-  --spring-soft: linear(
-    0, 0.12, 0.35, 0.57, 0.74, 0.86, 0.93, 0.97, 0.99, 1
-  );
-}
-
 html[data-booting] body {
-  /* The sequence draws what is above the fold and expects it to stay there. */
+  /* The sequence works above the fold and expects it to stay there. */
   overflow: hidden;
 }
 
-/* Everything the sequence has not reached yet. A card is invisible until its
-   own beat, and `--boot-at` is written onto it by the component; the fallback
-   keeps a card that was never measured from being stranded. */
-html[data-booting] [data-boot-card] {
+/* The real mark, waiting for the overlay to land on it.
+
+   No transition and no fade: the overlay is the same component at the same
+   size in the same place by then, so this is a swap between two identical
+   things. A cross-fade would make two identical marks briefly half-transparent
+   and read as a flicker. */
+html[data-booting] [data-logo] {
   opacity: 0;
-  animation: bootCardIn 620ms var(--spring) var(--boot-at, 0ms) forwards;
+  animation: bootLogoIn 1ms linear var(--boot-handover, 1830ms) forwards;
 }
 
-/* Arriving from slightly under, and slightly out of focus.
+@keyframes bootLogoIn {
+  to {
+    opacity: 1;
+  }
+}
 
-   The blur is the part that does the work, and it is the one thing here
-   borrowed wholesale from how a phone opens an app: a surface that scales up
-   *and* resolves reads as coming toward you, where scale alone reads as a box
-   being stretched. It costs one composited filter for half a second. */
+/* Every card, waiting its turn. */
+html[data-booting] [data-boot-card] {
+  opacity: 0;
+  animation: bootCardIn 420ms var(--spring) var(--boot-at, 0ms) forwards;
+}
+
+/* Arriving from slightly under and slightly out of focus.
+
+   The blur is the part that does the work: a surface that scales up *and*
+   resolves reads as coming toward you, where scale alone reads as a box being
+   stretched. Opacity-only entrances are the flattest thing in motion design
+   and the one every list of amateur tells names first. */
 @keyframes bootCardIn {
   from {
     opacity: 0;
-    transform: scale(0.972);
-    filter: blur(10px);
+    transform: translateY(7px) scale(0.985);
+    filter: blur(9px);
   }
   to {
     opacity: 1;
@@ -1150,22 +1176,28 @@ html[data-booting] [data-boot-card] {
   }
 }
 
-/* The chrome that is not a card — the theme toggle, the footer, the bottom
-   blur ramp. It has no frame drawn for it, so it simply arrives last, once the
-   grid has begun to go. */
-html[data-booting] #main > *:not([data-boot-card]),
-html[data-booting] .skipLink {
+/* The chrome that is not a card — theme toggle, footer, the blur ramp. Last,
+   and derived from the run rather than hardcoded: the previous version pinned
+   this at 3200ms, which silently desynchronised the moment the sequence was
+   retimed. */
+/* The chrome that is not a card — the theme toggle, the footer.
+
+   `:has()` is doing real work here: `.band` is a direct child of `#main` and it
+   *contains* every card, so a plain `#main > *` held the entire grid at opacity
+   0 until the chrome's own late delay. The cards were animating correctly
+   inside a parent that was invisible.
+
+   `.skipLink` is deliberately not in this list. It is positioned off-screen by
+   a transform until focused, and `bootCardIn` sets `transform` — which
+   overrode that and parked "Skip to content" in the top-left corner of the
+   loading screen. Anything whose resting state is a transform must not be
+   given an entrance that animates one. */
+html[data-booting] #main > *:not([data-boot-card]):not(:has([data-boot-card])) {
   opacity: 0;
-  animation: bootChromeIn 500ms var(--spring-soft) 3200ms forwards;
+  animation: bootCardIn 420ms var(--spring) var(--boot-chrome, 2250ms) forwards;
 }
 
-@keyframes bootChromeIn {
-  to {
-    opacity: 1;
-  }
-}
-
-/* Nothing under the overlay should react to a pointer crossing it: the
+/* Nothing under the overlay should react to a pointer crossing it — the
    proximity field would be pushing cards around behind a screen nobody can see
    through. */
 html[data-booting] #main {
@@ -1174,16 +1206,16 @@ html[data-booting] #main {
 
 /* Skipping collapses the schedule instead of cutting the animation. */
 html[data-boot-skip] [data-boot-card],
-html[data-boot-skip] #main > *:not([data-boot-card]),
-html[data-boot-skip] .skipLink {
+html[data-boot-skip] [data-logo],
+html[data-boot-skip] #main > *:not([data-boot-card]):not(:has([data-boot-card])) {
   animation-delay: 0ms !important;
-  animation-duration: 220ms !important;
+  animation-duration: 240ms !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html[data-booting] [data-boot-card],
-  html[data-booting] #main > *:not([data-boot-card]),
-  html[data-booting] .skipLink {
+  html[data-booting] [data-logo],
+  html[data-booting] #main > *:not([data-boot-card]):not(:has([data-boot-card])) {
     opacity: 1;
     animation: none;
   }
