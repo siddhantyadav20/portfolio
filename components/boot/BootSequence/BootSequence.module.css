@@ -21,20 +21,41 @@
   background: none;
 }
 
-/* The mark's whole journey, expressed once.
+/* The flight, split across two elements so it can arc.
 
    The element is positioned at the *destination* — the real logo's measured
-   rect — and then transformed away from it. So the animation runs a FLIP
+   rect — and transformed away from it, so the whole thing is one FLIP running
    backwards: at 100% the transform is identity, which means the overlay is
-   sitting exactly on the real logo with no arithmetic left to be wrong. */
+   sitting on the real logo with no arithmetic left to be wrong. Measured at the
+   hand-over frame it lands within 0.4px on both axes.
+
+   Horizontal here, vertical on `.lift`, on deliberately different curves. A
+   single translate would draw a straight line between the middle of the screen
+   and the corner, and nothing moves in straight lines — the horizontal eases
+   out while the vertical eases in, so the mark rises slightly before it falls
+   into place. */
 .flight {
   position: absolute;
-  transform-origin: center;
-  transform: translate(var(--dx), var(--dy)) scale(var(--k));
-  animation: fly var(--fly) var(--spring) var(--hold) forwards;
+  transform: translateX(var(--dx));
+  animation: flyX var(--fly) cubic-bezier(0.32, 0.72, 0.24, 1) var(--hold)
+    forwards;
 }
 
-@keyframes fly {
+@keyframes flyX {
+  to {
+    transform: none;
+  }
+}
+
+.lift {
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
+  transform: translateY(var(--dy)) scale(var(--k));
+  animation: flyY var(--fly) var(--spring) var(--hold) forwards;
+}
+
+@keyframes flyY {
   to {
     transform: none;
   }
@@ -47,6 +68,29 @@
   /* Released from the global `svg { max-width: 100% }`, which resolves against
      a parent that is only a positioning box. */
   max-width: none;
+
+  /* Follow-through: the mark settles once the second stroke lands.
+
+     A hair over one percent, for about a fifth of a second, and it is the
+     difference between a shape that appeared and a shape that was *put* there.
+     It lives on this element because `.flight` and `.lift` are both already
+     animating `transform` and the three motions have to compose rather than
+     fight. */
+  transform-origin: center;
+  animation: settle 240ms var(--spring)
+    calc(var(--write) + var(--gap) + var(--stroke) - 60ms) both;
+}
+
+@keyframes settle {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.012);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* --- The two strokes ------------------------------------------------------
@@ -113,6 +157,8 @@
 
 /* Skipping brings the whole thing home rather than cutting it. */
 :global(html[data-boot-skip]) .flight,
+:global(html[data-boot-skip]) .lift,
+:global(html[data-boot-skip]) .mark,
 :global(html[data-boot-skip]) .y,
 :global(html[data-boot-skip]) .s {
   animation-delay: 0ms !important;

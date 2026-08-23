@@ -249,10 +249,24 @@ export default function BootSequence() {
           } as React.CSSProperties
         }
       >
-        <LogoMark
-          className={styles.mark}
-          partClass={{ s: styles.s, y: styles.y }}
-        />
+        {/* Three nested transforms, because they are three different motions.
+
+            `.flight` carries the horizontal, `.lift` the vertical and the
+            scale, and they run on different easings — which is the whole
+            trick. A single `translate(dx, dy)` moves the mark along a straight
+            line from the middle of the screen to its slot, and a straight line
+            is the one path nothing in the physical world takes. Splitting the
+            axes and easing them differently bends it into an arc for free, no
+            motion path and no per-frame work.
+
+            `.mark` then carries the settle, which cannot share an element with
+            the flight because both would be animating `transform`. */}
+        <div className={styles.lift}>
+          <LogoMark
+            className={styles.mark}
+            partClass={{ s: styles.s, y: styles.y }}
+          />
+        </div>
       </div>
     </div>
   );
