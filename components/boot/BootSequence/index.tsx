@@ -52,8 +52,17 @@ const HOLD_UNTIL = 0.385;
 const FLY = 0.225;
 /** Cards start before the mark lands — overlapping action. */
 const CARDS_LEAD = 0.075;
-/** How far above its resting size the mark is written. */
-const SCALE = 3.4;
+/**
+ * How far above its resting size the mark is written.
+ *
+ * A multiple of the logo's *measured* size rather than a viewport figure, so
+ * the mark occupies the same share of the screen at 390px as it does at 1440 —
+ * `--u` already scales the logo with the composition, and this rides on it.
+ * Roughly a sixth of the viewport's width, which is about where a brand mark
+ * sits in the loaders this is in conversation with; a script or a wordmark
+ * would want half the screen, a monogram this dense would look shouty at it.
+ */
+const SCALE = 4.3;
 
 const CARDS = "[data-prox-card], [data-prox-passive]";
 const FOCAL = '[data-card="introduction"]';
@@ -88,6 +97,12 @@ export default function BootSequence() {
     done.current = true;
     revealPage();
     markSeen();
+    /* And take the skip flag with it. Its rules carry `!important` and are not
+       scoped to `[data-booting]`, so left on `<html>` they go on overriding
+       `animation-delay` and `-duration` on every card for the rest of the
+       visit. Harmless today, and exactly the kind of stray global that becomes
+       a mystery later. */
+    document.documentElement.removeAttribute("data-boot-skip");
     /* And actually leave.
 
        The previous version only removed the attribute, and the render guard
