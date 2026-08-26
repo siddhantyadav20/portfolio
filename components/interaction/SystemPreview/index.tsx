@@ -90,7 +90,12 @@ export default function SystemPreview({ mode, className }: Props) {
             <div className={styles.row}>
               <Stat label="Active users" value="9,990" />
               <Stat label="Reports filed" value="10,989" />
-              <Stat label="Adoption" value="11,988" />
+              {/* Not "Adoption". The three values here are furniture — an
+                  arithmetic sequence chosen so the sweep reads — but the study
+                  this specimen sits in states in as many words that no adoption
+                  baseline was ever taken, and a tile labelled Adoption directly
+                  above that line reads as a number being claimed. */}
+              <Stat label="Inspections" value="11,988" />
             </div>
 
             <div className={styles.row}>

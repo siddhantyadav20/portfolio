@@ -112,7 +112,12 @@ export default function Engagement({ slug }: Props) {
   return (
     <div className={styles.engagement}>
       <div className={styles.reactions}>
-        <p className={styles.reactionsAsk}>Was this worth your ten minutes?</p>
+        {/* Not "your ten minutes". This line is shared by every study, and the
+            number was written when only the Inspection redesign had a helpers
+            row saying "10 min read". The Design System study says 8, and a page
+            that contradicts its own reading time two screens apart reads as
+            unproofed. No number here can be right for all of them. */}
+        <p className={styles.reactionsAsk}>Was this worth your time?</p>
 
         <div className={styles.reactionButtons}>
           <ReactionButton
