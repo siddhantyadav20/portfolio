@@ -390,6 +390,30 @@
     gap: calc(64 * var(--u));
   }
 
+  /* --- The waitlist's orange band, Figma 844:3106 ----------------------
+
+     A full-bleed wash of the accent at 15% behind the Currently Building
+     block — 390 wide in a frame that is 390 wide, so it runs to both screen
+     edges rather than stopping at the page's 24 inset. It is what makes that
+     block read as a band across the page rather than a card on it, which is
+     also why the block itself has no surface (see StoreWaitlist).
+
+     `box-shadow` with a large spread rather than a pseudo-element: the wash
+     has to escape the band's own margin, and a shadow is not clipped by the
+     parent's box the way a 100vw child would need `position` and a negative
+     `z-index` to avoid painting over the content. `clip-path` then keeps the
+     bleed horizontal — without it the spread washes vertically too and the
+     block bleeds into the cards above and below.
+
+     `rgb(from ...)` off `--accent` rather than a literal, so the dark theme's
+     warmer orange carries through instead of the light theme's being pasted
+     into it. */
+  .store {
+    background: rgb(from var(--accent) r g b / 0.15);
+    box-shadow: 0 0 0 100vw rgb(from var(--accent) r g b / 0.15);
+    clip-path: inset(0 -100vw);
+  }
+
   .search,
   .timelineSlot {
     display: block;

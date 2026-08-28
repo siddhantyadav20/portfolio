@@ -132,7 +132,7 @@ export default function LinkedInCard() {
           card, carrying the hover copy of everything with it. Painted over
           the real content, but `pointer-events: none`, so the link
           underneath is still the thing you are hovering. */}
-      <span className={styles.flood} aria-hidden="true">
+      <span className={`${styles.flood} squircle`} aria-hidden="true">
         <Face />
         <span className={`${styles.cta} ${styles.ctaFace}`}>{linkedin.cta}</span>
       </span>

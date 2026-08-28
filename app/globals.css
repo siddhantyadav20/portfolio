@@ -233,6 +233,33 @@
 }
 
 /* ==========================================================================
+   Text fields on touch
+
+   iOS Safari zooms the page when a field it is focusing has a computed
+   font-size below 16px, and then leaves the viewport zoomed. There is no
+   opting out of it from the page: `user-scalable=no` and `maximum-scale=1`
+   both suppress the visitor's own pinch-zoom, which is a WCAG 1.4.4 failure,
+   and iOS has ignored them since iOS 10 in any case. Sixteen pixels is the
+   whole of the workaround.
+
+   `pointer: coarse` rather than a width, because the behaviour belongs to
+   touch and not to a screen size — a narrow desktop window has never zoomed.
+   A literal 16px rather than `calc(16 * var(--u))`, because the threshold is
+   in CSS pixels and a scaled 16 on a 360 phone is 14.8, which still zooms.
+
+   The command palette was already 16. The three below were 12, 12 and 15, and
+   each of them is a slightly larger field on a phone than it is in the design
+   as a result — the alternative was a page that jumps and stays jumped the
+   first time anyone tries to join the waitlist. */
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+/* ==========================================================================
    Reset
    ========================================================================== */
 

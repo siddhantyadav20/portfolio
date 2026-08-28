@@ -116,11 +116,11 @@ export default function MusicPlayer() {
           width={254}
           height={280}
           loading={i === 0 ? "eager" : "lazy"}
-          className={styles.cover}
+          className={`${styles.cover} squircle`}
           data-active={i === index ? "" : undefined}
         />
       ))}
-      <span className={styles.scrim} aria-hidden="true" />
+      <span className={`${styles.scrim} squircle`} aria-hidden="true" />
 
       {track.src ? (
         <audio key={track.title} ref={audioRef} src={track.src} preload="none" />

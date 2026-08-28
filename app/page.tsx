@@ -94,7 +94,7 @@ export default function Home() {
                 wide grid the wrapper is `display: contents`, so every child
                 below is placed on the band's own grid exactly where it always
                 was and this box does not exist at all. */}
-            <div className={styles.closing}>
+            <div className={`${styles.closing} squircle`}>
               {/* Slots, because `.closing` is `display: contents` on the wide
                   grid and these two are then placed on the band directly —
                   which needs a box this stylesheet owns a class on. */}

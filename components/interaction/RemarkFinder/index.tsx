@@ -979,7 +979,7 @@ export default function RemarkFinder({
           in here is focusable, and it is out of the accessibility tree, so
           the field below is the only thing a screen reader or a tab key
           finds. */}
-        <div className={styles.drill} ref={drillRef} aria-hidden="true">
+        <div className={`${styles.drill} squircle`} ref={drillRef} aria-hidden="true">
           <div className={styles.drillTrack} ref={trackRef}>
             {DRILL_PANELS.map((panel, i) => (
               <div className={styles.panel} key={panel.crumb}>
