@@ -344,3 +344,16 @@
 .playing .bar {
   background-color: rgba(255, 255, 255, 0.8);
 }
+
+/* --- One column ------------------------------------------------------------
+   Stacked rather than paired below 1001, and full-bleed rather than held at
+   the 254 it is drawn at. Centred at 254 in a 350 column it sat with 48px of
+   empty page either side of it, which read as a card that had been dropped
+   into the layout rather than laid out in it. The art is a cover fill and the
+   transport is anchored to the card's own edges, so both simply get wider. */
+@media (max-width: 1000px) {
+  .card {
+    width: 100%;
+    flex: none;
+  }
+}

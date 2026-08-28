@@ -40,15 +40,36 @@ export default function Home() {
               five visually and left the tab order following the markup — so a
               phone visitor read the Introduction first and tabbed into the
               Inspection card first. `order` moves paint, never focus; the only
-              way to move both is to move the markup. */}
+              way to move both is to move the markup.
+
+              THE ORDER BELOW IS A HIERARCHY, NOT THE DESKTOP COLUMNS.
+
+              It used to be col2 → col1 → col3 → topRow, which is the order the
+              *grid* wants and no order a reader does. On a phone that read:
+              introduction, then a side project's waitlist, then a music
+              player, then LinkedIn — and only then the first case study. About
+              Me landed 3,619px down, at 81% of the page, and the canvas at
+              3,915. The three things a recruiter came for were last.
+
+              Now it answers the questions in the order they get asked: who is
+              this (Introduction), what kind of designer (About, the
+              Design/Engineer card, the canvas), what have they shipped
+              (Inspection, Design System), how did they get here (Timeline,
+              Search), what are they doing now (the Store waitlist), and who
+              are they otherwise (music, LinkedIn).
+
+              `.lead` exists only so the Introduction can lead while the rest of
+              column 2 goes last — the two are one flow on the desktop grid and
+              two different places in the narrative. See page.module.css. */}
           <div className={styles.band}>
-            <div className={styles.col2}>
+            <div className={styles.lead}>
               <Introduction className={styles.intro} />
-              <StoreWaitlist />
-              <div className={styles.personality}>
-                <MusicPlayer />
-                <LinkedInCard />
-              </div>
+            </div>
+
+            <div className={styles.topRow}>
+              <AboutMeCard />
+              <DesignEngineerCard />
+              <CanvasCard />
             </div>
 
             <div className={styles.col1}>
@@ -61,10 +82,12 @@ export default function Home() {
               <SearchExperience />
             </div>
 
-            <div className={styles.topRow}>
-              <AboutMeCard />
-              <DesignEngineerCard />
-              <CanvasCard />
+            <div className={styles.col2}>
+              <StoreWaitlist />
+              <div className={styles.personality}>
+                <MusicPlayer />
+                <LinkedInCard />
+              </div>
             </div>
 
             <div className={styles.footerWrap}>

@@ -13,12 +13,18 @@
 
 /* Stretching is only meaningful while the top row is a single line. Once it
    wraps there is no spare width to absorb — and a flexible card in a wrapped
-   row is squeezed to nothing — so it goes back to the width it was drawn at. */
+   row is squeezed to nothing — so `flex` comes off here.
+
+   It takes the full column rather than going back to its drawn 260. In one
+   column this card owns its row, and 260 left-aligned in a 350 column put a
+   third distinct right edge under the 134 of About Me and the 322 of Canvas.
+   The route inside is built to stretch — `.route` is a `max()` of its drawn
+   width and whatever the card gives it — so this is the one card in the row
+   that needed no internal change to fill the space. */
 @media (max-width: 1000px) {
   .card {
     flex: none;
-    width: calc(260 * var(--u));
-    max-width: 100%;
+    width: 100%;
   }
 }
 

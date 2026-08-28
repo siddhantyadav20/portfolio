@@ -275,3 +275,14 @@
 .ctaFace {
   background-color: rgba(255, 255, 255, 0.2);
 }
+
+/* --- One column ------------------------------------------------------------
+   Full-bleed below 1001, for the reason the music player above it is: paired
+   on the wide grid, stacked here, and a 254-wide card centred in a 350 column
+   leaves a margin that belongs to neither the card nor the page. */
+@media (max-width: 1000px) {
+  .card {
+    width: 100%;
+    flex: none;
+  }
+}

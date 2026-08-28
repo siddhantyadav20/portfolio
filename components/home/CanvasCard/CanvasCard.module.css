@@ -77,9 +77,25 @@
   z-index: 2;
 }
 
+/* --- One column ------------------------------------------------------------
+   The 322 cap is gone. It was there to stop the card growing past its drawn
+   width, which was right while this sat in a row beside two others; alone in a
+   single column it just left a ragged 28px of empty page to its right, under
+   two cards that stopped at different widths again.
+
+   The preview is a window onto the board rather than a laid-out composition,
+   so a wider card simply shows more board — which is the point of it. */
 @media (max-width: 1000px) {
   .card {
     width: 100%;
-    max-width: calc(322 * var(--u));
+  }
+
+  /* The CTA was pinned at a left offset measured against a 322-wide card. Once
+     the card takes the column that offset is no longer its centre, so it is
+     centred by its own box instead of by a number. */
+  .cta {
+    left: 0;
+    right: 0;
+    margin-inline: auto;
   }
 }

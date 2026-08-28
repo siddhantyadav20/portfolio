@@ -143,10 +143,27 @@
     var(--col-1)
     minmax(0, var(--col-2))
     minmax(0, 1fr);
-  /* Row 1 is pinned, not auto. Col 1 spans rows 1-2 and is now the tallest
-     thing on the page, and an auto row 1 absorbs part of that overflow —
-     which quietly pushed the Introduction and the Timeline ~24px down. */
-  grid-template-rows: var(--row-top) auto auto;
+  /* Row 1 is pinned, not auto. Col 1 spans rows 1-3 and is the tallest thing
+     on the page, and an auto row 1 absorbs part of that overflow — which
+     quietly pushed the Introduction and the Timeline ~24px down.
+
+     FOUR ROWS, AND WHY ROW 3 IS `1fr`.
+
+     Column 2 used to be one wrapper and therefore one grid item, so its
+     internal flow quietly absorbed col 1's surplus height as slack under the
+     last card — 35px of it at 1440. Splitting the Introduction out (it leads
+     the phone narrative; the rest of that column ends it) makes column 2 two
+     grid items in two rows, and two `auto` rows split that surplus between
+     them — which would have pushed the Store card ~17px down and opened the
+     Introduction's 118px gap to 135.
+
+     `1fr` on row 3 takes the surplus instead: an `fr` track absorbs the space
+     a spanning item asks for, so row 2 stays exactly the Introduction's height
+     and the slack lands under the personality cards, which is where it was
+     before. Row 2 is left `auto` deliberately rather than pinned to a measured
+     354 — the Introduction is the one block on this page whose copy is still
+     being written, and a pinned row would clip it. */
+  grid-template-rows: var(--row-top) auto 1fr auto;
   column-gap: var(--gap);
   row-gap: var(--gap);
   /* No `width: 100%`. The insets are this element's margin from 1001 up, and a
@@ -164,9 +181,10 @@
   align-items: flex-start;
   gap: var(--gap);
   grid-column: 1;
-  /* Spans both rows: the top row's height is set by .topRow, not by this
-     column, otherwise col 1's full height would push cols 2-3 down the page. */
-  grid-row: 1 / 3;
+  /* Spans every content row: the top row's height is set by .topRow, not by
+     this column, otherwise col 1's full height would push cols 2-3 down the
+     page. Row 4 is the footer, which this must stay clear of. */
+  grid-row: 1 / 4;
 }
 
 /* --- Top row : About, Designer/Engineer, Canvas ------------------------ */
@@ -192,14 +210,34 @@
   margin-right: calc(var(--toggle-w) + var(--gap));
 }
 
-/* --- Column 2 : Introduction, Store, Personality -------------------------- */
+/* --- Column 2, upper : the Introduction ----------------------------------- */
+
+/* Its own grid item purely so the markup can put it first and the rest of this
+   column last — on the wide grid the two are still one column, one under the
+   other, with the same 118px between them there has always been. */
+.lead {
+  display: flex;
+  flex-direction: column;
+  grid-column: 2;
+  grid-row: 2;
+}
+
+/* --- Column 2, lower : Store, Personality --------------------------------- */
 
 .col2 {
   display: flex;
   flex-direction: column;
   grid-column: 2;
-  grid-row: 2;
-  gap: var(--gap-lg);
+  grid-row: 3;
+  /* Was `--gap-lg` with `.personality` subtracting its way back out to 48.
+     With the Introduction gone this column has exactly one gap in it, and it
+     is the 48. */
+  gap: var(--gap-personality);
+  /* 118 below the Introduction. The grid's own row gap pays the first 32. */
+  margin-top: calc(var(--gap-lg) - var(--gap));
+  /* The `1fr` row is taller than this content — that surplus is col 1's, and
+     it belongs under these cards rather than distributed above them. */
+  align-self: start;
 }
 
 /* 64px clear of Inspection — a double gutter, and the widest single piece of
@@ -210,11 +248,11 @@
 
 /* Personality sits closer than the 118px rhythm above the Store card but wider
    than a plain gutter — 48px, which is also the drop from the tallest column to
-   the footer. The column's own gap is subtracted back out. */
+   the footer. That 48 is now `.col2`'s own gap rather than a negative margin
+   cancelling a larger one. */
 .personality {
   display: flex;
   gap: var(--gap);
-  margin-top: calc(var(--gap-personality) - var(--gap-lg));
 }
 
 /* --- Column 3 : Timeline, Search ----------------------------------------- */
@@ -225,10 +263,13 @@
   display: flex;
   flex-direction: column;
   grid-column: 3;
-  grid-row: 2;
+  /* Both content rows, for the same reason col 1 spans them: this column is a
+     single flow and the split in column 2 is column 2's business. */
+  grid-row: 2 / 4;
   gap: var(--gap);
   align-items: flex-end;
   margin-top: var(--col-3-offset);
+  align-self: start;
 }
 
 /* --- Footer --------------------------------------------------------------- */
@@ -238,8 +279,12 @@
    row gap, so only the remainder is a margin here. */
 .footerWrap {
   grid-column: 1 / -1;
-  grid-row: 3;
-  margin-top: calc(48px - var(--gap));
+  grid-row: 4;
+  /* `48 * --u`, not a literal `48px`. The rest of that sum (`--gap`) scales,
+     so a fixed 48 made the drop shrink as the page grew: correct at 1440,
+     16px short at 1920, and further out from there. Below 1001 `--u` is its
+     registered 1px and this resolves to the same 48 - 32 it always did. */
+  margin-top: calc(48 * var(--u) - var(--gap));
   margin-inline: var(--gap);
 }
 
@@ -262,6 +307,7 @@
     margin-inline: auto;
   }
 
+  .lead,
   .col1,
   .col2,
   .col3,
@@ -270,6 +316,7 @@
     grid-column: 1;
     grid-row: auto;
     margin: 0;
+    align-self: auto;
   }
 
   /* The Introduction is indented past the Inspection card's overhang on the
@@ -344,15 +391,19 @@
      an in-flow toggle lands roughly 4,000px down a phone page — a control
      nobody will ever find.
 
-     What it can collide with is whatever is ordered *first*, which is `.col2`
+     What it can collide with is whatever is ordered *first*, which is `.lead`
      and so the Introduction. That block gets the clearance instead. */
   /* Clearance for the pinned toggle, measured off the thing that has to
      clear it rather than off an unrelated token. It was
      `calc(var(--toggle-w) * 0.42)` — 47px derived from the toggle's *width*
      — against a control that is 64px tall sitting at `--page-pad` from the
      top. It did not collide only because the Introduction's first painted
-     element is a narrow left-aligned logo; anything wider would have hit it. */
-  .col2 {
+     element is a narrow left-aligned logo; anything wider would have hit it.
+
+     On `.lead` rather than `.col2` since the narrative reorder: the
+     Introduction is still what comes first, but it is now its own grid item
+     and the rest of column 2 is at the bottom of the page. */
+  .lead {
     padding-top: calc(var(--page-pad) + var(--toggle-h) + var(--gap));
   }
 
@@ -361,11 +412,13 @@
     gap: var(--gap);
   }
 
-  /* Stacked, and centred at their design width rather than stretched: 254px is
-     the size these two are drawn at, and widening them would move art their
-     layouts place by hand. */
+  /* Stacked and full-bleed. They used to be centred at the 254 they are drawn
+     at, on the argument that widening them would move art their layouts place
+     by hand — it doesn't: the player's cover is a fill and the LinkedIn card
+     is a centred column, so both only get wider. Each card carries the rule
+     that lets it (see their own stylesheets); this just stops centring them. */
   .personality {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
   }
 }

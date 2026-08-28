@@ -152,7 +152,18 @@
    and upscaling it would only soften it — but it is free to shrink, and now
    the contents shrink with it rather than being cropped away. */
 @media (max-width: 1000px) {
+  /* The column, not the drawn 420.
+
+     Everything in this card is already in `cqw` and the height follows the
+     width by `aspect-ratio`, so it is one object at any size — growing it
+     costs nothing that shrinking it did not already cost. Held at 420 in the
+     540 column the tablet layout uses, it sat left-aligned under cards that
+     stop at other widths, which is the ragged edge the phone layout was
+     rebuilt to get rid of.
+
+     The raster stands up to it: `inspection-bg.jpg` is a 750px source painted
+     at 420 here, so 540 is still inside its native size. */
   .card {
-    max-width: 100%;
+    width: 100%;
   }
 }
