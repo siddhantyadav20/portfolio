@@ -163,7 +163,7 @@
      before. Row 2 is left `auto` deliberately rather than pinned to a measured
      354 — the Introduction is the one block on this page whose copy is still
      being written, and a pinned row would clip it. */
-  grid-template-rows: var(--row-top) auto 1fr auto;
+  grid-template-rows: var(--row-top) auto auto 1fr auto;
   column-gap: var(--gap);
   row-gap: var(--gap);
   /* No `width: 100%`. The insets are this element's margin from 1001 up, and a
@@ -175,46 +175,73 @@
 
 /* --- Column 1 : Inspection, Design System -------------------------------- */
 
+/* The one wrapper the phone order did not dissolve. Figma's phone frame puts
+   the Store waitlist between these two; in the DOM that splits the column, and
+   a split column has to be rebuilt out of pinned rows — which this file
+   refuses to do for the Introduction and should not start doing here. So the
+   waitlist follows the pair rather than parting it, and that is the single
+   place the phone layout departs from the frame. */
 .col1 {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--gap);
   grid-column: 1;
-  /* Spans every content row: the top row's height is set by .topRow, not by
-     this column, otherwise col 1's full height would push cols 2-3 down the
-     page. Row 4 is the footer, which this must stay clear of. */
-  grid-row: 1 / 4;
+  /* Every content row. Row 5 is the footer, which this must stay clear of. */
+  grid-row: 1 / 5;
 }
 
-/* --- Top row : About, Designer/Engineer, Canvas ------------------------ */
-/* Spans cols 2-3, but starts one gutter past Inspection's right edge rather
-   than on the col-2 line, and stops one gutter short of the pinned theme
-   toggle. Fixed track height so cols 2 and 3 start where Figma puts them;
-   Canvas is taller and overhangs it on purpose.
+/* --- The closing section -------------------------------------------------
 
-   About Me and Canvas are fixed; the Designer/Engineer card is the one that
-   stretches, so all three gutters stay 32px however wide the row gets. */
+   On a phone this is a bordered box holding the canvas, the timeline, the two
+   chips and the personality pair — Figma 844:2887. Up here it is nothing at
+   all: `display: contents` drops the box and hands its four children straight
+   to the band's grid, which places each of them where it always placed them.
+   The wrapper costs the wide layout exactly one line of CSS. */
+.closing {
+  display: contents;
+}
 
-.topRow {
-  display: flex;
+/* --- Top row : About + Designer/Engineer, and Canvas ---------------------
+
+   Figma's top row is three cards between Inspection's right edge and the
+   pinned theme toggle: About Me and the Design/Engineer card at the left of
+   it, the canvas at the right. They used to be one flex row; the phone frame
+   separates the canvas from the pair, so they are now two grid items sharing
+   one area and pushed to its two ends.
+
+   That reproduces the row exactly rather than approximately. The area runs
+   from the overhang to the toggle's reserve — 780 design px at 1440 — and the
+   two items are 426 and 322 wide, so the space left between them is 32: the
+   same gutter the flex row used to declare. */
+.chips,
+.canvasSlot {
   grid-column: 2 / 4;
   grid-row: 1;
+  /* A hard height, not a min: Canvas is 246 tall and is *meant* to hang out of
+     this track. Letting the row grow to fit it would push the Introduction and
+     the Timeline 82px down the page. */
+  height: var(--row-top);
+}
+
+.chips {
+  display: flex;
   gap: var(--gap);
   align-items: flex-start;
-  /* A hard height, not a min: Canvas is 246 tall and is *meant* to hang out
-     of this track. Letting the row grow to fit it would push the Introduction
-     and the Timeline 82px down the page. */
-  height: var(--row-top);
+  justify-self: start;
   margin-left: var(--overhang);
+}
+
+.canvasSlot {
+  justify-self: end;
   margin-right: calc(var(--toggle-w) + var(--gap));
 }
 
 /* --- Column 2, upper : the Introduction ----------------------------------- */
 
 /* Its own grid item purely so the markup can put it first and the rest of this
-   column last — on the wide grid the two are still one column, one under the
-   other, with the same 118px between them there has always been. */
+   column last — on the wide grid they are still one column, one under the
+   other, with the same rhythm between them there has always been. */
 .lead {
   display: flex;
   flex-direction: column;
@@ -222,21 +249,28 @@
   grid-row: 2;
 }
 
-/* --- Column 2, lower : Store, Personality --------------------------------- */
+/* --- Column 2, middle : the Store waitlist -------------------------------- */
 
-.col2 {
-  display: flex;
-  flex-direction: column;
+.store {
   grid-column: 2;
   grid-row: 3;
-  /* Was `--gap-lg` with `.personality` subtracting its way back out to 48.
-     With the Introduction gone this column has exactly one gap in it, and it
-     is the 48. */
-  gap: var(--gap-personality);
   /* 118 below the Introduction. The grid's own row gap pays the first 32. */
   margin-top: calc(var(--gap-lg) - var(--gap));
-  /* The `1fr` row is taller than this content — that surplus is col 1's, and
-     it belongs under these cards rather than distributed above them. */
+  align-self: start;
+}
+
+/* --- Column 2, lower : the personality pair ------------------------------- */
+
+.personality {
+  display: flex;
+  gap: var(--gap);
+  grid-column: 2;
+  grid-row: 4;
+  /* 48 below the Store card, which is also the drop from the tallest column to
+     the footer. The row gap pays 32 of it. */
+  margin-top: calc(var(--gap-personality) - var(--gap));
+  /* Row 4 is the `1fr` track and is taller than this content — that surplus is
+     col 1's, and it belongs under these cards rather than above them. */
   align-self: start;
 }
 
@@ -246,29 +280,29 @@
   margin-left: calc(var(--overhang) + var(--gap));
 }
 
-/* Personality sits closer than the 118px rhythm above the Store card but wider
-   than a plain gutter — 48px, which is also the drop from the tallest column to
-   the footer. That 48 is now `.col2`'s own gap rather than a negative margin
-   cancelling a larger one. */
-.personality {
-  display: flex;
-  gap: var(--gap);
-}
-
 /* --- Column 3 : Timeline, Search ----------------------------------------- */
 
-/* The one column whose two cards are a plain gutter apart. Timeline is drawn
-   with no fill, so the gutter is measured off its box rather than off ink. */
-.col3 {
-  display: flex;
-  flex-direction: column;
+/* Two grid items rather than one flow, because the phone frame puts the canvas
+   between them. Timeline is drawn with no fill, so the gutter below it is
+   measured off its box rather than off ink. */
+.timelineSlot {
   grid-column: 3;
-  /* Both content rows, for the same reason col 1 spans them: this column is a
-     single flow and the split in column 2 is column 2's business. */
+  /* Rows 2-3, not row 2 alone. The Timeline is 327 tall under a 28 offset —
+     355 from the row's start, one pixel more than the Introduction's 354 — so
+     left in a single row it, not the Introduction, would set that row's height
+     and push the Store card and the personality pair a pixel down the page. */
   grid-row: 2 / 4;
-  gap: var(--gap);
-  align-items: flex-end;
+  display: flex;
+  justify-content: flex-end;
   margin-top: var(--col-3-offset);
+  align-self: start;
+}
+
+.search {
+  grid-column: 3;
+  grid-row: 3 / 5;
+  display: flex;
+  justify-content: flex-end;
   align-self: start;
 }
 
@@ -279,7 +313,7 @@
    row gap, so only the remainder is a margin here. */
 .footerWrap {
   grid-column: 1 / -1;
-  grid-row: 4;
+  grid-row: 5;
   /* `48 * --u`, not a literal `48px`. The rest of that sum (`--gap`) scales,
      so a fixed 48 made the drop shrink as the page grew: correct at 1440,
      16px short at 1920, and further out from there. Below 1001 `--u` is its
@@ -289,12 +323,22 @@
 }
 
 /* ==========================================================================
-   Responsive
+   Responsive — the phone frame
 
-   One breakpoint for now, at 1000px, and it is a holding pattern rather than a
-   design: below it the three columns become one and the cards keep the
-   compositions they were drawn at instead of stretching into layouts nobody
-   has drawn yet. The real breakpoints are a later phase.
+   Figma 843:2477 is a 390 frame and the first phone design this site has had.
+   Everything below transcribes it: 24 of page padding, sections 64 apart, and
+   a bordered box at the end holding the canvas, the timeline, the two chips
+   and the personality pair.
+
+   One thing in the frame is not transcribed. It orders the Store waitlist
+   third, between the two case studies, and on the wide grid those two are a
+   single content-driven column — splitting them means rebuilding that column
+   out of pinned rows, which is exactly what this file refuses to do for the
+   Introduction. The waitlist follows the pair instead. See `.col1`.
+
+   One thing in the frame is broken rather than transcribed: the personality
+   row is two 252-wide cards in a 294-wide box, so the LinkedIn card is clipped
+   at the frame's edge. They keep their drawn width here and the row scrolls.
    ========================================================================== */
 
 @media (max-width: 1000px) {
@@ -305,17 +349,28 @@
     grid-auto-flow: row;
     max-width: min(540px, 100%);
     margin-inline: auto;
+    /* 64 between sections, which is the frame's own rhythm and twice what the
+       holding pattern used. It is the single change that stops the page
+       reading as a list of cards. */
+    row-gap: calc(64 * var(--u));
   }
 
+  /* Everything the wide grid places by hand goes back into flow. */
   .lead,
   .col1,
-  .col2,
-  .col3,
-  .topRow,
-  .footerWrap {
-    grid-column: 1;
+  .store,
+  .search,
+  .closing,
+  .footerWrap,
+  .chips,
+  .canvasSlot,
+  .timelineSlot,
+  .personality {
+    grid-column: auto;
     grid-row: auto;
+    height: auto;
     margin: 0;
+    justify-self: auto;
     align-self: auto;
   }
 
@@ -328,92 +383,95 @@
     margin-left: 0;
   }
 
-  .col1,
-  .col3 {
+  /* The two case studies are two sections here, not one column, so they take
+     the section rhythm rather than a gutter. */
+  .col1 {
     align-items: stretch;
+    gap: calc(64 * var(--u));
   }
 
-  /* Two chips on one line, the board on the next.
-
-     This is the page's closing section rather than its opening one — About Me
-     and the Design/Engineer card answer "who is this", and the canvas is the
-     way further in, so all three sit together at the end. Wrapping does the
-     work: About Me holds its drawn 134, the Design/Engineer card takes the
-     rest of the line, and the canvas has a full flex basis so it drops below
-     them. */
-  .topRow {
-    height: auto;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    gap: calc(16 * var(--u));
+  .search,
+  .timelineSlot {
+    display: block;
   }
 
-  .col2,
-  .col3 {
-    gap: var(--gap);
+  /* --- The closing section, Figma 844:2887 -------------------------------
+
+     Four things that are scattered across the wide grid — the canvas, the
+     timeline, the two identity chips and the personality pair — become one
+     bordered box at the end of the phone page. That box is the whole idea:
+     it turns "and here are some more things about me" from a run of loose
+     cards into a place with an edge round it.
+
+     `--surface-glass` is already the frame's own `rgba(255,255,255,0.4)`, and
+     it is the token the theme toggle and the footer use, so the dark theme
+     answer comes for free. */
+  .closing {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: calc(64 * var(--u));
+    padding: calc(24 * var(--u));
+    border: 1px solid var(--ink-20);
+    border-radius: calc(24 * var(--u));
+    background: var(--surface-glass);
   }
 
-  /* No `order` here any more. Introduction still leads on mobile — the
-     fastest way to say who this is — but it leads because it comes first in
-     the markup now (see app/page.tsx), which moves the tab order and the
-     screen-reader order along with the paint. `order` moved only the paint,
-     so this block used to hand a phone visitor the Introduction visually and
-     the Inspection card on the first Tab. */
+  /* About Me at the 100 the frame draws it, the Design/Engineer card taking
+     what is left. 24 between them, which is the frame's gutter inside this
+     box rather than the 32 the wide grid uses. */
+  .chips {
+    display: flex;
+    gap: calc(24 * var(--u));
+    align-items: flex-start;
+  }
 
-  /* Still a row, and an even one.
+  /* --- The personality pair, as a scroller ------------------------------
 
-     These two are a pair on the wide grid and they stay one here — stacking
-     them turned a 280px block into a 592px one and left 48px of empty page
-     either side of each card, which is a third of a phone page spent on a
-     music player and a LinkedIn card.
+     The frame has these two at 252 each inside a 294-wide box: 528 of cards
+     in 294 of room, with the LinkedIn card clipped off the right edge. That
+     is the frame being unfinished, not a design, so rather than reproduce a
+     clipped card or shrink both below the width they are drawn at, the row
+     keeps their size and scrolls.
 
-     A two-track grid rather than two flex children, and the difference is not
-     cosmetic. On flex the LinkedIn card came out wider than the player every
-     time: at half a phone column its 20px of padding cannot shrink below a
-     zero basis, so the pair split 147/187 instead of down the middle; and at
-     the 540 column the player, whose composition is absolutely positioned and
-     therefore has no intrinsic width, collapsed to 0 and gave LinkedIn the
-     whole row. Tracks are sized before anything inside them is consulted.
-
-     `minmax(0, 1fr)` and not a bare `1fr`, for the second half of that: an
-     `fr` track has an automatic *minimum* of its own content, which is the
-     same trap one level up. Zero as the floor is what makes the halves halves.
-
-     The gutter closes to 16 — half of a 350 column is 167 and every pixel of
-     the gap comes out of both cards. */
+     The negative margin and matching padding let it scroll edge to edge
+     through the section's padding while the first card still starts on the
+     content inset — so the second card peeks in from the border rather than
+     from nowhere, which is what says "this moves" before anyone touches it. */
   .personality {
-    margin-top: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: stretch;
-    gap: calc(16 * var(--u));
+    display: flex;
+    gap: calc(24 * var(--u));
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    margin-inline: calc(-24 * var(--u));
+    padding-inline: calc(24 * var(--u));
+    /* The cards carry their own shadows and the scroll port would clip them
+       against a hard edge; a little room under them keeps that off. */
+    padding-bottom: calc(4 * var(--u));
+    scrollbar-width: none;
+  }
+
+  .personality::-webkit-scrollbar {
+    display: none;
+  }
+
+  .personality > * {
+    scroll-snap-align: start;
   }
 }
 
 /* --- Phone -----------------------------------------------------------------
 
-   The 1000px rule above collapses the band to one 540px column, which is the
-   width the *widest card* is drawn at. Below ~600px that column is wider than
-   the screen, and three things break for real rather than merely looking
-   untuned:
-
-     1. `.personality` is two 254px cards either side of a 32px gutter — 540px
-        that cannot shrink, because neither card has a rule making it. It is
-        the one guaranteed horizontal overflow on the page.
-     2. `.themeToggle` is pinned to the page box while `.topRow` is allowed to
-        wrap, so the toggle lands on top of whichever card wraps under it.
-     3. Nothing accounts for a phone's home indicator or a landscape notch.
-
-   What this block does *not* do is redraw the cards. Their internal
-   compositions are transcribed from a 1440 frame at fixed sizes, and choosing
-   how the Inspection photograph or the Timeline ruler should be arranged on a
-   375px screen is a design decision, not a CSS one. This makes the page
-   correct at phone widths; it does not make it designed for them. */
+   Below 600 the 540 column above is wider than the screen and the page is the
+   frame's own width. What this block carries is what the frame states at 390
+   and the 1000 block cannot: the page inset, the toggle's clearance, and the
+   room the frame leaves above the first line and below the last.
+   --------------------------------------------------------------------------- */
 
 @media (max-width: 600px) {
   .page {
-    /* The blur bar still parks over the last of the page, and the home
-       indicator sits under that again. */
+    /* The blur bar parks over the last of the page, and the home indicator
+       sits under that again. */
     padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
     padding-left: max(var(--page-pad), env(safe-area-inset-left, 0px));
     padding-right: max(var(--page-pad), env(safe-area-inset-right, 0px));
@@ -421,28 +479,14 @@
 
   /* The toggle stays pinned to the page's top-right corner, which is the
      affordance it was drawn as. Letting it rejoin the flow instead sounds
-     tidier and is much worse: `.topRow` is now *last* on this layout, so an
-     in-flow toggle lands at the very bottom of a phone page — a control nobody
-     will ever find.
+     tidier and is much worse: `.closing` is now last on this layout, so an
+     in-flow toggle lands at the very bottom of a phone page — a control
+     nobody will ever find.
 
      What it can collide with is whatever is ordered *first*, which is `.lead`
-     and so the Introduction. That block gets the clearance instead. */
-  /* Clearance for the pinned toggle, measured off the thing that has to
-     clear it rather than off an unrelated token. It was
-     `calc(var(--toggle-w) * 0.42)` — 47px derived from the toggle's *width*
-     — against a control that is 64px tall sitting at `--page-pad` from the
-     top. It did not collide only because the Introduction's first painted
-     element is a narrow left-aligned logo; anything wider would have hit it.
-
-     On `.lead` rather than `.col2` since the narrative reorder: the
-     Introduction is still what comes first, but it is now its own grid item
-     and the rest of column 2 is at the bottom of the page. */
+     and so the Introduction. That block gets the clearance instead, measured
+     off the thing that has to clear it rather than off an unrelated token. */
   .lead {
     padding-top: calc(var(--page-pad) + var(--toggle-h) + var(--gap));
   }
-
-  .topRow {
-    align-items: flex-start;
-  }
-
 }

@@ -42,60 +42,79 @@ export default function Home() {
               Inspection card first. `order` moves paint, never focus; the only
               way to move both is to move the markup.
 
-              THE ORDER BELOW IS A HIERARCHY, NOT THE DESKTOP COLUMNS.
+              THE ORDER BELOW IS FIGMA'S PHONE FRAME, NOT THE DESKTOP COLUMNS.
 
               It used to be col2 → col1 → col3 → topRow, which is the order the
               *grid* wants and no order a reader does. On a phone that read:
               introduction, then a side project's waitlist, then a music
-              player, then LinkedIn — and only then the first case study. About
-              Me landed 3,619px down, at 81% of the page, and the canvas at
-              3,915. The three things a recruiter came for were last.
+              player, then LinkedIn — and only then the first case study.
 
-              Now it answers the questions in the order they get asked: who is
-              this (Introduction), what have they shipped (Inspection, Design
-              System), how did they get here (Timeline, Search), what are they
-              doing now (the Store waitlist), who are they otherwise (music and
-              LinkedIn, side by side), and then the way in to more of them —
-              About, the Design/Engineer card and the canvas, together at the
-              end as one closing section rather than three chips.
+              Figma 843:2477 is the first phone design this site has had, and
+              this is its order: who is this, what have they shipped, what are
+              they building, the two remaining studies, and then one bordered
+              section holding the canvas, the timeline, the identity chips and
+              the personality pair — the way further in, gathered into a place
+              rather than trailing off as loose cards.
 
-              The work leads, in other words, and the person is what the page
-              hands you on the way out.
-
-              `.lead` exists only so the Introduction can lead while the rest of
-              column 2 goes last — the two are one flow on the desktop grid and
-              two different places in the narrative. See page.module.css. */}
+              Two wrappers here are the wide grid's, not the frame's. `.lead`
+              exists so the Introduction can lead while the rest of column 2
+              ends the page; `.col1` exists because Inspection and the Design
+              System are one content-driven column up there and the frame's
+              order would split it. Everything else the frame asks for, this
+              gives it. See page.module.css. */}
           <div className={styles.band}>
             <div className={styles.lead}>
               <Introduction className={styles.intro} />
             </div>
 
+            {/* The two case studies stay one wrapper because on the wide grid
+                they are column 1 — a single content-driven flow spanning the
+                whole page. Figma's phone frame puts the Store waitlist between
+                them; doing that in the DOM splits that column, and rebuilding
+                it means pinning every desktop row to a measured constant. This
+                stylesheet refuses to pin the Introduction's row on purpose, so
+                the waitlist follows the pair instead of splitting it. That is
+                the one place this layout departs from the phone frame. */}
             <div className={styles.col1}>
               <InspectionExperience />
               <DesignSystemExperience />
             </div>
 
-            <div className={styles.col3}>
-              <TimelineExperience />
+            <div className={styles.store}>
+              <StoreWaitlist />
+            </div>
+
+            <div className={styles.search}>
               <SearchExperience />
             </div>
 
-            <div className={styles.col2}>
-              <StoreWaitlist />
+            {/* Figma 844:2887 — on a phone these four are one bordered section
+                rather than four cards in a row of their own, which is what
+                turns "here are some more things about me" into a place. On the
+                wide grid the wrapper is `display: contents`, so every child
+                below is placed on the band's own grid exactly where it always
+                was and this box does not exist at all. */}
+            <div className={styles.closing}>
+              {/* Slots, because `.closing` is `display: contents` on the wide
+                  grid and these two are then placed on the band directly —
+                  which needs a box this stylesheet owns a class on. */}
+              <div className={styles.canvasSlot}>
+                <CanvasCard />
+              </div>
+
+              <div className={styles.timelineSlot}>
+                <TimelineExperience />
+              </div>
+
+              <div className={styles.chips}>
+                <AboutMeCard />
+                <DesignEngineerCard />
+              </div>
+
               <div className={styles.personality}>
                 <MusicPlayer />
                 <LinkedInCard />
               </div>
-            </div>
-
-            {/* Last on a phone, and one section when it gets there: the two
-                116-tall chips pair off into a row and the canvas takes the
-                width under them. On the wide grid this is still the top row,
-                placed by the grid rather than by where it sits here. */}
-            <div className={styles.topRow}>
-              <AboutMeCard />
-              <DesignEngineerCard />
-              <CanvasCard />
             </div>
 
             <div className={styles.footerWrap}>

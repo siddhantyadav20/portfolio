@@ -6,7 +6,17 @@
    three pieces inside are anchored accordingly: DES to the left edge, ENG to
    the right, and the route between them stretches to keep them joined. */
 .card {
-  flex: 1 1 auto;
+  /* The drawn 260, not a stretch.
+
+     It used to be `flex: 1 1 auto` so that any width past 1440 landed here and
+     every gutter in the row stayed 32. That was true before `--u`: now the
+     whole row scales together — 134 + 32 + 260 + 32 + 322 is exactly the 780
+     the row gets at every width — so there is no surplus to absorb and the
+     stretch resolved to 260 anyway. Stating it is what lets About Me and this
+     card be their own grid items rather than two thirds of a flex row, which
+     is what the phone order needs. */
+  flex: none;
+  width: calc(260 * var(--u));
   min-width: 0;
   height: calc(116 * var(--u));
 }
@@ -23,23 +33,8 @@
     flex: 1 1 auto;
     min-width: 0;
     width: auto;
-  }
-}
-
-/* The route's floor, lifted.
-
-   `.journey` is `max(114.21u, 100% - 145.79u)` — a minimum length so the flight
-   never collapses, and the space left after DES and ENG. On a phone the second
-   term wins and is smaller than the floor: at a 200-wide card there are 54px
-   between the two labels, and holding the route at 114 pushes it straight
-   through ENG and out of the card.
-
-   The labels are the content and the route is the join between them, so it is
-   the route that gives. It is still long enough to read as a flight path, and
-   the plane still flies the whole of it. */
-@media (max-width: 600px) {
-  .journey {
-    width: calc(100% - 145.79 * var(--u));
+    /* 104 in the phone frame, matching About Me beside it. */
+    height: calc(104 * var(--u));
   }
 }
 
@@ -349,5 +344,37 @@
   to {
     opacity: 0;
     transform: translate(var(--grain-x, -17px), var(--grain-y, -5px)) scale(0.35);
+  }
+}
+
+/* The route, re-centred rather than shortened.
+
+   `.journey` is `max(114.21u, 100% - 145.79u)` — a floor so the flight never
+   collapses, and the space left after DES and ENG. On the phone frame's card
+   the second term is far below the floor, and the first attempt at this lifted
+   the floor so the route could shrink to 22px. That was wrong twice: a 22px
+   flight is not a journey, and it is not what the frame does.
+
+   Figma 843:2626 keeps the route at its drawn length — 117 in a 170 card — and
+   centres it, letting it thread diagonally between the two labels rather than
+   stopping short of them. DES sits top-left and ENG bottom-right, so the boxes
+   overlap and the ink does not.
+
+   So the width is left alone and only the horizontal offset moves: 73.43 is
+   where it starts in a 260 card, 27 is where it starts in a 168 one. It stays
+   inside `transform` rather than moving to `left`, because index.tsx reads the
+   *computed* transform to fly the plane along this path — splitting the offset
+   across two properties would hand it half a matrix. */
+@media (max-width: 600px) {
+  .journey {
+    transform: translate(calc(27 * var(--u)), calc(78.336 * var(--u)))
+      matrix(0.9961, -0.0886, -0.0886, -0.9961, 0, 0);
+  }
+
+  /* The plane rides the route, so it moves with it. 74.5 is a little past the
+     middle of a route that used to start at 73; 28 is the same place on one
+     that starts at 27. */
+  .planeBadge {
+    left: calc(28 * var(--u));
   }
 }

@@ -503,8 +503,9 @@
   .card {
     width: 100%;
     max-width: 100%;
-    /* The band, its marker, and the readout under them. Was 360. */
-    height: calc(268 * var(--u));
+    /* 192 in the phone frame (Figma 843:2512) — the band, its marker and the
+       readout under them. Was 360 when the instrument still ran downward. */
+    height: calc(192 * var(--u));
     /* So the tape's length can be stated as the card's own width. */
     container-type: inline-size;
   }
@@ -515,10 +516,22 @@
      Placed by its centre, because that is the one point a rotation leaves
      alone: half the band's length back from the middle of the card, and half
      its 80px depth above the line the band should sit on. */
+  /* 64 deep, not the 80 the wide grid draws.
+
+     That is the frame's own scale (Figma 843:2521 is `w-[64px]`), and it is
+     also the 16px that makes the card 192 instead of 202: the band, the marker
+     under it and the readout under that do not otherwise fit in the height the
+     frame gives them. Nothing inside is re-sized — the milestone lines are
+     `100%` of the scale, so they simply come out 64 long, which is what the
+     frame draws them as.
+
+     Half of 64 rather than half of 80 in the centring below, since the box is
+     placed by its centre — the one point a rotation leaves alone. */
   .ruler {
-    top: calc(72 * var(--u) - 50cqw);
-    left: calc(50% - 40 * var(--u));
+    top: calc(36 * var(--u) - 50cqw);
+    left: calc(50% - 32 * var(--u));
     right: auto;
+    width: calc(64 * var(--u));
     height: 100cqw;
     transform: rotate(-90deg);
   }
@@ -532,9 +545,22 @@
   /* Under the band, full width, rather than in the 180px column it occupies
      beside an upright scale. */
   .content {
-    top: calc(152 * var(--u));
+    top: calc(94 * var(--u));
     left: 0;
     width: 100%;
+  }
+
+  /* The count and the year share a line, which is what lets the whole card be
+     192 rather than 228. It is also the frame's own arrangement — Figma
+     843:2514 is a two-item row, where the wide grid stacks them. */
+  .years,
+  .date {
+    display: inline-flex;
+    align-items: baseline;
+  }
+
+  .date {
+    margin-left: calc(8 * var(--u));
   }
 
   /* `pan-y`, not `none`.

@@ -226,7 +226,9 @@
    column there), and the gutter is vertical by then. */
 @media (max-width: 600px) {
   :root {
-    --page-pad: 20px;
+    /* 24, from the phone frame's own `px-[24px]` (Figma 843:2477). It was 20,
+       chosen before there was a phone design to read it off. */
+    --page-pad: 24px;
   }
 }
 

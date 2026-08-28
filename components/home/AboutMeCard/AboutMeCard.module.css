@@ -166,8 +166,13 @@
    So the only rule needed here is that it does not stretch — the card beside
    it is the one that takes up the slack. */
 @media (max-width: 1000px) {
+  /* 100x104 in the phone frame (Figma 843:2628), against the 134x116 it is
+     drawn at on the wide grid. It keeps its composition — portrait over
+     label — and only loses the size, because the card beside it is the one
+     that takes up the slack. */
   .wrap {
     flex: none;
-    width: calc(134 * var(--u));
+    width: calc(100 * var(--u));
+    height: calc(104 * var(--u));
   }
 }

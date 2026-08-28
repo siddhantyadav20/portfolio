@@ -351,9 +351,13 @@
    so the halves are equal and this card only has to stop insisting on the 254
    it is drawn with. */
 @media (max-width: 1000px) {
+  /* The 252 the phone frame draws, not a half of the row. `.personality` is a
+     scroller here (see app/page.module.css): the frame's own row does not fit
+     and clips the LinkedIn card, so the pair keeps its size and the row moves
+     instead. */
   .card {
-    width: auto;
-    min-width: 0;
+    flex: none;
+    width: calc(252 * var(--u));
   }
 
   /* The now-playing chip was `left: 24u` with a fixed 206u width — an inset of

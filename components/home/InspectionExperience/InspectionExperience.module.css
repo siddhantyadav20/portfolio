@@ -167,3 +167,26 @@
     width: 100%;
   }
 }
+
+/* --- The phone frame -------------------------------------------------------
+
+   315x480, centred — Figma 843:2798, and the one card the frame insets from
+   the column rather than running to its edges.
+
+   The height is not stated because it cannot disagree: `aspect-ratio` is
+   420/640 and 315 is exactly three quarters of 420, so the box resolves to 480
+   on its own. Nothing inside needs saying either — every value in this card is
+   `cqw`, hundredths of its own width, so the photograph, the device, the hand
+   and the info chip are one object at 75% rather than a composition that has
+   to be re-laid-out at a second size.
+
+   `max-width` because 315 is wider than the content box of a 360 screen, and a
+   card that overflows the page is worse than one that is 12px narrower than
+   the frame draws it. */
+@media (max-width: 600px) {
+  .card {
+    width: calc(315 * var(--u));
+    max-width: 100%;
+    margin-inline: auto;
+  }
+}
