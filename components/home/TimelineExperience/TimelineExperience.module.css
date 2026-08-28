@@ -472,49 +472,91 @@
   }
 }
 
-/* One column. The card takes the full width and the Scale hangs lower — there
-   is no theme toggle to reach up to here, and a 156px overhang would put the
-   fade straight through the card above.
+/* --- One column: the instrument turns ---------------------------------------
 
-   `--ruler-top` is the only number this has to move: the marker and the mask
-   are written in terms of it, and the readout is at its own fixed inset. */
+   Stacked on a phone, the upright tape was the weakest block on the page. It
+   is the only card with no fill, so between two filled ones it read as a gap
+   rather than as an instrument; it spent 360px of height on a 116px readout
+   and an 80px scale, with the middle of the card empty; and its window
+   overhung the card top and bottom, which is a virtue in a column with air
+   around it and a collision in a stack.
+
+   Underneath all three was one decision that no longer held: the scale runs
+   down. A phone has width to spare and no height, and a vertical scrub on a
+   touch screen is a gesture arguing with the page's own — the previous pass
+   had already had to shrink the drag strip to stop it eating swipes, which is
+   the fix you make when the axis is wrong and you cannot change it.
+
+   So it turns. `.ruler` is rotated a quarter turn and time reads left to
+   right, which is the direction it reads in every other timeline anyone has
+   seen. Nothing inside the ruler is re-laid-out: the element turned, not the
+   coordinate system in it, so the tape's own pixels, the mask, the marker's
+   offset and the transform the loop writes are all untouched. Rotating -90deg
+   maps the tape's "down" to screen-right and its "left" to screen-down, which
+   places the marker under the band pointing up at it and the numbers above the
+   marks — a ruler, the way up a ruler is drawn.
+
+   Three things did have to be told: the numbers counter-rotate so they stay
+   upright, the grip lets vertical touches through to the page, and the loop
+   reads the pointer along X instead of Y. See `turned` in index.tsx. */
 @media (max-width: 1000px) {
   .card {
     width: 100%;
     max-width: 100%;
-    height: calc(360 * var(--u));
-    --ruler-top: calc(-60 * var(--u));
+    /* The band, its marker, and the readout under them. Was 360. */
+    height: calc(268 * var(--u));
+    /* So the tape's length can be stated as the card's own width. */
+    container-type: inline-size;
   }
 
-  /* Everything left of the instrument — 80 for the scale, 22 for the marker
-     and 16 of gutter — rather than holding the desktop's fixed column and
-     leaving the rest of the row blank. */
+  /* The tape spans the card. `height` is the tape's *length* — this box is
+     still upright as far as layout is concerned, and only paints turned.
+
+     Placed by its centre, because that is the one point a rotation leaves
+     alone: half the band's length back from the middle of the card, and half
+     its 80px depth above the line the band should sit on. */
+  .ruler {
+    top: calc(72 * var(--u) - 50cqw);
+    left: calc(50% - 40 * var(--u));
+    right: auto;
+    height: 100cqw;
+    transform: rotate(-90deg);
+  }
+
+  /* Upright again. The rotation is the parent's, so this only has to undo it,
+     and about its own centre so the number stays on the mark it labels. */
+  .number {
+    transform: rotate(90deg);
+  }
+
+  /* Under the band, full width, rather than in the 180px column it occupies
+     beside an upright scale. */
   .content {
+    top: calc(152 * var(--u));
     left: 0;
-    width: calc(100% - 118px);
+    width: 100%;
   }
 
-  /* Pull the drag strip back inside the card.
+  /* `pan-y`, not `none`.
 
-     The *scale* is meant to overhang — it runs off the top of the card on
-     purpose, and clipping it would flatten the one gesture this component is
-     built around. The strip that listens for the drag is a different thing,
-     and it was overhanging too: 460px tall on a 360px card, reaching 72px
-     above and 28px below, every pixel of it carrying `touch-action: none`.
+     The old comment at `.grip` claimed the strip was "scoped to this strip
+     alone"; stacked on a phone that stopped being true, and the previous pass
+     answered it by pulling the strip's bounds inside the card. Turned, the
+     honest answer is available instead: the gesture this control wants is
+     horizontal, so it can decline the vertical one and hand it back to the
+     page. A swipe up the screen scrolls even with a finger on the tape, and
+     nothing has to be kept out of anything's way.
 
-     On a desktop that costs nothing — the cards sit side by side and there is
-     nothing above or below to collide with. Stacked on a phone it means the
-     bottom of the card above and the top of the card below are covered by an
-     invisible strip that swallows vertical swipes and scrubs the timeline
-     instead of scrolling the page. The comment at `.grip` claims the strip is
-     "scoped to this strip alone"; that stopped being true at this breakpoint.
-
-     The top is written against `--ruler-top` so it stays correct if the
-     instrument moves again. The bottom is what is left when the ruler's 436px
-     starts 60px above a 360px card: 436 - 60 - 360 = 16. */
+     The insets go back to the ones `.grip` is drawn with — in the ruler's own
+     coordinates, which the rotation carries round with it. */
   .grip {
-    top: calc(-1 * var(--ruler-top));
-    bottom: calc(16 * var(--u));
-    right: 0;
+    top: calc(-12 * var(--u));
+    right: calc(-8 * var(--u));
+    bottom: calc(-12 * var(--u));
+    left: calc(-40 * var(--u));
+    touch-action: pan-y;
+
+    --native-cursor: ew-resize;
+    cursor: ew-resize;
   }
 }

@@ -142,10 +142,24 @@ const WINDOW_H = 436;
  *  everything worth looking at is above the marker. */
 const READ_Y = 313;
 
+/** The same number as a fraction of the window, which is the form the loop
+ *  actually wants.
+ *
+ *  `READ_Y` is only correct while the window is exactly `WINDOW_H` tall, and it
+ *  stopped being: `.ruler`'s height is in `--u`, so it is 581 at 1920 while the
+ *  marker stayed at a literal 313 — the focus band sat at 54% of the window
+ *  instead of the 72% it is drawn at. Below 1001 the instrument is turned a
+ *  quarter and its length becomes the card's width, which is a third length
+ *  again. Measured against the box each time, all three are the same
+ *  instrument. */
+const READ_FRAC = READ_Y / WINDOW_H;
+
 /** Where a value sits on the tape, in the tape's own pixels. */
 const tapeAt = (v: number) => (v - FIRST) * STEP;
 
-/** The tape's offset for a given reading. The one line the whole redesign is. */
+/** The tape's offset for a given reading, at the drawn size. The loop uses the
+ *  measured reading point instead — this is the server's copy, correct at the
+ *  size the card is drawn and replaced on the first frame after mount. */
 const tapeY = (v: number) => READ_Y - tapeAt(v);
 
 /** The calendar year. Derived — see the note in `content/site.ts`. */
@@ -246,6 +260,25 @@ export default function TimelineExperience() {
     at: start,
   }));
 
+  /* The only thing the *rendered* markup needs to know about the quarter turn.
+     Everything else about it is CSS and the loop's own `turned` — but
+     `aria-orientation` is a promise to a screen reader about which arrow keys
+     move this control, and below 1001 the answer changes. `onKey` has always
+     taken both pairs, so nothing about the behaviour turns with it; this stops
+     the announcement being wrong.
+
+     False on the server and corrected on mount: there is no viewport to
+     measure until there is one, and a wrong orientation for one frame is not
+     something anything can act on. */
+  const [horizontal, setHorizontal] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1000px)");
+    const read = () => setHorizontal(mq.matches);
+    read();
+    mq.addEventListener("change", read);
+    return () => mq.removeEventListener("change", read);
+  }, []);
+
   useEffect(() => {
     const scrub = scrubRef.current!;
     const card = cardRef.current;
@@ -268,22 +301,65 @@ export default function TimelineExperience() {
     let shownCount = "";
     let shownDate = 0;
 
+    /* --- Which way the tape runs ------------------------------------------
+
+       Below 1001 the stylesheet turns `.ruler` a quarter so time reads left to
+       right — a phone has width to spare and no height, and a vertical scrub
+       on a touch screen is a gesture arguing with the page's own.
+
+       Only three things know about it, and none of them is the tape. The
+       element turned; the coordinate system inside it did not, so the tape's
+       own pixels, the transform the loop writes and `--read` are all unchanged.
+       What changes is which side of the bounding box is the tape's length, and
+       which pointer coordinate runs along it. */
+    const turned = window.matchMedia("(max-width: 1000px)");
+
+    /** The tape's axis in screen terms: how long it is, and where it starts. */
+    const along = () => {
+      const r = box.getBoundingClientRect();
+      return turned.matches
+        ? { span: r.width, start: r.left }
+        : { span: r.height, start: r.top };
+    };
+
+    /** The pointer coordinate that moves along the tape. */
+    const coord = (e: { clientX: number; clientY: number }) =>
+      turned.matches ? e.clientX : e.clientY;
+
+    /** The reading point, in the window's own pixels. `clientHeight` rather
+     *  than the bounding box: it is the layout height, so it is the tape's
+     *  length in both orientations and it ignores the proximity field's
+     *  scale — which is the transform, not the geometry. */
+    const readPx = () => READ_FRAC * box.clientHeight;
+
     /** Pixels per year on screen, live: the proximity field scales this card
      *  under the pointer, and a drag has to stay stuck to the finger through
-     *  that. Measured rather than assumed. */
-    const perYear = () =>
-      (box.getBoundingClientRect().height / WINDOW_H) * STEP;
+     *  that. Measured rather than assumed.
+     *
+     *  Divided by the window's own length rather than by `WINDOW_H`, so what
+     *  this reads is the scale factor and nothing else. Against the constant it
+     *  silently meant "scale" only while the window was its drawn height, and
+     *  would have read a turned or a 1920 window as a permanent zoom. */
+    const perYear = () => (along().span / box.clientHeight) * STEP;
 
     /** What a tap means: bring the touched point up to the marker. The distance
      *  from the marker converts straight into a change in the reading, which is
      *  why this is a delta off the current value rather than an absolute
-     *  lookup — with a fixed marker there is no absolute mapping from screen y
-     *  to a year, and that is the point. */
-    const valueAt = (clientY: number) => {
-      const r = box.getBoundingClientRect();
-      const line = r.top + (READ_Y / WINDOW_H) * r.height;
-      return scrub.value + (clientY - line) / perYear();
+     *  lookup — with a fixed marker there is no absolute mapping from a screen
+     *  coordinate to a year, and that is the point. */
+    const valueAt = (at: number) => {
+      const a = along();
+      const line = a.start + READ_FRAC * a.span;
+      return scrub.value + (at - line) / perYear();
     };
+
+    /* The stylesheet hangs the marker and the focus mask off `--read`, and the
+       loop writes the tape against the same number. The server rendered it at
+       the drawn size; this is the measured one. */
+    const sync = () => {
+      card.style.setProperty("--read", `${readPx()}px`);
+    };
+    sync();
 
     /* Arrow consts rather than declarations, all of them: a hoisted `function`
        is analysed as if it sat above the null guard, and every ref inside it
@@ -293,7 +369,7 @@ export default function TimelineExperience() {
       const v = scrub.value;
 
       // The whole instrument, in one write. Nothing else on the ruler moves.
-      scale.style.transform = `translate3d(0, ${tapeY(v)}px, 0)`;
+      scale.style.transform = `translate3d(0, ${readPx() - tapeAt(v)}px, 0)`;
 
       const c = countAt(v);
       if (c !== shownCount) {
@@ -405,7 +481,7 @@ export default function TimelineExperience() {
       if (e.button !== 0 && e.pointerType === "mouse") return;
       retireCue();
       dragging = true;
-      grabY = e.clientY;
+      grabY = coord(e);
       grabV = scrub.value;
       grabAt = performance.now();
       moved = 0;
@@ -423,7 +499,7 @@ export default function TimelineExperience() {
 
     const onMove = (e: PointerEvent) => {
       if (!dragging) return;
-      const dy = e.clientY - grabY;
+      const dy = coord(e) - grabY;
       moved = Math.max(moved, Math.abs(dy));
       /* Minus, and this is the whole inversion in one character. The tape is
          what the hand has hold of, so it goes where the hand goes: pull down
@@ -447,7 +523,7 @@ export default function TimelineExperience() {
       // next moment and stops there — see `land` in lib/scrubber.ts.
       scrub.endDrag();
       if (moved < TAP_PX && performance.now() - grabAt < TAP_MS) {
-        scrub.goTo(valueAt(e.clientY));
+        scrub.goTo(valueAt(coord(e)));
       }
       wake();
     };
@@ -467,8 +543,17 @@ export default function TimelineExperience() {
     let wheelFrom = 0;
 
     const onWheel = (e: WheelEvent) => {
+      /* Whichever axis the wheel is actually being pushed along. Turned, the
+         tape runs across the screen and a trackpad swipe sideways is the
+         gesture that matches it — but a mouse wheel only ever reports
+         `deltaY`, so take the larger of the two rather than the axis the
+         orientation would suggest and leave both inputs working. */
+      const raw =
+        turned.matches && Math.abs(e.deltaX) > Math.abs(e.deltaY)
+          ? e.deltaX
+          : e.deltaY;
       // Lines on Firefox, pages on nothing anyone has. 16px is a line.
-      const px = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+      const px = e.deltaMode === 1 ? raw * 16 : raw;
       const v = scrub.value;
 
       // Chain out to the page at the ends rather than trapping the scroll:
@@ -545,12 +630,25 @@ export default function TimelineExperience() {
     grip.addEventListener("wheel", onWheel, { passive: false });
     grip.addEventListener("keydown", onKey);
 
+    /* The window's length is the one measurement everything else is derived
+       from, and it changes without a pointer ever touching the card: crossing
+       601 turns the instrument, a phone rotates, `--u` rescales the frame at
+       every width past 1440. Re-derive the reading point and repaint when it
+       does — the tape is transformed, not laid out, so nothing else here
+       reacts to a resize on its own. */
+    const ro = new ResizeObserver(() => {
+      sync();
+      paint();
+    });
+    ro.observe(box);
+
     paint();
 
     return () => {
       if (frame) cancelAnimationFrame(frame);
       window.clearTimeout(wheelTimer);
       window.clearTimeout(cueTimer);
+      ro.disconnect();
       io?.disconnect();
       reduce.removeEventListener("change", onReduce);
       grip.removeEventListener("pointerdown", onDown);
@@ -665,7 +763,7 @@ export default function TimelineExperience() {
           role="slider"
           tabIndex={0}
           aria-label="Career timeline"
-          aria-orientation="vertical"
+          aria-orientation={horizontal ? "horizontal" : "vertical"}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={Math.round(entry.at * 12) / 12}
