@@ -126,7 +126,15 @@ type Props = {
    * again, which is the thing being fixed.
    */
   readonly track?: RefObject<HTMLElement | null>;
-  /** Play the unattended demonstration once, when scrolled into view. */
+  /**
+   * Play the unattended demonstration once, when scrolled into view.
+   *
+   * For a specimen standing in the middle of a case study, where the reader
+   * has arrived to read it. The homepage card does not ask for it: there the
+   * pointer drives the same two channels the tour does — `onMove` below clears
+   * the tour's clock on its first event — so the hover is the demonstration,
+   * and a tour would only be something for it to interrupt.
+   */
   cue?: boolean;
   /** Where to write the active stop, for a legend the caller lays out itself. */
   readouts?: Readouts;

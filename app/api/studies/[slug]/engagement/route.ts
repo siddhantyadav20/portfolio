@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { STUDY_SLUGS } from "@/content/work";
-import { readEngagement, readMyReaction } from "@/lib/engagementStore";
+import { COMMENT_PAGE, readNumber } from "@/lib/engagement";
+import { readEngagement } from "@/lib/engagementStore";
 
 /**
- * A study's reactions and comments, read on mount.
+ * A study's likes and one page of its comments.
+ *
+ * Read on mount, and again for every press of "Load More" — `?from` is how
+ * far into the thread to start and `?count` is how much to take. Both are
+ * clamped in the store rather than trusted here.
  *
  * A route handler rather than a Server Action, and the split is deliberate:
  * a Server Action is a POST with no cache semantics and no status codes worth
@@ -17,7 +22,7 @@ import { readEngagement, readMyReaction } from "@/lib/engagementStore";
  * read anyway.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
@@ -29,23 +34,22 @@ export async function GET(
     return NextResponse.json({ error: "Unknown study" }, { status: 404 });
   }
 
-  const [engagement, mine] = await Promise.all([
-    readEngagement(slug),
-    readMyReaction(slug),
-  ]);
-
-  return NextResponse.json(
-    { ...engagement, mine },
-    {
-      headers: {
-        /* Uncacheable, and it has to be: `mine` is this visitor's own
-           reaction, so a shared cache would hand one person's vote to
-           everyone behind the same CDN node. Folding the counts into a
-           cacheable response and fetching `mine` separately would save a
-           round trip on a request that happens once per study view — not a
-           trade worth making for the bug it invites. */
-        "Cache-Control": "no-store",
-      },
-    },
+  const params_ = new URL(request.url).searchParams;
+  const engagement = await readEngagement(
+    slug,
+    readNumber(params_.get("from"), 0),
+    readNumber(params_.get("count"), COMMENT_PAGE),
   );
+
+  return NextResponse.json(engagement, {
+    headers: {
+      /* Uncacheable, and it has to be: `liked` is this visitor's own answer,
+         so a shared cache would hand one person's like to everyone behind the
+         same CDN node. Folding the counts into a cacheable response and
+         fetching `liked` separately would save a round trip on a request that
+         happens once per study view — not a trade worth making for the bug it
+         invites. */
+      "Cache-Control": "no-store",
+    },
+  });
 }

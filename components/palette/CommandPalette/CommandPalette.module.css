@@ -545,7 +545,8 @@
 
 /* --- Narrow --------------------------------------------------------------- */
 
-/* No ⌘K on a phone, so the field in the Introduction card is the only door and
+/* No ⌘K on a phone, so the Search Portfolio pill in the Introduction card is
+   the only door and
    this is the whole screen when it opens. README flags the ≤1000px layout as a
    holding pattern; this is built for the sheet it will become rather than a
    scaled-down desktop panel. */

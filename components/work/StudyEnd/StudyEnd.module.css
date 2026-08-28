@@ -1,0 +1,864 @@
+/* Figma 821:1142 — "Comment & Projects", the last block of a case study.
+
+   1120 wide, holding a 600 column and a 400 one 120 apart. The frame around it
+   is now 1440 with a fill of its own; that band and the rule across its top
+   belong to `StudyReader`, which owns everything outside this column.
+   Everything below is the file's, except where a number is named as ours. */
+
+.end {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  /* The rail scrolls here now, so the heading needs room above it rather than
+     landing flush against the top of the scrollport — the same margin every
+     section in `StudySections` carries. */
+  scroll-margin-top: 96px;
+}
+
+/* Cards on the left at a fixed 386, the thread on the right taking the rest,
+   128 between them. Top-aligned, because the thread is the column that grows
+   and aligning on the bottom moved the card every time somebody commented.
+
+   400 is a pixel value, not a fraction: a card built in fixed proportions
+   cannot be any width, and a column of prose can, so the thread is the one
+   that absorbs whatever the reader gives it. 400 + 120 + 600 is the file's
+   1120. */
+.columns {
+  display: grid;
+  grid-template-columns: 400px minmax(0, 1fr);
+  gap: 120px;
+  align-items: start;
+  width: 100%;
+}
+
+/* --- The thread — Figma 798:752 ------------------------------------------ */
+
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+}
+
+.commentsHead {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* The half-leading above the first line, taken back.
+
+   `--lh-read` is 1.7, so a 24px line box carries 8.4px of air over the cap
+   before a pixel of ink appears. Aligning the two columns' boxes therefore did
+   not align what you see: the card's top edge is ink, and the heading's top
+   edge is space. The negative margin is exactly that half-leading — a leading
+   trim — so the "L" sits on the card's edge instead of 8px under it.
+
+   `1em` rather than 24px, and the same `--lh-read` the line box uses: the
+   heading drops to 20px under 900 and the trim has to follow it there without
+   a second rule that could be left behind. (`1lh` would say the whole thing in
+   one term and is younger than the browsers this has to hold up in.) */
+.ask {
+  margin: calc(1em * (1 - var(--lh-read)) / 2) 0 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: var(--lh-read);
+  color: var(--ink);
+}
+
+/* --- The stats row — Figma 796:627 --------------------------------------- */
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  height: 48px;
+}
+
+.stat {
+  position: relative;
+  display: flex;
+  align-items: center;
+  /* 8, and the same 8 under the word as under the two counts — the file used
+     to set Share apart at 6 and does not any more. */
+  gap: 8px;
+  height: 48px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink-70);
+  cursor: pointer;
+  transition: color 220ms ease;
+}
+
+.stat[data-static] {
+  cursor: default;
+}
+
+/* Hover and focus go to the accent, not to ink.
+
+   Ink was the reflex — "the resting state is 70% ink, so hovering is 100% of
+   it" — and it is the wrong answer for these three. The colour these controls
+   actually mean is the accent: it is what a like turns when you give one, and
+   what Share turns when it has copied. Darkening toward the body text instead
+   said "this is text you are pointing at" rather than "this is the button you
+   are about to press", and the like then jumped from ink to orange on the
+   click, which is two different ideas in one gesture. */
+.stat:not([data-static]):hover:not(:disabled),
+.stat:not([data-static]):focus-visible {
+  color: var(--accent);
+}
+
+/* Liked. The whole row goes to the accent and the glyph swaps to its filled
+   cut — the same two-signal treatment the theme toggle uses, and for the same
+   reason: a control whose only "on" state is a shade is a control nobody is
+   sure they pressed. Figma 794:591. */
+.stat[data-mine] {
+  color: var(--accent);
+}
+
+.stat:disabled {
+  cursor: default;
+}
+
+.statCount {
+  display: inline-flex;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: var(--lh);
+  /* Tabular, so a count crossing 9 to 10 does not shift the word beside it
+     while the new digit is still arriving. */
+  font-variant-numeric: tabular-nums;
+}
+
+.glyph {
+  width: 24px;
+  height: 24px;
+}
+
+/* The glyph and the ring that leaves it share a box, so the ring is centred on
+   the thumb rather than on the row. */
+.likeGlyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  transition: transform 340ms var(--spring-soft);
+}
+
+/* --- Pointing at one -------------------------------------------------------
+   Each glyph moves the way its own gesture does, which is the whole reason
+   they move separately rather than all scaling by the same 6%.
+
+   The thumb cocks back and lifts, the way a hand does before it gives one.
+   The export arrow leaves upward, because that is the direction the glyph
+   already points and the thing it stands for. Both settle on the site's
+   spring, so they arrive rather than snap. */
+
+.stat[data-kind="like"]:hover:not(:disabled) .likeGlyph,
+.stat[data-kind="like"]:focus-visible .likeGlyph {
+  transform: rotate(-14deg) scale(1.16);
+}
+
+.stat[data-kind="like"]:active:not(:disabled) .likeGlyph {
+  transform: rotate(-6deg) scale(0.94);
+}
+
+.stat[data-kind="share"] .glyph {
+  transition: transform 340ms var(--spring-soft);
+}
+
+.stat[data-kind="share"]:hover .glyph,
+.stat[data-kind="share"]:focus-visible .glyph {
+  transform: translateY(-3px);
+}
+
+.stat[data-kind="share"]:active .glyph {
+  transform: translateY(-1px) scale(0.94);
+}
+
+/* The press. A spring overshoot rather than a bounce keyframe — the thumb
+   should feel struck, not wobbled, and the difference is entirely in whether
+   it comes back past its own size more than once. */
+.stat[data-mine] .glyph {
+  animation: like-pop 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes like-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.38) rotate(-8deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* One ring, out and gone. It starts inside the glyph and ends well outside it,
+   which is what makes the press feel like it left the button — the thing every
+   version of this control does, and the reason it reads as registered from the
+   corner of your eye. */
+.burst {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-pill);
+  border: 2px solid var(--accent);
+  pointer-events: none;
+  animation: like-burst 520ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes like-burst {
+  from {
+    opacity: 0.55;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+/* The count. The old number leaves upward and the new one arrives from below,
+   because the number went up — which is the only reason to animate a number at
+   all rather than replacing it. `overflow: hidden` on the row it sits in is
+   what makes it a roll instead of two numbers crossing. */
+.roll {
+  display: inline-block;
+  animation: count-roll 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes count-roll {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em);
+  }
+}
+
+/* --- The thread ---------------------------------------------------------- */
+
+/* Header, then the box, then the list — 32 between each. The box used to be
+   the first item *inside* the list at the list's own 20, with a rule under it;
+   Figma 821:1312 lifts it out and gives it the header's spacing, and the rule
+   under it is gone. */
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+}
+
+/* The comments themselves, and the rules between them. 20 apart, which puts
+   21 either side of a 1px rule — the file's own numbers. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Figma 821:1312 — 48 tall, 12 of side padding, a 10px radius and a hairline
+   at 5% ink. A field has to be a different material from the page behind it or
+   it does not read as one you can type in, and which direction that goes has
+   changed with the ground under it: it used to be nearly-white on grey, and
+   the band is now tinted, so the file deepens the tint instead of lifting off
+   it. The accent's own wash, the same one the insight panel is drawn in. */
+.box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  border: 1px solid rgb(from var(--ink) r g b / 0.05);
+  border-radius: 10px;
+  background-color: var(--accent-wash);
+}
+
+.boxGlyph {
+  flex: none;
+  color: var(--ink-60);
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  /* Figma 798:1080 sets what you have typed a weight heavier than the prompt,
+     and in full ink — so the field reads as holding something rather than as
+     still asking. */
+  font-weight: 500;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+.input::placeholder {
+  font-weight: 400;
+  color: var(--ink-60);
+}
+
+.input:focus {
+  outline: none;
+}
+
+/* The box takes the focus, not the field — the field has no edge of its own.
+
+   Stated on the box's own border and a soft ring rather than as the site's
+   orange focus outline: this is a text field, it is focused every time anyone
+   uses it, and a 2px accent rectangle around it made writing a comment feel
+   like an error state. The ring is ink, so it reads as "this is where you are
+   typing" rather than as an alarm — and it is still plainly visible from the
+   keyboard, which is the only thing the outline was there for. */
+.box {
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.box:focus-within {
+  border-color: rgb(from var(--ink) r g b / 0.18);
+  box-shadow: 0 0 0 4px rgb(from var(--ink) r g b / 0.06);
+}
+
+/* Figma 798:1081 — a 28px disc inside the field's right edge. */
+.send {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-pill);
+
+  /* Figma 798:1081 draws this twice: 25% ink while the field is empty, and
+     the accent the moment there is something to send. That is the field's
+     whole feedback that it is armed — it has no other. */
+  background-color: var(--accent);
+  backdrop-filter: blur(4px);
+  filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.06));
+  color: var(--surface-solid);
+  cursor: pointer;
+  transition: background-color 220ms ease, transform 200ms ease;
+}
+
+.send:not(:disabled):hover {
+  transform: scale(1.08);
+}
+
+.send:not(:disabled):active {
+  transform: scale(0.94);
+}
+
+/* Greyed rather than hidden while there is nothing to send: the control is
+   part of the field's shape, and a button that appears as you type moves the
+   thing you are typing into. */
+.send:disabled {
+  background-color: rgb(from var(--ink) r g b / 0.25);
+  filter: none;
+  cursor: default;
+}
+
+.sendGlyph {
+  width: 11px;
+  height: 10px;
+  /* The arrow is drawn pointing right and turned to point up — Figma rotates
+     the instance rather than exporting a second glyph. */
+  transform: rotate(-90deg);
+}
+
+/* Figma 798:1083 — a 20px loader in the same disc, drawn hidden because it is
+   the state the mock is not in. A ring rather than the arrow: the press has
+   landed and the only question left is whether the server has answered. */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--r-pill);
+  border: 2px solid rgb(from var(--surface-solid) r g b / 0.35);
+  border-top-color: var(--surface-solid);
+  animation: send-spin 700ms linear infinite;
+}
+
+@keyframes send-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  line-height: var(--lh);
+  color: var(--accent);
+}
+
+.offline {
+  margin: 0;
+  font-size: 14px;
+  font-style: italic;
+  line-height: var(--lh-wide);
+  color: var(--ink-50);
+}
+
+/* --- One comment — Figma 798:720 ----------------------------------------- */
+
+.comment {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* The one you just wrote. It arrives from above — the direction it came from,
+   since it is now the newest thing at the top of the thread — and a wash of
+   the accent fades off it over a second and a half. The wash is the whole
+   point: on a page where every comment looks alike, it is the only thing that
+   answers "did mine go in?". */
+.comment[data-new] {
+  animation: comment-in 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.comment[data-new]::before {
+  content: "";
+  position: absolute;
+  inset: -8px -16px;
+  z-index: -1;
+  border-radius: var(--r-sm);
+  background-color: var(--accent-wash);
+  animation: comment-flash 1800ms ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes comment-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes comment-flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* The flash is drawn behind the row, so the row needs a stacking context of
+   its own for the negative z-index to land behind it and not behind the page. */
+.comment {
+  position: relative;
+  isolation: isolate;
+}
+
+.commentHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar {
+  display: block;
+  flex: none;
+  width: 45px;
+  height: 45px;
+  border-radius: var(--r-pill);
+}
+
+.commentWho {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.commentLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.commentName {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+/* 4px, drawn rather than typed — the same dot the helpers line uses, and for
+   the same reason: no interpunct in the UI face is this small. */
+.commentDot {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background-color: var(--ink-20);
+}
+
+.commentDate,
+.commentRole {
+  margin: 0;
+  font-size: 12px;
+  line-height: var(--lh-wide);
+  color: var(--ink-60);
+}
+
+.commentRole {
+  font-weight: 500;
+}
+
+.commentBody {
+  margin: 0;
+  font-size: 14px;
+  line-height: var(--lh-wide);
+  color: var(--ink-60);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* --- Nothing here yet ----------------------------------------------------
+   A stack of faces and two lines, centred. The stack is the convention — every
+   app that has ever had an empty list of people uses overlapping avatars for
+   it — and here it is made of the same eight the comments themselves use, so
+   the empty state is built from the thing that will replace it rather than
+   from a picture of that thing. */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.emptyBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 28px 0 36px;
+  text-align: center;
+}
+
+.emptyFaces {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+/* Overlapped by a third of their width, the middle one lifted and larger —
+   the arrangement that reads as a group rather than as a row. Each carries a
+   ring in the page's own colour so they separate on a light card and a dark
+   one without a second set of assets. */
+.emptyFace {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-pill);
+  box-shadow: 0 0 0 3px var(--page-base, #ebebeb);
+  /* Turned down: these are nobody, and a full-strength row of faces above an
+     empty thread reads as three comments that failed to load. */
+  opacity: 0.55;
+  filter: saturate(0.7);
+
+  animation: face-rise 520ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--i) * 70ms);
+}
+
+.emptyFace:not(:first-child) {
+  margin-left: -14px;
+}
+
+.emptyFace:nth-child(2) {
+  width: 52px;
+  height: 52px;
+  margin-top: -4px;
+  opacity: 0.7;
+  z-index: 1;
+}
+
+.emptyFace svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes face-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+}
+
+/* The line, in the comment's own type — it stands where the first one will, so
+   it should read as the place a comment goes rather than as a notice about
+   the place a comment goes. */
+.emptyLine {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--ink-70);
+}
+
+.emptyHint {
+  margin: 0;
+  font-size: 13px;
+  line-height: var(--lh-wide);
+  color: var(--ink-50);
+}
+
+/* --- A like on one comment -----------------------------------------------
+   Not in Figma. Built out of the parts of the stats row above it rather than
+   as a new idea: the same two cuts of the same glyph, the same accent, the
+   same ring leaving it — at 16px instead of 24, because it belongs to one
+   comment rather than to the study.
+
+   Under the body and left-aligned with it, which is where every thread puts
+   it and the only place it does not compete with the author's name. */
+
+.commentLike {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: -4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink-50);
+  cursor: pointer;
+  transition: color 220ms ease;
+}
+
+.commentLike:hover:not(:disabled),
+.commentLike:focus-visible {
+  color: var(--accent);
+}
+
+.commentLike[data-mine] {
+  color: var(--accent);
+}
+
+.commentLike:disabled {
+  cursor: default;
+}
+
+.commentLikeGlyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  transition: transform 340ms var(--spring-soft);
+}
+
+.commentGlyph {
+  width: 16px;
+  height: 16px;
+}
+
+/* The same cock-back the stats row's thumb does, a little smaller — it is the
+   same gesture on a smaller control, not a different one. */
+.commentLike:hover:not(:disabled) .commentLikeGlyph,
+.commentLike:focus-visible .commentLikeGlyph {
+  transform: rotate(-14deg) scale(1.14);
+}
+
+.commentLike:active:not(:disabled) .commentLikeGlyph {
+  transform: rotate(-6deg) scale(0.94);
+}
+
+.commentLike[data-mine] .commentGlyph {
+  animation: like-pop 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.commentLikeCount {
+  display: inline-flex;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: var(--lh-wide);
+  font-variant-numeric: tabular-nums;
+}
+
+.more {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  line-height: var(--lh-wide);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.more:hover {
+  text-decoration: underline;
+}
+
+/* --- The other studies — Figma 798:901 ----------------------------------- */
+
+/* The query container is the column, not the slot inside it.
+
+   `cqw` resolves against the nearest *ancestor* container, so a `container-type`
+   on the same element that uses `100cqw` reads a container further up — which
+   here was the page, and the card collapsed. The two boxes are the same width,
+   so putting it one level out costs nothing and makes the unit mean what it
+   says. */
+.next {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Full width of the column and centred in it — the file's own arrangement now
+   that the arrows live in it. */
+.nextScroller {
+  align-self: stretch;
+}
+
+/* The slot the card lands in.
+
+   The cards size themselves in `--u`, and `NextStudies` sets `--u` here to a
+   fraction of the column's width, so a card lays out at the design's
+   proportions whatever the column turns out to be. Nothing about the card is
+   overridden — it is the same component, at a different design pixel.
+
+   The box is a constant, and that is the point. It used to be
+   `626 * var(--u)`, and `--u` is per card — 386ths of the column for two of
+   them and 420ths for the Inspection card — so the slot itself was 51px
+   shorter on one slide than the other and the scroller moved every time the
+   carousel stepped. Sized off the column instead, it is the same box whatever
+   is in it.
+
+   626 is the tallest of the three at this width (the Search card). The other
+   two are shorter: equal height and equal width cannot both be had without
+   stretching a card built in fixed proportions, and of the two, width is the
+   one the eye actually reads as "the same card".
+
+   They hang from the top of the box, not the middle of it. Centred, the slack
+   was split above and below, so the card's top edge moved as the carousel
+   stepped — flush with the thread's heading on the Search slide, 20px below it
+   on the Inspection one. The two columns are top-aligned (see `.columns`), and
+   that has to hold on every slide rather than on the one that happens to fill
+   its slot. All the slack goes under the card, where the scroller already sits
+   at a fixed height and nothing moves. */
+.slot {
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  width: 100%;
+  height: calc(100cqw * 626 / 386);
+
+  animation: card-in 460ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Coming from the right going forward, from the left coming back — the same
+   move the explorations carousel makes, so the two read as one mechanism. */
+.slot[data-dir="1"] {
+  --from: 32px;
+}
+
+.slot[data-dir="-1"] {
+  --from: -32px;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--from, 32px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot {
+    animation: none;
+  }
+}
+
+/* --- Narrow viewports -----------------------------------------------------
+   Two columns at 606 and 386 need 1056 before the padding. Below the design's
+   frame the card stops being a sidebar and becomes what it is — the next thing
+   to read, after the thread. */
+
+@media (max-width: 1024px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 48px;
+    padding: 0;
+  }
+
+  /* Stacked, the thread reads first — it is what the section's heading is
+     about, and the cards are the way out of it. */
+  .comments {
+    order: -1;
+  }
+
+  .slot {
+    max-width: 386px;
+  }
+}
+
+@media (max-width: 900px) {
+  .ask {
+    font-size: 20px;
+  }
+
+  .stats {
+    gap: 20px;
+  }
+
+}
+
+/* --- Motion, reduced -------------------------------------------------------
+   Every animation in this block is confirmation — the press landed, the
+   comment went in, the number moved — and confirmation is exactly the kind of
+   motion somebody turns off. What is left still says all of it: the glyph
+   fills, the count changes, the row is there. */
+
+@media (prefers-reduced-motion: reduce) {
+  .stat[data-mine] .glyph,
+  .likeGlyph,
+  .stat[data-kind="share"] .glyph,
+  .commentLike[data-mine] .commentGlyph,
+  .commentLikeGlyph,
+  .burst,
+  .roll,
+  .comment[data-new],
+  .comment[data-new]::before,
+  .emptyFace {
+    animation: none;
+  }
+
+  /* The colour still moves — it is the part that says which control you are
+     on, and it is not motion. */
+  .likeGlyph,
+  .stat[data-kind="share"] .glyph,
+  .commentLikeGlyph {
+    transition: none;
+    transform: none;
+  }
+
+  .burst {
+    display: none;
+  }
+
+  .comment[data-new]::before {
+    opacity: 0;
+  }
+}

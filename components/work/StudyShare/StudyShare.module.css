@@ -1,5 +1,4 @@
-/* The one thing this modal draws that is not either the shell or the study:
-   what the Share button says when the browser refuses the clipboard.
+/* What the Share button says when the browser refuses the clipboard.
 
    Beside the button rather than under it, because the cluster it lives in is
    a fixed row at the top left and there is nothing below it to push. */

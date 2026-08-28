@@ -130,6 +130,123 @@ export type StudyOutcome = {
 };
 
 /**
+ * A row of a comparison table — Figma 761:13153.
+ *
+ * Two cells, always, because the table it draws has two columns and a table
+ * that can have any number of them needs a column model, a width model and an
+ * alignment model to go with it. When a third column is designed, this becomes
+ * a tuple of three.
+ */
+export type StudyTableRow = readonly [term: string, meaning: string];
+
+/**
+ * One card in the explorations carousel — Figma 757:12677.
+ *
+ * `image` is `null` while the screen it shows has not been exported; the slot
+ * is drawn in Figma with no fill either, so the placeholder is the design
+ * rather than a gap in it.
+ *
+ * `rejected` and `worked` are the two columns under the rule, and both are
+ * lists because every one of them in the file is numbered. A card with only
+ * one of the two would be an exploration that had no trade-off, which is not
+ * a thing that happened.
+ */
+export type StudySlide = {
+  /** "EXPLORATION 1". Rendered as authored. */
+  readonly eyebrow: string;
+  /** The paragraphs above the numbered list, then the list. */
+  readonly body: readonly string[];
+  readonly points?: readonly string[];
+  readonly rejected: readonly string[];
+  readonly worked: readonly string[];
+  readonly image: StudyMedia | null;
+};
+
+/**
+ * A quote and where it came from — Figma 760:12894.
+ *
+ * `source` and `channel` are the two blue words under it ("1-1 Interview",
+ * "Zoom"). `avatar` is the 32px round slot beside them; Figma fills every one
+ * of them with the same stock mark, which is a placeholder rather than six
+ * attributions, so it is optional and empty by default.
+ */
+export type StudyQuote = {
+  readonly text: string;
+  readonly source: string;
+  readonly channel: string;
+  readonly avatar?: StudyMedia;
+};
+
+/** A finding, and the quotes that are the evidence for it — Figma 757:12760. */
+export type StudyQuoteGroup = {
+  readonly heading: string;
+  readonly body: string;
+  readonly quotes: readonly StudyQuote[];
+};
+
+/**
+ * One thing in an aside's right-hand column — Figma 529:11515, 703:12432,
+ * 761:13106 and 757:12744, which are all the same frame with different
+ * contents.
+ *
+ * A bare string is a paragraph, which is what the column used to be able to
+ * hold and nothing else. Everything else is an artefact with a `caption`: the
+ * design interleaves them with the prose rather than collecting them at the
+ * end, and "what the data said" reads as an argument only because the
+ * screenshots land between the two halves of it.
+ */
+export type AsideItem =
+  | string
+
+  /** A still inside the column, with the indexed label row under it.
+   *  `StudyMedia`'s own prose caption is dropped rather than added to: this
+   *  figure carries the label row instead, and a figure with two captions
+   *  under it has one too many. */
+  | {
+      readonly kind: "figure";
+      readonly media: Omit<StudyMedia, "caption">;
+      readonly caption: StudyCaption;
+      readonly overlays?: readonly StudyOverlay[];
+    }
+
+  /** The three overlapping analytics captures — Figma 703:12474. Their
+   *  positions are the design's, so they are laid out by the renderer rather
+   *  than authored here; the order is back to front. */
+  | {
+      readonly kind: "collage";
+      readonly images: readonly StudyMedia[];
+      readonly caption: StudyCaption;
+    }
+
+  /** The two-column comparison table — Figma 761:13108. */
+  | {
+      readonly kind: "table";
+      readonly columns: readonly [string, string];
+      readonly rows: readonly StudyTableRow[];
+      readonly caption: StudyCaption;
+    }
+
+  /** The explorations carousel — Figma 757:12676. */
+  | {
+      readonly kind: "carousel";
+      readonly slides: readonly StudySlide[];
+      readonly caption: StudyCaption;
+    }
+
+  /** A device screen alone in a framed panel — Figma 757:12844. */
+  | {
+      readonly kind: "mockup";
+      readonly image: StudyMedia | null;
+      readonly caption: StudyCaption;
+    }
+
+  /** The findings from testing, each with its quotes — Figma 760:12916. */
+  | {
+      readonly kind: "quotes";
+      readonly groups: readonly StudyQuoteGroup[];
+    };
+
+/**
  * A block in a section's body.
  *
  * The old model was `body: string[]` plus optional `media` and `live`, in that
@@ -148,22 +265,21 @@ export type StudyBlock =
   | { readonly kind: "prose"; readonly body: readonly string[] }
 
   /**
-   * A short lead in the left margin, paragraphs beside it — Figma 529:11824.
-   * 240px of lead, 48px of gutter, and the rest. The lead is the sentence the
-   * section would be reduced to; the body is the argument for it.
+   * A short lead in the left margin, a column of items beside it — Figma
+   * 529:11824. 240px of lead, 48px of gutter, and the rest. The lead is the
+   * sentence the section would be reduced to; the column is the argument for
+   * it.
    */
   | {
       readonly kind: "aside";
       readonly lead: string;
-      readonly body: readonly string[];
-      /** A figure inside the right-hand column, under the prose.
-       *  `StudyMedia`'s own prose caption is dropped rather than added to:
-       *  this figure carries the indexed label row instead, and a figure with
-       *  two captions under it has one too many. */
-      readonly figure?: Omit<StudyMedia, "caption"> & {
-        readonly caption: StudyCaption;
-        readonly overlays?: readonly StudyOverlay[];
-      };
+      readonly body: readonly AsideItem[];
+      /**
+       * 48px between the items in the column instead of 24 — Figma 760:12916,
+       * which is the only frame in the file that uses it. Three quote groups
+       * at 24 read as one striped block; at 48 they read as three.
+       */
+      readonly spacing?: "loose";
     }
 
   /**
@@ -310,12 +426,36 @@ export function heroStill(
   }
 }
 
+/**
+ * Which accent the study is drawn in — see "Accent themes" in globals.css.
+ *
+ * The homepage is orange and a case study is not: Figma 821:1142 gives the
+ * study the blue the reader already used for its rail and its section markers,
+ * and hands it every job the orange had — the like, the armed Send, the
+ * insight panel, the focus ring, the live dot in the footer. A study is a
+ * different surface with a different subject, so it gets to have its own.
+ *
+ * A union rather than a colour, so the palette stays in the stylesheet and a
+ * content file can only pick one that has been designed. Adding the next one
+ * is a block in globals.css and a word here.
+ */
+export type StudyAccent = "blue" | "rose";
+
 export type CaseStudy = {
   /** Stable. It is in shared URLs (`/work/<slug>` and `?study=<slug>`), so
    *  renaming one breaks links that are already out in the world. */
   readonly slug: string;
   readonly title: string;
   readonly subtitle: string;
+
+  /**
+   * Optional, and blue when it is left out — every study the file has drawn so
+   * far is blue, and a study that arrives without one should look like a case
+   * study rather than like the homepage. It is written here anyway rather than
+   * being defaulted silently: a study's colour is a design decision, and one
+   * made by omission is one nobody can find later.
+   */
+  readonly accent?: StudyAccent;
 
   /**
    * The line above the title — "SaaS · PropTech · Product Design · 2026 ·

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
 import { linkedin } from "@/content/site";
+import { externalLinkProps } from "@/lib/externalLink";
 import { createChime, type Chime } from "./chime";
 import styles from "./LinkedInCard.module.css";
 
@@ -111,8 +112,7 @@ export default function LinkedInCard() {
       <a
         className={styles.cta}
         href={linkedin.href}
-        target="_blank"
-        rel="noreferrer"
+        {...externalLinkProps(linkedin.href)}
         // Pointer rather than mouse events so pens are included, and touch
         // excluded: on a phone this would fire in the instant before the tap
         // navigates away, which is a sound with nothing to say.

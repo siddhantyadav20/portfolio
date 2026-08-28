@@ -1,0 +1,256 @@
+/* The head chart — the figure, the callouts, and the two layouts they have.
+
+   Every position in here comes from `headGeometry.ts` as an inline percentage.
+   What this file owns is the chip: its type, its plate, its pointer, and the
+   point at which the whole arrangement gives up and becomes a legend. */
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  max-width: 960px;
+  margin: 0;
+}
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.note {
+  font-size: 17px;
+  line-height: var(--lh);
+  color: var(--ink-60);
+}
+
+/* --- The stage -------------------------------------------------------------
+   One box, `VIEW`-shaped, holding the drawing and the chips at the coordinates
+   the geometry computed for them.
+
+   `container-type: inline-size` and type in `cqw` is the same device
+   `NextStudies` uses on the case-study cards, and for the same reason: this is
+   a composition, not a stack of independent elements. Nine chips placed by
+   angle only clear each other at one set of proportions, so the whole figure
+   has to scale as a unit — type included — or the labels start colliding the
+   moment the modal is narrower than the width they were spaced at. */
+
+.stage {
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  /* Kept in step with `FRAME` in headGeometry.ts. */
+  aspect-ratio: 700 / 580;
+  /* Capped rather than filling the 960 column. The frame is barely wider than
+     it is tall — a head is — so at the column's full width the figure comes out
+     815px high and stops being a section of a page. */
+  max-width: 760px;
+}
+
+/* Placed back at `HEAD_BOX`, which is where the callouts think it is. The
+   numbers are `PLACEMENT`, and they are written here rather than passed in
+   because they are constants of the drawing, not of the data. */
+.head {
+  position: absolute;
+  left: 8.6%;
+  top: 7.9%;
+  width: 53.7%;
+  height: 92.1%;
+}
+
+.callouts {
+  position: absolute;
+  inset: 0;
+}
+
+/* --- One callout ------------------------------------------------------------
+   Two segments in one plate: the share, and the name. The reference draws them
+   as two hard rectangles with a folded tail, which is a print device; this is
+   the same structure in the vocabulary the rest of the site is built from — a
+   soft-cornered plate, ink and accent, and one small pointer so the chip is
+   clearly *about* something rather than floating near it. */
+
+.callout {
+  /* Scaled with the figure like everything else — a fixed 6px pointer is a
+     third of the chip's height at one width and a tenth at another. */
+  --pointer: 0.85cqw;
+
+  position: absolute;
+  display: flex;
+  align-items: stretch;
+  /* The coordinate is the chip's vertical middle, not its top edge — a label
+     projected onto a wedge's mid-angle should be centred on it. */
+  transform: translateY(-50%);
+  overflow: hidden;
+  border-radius: 10px;
+  background-color: var(--surface-raised);
+  box-shadow: var(--glass-shadow);
+  font-size: 1.9cqw;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* The pointer, on whichever side the head is. A wedge of the plate rather than
+   a separate triangle: `clip-path` on the plate itself keeps it one shape, so
+   the shadow and the radius wrap it instead of stopping at a seam. */
+.callout[data-side="left"] {
+  padding-left: var(--pointer);
+  clip-path: polygon(
+    var(--pointer) 0,
+    100% 0,
+    100% 100%,
+    var(--pointer) 100%,
+    0 50%
+  );
+}
+
+/* Anchored by its right edge, not its left: this chip's pointer faces the head
+   and has to keep a constant distance from it, which a left anchor cannot do
+   once the text length changes. */
+.callout[data-side="right"] {
+  transform: translate(-100%, -50%);
+  padding-right: var(--pointer);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--pointer)) 0,
+    100% 50%,
+    calc(100% - var(--pointer)) 100%,
+    0 100%
+  );
+}
+
+/* The name leads on the left-hand chip, so the two halves always meet at the
+   head rather than the share sometimes landing on the far side of the name. */
+.callout[data-side="right"] .share {
+  order: 1;
+}
+
+.share,
+.name {
+  display: flex;
+  align-items: center;
+  padding: 0.85cqw 1.1cqw;
+}
+
+.share {
+  background-color: var(--accent-wash);
+  font-weight: 600;
+  color: var(--accent);
+  /* So 5% and 52% still stack into a column that reads as a column. */
+  font-variant-numeric: tabular-nums;
+}
+
+.name {
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-80);
+}
+
+/* Only ever visible in the legend layout, where position stops carrying the
+   link between a name and its wedge and something has to. */
+.swatch {
+  display: none;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--r-pill);
+  background-color: var(--swatch);
+}
+
+/* --- Narrow: a legend ------------------------------------------------------
+   Below this the chips cannot both stay legible and stay clear of each other —
+   the five thin wedges at the top of the fan are spaced for a 900-unit frame,
+   and no amount of shrinking type fixes nine labels around a 300px head.
+
+   So the arrangement is dropped rather than squeezed: the head keeps its
+   proportions and its colours, and the callouts become a plain wrapped legend
+   under it with a swatch each. The figure says the same thing; it just stops
+   saying it by position. */
+
+@media (max-width: 760px) {
+  .figure {
+    gap: 24px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .note {
+    font-size: 15px;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    aspect-ratio: auto;
+  }
+
+  .head {
+    position: static;
+    width: min(100%, 260px);
+    height: auto;
+  }
+
+  .callouts {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .callout {
+    position: static;
+    gap: 8px;
+    padding: 0 10px;
+    transform: none;
+    clip-path: none;
+    font-size: 13px;
+  }
+
+  /* Restated at the same specificity as the rules being undone: `.callout`
+     alone cannot switch off a `transform` or a `clip-path` set on
+     `.callout[data-side]`, and the right-hand chip stayed pulled a full width
+     left and half a height up — landing on top of the one before it. */
+  .callout[data-side="left"],
+  .callout[data-side="right"] {
+    padding: 0 10px;
+    transform: none;
+    clip-path: none;
+  }
+
+  /* One reading order in this layout — swatch, share, name — whichever side
+     the chip pointed at when it had a side. */
+  .callout[data-side="right"] .share {
+    order: 0;
+  }
+
+  .share,
+  .name {
+    padding: 7px 0;
+  }
+
+  .share {
+    /* The wash was a segment of the plate; as a run of text between two others
+       it would read as a highlight. */
+    background: none;
+  }
+
+  .swatch {
+    display: block;
+    align-self: center;
+  }
+}

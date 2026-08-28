@@ -64,70 +64,56 @@
   color: var(--ink-70);
 }
 
-/* The palette's front door.
+/* The palette's front door, as a pill in the CTA row.
 
-   Sized in `--u` like everything else in this card, so it scales with the
-   composition rather than sitting at a fixed size inside a card that does not.
+   Figma 708:12561: a 200px stadium, the label held against the start and the
+   ⌘K badge against the end, which is what the trailing slot in `CtaPill` does.
+   Sized in `--u` like everything else in this card so it scales with the
+   composition. */
+.searchPill {
+  width: calc(200 * var(--u));
+  /* Read by `CtaPill`: a 22px mark, and 8px of end padding because the badge
+     is already a rounded shape and does not need a full 16 beside it. */
+  --cta-icon: 22;
+  --cta-pad-end: 8;
+}
 
-   It rhymes with the Search card's field two rows down on purpose — same
-   height, same pill, same quiet placeholder — because that card is the study
-   arguing search beats navigation and this is the site taking the advice. */
-.search {
+/* The badge. White chip, blue legend, and a soft cast that lifts it off the
+   glass — the one element on the pill that is not the pill's own material. */
+.searchKey {
   display: flex;
   align-items: center;
-  gap: calc(10 * var(--u));
-  width: 100%;
-  padding: calc(11 * var(--u)) calc(14 * var(--u));
-  border: 1px solid var(--ink-20);
+  justify-content: center;
+  width: calc(32 * var(--u));
+  height: calc(24 * var(--u));
   border-radius: var(--r-pill);
-  background-color: var(--surface-glass);
-  cursor: text;
-  transition: border-color 200ms cubic-bezier(0.2, 0, 0, 1);
+  background-color: var(--surface-raised);
+  box-shadow: 0 0 calc(12 * var(--u)) rgba(145, 158, 171, 0.32);
+  /* `kbd` defaults to monospace; Figma draws this in the page face. */
+  font-family: inherit;
+  font-weight: 500;
+  font-size: calc(10 * var(--u));
+  line-height: normal;
+  color: var(--kbd-ink);
 }
 
-.search:hover {
-  border-color: var(--ink-40);
-}
-
-.searchIcon {
-  width: calc(16 * var(--u));
-  height: calc(16 * var(--u));
-  flex: 0 0 auto;
-  background-color: var(--ink-40);
-}
-
-.searchLabel {
-  flex: 1 1 auto;
-  min-width: 0;
-  text-align: left;
-  font-size: calc(14 * var(--u));
-  color: var(--ink-40);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Hidden where there is no ⌘ to press. Advertising a keyboard shortcut to
-   somebody holding a phone is noise dressed as an affordance — and this field
-   is tappable, which is the whole reason it exists. */
+/* No ⌘ to press here, so the badge goes and the pill closes up around the
+   label — advertising a keyboard shortcut to somebody holding a phone is noise
+   dressed as an affordance, and this pill is tappable, which is the whole
+   reason it exists. */
 @media (hover: none), (pointer: coarse) {
   .searchKey {
     display: none;
   }
+
+  .searchPill {
+    width: auto;
+    --cta-pad-end: 16;
+  }
 }
 
-.searchKey {
-  flex: 0 0 auto;
-  padding: calc(2 * var(--u)) calc(7 * var(--u));
-  border: 1px solid var(--ink-20);
-  border-radius: calc(6 * var(--u));
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: calc(10.5 * var(--u));
-  color: var(--ink-40);
-}
-
-/* Three pills where Figma drew two, so they are allowed to wrap rather than
-   squeezing the composition. */
+/* Two pills, per Figma. They are still allowed to wrap rather than squeezing
+   the composition at narrow widths. */
 .ctas {
   display: flex;
   flex-wrap: wrap;

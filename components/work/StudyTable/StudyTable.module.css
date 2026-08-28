@@ -1,0 +1,112 @@
+/* Figma 761:13108. The frame is a 12px-radius film on the page with the rows
+   clipped inside it; the label sits 12px under it, at the right edge. */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+}
+
+/* The scroller, and the thing the radius is on. Below the design's width the
+   two columns stop fitting long before the page does — a 320px term beside a
+   sentence is 600px of table minimum — so the table keeps its measure and the
+   frame scrolls, rather than the second column collapsing to two words a
+   line. */
+.frame {
+  width: 100%;
+  border-radius: 12px;
+  background-color: var(--surface-glass);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+/* 12px of side padding on the row, which in a table has to be spelled on the
+   cells: the design's `px-[12px]` is on the row frame, and a `<tr>` cannot
+   carry padding. So the outer edges get it and the boundary between the two
+   columns gets none, which is what the file draws — the second column starts
+   at 332 of 832, hard against the first. */
+.cell {
+  padding: 16px 0;
+  vertical-align: middle;
+}
+
+.cell:first-child {
+  padding-left: 12px;
+}
+
+.cell:last-child {
+  padding-right: 12px;
+}
+
+/* 320 of the design's 832, and fixed rather than proportional: it is the
+   width the longest constraint name needs and nothing about it should stretch
+   when the reader is wider. */
+.term {
+  width: 320px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.meaning {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: var(--lh-wide);
+  color: var(--ink-70);
+}
+
+/* The header row carries the same film again — 0.4 white over 0.4 white,
+   which is the file's way of separating it from the body without a rule. */
+.head {
+  background-color: var(--surface-glass);
+}
+
+.label {
+  padding-top: 9px;
+  padding-bottom: 9px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--ink-40);
+}
+
+/* Dashed, and between rows only — the last row has no rule under it, because
+   the frame's own edge is already there.
+
+   6 on, 6 off: tighter than the page rules' 6/8, which is the file's own
+   distinction between a rule that divides sections and one that divides rows.
+   Drawn as a gradient on the cell's background rather than as a border, for
+   the reason `.dashRule` gives in globals.css — and `background-position` puts
+   it on the bottom edge. Ink rather than the file's black: a black rule on a
+   #111 page is not a rule. */
+.row:not(:last-child) .cell {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--ink-20) 0 6px,
+    transparent 6px 12px
+  );
+  background-repeat: repeat-x;
+  background-position: bottom left;
+  background-size: auto 1px;
+}
+
+@media (max-width: 900px) {
+  .term {
+    width: 200px;
+    font-size: 15px;
+  }
+
+  .meaning {
+    font-size: 14px;
+  }
+}

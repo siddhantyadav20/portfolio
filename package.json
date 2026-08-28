@@ -9,7 +9,9 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "budget": "node scripts/check-budget.mjs"
+    "budget": "node scripts/check-budget.mjs",
+    "icon": "node scripts/build-icon.mjs",
+    "purge-engagement": "node scripts/purge-engagement.mjs"
   },
   "dependencies": {
     "motion": "^13.1.0",

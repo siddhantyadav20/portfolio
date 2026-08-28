@@ -181,6 +181,29 @@ export default function CanvasSurface({ onClose }: Props) {
     return () => document.removeEventListener("keydown", onKey);
   }, [overlayShell, onEscape]);
 
+  /**
+   * The browser's own back/forward swipe, off while the board is up.
+   *
+   * Two fingers travelling right on a trackpad is how you pan a canvas left,
+   * and on macOS it is also how you go back a page — so the gesture that
+   * moves the board can also throw you off it. `onWheel` below calls
+   * preventDefault on everything it sees, which handles the events it
+   * actually receives; what it cannot handle is the decision Chrome makes at
+   * the compositor, before the first event of a swipe reaches JS, when the
+   * gesture begins over a nested scroller that consumes it — the terminal's
+   * log, the drawing pad, the book's spread.
+   *
+   * `overscroll-behavior` is the declarative answer and it is not subject to
+   * that race: it tells the viewport there is no overscroll affordance here,
+   * horizontally or vertically. Scoped to the canvas being mounted — the
+   * overlay and the route both — because the rest of the site should keep the
+   * gesture, and dropped on the way out.
+   */
+  useEffect(() => {
+    document.documentElement.setAttribute("data-canvas", "");
+    return () => document.documentElement.removeAttribute("data-canvas");
+  }, []);
+
   useEffect(() => {
     const surface = surfaceRef.current;
     const world = worldRef.current;

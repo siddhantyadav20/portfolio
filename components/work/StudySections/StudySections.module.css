@@ -12,32 +12,48 @@
   width: 100%;
 }
 
-/* The same rule `StudyReader` draws under the intro — see there for why it is
-   ink rather than the file's black. */
+/* The same rule `StudyReader` draws under the intro — see there, and
+   `.dashRule` in globals.css for the dash pattern. */
 .separator {
   width: 100%;
-  height: 0;
-  border-top: 1px dashed var(--ink-20);
 }
 
+/* Figma 761:13185, 757:12733 and 757:12741 — 64 from the title down to the
+   first block, then 120 between blocks. Margins rather than a flex `gap`
+   because the two distances are different and one of the 120s is a 64: an
+   exhibit that follows an aside is the figure for the argument above it, not
+   the next argument. */
 .section {
   display: flex;
   flex-direction: column;
-  gap: 64px;
   /* The rail scrolls here, so a heading landing flush against the top edge of
      the scrollport is a heading with no room above it. */
   scroll-margin-top: 96px;
 }
 
+.section > * + * {
+  margin-top: 120px;
+}
+
+.head + * {
+  margin-top: 64px;
+}
+
+/* Marker only — see the `exhibit` case in the component. */
+.aside + .exhibit {
+  margin-top: 64px;
+}
+
+/* Figma 476:11203 — the dot-and-caps line, 12 above the display heading. */
 .head {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
 }
 
 /* --- The eyebrow ---------------------------------------------------------
-   An 8px dot and a line of blue caps — Figma 476:11200. */
+   An 8px dot and a line of caps in the study's accent — Figma 476:11200. */
 
 .eyebrow {
   display: flex;
@@ -47,7 +63,7 @@
   font-size: 15px;
   font-weight: 600;
   line-height: var(--lh-read);
-  color: var(--blue-bright);
+  color: var(--accent);
 }
 
 .marker {
@@ -83,10 +99,19 @@
   width: 100%;
 }
 
+/* Figma 760:12916 — the one column in the file that opens up, because what it
+   stacks is three self-contained panels rather than a run of prose. */
+.asideBody[data-spacing="loose"] {
+  gap: 48px;
+}
+
 .paragraph {
   margin: 0;
   font-size: 17px;
-  line-height: var(--lh-read);
+  /* 160%, not the 170% the rest of the reader's chrome uses. The redesign
+     moved every prose node in the frame to 1.6 and left the eyebrows, the
+     headings and the figure labels at 1.7 — see `--lh-read` in globals. */
+  line-height: var(--lh-wide);
   color: var(--ink-70);
   white-space: pre-wrap;
 }
@@ -107,7 +132,7 @@
   margin: 0;
   font-size: 17px;
   font-weight: 600;
-  line-height: var(--lh-read);
+  line-height: var(--lh-wide);
   color: var(--ink);
 }
 
@@ -190,64 +215,64 @@
 }
 
 /* --- The insight ---------------------------------------------------------
-   Figma 548:12210. A wash of the accent at 10%, 24px in on three sides and
-   32 at the bottom — the extra 8 is the illustration's room. */
+   Figma 548:12210. A wash of the accent at 10% inside a dashed line of the
+   accent itself, 32 in on every side. The dashed edge is new and it is doing
+   the work the illustration used to: it marks the panel as an aside on the
+   argument rather than a card in it. */
 
 .insight {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 24px;
   width: 100%;
-  padding: 24px 24px 32px;
+  /* 33, not 32: Figma's auto-layout padding is 32 *inside* a 1px stroke, and
+     the stroke here is an overlay that takes no space in the box model. */
+  padding: 33px;
   border-radius: var(--r-lg);
   background-color: var(--accent-wash);
-  overflow: hidden;
+  /* The outline is a plain rounded rect, so the fill under it has to be one
+     too — `squircle` would leave the two corners disagreeing. */
+  color: var(--accent);
 }
 
 .insightEyebrow {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 13px;
   font-weight: 600;
-  line-height: var(--lh-read);
+  line-height: var(--lh-wide);
   color: var(--accent);
 }
 
+.insightContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
 .insightHeading {
-  /* The width the illustration leaves, rather than a measure — 903 of the
-     panel's 1072 in the file. Written as an inset off the panel's own width
-     so it keeps clearing the artwork when the reader is narrower than the
-     design; as a flat 903px the heading ran straight under the inspector at
-     any width below 1440. */
-  max-width: calc(100% - 170px);
   margin: 0;
   font-size: 28px;
   font-weight: 500;
-  line-height: var(--lh-read);
+  line-height: var(--lh-wide);
   color: var(--ink);
 }
 
+/* The lines of the body sit directly on top of each other — Figma sets them
+   in one text node, so there is no paragraph gap to transcribe. */
 .insightBody {
-  max-width: calc(100% - 170px);
   margin: 0;
   font-size: 17px;
-  line-height: var(--lh-read);
+  line-height: var(--lh-wide);
   color: var(--ink-70);
 }
 
-/* 154x254, hung off the bottom right corner and clipped by the panel — so a
-   little under half of it is showing, which is what the file draws. */
-.insightFigure {
-  position: absolute;
-  right: -24px;
-  bottom: -42px;
-  width: 154px;
-  height: 254px;
-  object-fit: cover;
-  pointer-events: none;
+.insightBody p {
+  margin: 0;
 }
 
 /* --- Figures at the full measure ----------------------------------------- */
@@ -289,13 +314,25 @@
 /* --- Narrow viewports ----------------------------------------------------- */
 
 @media (max-width: 900px) {
-  .sections,
-  .section {
+  .sections {
     gap: 40px;
+  }
+
+  .section > * + * {
+    margin-top: 56px;
+  }
+
+  .head + *,
+  .aside + .exhibit {
+    margin-top: 40px;
   }
 
   .heading {
     font-size: 24px;
+  }
+
+  .asideBody[data-spacing="loose"] {
+    gap: 32px;
   }
 
   /* The lead stops being a margin note and becomes what it is — the first
@@ -319,9 +356,7 @@
     font-size: 20px;
   }
 
-  /* At 154px on a phone the inspector is standing on the last two lines of
-     the panel rather than beside them. */
-  .insightFigure {
-    display: none;
+  .insight {
+    padding: 21px;
   }
 }

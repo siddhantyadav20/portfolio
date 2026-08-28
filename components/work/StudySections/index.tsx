@@ -1,9 +1,15 @@
 import Image from "next/image";
 import { Fragment } from "react";
+import DashedFrame from "@/components/primitives/DashedFrame";
 import FigureLabel from "@/components/work/FigureLabel";
+import StudyCarousel from "@/components/work/StudyCarousel";
+import StudyCollage from "@/components/work/StudyCollage";
 import StudyExhibit from "@/components/work/StudyExhibit";
 import StudyLiveBlock from "@/components/work/StudyLiveBlock";
-import type { StudyBlock, StudySection } from "@/content/work";
+import StudyMockup from "@/components/work/StudyMockup";
+import StudyQuotes from "@/components/work/StudyQuotes";
+import StudyTable from "@/components/work/StudyTable";
+import type { AsideItem, StudyBlock, StudySection } from "@/content/work";
 import styles from "./StudySections.module.css";
 
 type Props = {
@@ -54,7 +60,7 @@ export default function StudySections({ sections, className }: Props) {
               rather than by `StudyReader` because only this component knows
               how many sections there are; the reader draws the first one,
               which is the boundary between two different things. */}
-          {index > 0 && <div className={styles.separator} />}
+          {index > 0 && <div className={`dashRule ${styles.separator}`} />}
 
           <section id={section.id} className={styles.section}>
             <header className={styles.head}>
@@ -103,54 +109,16 @@ function Block({ block }: { block: StudyBlock }) {
 
     /* Figma 529:11824 — 240px of lead, a 48px gutter, and the rest. The lead
        is the section reduced to a sentence; the column beside it is the
-       argument for that sentence, and any figure belongs in the column rather
-       than across both, because it is evidence for the argument. */
+       argument for that sentence, and every artefact belongs in the column
+       rather than across both, because it is evidence for the argument. */
     case "aside":
       return (
         <div className={styles.aside}>
           <p className={styles.lead}>{block.lead}</p>
-          <div className={styles.asideBody}>
-            {block.body.map((paragraph, i) => (
-              <p key={i} className={styles.paragraph}>
-                {paragraph}
-              </p>
+          <div className={styles.asideBody} data-spacing={block.spacing}>
+            {block.body.map((item, i) => (
+              <Item key={i} item={item} />
             ))}
-
-            {block.figure && (
-              <figure className={styles.inlineFigure}>
-                <div className={styles.shot}>
-                  <Image
-                    src={block.figure.src}
-                    alt={block.figure.alt}
-                    width={block.figure.width}
-                    height={block.figure.height}
-                    className={styles.shotImage}
-                    loading="lazy"
-                    sizes="(max-width: 900px) 100vw, 832px"
-                  />
-
-                  {/* Figma 529:12089/12091 — the two ticket titles this study
-                      is about, laid over the ones the board happened to be
-                      showing. Positioned as fractions of the frame so they
-                      travel with it. */}
-                  {block.figure.overlays?.map((o) => (
-                    <span
-                      key={o.text}
-                      className={styles.overlay}
-                      style={{
-                        left: `${o.left * 100}%`,
-                        top: `${o.top * 100}%`,
-                        width: `${o.width * 100}%`,
-                        height: `${o.height * 100}%`,
-                      }}
-                    >
-                      {o.text}
-                    </span>
-                  ))}
-                </div>
-                <FigureLabel caption={block.figure.caption} />
-              </figure>
-            )}
           </div>
         </div>
       );
@@ -173,10 +141,21 @@ function Block({ block }: { block: StudyBlock }) {
         </div>
       );
 
-    /* Figma 548:12210 — the tinted panel the section arrives at. */
+    /* Figma 548:12210 — the tinted panel the section arrives at.
+
+       The inspector illustration that used to hang out of the bottom right
+       corner is gone from the file, and with it from here. It was artwork
+       from one study rendered by a component three of them share, and the
+       panel it was decorating now has to hold two lines of argument across
+       its full width rather than around a photograph. */
     case "insight":
       return (
-        <aside className={`${styles.insight} squircle`}>
+        <aside className={styles.insight}>
+          {/* The dashed outline, drawn rather than bordered — Figma's dashes
+              are 6 on and 4 off, and a CSS `dashed` border cannot say that.
+              See `DashedFrame`. */}
+          <DashedFrame radius={24} dash="6 4" />
+
           <p className={styles.insightEyebrow}>
             <span
               className="inkIcon"
@@ -189,30 +168,33 @@ function Block({ block }: { block: StudyBlock }) {
             />
             {block.eyebrow}
           </p>
-          <h3 className={styles.insightHeading}>{block.heading}</h3>
-          {block.body.map((paragraph, i) => (
-            <p key={i} className={styles.insightBody}>
-              {paragraph}
-            </p>
-          ))}
 
-          {/* Figma 553:12231 — the inspector, half out of the panel's bottom
-              right corner. Decorative, and clipped by the panel's own radius. */}
-          <Image
-            src="/media/inspector.png"
-            alt=""
-            aria-hidden="true"
-            width={154}
-            height={254}
-            className={styles.insightFigure}
-            loading="lazy"
-            sizes="154px"
-          />
+          <div className={styles.insightContent}>
+            <h3 className={styles.insightHeading}>{block.heading}</h3>
+            {/* No gap between the paragraphs: Figma sets both lines in one
+                text node, so they read as one thought broken over two lines
+                rather than as two paragraphs. */}
+            <div className={styles.insightBody}>
+              {block.body.map((paragraph, i) => (
+                <p key={i}>{paragraph}</p>
+              ))}
+            </div>
+          </div>
         </aside>
       );
 
     case "exhibit":
-      return <StudyExhibit view={block.view} caption={block.caption} />;
+      /* `styles.exhibit` carries no properties of its own — it exists so the
+         section can see, in CSS, that an exhibit follows an aside and close
+         the 120px gap to 64. Figma 761:13188 groups the two into one frame,
+         which is the same statement made with a frame instead of a rule. */
+      return (
+        <StudyExhibit
+          view={block.view}
+          caption={block.caption}
+          className={styles.exhibit}
+        />
+      );
 
     case "figure":
       return (
@@ -236,5 +218,79 @@ function Block({ block }: { block: StudyBlock }) {
 
     case "live":
       return <StudyLiveBlock view={block.view} />;
+  }
+}
+
+/**
+ * One thing in an aside's column — Figma 529:11515 and the three frames like
+ * it.
+ *
+ * A bare string is a paragraph. Everything else is an artefact, and every
+ * artefact carries its own indexed label, which is why none of them are
+ * rendered by this file: the table, the collage, the carousel and the mockup
+ * are each a figure with a caption and their own behaviour at narrow widths.
+ */
+function Item({ item }: { item: AsideItem }) {
+  if (typeof item === "string") {
+    return <p className={styles.paragraph}>{item}</p>;
+  }
+
+  switch (item.kind) {
+    case "figure":
+      return (
+        <figure className={styles.inlineFigure}>
+          <div className={styles.shot}>
+            <Image
+              src={item.media.src}
+              alt={item.media.alt}
+              width={item.media.width}
+              height={item.media.height}
+              className={styles.shotImage}
+              loading="lazy"
+              sizes="(max-width: 900px) 100vw, 832px"
+            />
+
+            {/* Figma 529:12089/12091 — the two ticket titles this study is
+                about, laid over the ones the board happened to be showing.
+                Positioned as fractions of the frame so they travel with it. */}
+            {item.overlays?.map((o) => (
+              <span
+                key={o.text}
+                className={styles.overlay}
+                style={{
+                  left: `${o.left * 100}%`,
+                  top: `${o.top * 100}%`,
+                  width: `${o.width * 100}%`,
+                  height: `${o.height * 100}%`,
+                }}
+              >
+                {o.text}
+              </span>
+            ))}
+          </div>
+          <FigureLabel caption={item.caption} />
+        </figure>
+      );
+
+    case "collage":
+      return <StudyCollage images={item.images} caption={item.caption} />;
+
+    case "table":
+      return (
+        <StudyTable
+          columns={item.columns}
+          rows={item.rows}
+          caption={item.caption}
+        />
+      );
+
+    case "carousel":
+      return <StudyCarousel slides={item.slides} caption={item.caption} />;
+
+    case "mockup":
+      return <StudyMockup image={item.image} caption={item.caption} />;
+
+    case "quotes":
+      return <StudyQuotes groups={item.groups} />;
   }
 }

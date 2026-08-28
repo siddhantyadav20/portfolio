@@ -3,7 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import GlassAction, { CloseGlyph } from "@/components/primitives/GlassAction";
-import { useModalShell } from "@/lib/modalShell";
+import { escapeFromField, useModalShell } from "@/lib/modalShell";
 import styles from "./ModalSurface.module.css";
 
 /* `EXIT_MS` and `MODAL_VT` used to live here and now live in
@@ -29,37 +29,19 @@ type Props = {
    * Which text-selection tint this reader carries. Omitted, it keeps the
    * homepage's orange — see "Selection" in globals.css.
    */
-  selectionTint?: "violet" | "green";
+  selectionTint?: "green";
+  /**
+   * Which accent the surface inside is drawn in. Omitted, it keeps the
+   * homepage's orange — see "Accent themes" in globals.css.
+   *
+   * Set on the overlay rather than on the reader, so the plate's own controls
+   * are in the theme too and the page behind the modal is not: a case study
+   * and the homepage it opened from are on screen at the same time, and only
+   * one of them is blue.
+   */
+  accent?: "blue" | "rose";
   children: ReactNode;
 };
-
-/**
- * Escape, when the thing you are escaping from is a half-written sentence.
- *
- * A case study now carries a comment box, and closing the whole reader on the
- * first Escape would throw away whatever was typed into it with no warning and
- * no undo — the modal is portalled and unmounted, so the draft is simply gone.
- *
- * So the first Escape leaves the field and the second closes the reader, which
- * is what a text editor does and what the muscle memory expects. An *empty*
- * field is not worth the extra keystroke: there is nothing to lose, so Escape
- * closes as it always did.
- *
- * `useModalShell` was written with this hook already in place — see its
- * `onEscape`, which names this exact case. It just had no caller until now.
- */
-function escapeFromField(): boolean {
-  const el = document.activeElement;
-
-  const editable =
-    el instanceof HTMLTextAreaElement ||
-    (el instanceof HTMLInputElement && !["button", "submit", "checkbox", "radio"].includes(el.type));
-
-  if (!editable || !el.value.trim()) return false;
-
-  el.blur();
-  return true;
-}
 
 /**
  * The full-bleed reader every modal on the site is built in.
@@ -81,6 +63,7 @@ export default function ModalSurface({
   actions,
   leading,
   selectionTint,
+  accent,
   children,
 }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -143,6 +126,7 @@ export default function ModalSurface({
       style={{ viewTransitionName: "modal-plate" }}
       {...(closing ? { "data-exit": "" } : {})}
       {...(selectionTint ? { "data-selection": selectionTint } : {})}
+      {...(accent ? { "data-accent": accent } : {})}
     >
       {/* Both clusters are deliberately unnamed for the view transition.
           `view-transition-name` makes an element a backdrop root, and every

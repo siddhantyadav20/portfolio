@@ -29,6 +29,10 @@ export function useStudyUrl(
   slug: string,
   open: boolean,
   setOpen: (open: boolean) => void,
+  /** `false` for a card that is a copy of another card — see `StudyCardMode`.
+   *  It has no modal to open, so it has no business reading the URL or
+   *  writing one. */
+  enabled = true,
 ) {
   /**
    * Reading the URL: on arrival, and on every Back or Forward afterwards.
@@ -40,6 +44,7 @@ export function useStudyUrl(
    * would sit on the homepage and never open anything. Timers still run.
    */
   useEffect(() => {
+    if (!enabled) return;
     const href = studyHref(slug);
 
     const t = window.setTimeout(() => {
@@ -65,7 +70,7 @@ export function useStudyUrl(
       window.clearTimeout(t);
       window.removeEventListener("popstate", onPop);
     };
-  }, [slug, setOpen]);
+  }, [slug, setOpen, enabled]);
 
   /**
    * Writing the URL.
@@ -85,6 +90,8 @@ export function useStudyUrl(
     // is false while the address bar may already name a study; without this
     // guard the effect saw them disagree, decided the URL was wrong, and
     // rewrote it before the reader above could act on it.
+    if (!enabled) return;
+
     if (!synced.current) {
       synced.current = true;
       return;
@@ -113,5 +120,5 @@ export function useStudyUrl(
     } else {
       window.history.replaceState(null, "", "/");
     }
-  }, [open, slug]);
+  }, [open, slug, enabled]);
 }

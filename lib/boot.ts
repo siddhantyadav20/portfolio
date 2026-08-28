@@ -33,11 +33,14 @@ export const BOOT_ATTR = "data-booting";
 /**
  * The whole run, in milliseconds.
  *
- * Five seconds, which is a long time to hold somebody and is the brief. It
- * survives being that long only because it is skippable and because it is
- * showing the visitor the actual page being assembled rather than a spinner.
+ * Every beat in `BootSequence` is a fraction of this, so this is the only
+ * number that sets the pace. Three and a half seconds is a long time to hold
+ * somebody and it is deliberate: about a second and a half of it is the mark
+ * being drawn, and the drawing is the point. It survives being that long only
+ * because it happens once, because it is skippable, and because the second
+ * half of it is the actual page arriving rather than a spinner.
  */
-export const BOOT_MS = 3000;
+export const BOOT_MS = 3400;
 
 /**
  * Runs in <head>, before anything is painted.

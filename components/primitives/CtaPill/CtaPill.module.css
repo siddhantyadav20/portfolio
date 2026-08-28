@@ -42,11 +42,34 @@
   transform: scale(1);
 }
 
+/* End-justified rather than centred, for a pill carrying a trailing badge.
+   The two numbers that change are the end padding and where the free space
+   goes; both are driven by custom properties rather than by a caller's class,
+   because a class from another CSS module would have the same specificity as
+   this one and which of them won would come down to stylesheet order. */
+.withTrailing {
+  justify-content: space-between;
+  padding-right: calc(var(--cta-pad-end, 8) * var(--u));
+}
+
+/* The free space lands between the label and the badge, so the icon and the
+   label stay a `gap` apart at the start of the pill. */
+.withTrailing .label {
+  margin-right: auto;
+}
+
+.trailing {
+  display: flex;
+  flex: none;
+}
+
+/* 20 unless a caller says otherwise — the search pill's mark is drawn at 22.
+   A custom property for the same reason as `--cta-pad-end` above. */
 .icon {
   display: flex;
   flex: none;
-  width: calc(20 * var(--u));
-  height: calc(20 * var(--u));
+  width: calc(var(--cta-icon, 20) * var(--u));
+  height: calc(var(--cta-icon, 20) * var(--u));
 }
 
 .icon :global(img),

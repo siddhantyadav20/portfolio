@@ -8,6 +8,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
+import { externalLinkProps } from "@/lib/externalLink";
 import { levenshtein } from "@/lib/match";
 import { terminal as data } from "@/content/canvas";
 import styles from "./Terminal.module.css";
@@ -452,8 +453,7 @@ export default function Terminal() {
                 className={styles.link}
                 data-kind={l.kind}
                 href={l.href}
-                target="_blank"
-                rel="noreferrer"
+                {...externalLinkProps(l.href)}
                 onClick={(e) => e.stopPropagation()}
               >
                 {l.text}

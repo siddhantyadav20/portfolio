@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import LogoMark from "@/components/brand/LogoMark";
 import CtaPill from "@/components/primitives/CtaPill";
@@ -68,36 +69,19 @@ export default function Introduction({ className }: { className?: string }) {
         <p className={styles.note}>{intro.note}</p>
       </div>
 
-      {/* The palette's front door.
+      {/* Two pills, per Figma 516:11435 — Copy Email, and the palette's front
+          door beside it.
+
+          The door used to be a full-width bordered field above this row: a
+          button dressed as an input, which is a small lie the moment anybody
+          tries to type into it. As a pill it says what it does, sits in the row
+          where every other action on this card already is, and still carries
+          the ⌘K legend for the people who will never press it.
 
           A palette nobody opens is worth nothing, and ⌘K is a power-user
           gesture on a page whose most important visitor is a recruiter — often
           on Windows, usually on a phone, where the shortcut does not exist at
-          all. So the shortcut is the accelerator and this is the affordance.
-
-          A button rather than an input, deliberately. It looks like a field and
-          it is not one: a real input here would need its own value, its own
-          focus handling and its own keyboard behaviour, all of which the panel
-          already has and would then have to be handed. Pressing this opens the
-          panel with a genuine field already focused, so there is never a moment
-          where two search boxes exist and only one of them works. */}
-      <button
-        type="button"
-        className={styles.search}
-        onClick={() => openPalette()}
-        data-cursor="native"
-      >
-        <span
-          className={`inkIcon ${styles.searchIcon}`}
-          style={{ ["--icon" as string]: "url(/icons/search.svg)" }}
-          aria-hidden="true"
-        />
-        <span className={styles.searchLabel}>{intro.searchPlaceholder}</span>
-        <kbd className={styles.searchKey} aria-hidden="true">
-          {mounted ? commandKeyLabel() : "\u2318"}K
-        </kbd>
-      </button>
-
+          all. So the shortcut is the accelerator and this is the affordance. */}
       <div className={styles.ctas}>
         <CtaPill
           onClick={copyEmail}
@@ -107,25 +91,35 @@ export default function Introduction({ className }: { className?: string }) {
         </CtaPill>
 
         <CtaPill
-          as="a"
-          href={intro.resumeHref ?? undefined}
-          target={intro.resumeHref ? "_blank" : undefined}
-          rel={intro.resumeHref ? "noopener noreferrer" : undefined}
-          data-placeholder={intro.resumeHref ? undefined : ""}
-          aria-disabled={intro.resumeHref ? undefined : true}
-          icon={<span className="inkIcon" style={{ ["--icon" as string]: "url(/icons/export.svg)", width: 20, height: 20 }} />}
+          className={styles.searchPill}
+          onClick={() => openPalette()}
+          /* The AI mark, and a photographic one rather than an ink glyph — the
+             one place on this card with colour in it, which is why it is a
+             bitmap where its neighbour is a mask. 88px source for a 22px box,
+             so it stays sharp at 2x. */
+          icon={
+            <Image
+              src="/icons/ai-mark.png"
+              alt=""
+              width={22}
+              height={22}
+              /* Unoptimized deliberately. The mark is a photograph of knit, and
+                 the optimizer's WebP-q75 pass at 48px flattens exactly what
+                 makes it read: measured against the source, chroma falls from
+                 34.4 to 29.3 and the centre triangle picks up green/magenta
+                 fringing. The 88px source is 17KB — less than the two variants
+                 it would have generated — so there is nothing to win here and a
+                 washed-out logo to lose. */
+              unoptimized
+            />
+          }
+          trailing={
+            <kbd className={styles.searchKey} aria-hidden="true">
+              {mounted ? commandKeyLabel() : "⌘"}K
+            </kbd>
+          }
         >
-          Résumé
-        </CtaPill>
-
-        <CtaPill
-          as="a"
-          href={intro.storeHref ?? undefined}
-          data-placeholder={intro.storeHref ? undefined : ""}
-          aria-disabled={intro.storeHref ? undefined : true}
-          icon={<span className="inkIcon" style={{ ["--icon" as string]: "url(/icons/cart.svg)", width: 20, height: 20 }} />}
-        >
-          Go to Store
+          {intro.searchCta}
         </CtaPill>
       </div>
 

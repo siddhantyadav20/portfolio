@@ -16,6 +16,9 @@ export const intro = {
   note: "— Less, but better",
   /** Used by the Copy Email button. */
   email: "siddhantyadav20@gmail.com",
+  /* No longer linked from the intro — the Figma CTA row is Copy Email and
+     Search Portfolio only. The Store's door is the waitlist card further down
+     the page; this stays for whenever the shop itself exists. */
   storeHref: null as MaybeHref,
 
   /**
@@ -29,13 +32,15 @@ export const intro = {
   resumeHref: "/siddhant-yadav-cv.pdf" as MaybeHref,
 
   /**
-   * The palette's own field, two rows above the Search card's
-   * "What did you observe?".
+   * The palette's front door, now a pill in the CTA row rather than a field
+   * standing on its own.
    *
-   * The rhyme is the argument: the Search study is subtitled "Navigation first
-   * to search first", and this is that finding applied to the site making it.
+   * It says what pressing it does instead of impersonating the question the
+   * palette asks — the field it replaced was a button dressed as an input, and
+   * the palette's own "What do you want to know?" is the real one, focused the
+   * moment this opens.
    */
-  searchPlaceholder: "What do you want to know?",
+  searchCta: "Search Portfolio",
 } as const;
 
 /* Titles are single strings that wrap naturally at the width Figma gives them,
@@ -107,23 +112,106 @@ export const about = {
   ],
 
   /**
-   * The About modal. Placeholder copy: the layout, the morph and the staging
-   * are the finished parts of this pass — the words are stand-ins and are meant
-   * to be replaced wholesale.
+   * The About reader.
+   *
+   * A PERSONAL PAGE, NOT A CASE STUDY, and the copy is written to that: first
+   * person, specifics over adjectives, and no claim that is not already true
+   * somewhere else in this file. What is genuinely not decided yet — the story
+   * in Siddhant's own words, and the city — stays `null` and renders as a
+   * marked placeholder, which is the same rule the rest of the site follows.
+   * A page that invents a biography is worse than a page with a gap in it.
    */
   story: {
-    title: "A designer who builds",
-    subtitle:
-      "Placeholder — the real introduction goes here, in Siddhant’s own words.",
-    body: [
-      "Placeholder paragraph. This is where the story of how I got here goes: the detour through engineering, the years spent watching inspectors work with gloves on, and why that turned into a habit of designing for the hand rather than the mouse.",
-      "Placeholder paragraph. And this is where the way I work goes — prototypes over specs, motion as a way of explaining rather than decorating, and shipping the thing rather than the deck about the thing.",
-    ],
-    meta: [
-      { label: "Based in", value: "Placeholder — city" },
-      { label: "Currently", value: "Placeholder — role, company" },
-      { label: "Before that", value: "Placeholder — earlier chapters" },
-      { label: "Elsewhere", value: "Placeholder — LinkedIn, Read.cv, Email" },
+    /** The eyebrow over the statement — who, and what. Both live in `linkedin`
+     *  already; naming them here would be a second copy to keep in step. */
+    kicker: "About",
+
+    /**
+     * The opening statement, and the largest type on the site.
+     *
+     * It is `intro.tagline` verbatim rather than a second attempt at saying
+     * the same thing. That line is the best sentence on this site and the one
+     * the homepage already leads with; a personal page that opened with a
+     * different, weaker version of it would read as two people talking.
+     */
+    afterStatement:
+      "Five years of it, mostly for people whose hands are full and whose screens are outdoors.",
+
+    /** The long version. Placeholder — see the note above. */
+    body: null as readonly string[] | null,
+
+    /** Where the prose will go, said plainly while it is not there. */
+    bodyPending:
+      "The long version is still being written — the short one is above, and the path below is the honest outline of it.",
+  },
+
+  /**
+   * The colophon under the opening: four facts, no adjectives.
+   *
+   * Everything here except the city is derived from something else in this
+   * file — the current role from the last timeline entry, the years from
+   * `dayOne`, the tools from `about.tools` — and is assembled in the component
+   * rather than restated, so none of it can go stale on its own.
+   */
+  facts: {
+    basedLabel: "Based in",
+    /** Not decided. Renders as a marked placeholder. */
+    based: null as string | null,
+    currentlyLabel: "Currently",
+    beforeLabel: "Before that",
+    studiedLabel: "Studied",
+    sinceLabel: "Designing since",
+    toolsLabel: "Working in",
+  },
+
+  /** The career, as a list rather than as the homepage's draggable ruler.
+   *  Built from `timeline.entries` — see `AboutModal`. */
+  path: {
+    title: "The path",
+    note: "Newest first. The years in orange are the jobs; the rest are things shipped while holding one.",
+  },
+
+  /** The sign-off. Destinations that already exist elsewhere in this file are
+   *  referenced, not retyped. */
+  elsewhere: {
+    title: "Elsewhere",
+    note: "The fastest way to reach me is the first one.",
+    instagram: "https://instagram.com/designzoid_",
+    instagramHandle: "@designzoid_",
+  },
+
+  /**
+   * What's in the head — the pie chart inside the silhouette.
+   *
+   * THE NUMBERS ARE A CLAIM, NOT A MEASUREMENT, and the caption says so.
+   * Nothing counts hours here and nothing should pretend to: this is the same
+   * joke the reference infographic is making, which only works if the reader
+   * is in on it. They are shares of one head, so they add to 100 — `HeadChart`
+   * asserts that rather than normalising, because a set that no longer sums is
+   * an edit that went wrong, not a chart to redraw at the wrong proportions.
+   *
+   * ORDER IS THE DRAWING ORDER. The fan is swept clockwise from twelve
+   * o'clock in the order written here, and the last entry takes whatever is
+   * left of the circle — so the dominant one goes last and becomes the head
+   * itself, the way "design" does. Listing the thin ones smallest-first is
+   * what keeps the fan reading as a fan instead of as a stack of arbitrary
+   * widths.
+   *
+   * `note` is the second half of the joke and the first half of the honesty.
+   */
+  interests: {
+    title: "What's in the head",
+    note: "Self-reported, unmeasured, and revised constantly.",
+    items: [
+      { name: "History", share: 5 },
+      { name: "Basketball", share: 5 },
+      { name: "Psychology", share: 5 },
+      { name: "Cycling", share: 6 },
+      { name: "Explore", share: 6 },
+      { name: "Football", share: 6 },
+      { name: "Reading", share: 7 },
+      { name: "Music", share: 8 },
+      { name: "Design", share: 52 },
     ],
   },
 } as const;
@@ -209,13 +297,20 @@ export const timeline = {
       at: 2.8,
       title: "Report Writing Tool",
       context: "Multi-platform app launch",
+      kind: "work",
     },
     {
       at: 3.8,
       title: "Order Management CRM",
       context: "Web app launch",
+      kind: "work",
     },
-    { at: 4.3, title: "Task Completion Flow", context: "WIN, current focus" },
+    {
+      at: 4.3,
+      title: "Task Completion Flow",
+      context: "WIN, current focus",
+      kind: "work",
+    },
   ] as const satisfies readonly TimelineEntry[],
 
   /** The unit next to the count. */
@@ -229,6 +324,20 @@ export type TimelineEntry = {
   readonly title: string;
   /** The quiet line above it. One line too. */
   readonly context: string;
+  /**
+   * A post held, or a thing shipped while holding one.
+   *
+   * The homepage's ruler does not care — it draws both the same way, because
+   * scrubbing a career is scrubbing one sequence of moments. The About page
+   * does: "Currently" has to resolve to a job rather than to whichever entry
+   * happens to be last, and the last two here are launches. Without this the
+   * colophon read "Currently: Task Completion Flow, WIN, current focus", which
+   * is a project with a job smuggled into its subtitle.
+   *
+   * Absent means `role` — the entries that are posts outnumber the ones that
+   * are not, and the default should be the thing you have to say less often.
+   */
+  readonly kind?: "work";
 };
 
 export const store = {
@@ -342,13 +451,17 @@ export const footer = {
    *  the first January after it was written. */
   copyrightName: "Siddhant Yadav",
   credit: "Designed on Figma. Built using Claude + Qwen.",
-  /**
-   * No presence service is connected yet, so the count is an em dash rather
-   * than a number — a static "1" would read as measured live traffic.
-   * Swap for a real value when a source exists (see ARCHITECTURE D7).
-   */
-  visitors: null as number | null,
-  visitorsLabel: "Live Visitors",
+  /* The count itself is not here any more — it is measured, not written down.
+     `VisitorCount` asks `/api/visitors` for it and falls back to the em dash
+     this used to be hard-coded to whenever there is no store to ask.
+
+     "Live Visitors" was the Figma label and it is gone with the thing it
+     described: this counts every distinct browser since the count shipped, not
+     the ones here this minute, and a total that only ever rises has no
+     business calling itself live. What is left is the two spellings, because
+     "1 Visitors" is the kind of detail that makes a real number look fake. */
+  visitorLabel: "Visitor",
+  visitorsLabel: "Visitors",
   makingOf: null as MaybeHref,
   /** The same profile the LinkedIn card links to — there is only one, and the
    *  footer icon sat inert next to a working card link because this was null

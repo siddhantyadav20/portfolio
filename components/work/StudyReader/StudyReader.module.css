@@ -10,7 +10,69 @@
 .inner {
   max-width: var(--page-w);
   margin: 0 auto;
-  padding: 0 48px 160px;
+  padding: 0 48px;
+}
+
+/* --- The closing band — Figma 821:1142 -----------------------------------
+   The last block of a study and the site footer, on a ground of the study's
+   own colour, edge to edge.
+
+   The fill is a *film* rather than a flat value: `--accent` at `--band-tint`
+   over nothing, so what shows through is the page's own left-to-right wash,
+   which is exactly what the file draws — #DBE5EB at the left edge and #DFE9EF
+   at the right, the same four-value drift the grey page has underneath. Two
+   consequences worth the trouble. The band inherits whatever accent the study
+   carries, so the next one with a different palette needs no second gradient
+   written for it; and it sits on the modal's plate and on the route's body
+   alike, both of which paint that same wash.
+
+   No `100vw` breakout. The band is a sibling of `.inner` rather than a child,
+   so it is already the width of its container — and `100vw` includes the
+   scrollbar on the route and means the wrong thing entirely inside the modal,
+   whose plate is the surface, not the viewport. */
+.band {
+  width: 100%;
+  background-color: color-mix(
+    in srgb,
+    var(--accent) var(--band-tint),
+    transparent
+  );
+
+  /* 120 of the page's own grey between the last line of the study and the rule
+     across the top of this. The band is a sibling of the column rather than
+     the last block inside it, so it inherited none of `.content`'s 80 and the
+     study ended one line above the ending — the write-up's last sentence and
+     "Leave a like" with nothing between them. A margin rather than padding:
+     the rule *is* the band's top edge, so the space has to be outside the
+     tint, on the grey, where the gap between two sections has always been. */
+  margin-top: 120px;
+}
+
+/* The reader's column, re-established inside the full-width ground: the file
+   puts both of its columns back on the same 1120 the sections above run in,
+   160 clear of each edge of the 1440 frame.
+
+   One element rather than the `.inner`/`.content` pair above, because it can
+   be: `min()` reads as "the column, unless the viewport is narrower than the
+   frame it was drawn in, in which case the page's padding wins". 96 is the
+   two 48s `.inner` carries. */
+.bandInner {
+  width: min(1120px, calc(100% - 96px));
+  margin: 0 auto;
+  /* Figma 821:1163 — 120 from the rule at the top of the band to the first
+     line of the ending. */
+  padding-top: 120px;
+}
+
+/* The footer, at the page's own padding rather than the reader's — it is the
+   width of the page, not of the column. 160 above it is the reader's own block
+   rhythm; the file draws 154, which is a content-driven height rather than a
+   chosen number. 64 below it is Figma 821:1327's own bottom padding, and it is
+   now the bottom of the band as well as of the page. */
+.footer {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: 160px var(--page-pad) 64px;
 }
 
 /* Figma's Content frame: 80 between the intro, the rule, and each section. */
@@ -44,20 +106,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
-  width: 100%;
-}
-
-.titleGroup {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 32px;
+  /* Figma 544:12170 — one column at 20, not two nested at 32. The helpers
+     line, the title and the subtitle are one block now; they used to be a
+     pair and a subtitle. */
+  gap: 20px;
   width: 100%;
 }
 
 /* --- Helpers — Figma 328:10064 -------------------------------------------
-   "SaaS · PropTech · Product Design · 2026 · 10 min read". Wraps rather than
+   "SaaS · PropTech · Product Design · 2026 · AI · 10 min read". Wraps rather than
    scrolls: on a phone this is three lines of small grey type, which is fine,
    and a horizontally scrolling line of metadata is not. */
 
@@ -69,7 +126,7 @@
   gap: 12px;
   margin: 0;
   font-size: 20px;
-  line-height: var(--lh-read);
+  line-height: var(--lh-wide);
   color: var(--ink-70);
   text-align: center;
 }
@@ -96,9 +153,9 @@
   font-family: var(--font-display), Georgia, serif;
   font-weight: 700;
   font-size: 40px;
-  /* The one place in the reader that is not 170%: the display face sets its
-     own leading, and Figma's 60px on 40px is exactly 150%. */
-  line-height: var(--lh);
+  /* The tightest setting in the reader: the display face sets its own
+     leading, and Figma's 52px on 40px is 130%. */
+  line-height: 1.3;
   color: var(--ink);
   text-align: center;
 }
@@ -107,7 +164,7 @@
   width: 100%;
   margin: 0;
   font-size: 22px;
-  line-height: var(--lh-read);
+  line-height: var(--lh-wide);
   color: var(--ink-70);
   text-align: center;
 }
@@ -117,7 +174,7 @@
   width: 100%;
   max-width: 960px;
   font-size: 17px;
-  line-height: var(--lh-read);
+  line-height: var(--lh-wide);
   color: var(--ink-70);
 }
 
@@ -126,7 +183,8 @@
 .outcomes {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  gap: 24px;
   width: 100%;
 }
 
@@ -147,6 +205,7 @@
   flex-direction: column;
   gap: 12px;
   padding: 24px;
+  border: 1px solid var(--ink-20);
   border-radius: var(--r-lg);
   background-image: linear-gradient(
     128.3deg,
@@ -177,8 +236,8 @@
 .outcomeLabel {
   margin: 0;
   font-weight: 600;
-  line-height: var(--lh-read);
-  color: var(--blue);
+  line-height: var(--lh-wide);
+  color: var(--accent);
 }
 
 .outcomeValue {
@@ -192,25 +251,27 @@
 .outcomeNote {
   margin: 0;
   font-size: 15px;
-  line-height: var(--lh-read);
+  line-height: var(--lh-wide);
   color: var(--ink-70);
 }
 
+/* Centred under the row and a size down from the cards' own notes — it is the
+   asterisk's other half, not a fourth statistic. Figma 548:12201. */
 .outcomeFootnote {
   margin: 0;
-  font-size: 15px;
-  line-height: var(--lh-read);
+  font-size: 13px;
+  line-height: var(--lh-wide);
   color: var(--ink-70);
+  text-align: center;
 }
 
 /* --- The rule — Figma 529:11959 ------------------------------------------
-   Full width, dashed. Ink rather than black: a black rule on a #111 page is
-   not a rule. */
+   Full width, and dashed at the file's own 6-on / 8-off rather than at the
+   browser's guess — see `.dashRule` in globals.css, which this element also
+   carries. Ink rather than black: a black rule on a #111 page is not a rule. */
 
 .separator {
   width: 100%;
-  height: 0;
-  border-top: 1px dashed var(--ink-20);
 }
 
 /* --- The meta list -------------------------------------------------------
@@ -260,7 +321,22 @@
 
 @media (max-width: 900px) {
   .inner {
-    padding: 0 24px 96px;
+    padding: 0 24px;
+  }
+
+  /* Matches `.inner`'s two 24s, and the same reduction the footer takes. */
+  .bandInner {
+    width: min(1120px, calc(100% - 48px));
+    padding-top: 64px;
+  }
+
+  /* The same halving every other gap in the reader takes below the frame. */
+  .band {
+    margin-top: 64px;
+  }
+
+  .footer {
+    padding: 96px 24px 48px;
   }
 
   .content,
@@ -268,9 +344,8 @@
     gap: 40px;
   }
 
-  .titleBlock,
-  .titleGroup {
-    gap: 20px;
+  .titleBlock {
+    gap: 16px;
   }
 
   .helpers {

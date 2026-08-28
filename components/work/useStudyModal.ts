@@ -10,6 +10,11 @@ import { useStudyUrl } from "./useStudyUrl";
 /**
  * Opening and closing a case-study modal from a card.
  *
+ * `live` is false for a card that is a copy of another card — the ones at the
+ * foot of a case study. Everything the hook returns still exists, and none of
+ * it fires: no modal is loaded, the anchor is left alone, and the address bar
+ * is not touched. See `StudyCardMode` for why a copy must not do any of that.
+ *
  * `InspectionExperience` keeps its own copy of this because its open and close
  * also drive the hover recording, and folding those beats in here would make
  * the hook a two-caller abstraction with a branch for one of them. What is
@@ -17,7 +22,7 @@ import { useStudyUrl } from "./useStudyUrl";
  * address bar (`useStudyUrl`), and letting modified clicks stay ordinary
  * clicks.
  */
-export function useStudyModal(study: CaseStudy) {
+export function useStudyModal(study: CaseStudy, live = true) {
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const { Modal, setModal, load, warmModal } = useLazyStudyModal(open);
@@ -63,7 +68,7 @@ export function useStudyModal(study: CaseStudy) {
 
   // The address bar, in both directions: deep links and Back in, `/work/<slug>`
   // out. See `useStudyUrl` — the morph above is what this hook does not share.
-  useStudyUrl(study.slug, open, setOpen);
+  useStudyUrl(study.slug, open, setOpen, live);
 
   /** Warms the modal's code and its hero, so a click has nothing to wait for. */
   const prefetch = useCallback(() => {
@@ -79,11 +84,15 @@ export function useStudyModal(study: CaseStudy) {
    */
   const onLinkClick = useCallback(
     (e: React.MouseEvent) => {
+      // A copy of this card standing in another study's footer has no modal
+      // to open — the anchor under it is the whole behaviour, and following it
+      // is the right thing rather than a fallback. See `StudyCardMode`.
+      if (!live) return;
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
       void openStudy();
     },
-    [openStudy],
+    [openStudy, live],
   );
 
   return { Modal, open, closing, close, openStudy, onLinkClick, prefetch };

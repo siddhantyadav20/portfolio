@@ -46,6 +46,38 @@ export function restoreFocus(opener: HTMLElement | null) {
   opener.focus();
 }
 
+/**
+ * Escape, when the thing you are escaping from is a half-written sentence.
+ *
+ * A case study carries a comment box, and closing the whole reader on the
+ * first Escape would throw away whatever was typed into it with no warning and
+ * no undo — the modal is portalled and unmounted, so the draft is simply gone.
+ *
+ * So the first Escape leaves the field and the second closes the reader, which
+ * is what a text editor does and what the muscle memory expects. An *empty*
+ * field is not worth the extra keystroke: there is nothing to lose, so Escape
+ * closes as it always did.
+ *
+ * Lives here rather than in `ModalSurface`, which is where it was written and
+ * is still its main caller, because the `/work/<slug>` route needs the same
+ * rule and cannot import it out of a `"use client"` module that drags the
+ * whole modal shell along. Pass it as `onEscape` below, or call it first from
+ * a handler of your own — see `EscapeHome`.
+ */
+export function escapeFromField(): boolean {
+  const el = document.activeElement;
+
+  const editable =
+    el instanceof HTMLTextAreaElement ||
+    (el instanceof HTMLInputElement &&
+      !["button", "submit", "checkbox", "radio"].includes(el.type));
+
+  if (!editable || !el.value.trim()) return false;
+
+  el.blur();
+  return true;
+}
+
 type Options = {
   /** Whether the surface is currently open. */
   active: boolean;

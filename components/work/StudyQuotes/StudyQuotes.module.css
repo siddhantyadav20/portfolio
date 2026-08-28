@@ -1,0 +1,164 @@
+/* Figma 760:12916 — three finding panels, 48 apart, each holding a pair of
+   quote cards. The 48 is the aside's own `spacing: "loose"`; what is here is
+   everything inside one panel. */
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  width: 100%;
+}
+
+/* Figma 757:12760 — 24 in on every side, 24 between the finding and the
+   quotes, on the page's film with a hairline. */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  padding: 24px;
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-lg);
+  background-color: var(--surface-glass);
+  overflow: hidden;
+}
+
+.finding {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.heading {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.body {
+  margin: 0;
+  font-size: 13px;
+  line-height: var(--lh-wide);
+  color: var(--ink-60);
+}
+
+/* Two cards, 32 apart, each taking half — Figma 760:12900. A grid rather than
+   a flex row so a single quote occupies one half and leaves the other empty,
+   which is what the placeholder needs, and so the two cards are the same
+   height whatever their quotes weigh. */
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  width: 100%;
+}
+
+/* Figma 760:12894 — the solid card inside the film, 16 in, 16 radius. */
+.quote {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-sm);
+  background-color: var(--surface-solid);
+}
+
+.empty {
+  min-height: 148px;
+  background-color: transparent;
+  border-style: dashed;
+  border-color: var(--ink-40);
+}
+
+.words {
+  margin: 0;
+}
+
+/* On its own line above the words, which is how the file sets it — the mark
+   is a piece of furniture, not the first character of the sentence. */
+.mark {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.text {
+  margin: 0;
+  font-size: 13px;
+  line-height: var(--lh-wide);
+  color: var(--ink-60);
+}
+
+.attribution {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 32px and round. Empty by default: Figma fills all six with the same stock
+   mark, which is a slot waiting for a source rather than six attributions. */
+.avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  object-fit: cover;
+}
+
+/* An empty one is drawn rather than left blank — the row already reserves the
+   32px, and 32px of nothing beside a name reads as a broken image. */
+span.avatar {
+  border: 1px dashed var(--ink-40);
+}
+
+.source {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  /* The study's accent rather than the file's #0170fd: this is 12px type on a
+     white card, and the colour it should be is whatever the rest of the study
+     is written in. See "Accent themes" in globals.css. */
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* The 4px dot between the source and the channel — drawn, like the one in the
+   helpers line, because no interpunct is this small. */
+.separator {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background-color: var(--ink-20);
+}
+
+/* Two quote cards side by side inside a phone-width column are two columns of
+   four-word lines. */
+@media (max-width: 900px) {
+  .groups {
+    gap: 32px;
+  }
+
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  /* And with one card a row, an empty second slot is a dashed box under a
+     quote saying nothing — the pair it was standing in for is gone. */
+  .empty {
+    display: none;
+  }
+
+  .group {
+    padding: 20px;
+  }
+}

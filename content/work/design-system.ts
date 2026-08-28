@@ -38,6 +38,8 @@ export const designSystem: CaseStudy = {
     "are built on. I proposed it before the first of them existed, built it " +
     "alone, and have maintained it since.",
 
+  accent: "rose",
+
   helpers: ["SaaS", "PropTech", "Design Systems", "2023 → present", "8 min read"],
 
   body: null,

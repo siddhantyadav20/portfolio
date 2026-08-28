@@ -1,0 +1,53 @@
+/* Figma 757:12844 — a 832x566 plate with 64px of side padding and 32 top and
+   bottom, holding one 236x502 screen in the middle. */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+}
+
+.panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 64px;
+  border-radius: var(--r-xl);
+  background-color: var(--surface-glass);
+  overflow: hidden;
+}
+
+.screen,
+.slot {
+  flex: 0 1 236px;
+  width: 236px;
+  max-width: 100%;
+  aspect-ratio: 236 / 502;
+  border-radius: var(--r-lg);
+}
+
+.screen {
+  height: auto;
+  object-fit: cover;
+}
+
+/* Marked as unwritten rather than dressed up — the same slot `StudyExhibit`
+   draws for the recording it is still waiting on. */
+.slot {
+  background-color: var(--surface-raised);
+  border: 1px dashed var(--ink-40);
+}
+
+@media (max-width: 900px) {
+  .panel {
+    padding: 20px;
+    border-radius: var(--r-lg);
+  }
+
+  .screen,
+  .slot {
+    width: 180px;
+  }
+}

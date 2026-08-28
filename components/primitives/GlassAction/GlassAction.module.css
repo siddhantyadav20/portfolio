@@ -21,18 +21,29 @@
   box-shadow: var(--liquid-cast-hi);
 }
 
-/* The two strokes are laid over each other in a grid cell rather than
-   absolutely positioned, so the glyph has a box of its own and the button's
-   `place-items: center` is what centres it. */
+/* The glyph keeps a box of its own — Figma 67:4240, 18.2 square inside the
+   64px disc — so the button's `place-items: center` is what puts it in the
+   middle of the plate.
+
+   The two strokes inside it are placed against that box rather than laid in a
+   grid cell, and that is the fix rather than a preference. A stroke is 23.756
+   long before it is turned, which is taller than the 18.2 box that has to hold
+   it; a grid cell will not centre an item that overflows it in the block
+   direction, so both bars were aligned to the top of the cell instead and the
+   whole cross sat 2.77px — half the overflow — below the centre of the button.
+   Centring on a transform has no such clamp, and 2.77px on a 64px disc is
+   exactly the amount that reads as "not quite right" without being obviously
+   wrong. */
 .cross {
-  display: grid;
-  place-items: center;
+  position: relative;
   width: 18.212px;
   height: 18.212px;
 }
 
 .bar {
-  grid-area: 1 / 1;
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 2px;
   height: 23.756px;
   border-radius: 12px;
@@ -40,9 +51,9 @@
 }
 
 .bar:first-child {
-  transform: rotate(-45deg);
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .bar:last-child {
-  transform: rotate(45deg);
+  transform: translate(-50%, -50%) rotate(45deg);
 }

@@ -8,9 +8,15 @@
    both surfaces. */
 
 /* --- Scroll progress ------------------------------------------------------
-   4px tall, drawn at 116 wide in Figma — a moment in the animation rather than
+   6px tall, drawn at 116 wide in Figma — a moment in the animation rather than
    a width. Scaled from the left rather than sized, so the browser can keep the
-   whole thing on the compositor. */
+   whole thing on the compositor.
+
+   It was 4px, and 6 is the height the reader is drawn with. Enough to be a
+   band across the top of the plate rather than a hairline on the edge of it,
+   which is what makes it readable from the corner of the eye while the prose
+   has your attention — the only moment a progress bar is ever looked at — and
+   not so much that it becomes a piece of the layout. */
 
 .progress {
   position: fixed;
@@ -19,8 +25,13 @@
   z-index: 5;
 
   width: 100%;
-  height: 4px;
-  background-color: var(--blue-bright);
+  height: 6px;
+  /* The study's accent. The file draws this and the rail in one colour, and
+     the colour it draws them in is the study's own — see "Accent themes" in
+     globals.css. It used to name `--blue` for the file's #1178ab, from when
+     blue was the only colour a study had; a rose study with a blue progress
+     bar is two brands on one screen. */
+  background-color: var(--accent);
 
   transform: scaleX(0);
   transform-origin: 0 50%;
@@ -35,16 +46,23 @@
 }
 
 /* --- The rail -------------------------------------------------------------
-   Left 24, vertically centred, 8px apart. A line is 24x2 at rest and 32x3
-   when it is the section you are in — the active one gains a pixel of weight
-   as well as eight of length, so it reads as current at a glance rather than
-   only in comparison with its neighbours. The 12px radius on a 2px box is
-   simply "fully round", and is Figma's number rather than a rounding of it. */
+   Left 32, vertically centred, 8px apart. A line is 20x3 at rest and 28x3
+   when it is the section you are in — Figma 544:12173.
+
+   The redesign trades weight for length: every line is now 3px, and the
+   active one is eight pixels longer and at full strength against the others'
+   40%. The old rail changed height as well as width, which is a second thing
+   moving in a control whose whole job is to be read without being looked at.
+   The 12px radius on a 3px box is simply "fully round", and is Figma's number
+   rather than a rounding of it. */
 
 .rail {
   position: fixed;
   top: 50%;
-  left: 24px;
+  /* 32, which is Figma's x for node 544:12173 and the same inset the two
+     control clusters sit at — the rail is the third thing in that margin and
+     was the only one not lined up with it. */
+  left: 32px;
   z-index: 5;
   transform: translateY(-50%);
 
@@ -59,11 +77,11 @@
   display: flex;
   align-items: center;
 
-  /* A 2px line is not a pointer target. The padding grows the hit area in
+  /* A 3px line is not a pointer target. The padding grows the hit area in
      both directions and the negative margin takes it back out of the layout,
-     so the lines stay 8px apart while each row is eight or nine pixels of
-     button — a target four times the height of the thing it is drawn around,
-     with two pixels still clear between one row and the next. */
+     so the lines stay 8px apart while each row is nine pixels of button — a
+     target three times the height of the thing it is drawn around, with two
+     pixels still clear between one row and the next. */
   padding: 3px 8px 3px 0;
   margin: -3px 0;
   background: none;
@@ -72,40 +90,39 @@
 
 .line {
   flex: none;
-  width: 24px;
-  height: 2px;
+  width: 20px;
+  height: 3px;
   border-radius: 12px;
-  background-color: var(--blue-bright);
+  background-color: var(--accent);
   opacity: 0.4;
   transition: width 350ms cubic-bezier(0.4, 0, 0.2, 1),
-    height 250ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms ease;
+    opacity 250ms ease;
 }
 
 .link[data-active] .line {
-  width: 32px;
-  height: 3px;
+  width: 28px;
   opacity: 1;
 }
 
 /* Under the pointer a resting line gains opacity and a little length —
-   deliberately stopping short of the active line's 32, so hovering one can
+   deliberately stopping short of the active line's 28, so hovering one can
    never be mistaken for the section you are actually in. The active line has
    nowhere to go and just holds still while its label opens. */
 .link:hover .line,
 .link:focus-visible .line {
-  width: 28px;
+  width: 24px;
   opacity: 0.75;
 }
 
 .link[data-active]:hover .line,
 .link[data-active]:focus-visible .line {
-  width: 32px;
+  width: 28px;
   opacity: 1;
 }
 
 /* Absolutely positioned, and that is load-bearing rather than tidy.
 
-   In flow the label is an 11px line of text inside a row built around a 2px
+   In flow the label is an 11px line of text inside a row built around a 3px
    rule, so `align-items: center` gave every row eleven pixels of height and
    the rail's gap came out at three times what it was set to. Out of flow the
    row is exactly as tall as its line and the gap is the gap.
@@ -125,7 +142,21 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
-  color: var(--ink-70);
+
+  /* The rail's own colour, at the same two strengths its lines carry: 40% for
+     a section you are not in, full for the one you are. A grey label beside a
+     coloured line read as two controls stacked on each other rather than as
+     one line naming itself.
+
+     40% of the accent rather than of a fixed hue, so this is a tone of the
+     study's colour and follows it — `rgb(from …)` reads whatever `--accent`
+     resolves to on this element.
+
+     Stated as a colour rather than as opacity, which this element is already
+     using for something else — it is hidden at `opacity: 0` until the pointer
+     is on its line, and dimming the label the same way turned "hidden" into
+     "always faintly there". */
+  color: rgb(from var(--accent) r g b / 0.4);
 
   opacity: 0;
   transform: translate(-6px, -50%);
@@ -140,10 +171,10 @@
 
 .link[data-active] .label {
   font-weight: 600;
-  color: var(--ink);
+  color: var(--accent);
 }
 
-/* Below the design's frame the rail has nowhere to stand: 24px from the left
+/* Below the design's frame the rail has nowhere to stand: 32px from the left
    edge of a phone is inside the text column, and the labels would open across
    it. The progress bar stays — it costs no width. */
 @media (max-width: 900px) {

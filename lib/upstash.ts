@@ -1,5 +1,7 @@
 import "server-only";
 
+import { devRedis } from "@/lib/upstashDev";
+
 /* ===========================================================================
    Upstash Redis, over its REST API and nothing else.
 
@@ -56,12 +58,36 @@ const TOKEN = firstSet(
 );
 
 /**
+ * In development, and only there, a missing database falls back to an
+ * in-process one — see `lib/upstashDev.ts`. Without it the comment box, the
+ * like and the rate limiter cannot be exercised at all until somebody
+ * provisions Redis, which is a poor first hour on a feature made of those
+ * three things.
+ *
+ * Never in production: there the absence of a database is a fact the visitor
+ * is told, not one to paper over with a store that empties on every deploy
+ * and disagrees between instances.
+ */
+const DEV_FALLBACK = !URL_ && !TOKEN && process.env.NODE_ENV !== "production";
+
+let announced = false;
+
+function announce(): void {
+  if (announced) return;
+  announced = true;
+  console.info(
+    "[upstash] no credentials — using the in-memory dev store. " +
+      "Likes and comments will not survive a restart. See .env.example.",
+  );
+}
+
+/**
  * Whether there is a store to talk to at all. Checked before every call, and
  * reported to the browser as `configured` — which is the one diagnostic worth
  * having from outside the server, and says nothing a token would.
  */
 export function redisReady(): boolean {
-  return Boolean(URL_ && TOKEN);
+  return Boolean(URL_ && TOKEN) || DEV_FALLBACK;
 }
 
 type Command = readonly (string | number)[];
@@ -80,6 +106,11 @@ type Command = readonly (string | number)[];
 export async function redis(
   ...commands: readonly Command[]
 ): Promise<readonly unknown[]> {
+  if (DEV_FALLBACK) {
+    announce();
+    return devRedis(commands);
+  }
+
   if (!redisReady()) throw new Error("Upstash is not configured");
 
   const res = await fetch(`${URL_}/pipeline`, {

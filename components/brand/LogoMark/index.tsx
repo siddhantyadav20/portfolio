@@ -1,4 +1,4 @@
-import { LOGO_BOX, LOGO_S, LOGO_Y } from "@/content/logo";
+import { LOGO_BOX, LOGO_PARTS } from "@/content/logo";
 
 /**
  * The mark.
@@ -19,12 +19,16 @@ export default function LogoMark({
   className,
   title,
   partClass,
+  children,
   ...rest
 }: {
   className?: string;
   /** Given, the mark is announced. Omitted, it is decorative. */
   title?: string;
   partClass?: { s?: string; y?: string };
+  /** Drawn over the mark, inside the same viewBox. The arrival sequence puts
+      the path's own anchors and handles here; nothing else uses it. */
+  children?: React.ReactNode;
 } & React.SVGProps<SVGSVGElement>) {
   return (
     <svg
@@ -40,14 +44,15 @@ export default function LogoMark({
          happened to `data-logo` the first time. */
       {...rest}
     >
-      <g className={partClass?.y} fill="var(--mark-y)">
-        <path d={LOGO_Y} />
-      </g>
-      <g className={partClass?.s} fill="var(--mark-s)">
-        {LOGO_S.map((d) => (
-          <path key={d.slice(0, 12)} d={d} />
-        ))}
-      </g>
+      {LOGO_PARTS.map((part, i) => (
+        <path
+          key={i}
+          d={part.d}
+          fill={`var(--mark-${part.tone})`}
+          className={partClass?.[part.tone]}
+        />
+      ))}
+      {children}
     </svg>
   );
 }

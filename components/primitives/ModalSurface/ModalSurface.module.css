@@ -110,27 +110,27 @@
 }
 
 /* --- Controls --------------------------------------------------------------
-   Two clusters, both 48px in from the top edge — Figma 62:3688 puts Share at
-   the left and the theme toggle and the close at the right, 12px apart, with
-   the toggle's right edge landing at 124 and the close's at 48.
+   Two clusters, both 32px in from the top and the sides — Figma 62:3688 puts
+   Share at 32,32 and the theme toggle and the close at the right, 12px apart,
+   with the close's right edge landing at 32 from the frame.
 
    The right-hand cluster is sticky rather than fixed because it is also what
-   reserves the 160px between the top of the frame and the first line of the
-   study: 48 above it, 64 of control, 48 below. The left-hand one is fixed —
-   it has no layout job, and in flow it would push the content down a second
-   time. A case study frame is nearly 4000px tall, so both have to stay on
-   screen the whole way down. */
+   reserves the 120px between the top of the frame and the first line of the
+   study: 32 above it, 64 of control, 24 below — Figma's Content frame starts
+   at y=120. The left-hand one is fixed — it has no layout job, and in flow it
+   would push the content down a second time. A case study frame is nearly
+   4000px tall, so both have to stay on screen the whole way down. */
 
 .controls {
   position: sticky;
-  top: 48px;
+  top: 32px;
   z-index: 3;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
   height: 64px;
-  margin: 48px 48px 48px;
+  margin: 32px 32px 24px;
 
   /* The cluster is right-aligned but the element is the full width of the
      reader, so everything left of the theme toggle is 64px of invisible,
@@ -151,8 +151,8 @@
 
 .leading {
   position: fixed;
-  top: 48px;
-  left: 48px;
+  top: 32px;
+  left: 32px;
   z-index: 3;
   display: flex;
   align-items: center;

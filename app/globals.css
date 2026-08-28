@@ -33,17 +33,30 @@
   --green: #58a942; /* positive deltas */
   --red: #ef3340;
   --live: #ee6a5f; /* live-visitor dot */
+  /* The ⌘K badge on the Search Portfolio pill, and only that. Deeper than
+     `--blue`, which has a LinkedIn card to sit on; this one is 10px type on a
+     white chip and needs the contrast. */
+  --kbd-ink: #005982;
 
   /* --- Selection -------------------------------------------------------
      One tint per surface, by request: the homepage highlights orange, a case
-     study purple, the About reader green. Each is its hue laid over the page
-     at low alpha rather than a solid, because the `::selection` rules set a
-     background and nothing else — the ink underneath keeps its own colour,
-     which is what keeps a highlighted paragraph as readable as an unhighlighted
-     one. Violet has no other job on the site, so it lives here rather than up
-     among the accents. See "Selection" below. */
+     study in its own accent, the About reader green. Each is its hue laid over
+     the page at low alpha rather than a solid, because the `::selection` rules
+     set a background and nothing else — the ink underneath keeps its own
+     colour, which is what keeps a highlighted paragraph as readable as an
+     unhighlighted one.
+
+     A study's tint has to be written out here as a literal rather than derived
+     from `--accent` the way every other tone of it is, and that is not an
+     oversight — see the note at "Selection" below. It is the one place the
+     accent has to be said twice, so the two lists are kept in the same order
+     as the accent blocks so a missing one is visible.
+
+     Violet was the case study's and is gone: the study highlights in its own
+     colour now, which is the thing violet was standing in for. */
   --select-orange: rgba(234, 88, 11, 0.2);
-  --select-violet: rgba(124, 58, 237, 0.2);
+  --select-blue: rgba(31, 151, 221, 0.2);
+  --select-rose: rgba(187, 99, 150, 0.2);
   --select-green: rgba(88, 169, 66, 0.22);
 
   /* --- Surfaces -------------------------------------------------------- */
@@ -88,8 +101,28 @@
   --wash-violet: #fae5ff;
   --wash-to: rgba(255, 255, 255, 0.4);
 
-  /* The insight panel — Figma's accent at 10%. */
-  --accent-wash: rgba(234, 88, 11, 0.1);
+  /* The insight panel — Figma's accent at 10%.
+
+     Derived rather than written out, so it is a *tone of the accent* and not a
+     second colour to be remembered whenever the accent changes.
+
+     It has to be declared again on `[data-accent]`, and that is not belt and
+     braces — it is the only thing that makes a scoped accent carry its tones
+     with it. A `var()` inside a custom property is substituted **where the
+     property is declared**, not where it is used, and the substituted value is
+     what inherits. Declared only here, this computes to `rgb(from #ea580b …)`
+     on the root and every descendant inherits *that*, accent block or not — so
+     a rose case study drew an orange insight panel and a rose everything else.
+     See "Accent themes" below. */
+  --accent-wash: rgb(from var(--accent) r g b / 0.1);
+
+  /* The ground under a study's closing band — see `.band` in
+     StudyReader.module.css. Not a colour: how much of the surface's accent is
+     laid over the page there. A film rather than a flat fill, so the page's
+     own left-to-right wash still runs underneath it, and so the band follows
+     whatever accent the study carries instead of naming a second blue. 8% is
+     what Figma's #DBE5EB resolves to over the page's #EBEBEB. */
+  --band-tint: 8%;
 
   /* Write `backdrop-filter` ONLY — never pair it with a hand-written
      `-webkit-backdrop-filter`. Turbopack's Lightning CSS treats the pair as one
@@ -130,10 +163,12 @@
   /* --- Type ------------------------------------------------------------ */
   --lh: 1.5; /* 150% on essentially everything */
   --lh-wide: 1.6; /* 160% in the footer */
-  /* 170%, and only inside a case study. Every text node in the reader's Figma
-     frame carries it — helpers, subtitle, prose, captions, the stat cards —
-     and the one exception is the 40px display title, which stays at --lh.
-     That is a reading page setting its own measure, not a stray value. */
+  /* 170%, and only inside a case study — now on the reader's chrome rather
+     than on all of it. The redesign of node 62:3688 moved every prose node in
+     the frame to 160% and left the section eyebrows, the display headings and
+     the figure labels here, so the two are a distinction the design makes:
+     what you read is looser than what labels it. The 40px display title is
+     tighter than both, at 130%, and sets its own. */
   --lh-read: 1.7;
 
   /* --- Page geometry (from the 1440 Figma frame) -----------------------
@@ -413,7 +448,8 @@ html[data-canvas-cursor] [data-cursor="native"] * {
 
 /* ==========================================================================
    Selection
-   Orange on the homepage, purple in a case study, green in the About reader.
+   Orange on the homepage, the study's own accent in a case study, green in
+   the About reader.
    The default is the homepage's, and the two readers opt out of it by name:
    `data-selection` is written by ModalSurface's `selectionTint` prop and, on
    the `/work/[slug]` route, by the page itself.
@@ -430,18 +466,128 @@ html[data-canvas-cursor] [data-cursor="native"] * {
    ::selection` styles the selection inside descendants of .x but not .x's own
    text, which is why each rule is an `:is()` over the element and its
    subtree rather than a plain descendant selector.
+
+   The root-only rule above is also why a study's tint cannot simply be
+   `var(--accent)`: the accent is set on the study, and by the time this
+   pseudo-element is looking for it there is nothing there. So each accent
+   names a `--select-*` twin up in the token block, and these rules key on
+   `data-accent` — the same attribute the accent itself is scoped by, so a
+   study cannot end up highlighting in a colour it is not written in. That is
+   the whole reason the case study stopped highlighting violet: violet was a
+   third colour, chosen when the study had no colour of its own to use.
+
+   `data-selection` stays for a surface that wants a highlight tint and nothing
+   else. The About reader is the only one — it has no accent, and giving it one
+   to reach this rule would repaint its focus rings to buy a highlight.
    ========================================================================== */
 
 ::selection {
   background-color: var(--select-orange);
 }
 
-:is([data-selection="violet"], [data-selection="violet"] *)::selection {
-  background-color: var(--select-violet);
+:is([data-accent="blue"], [data-accent="blue"] *)::selection {
+  background-color: var(--select-blue);
+}
+
+:is([data-accent="rose"], [data-accent="rose"] *)::selection {
+  background-color: var(--select-rose);
 }
 
 :is([data-selection="green"], [data-selection="green"] *)::selection {
   background-color: var(--select-green);
+}
+
+/* ==========================================================================
+   Accent themes
+
+   `--accent` is the site's one "this is the colour of a decision" hue — a
+   like, a Send that is armed, the insight panel, a focus ring. On the homepage
+   it is orange, and for a long time that was the only answer it had.
+
+   Figma 821:1142 gives a case study its own. Not a repaint of the site: the
+   study *is* a different surface, with a different subject, and the reader
+   already carried a blue of its own for the things it owns — the section
+   markers, the scroll bar, the quick-links rail. The redesign makes that blue
+   the study's accent rather than a second colour running alongside an orange
+   one, so a study has one hue instead of two.
+
+   Scoped by attribute rather than set on the root, for the reason the
+   selection tints above are: two surfaces are on screen at once whenever the
+   modal is open, and the homepage underneath it stays orange. `--accent` is
+   an ordinary custom property, so unlike `::selection` it simply inherits from
+   whatever element carries the attribute — the route's `<main>`, or the
+   modal's overlay. Everything drawn inside picks it up with no call site
+   knowing a theme happened.
+
+   One block per accent, and a study names which it wants (`CaseStudy.accent`).
+   Blue is the only one the file draws so far and is what a study gets by
+   default; the next study that arrives with its own palette adds a block here
+   and a word to its content file, and changes nothing else.
+   ========================================================================== */
+
+/* Each block below sets exactly one value, and everything else follows from
+   it: `--accent-wash` is declared once as a tone of `--accent`, and the two
+   tokens here are the rest of what an accent implies. One line per accent is
+   the point — an accent that needs a second colour remembered alongside it is
+   an accent that will drift. */
+[data-accent] {
+  /* The footer's live dot and its label. Coral on the homepage, and the
+     surface's own hue here — Figma 821:1334 draws it at the accent. */
+  --live: var(--accent);
+
+  /* And the accent's own 10%, restated so it resolves against the accent this
+     element carries rather than against the root's. See the note beside the
+     root declaration: this line is what the derivation is actually made of. */
+  --accent-wash: rgb(from var(--accent) r g b / 0.1);
+}
+
+html[data-theme="dark"] [data-accent] {
+  --accent-wash: rgb(from var(--accent) r g b / 0.12);
+}
+
+/* The reader's chrome — the scroll bar, the quick-links rail, a section's
+   marker, an outcome's number — used to be written in `--blue` and
+   `--blue-bright`, the reader's own pair from when blue was the only colour a
+   study had. Those call sites now name `--accent` directly. Aliasing the two
+   tokens here instead would have been one line, and wrong: `--blue` is
+   LinkedIn's, and a rule in this file that quietly repoints it inside a study
+   turns the next LinkedIn control someone puts in a study footer rose. */
+
+[data-accent="blue"] {
+  /* The reader's own blue, promoted. Same value `--blue-bright` carried since
+     the rail was built — this is that colour taking on the accent's jobs, not
+     a new one being introduced beside it. */
+  --accent: #1f97dd;
+}
+
+/* Design System — #BB6396, and its tones wherever the page wants it lighter. */
+[data-accent="rose"] {
+  --accent: #bb6396;
+}
+
+/* Every accent is lifted on a dark ground, for the reason the block at the
+   bottom of this file gives: a value tuned to sit on white reads as a glow
+   over #111. Both of these are their light value at +16 lightness and +14
+   saturation, which is the same move `--accent` itself makes. */
+html[data-theme="dark"] [data-accent="blue"] {
+  --accent: #55c2f5;
+}
+
+html[data-theme="dark"] [data-accent="rose"] {
+  --accent: #dd92be;
+}
+
+/* The canvas is up — see the effect in CanvasSurface that sets this.
+
+   No browser swipe-navigation, no rubber band, no pull-to-refresh: every
+   gesture on that screen belongs to the camera, and the board pans in all four
+   directions, so there is no edge where handing the gesture back to the
+   browser is the right answer. On both boxes because the viewport takes its
+   overscroll behaviour from the root, and a UA that propagates from `body`
+   instead should land in the same place. */
+html[data-canvas],
+html[data-canvas] body {
+  overscroll-behavior: none;
 }
 
 /* Content whose destination or data source isn't decided yet: inert, and
@@ -460,6 +606,30 @@ html[data-canvas-cursor] [data-cursor="native"] * {
    at site scale and deliberately quiet — a step back in weight, not a
    disabled-grey. Anything that wants a stronger treatment can still override
    it locally. */
+/* Dashed rules, at Figma's own rhythm.
+
+   `border-style: dashed` hands the dash length to the browser, which derives
+   it from the border width: a 1px rule comes out around 2 on, 2 off, which is
+   a different texture from the file's and reads as a dotted hairline next to
+   it. A repeating gradient states the pattern instead.
+
+   Three of them, because the file has three. The long rules between blocks are
+   6 on / 8 off; the rules between table rows are tighter at 6/6 and a shade
+   darker; the rule inside the explorations card is 7/7. Measured off nodes
+   529:11959, 761:13159 and 757:12683 rather than eyeballed.
+
+   Used on an element with `height: 0` and no border — the gradient is the
+   rule, so the box has nothing to draw but its own background. */
+.dashRule {
+  width: 100%;
+  height: 1px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--ink-20) 0 6px,
+    transparent 6px 14px
+  );
+}
+
 [data-placeholder] {
   cursor: default;
   opacity: 0.45;
@@ -498,8 +668,15 @@ html[data-canvas-cursor] [data-cursor="native"] * {
    fixed size so the same class serves 8px chevrons and 24px suns.
 
    NOT for the brand and accent glyphs — tool-figma, tool-claude,
-   tool-after-effects, linkedin. Those are coloured on purpose, and recolouring
-   a logo to match the theme would be wrong even where it looked better.
+   tool-after-effects. Those are coloured on purpose, and recolouring a logo to
+   match the theme would be wrong even where it looked better.
+
+   `linkedin` is on both sides of that line, because the file uses it two ways.
+   On `LinkedInCard` it is the logo — white on LinkedIn's own blue, drawn as
+   the <img> the export was made for. In the site footer it is a 20px control
+   glyph in a row of them, and Figma colours it as one: ink on the homepage,
+   the study's accent inside a case study (821:1329). So the footer draws it as
+   a stencil and the card keeps the file.
    ========================================================================== */
 
 .inkIcon {
@@ -1040,11 +1217,15 @@ html[data-theme="dark"] {
 
   --blue-flood: #17739f;
 
+  /* Lifted like the rest: #005982 on the raised dark chip is nearly black. */
+  --kbd-ink: #7ec9ef;
+
   /* The lifted hues, and a heavier film. A 20% tint that reads clearly over a
      near-white page all but disappears over #111 — there is far less light
      underneath for it to subtract from. */
   --select-orange: rgba(255, 138, 76, 0.32);
-  --select-violet: rgba(167, 139, 250, 0.32);
+  --select-blue: rgba(85, 194, 245, 0.32);
+  --select-rose: rgba(221, 146, 190, 0.32);
   --select-green: rgba(126, 209, 95, 0.28);
 
   /* --- Surfaces ---------------------------------------------------------
@@ -1071,7 +1252,14 @@ html[data-theme="dark"] {
   --wash-violet: rgba(214, 122, 255, 0.14);
   --wash-to: rgba(255, 255, 255, 0.04);
 
-  --accent-wash: rgba(255, 138, 76, 0.12);
+  /* Same one line as the light theme, a shade heavier — a tint that reads
+     over a near-white page has far less light to subtract from over #111.
+     Restated per accent below, for the substitution reason given up there. */
+  --accent-wash: rgb(from var(--accent) r g b / 0.12);
+
+  /* Lifted for the reason `--select-*` is: a film tuned to read over a
+     near-white page has far less light to subtract from over #111. */
+  --band-tint: 12%;
 
   /* Shadow does almost no work on a dark ground — light does. The card's
      edge has to come from a highlight, so the "shadow" here is a hairline. */
@@ -1202,14 +1390,6 @@ html[data-booting] #main > *:not([data-boot-card]):not(:has([data-boot-card])) {
    through. */
 html[data-booting] #main {
   pointer-events: none;
-}
-
-/* Skipping collapses the schedule instead of cutting the animation. */
-html[data-boot-skip] [data-boot-card],
-html[data-boot-skip] [data-logo],
-html[data-boot-skip] #main > *:not([data-boot-card]):not(:has([data-boot-card])) {
-  animation-delay: 0ms !important;
-  animation-duration: 240ms !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

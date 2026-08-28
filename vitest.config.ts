@@ -17,11 +17,18 @@ import { fileURLToPath } from "node:url";
  *
  * The `@` alias mirrors `tsconfig.json`'s `paths`, which is how every import in
  * the app is written.
+ *
+ * `server-only` is aliased to a stub for the reason that file gives: without
+ * it, any module carrying that guard throws on import here, and the store the
+ * engagement feature runs on in development would be untestable.
  */
 export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./", import.meta.url)),
+      "server-only": fileURLToPath(
+        new URL("./tests/stubs/server-only.ts", import.meta.url),
+      ),
     },
   },
   test: {

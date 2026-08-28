@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import LogoMark from "@/components/brand/LogoMark";
+import { LOGO_BOX, LOGO_PARTS } from "@/content/logo";
 import { BOOT_MS, isBooting, markSeen, revealPage } from "@/lib/boot";
 import styles from "./BootSequence.module.css";
 
@@ -9,22 +10,29 @@ import styles from "./BootSequence.module.css";
    The signature.
 
    A loading screen on a design portfolio is time taken from looking at the
-   work. So this does not spin, and it does not perform "design tool" — the
-   four attempts that did were rejected for exactly that: a ruler and a pen
-   drawn literally, eighteen visual systems, a blue that appears nowhere else
-   on the site, and a HUD narrating itself. The homepage says "Less, but
-   better"; a busy Figma simulation is the opposite of the value it claims.
+   work, so this one is a piece of the work: the mark gets drawn with the pen
+   tool, on the site's own paper, and then becomes the page.
 
-   WHAT IT DOES NOW. The mark writes itself, once, on the site's own paper.
-   Then it flies into its real slot in the Introduction card and *becomes* it,
-   and the page rises behind it.
+   WHAT IS ON SCREEN. A hairline travelling around the outline of the mark.
+   Behind it, an anchor drops at every point the path actually has one, and
+   where a corner is a curve its two control handles flick out and retract as
+   the line passes. When the last path closes, the two tones flood in, the
+   vector chrome lets go, and the finished mark flies into its slot in the
+   Introduction card while the page rises behind it.
 
-   THE IDEA. The mark is two strokes — an S and a Y, two tones, two drawings.
-   Each is laid down by a wipe running along its own stroke direction: the Y up
-   its stem, the S down its diagonal. That is what a broad nib does, and it is
-   the mark's own geometry rather than a gesture imposed on it. Airbnb draws
-   the Bélo and fills it; Slack clicks its mark together from parts; this is
-   the same family, using the two parts this mark already has.
+   IT IS THE REAL PATH. Every anchor and every handle below is read out of
+   `content/logo.ts` — the same thirty-eight anchors and the same control
+   points that draw the mark on the page. Nothing here is a decoration shaped
+   like a pen tool; it is the pen tool, showing its own work. That is also why
+   the mark had to be re-derived as curves first: the polygon trace this
+   replaced had sixty-nine anchors, most of them meaningless, and drawing
+   *those* would have looked like noise rather than like a path somebody drew.
+
+   WHAT IT DELIBERATELY IS NOT. No drawn pen cursor, no ruler, no grid, no
+   readout narrating itself, and nothing in a colour that appears nowhere else
+   on the site — four earlier attempts were rejected for exactly those, and
+   the homepage says "Less, but better". One object, drawn once, then held
+   still. The stillness before the flight is a beat, not a gap.
 
    THE HAND-OVER IS NOT A CROSS-FADE. The overlay renders `LogoMark` — the same
    component the Introduction renders. It is positioned at the real logo's
@@ -40,29 +48,67 @@ import styles from "./BootSequence.module.css";
 
 /* --- The beats, as fractions of BOOT_MS ---------------------------------- */
 
-/** The Y begins. */
-const WRITE_FROM = 0.02;
-/** The S follows this much later — overlapping, not queued. */
-const STROKE_GAP = 0.045;
-/** One stroke's length. */
-const STROKE = 0.155;
-/** Both strokes are down; the mark rests. Stillness is the point of this beat. */
-const HOLD_UNTIL = 0.385;
+/** The pen touches down. */
+const TRACE_FROM = 0.035;
+/** All three paths together, at one speed. */
+const TRACE = 0.4;
+/** The pen lifts between them. Two of these, so it is nearly free. */
+const LIFT = 0.012;
+/** How long a tone takes to flood in once its outline has closed. */
+const INK = 0.055;
+/** Both tones are down; the mark rests. Stillness is the point of this beat. */
+const HOLD_UNTIL = 0.66;
 /** The flight home. */
-const FLY = 0.225;
+const FLY = 0.22;
 /** Cards start before the mark lands — overlapping action. */
-const CARDS_LEAD = 0.075;
+const CARDS_LEAD = 0.19;
 /**
- * How far above its resting size the mark is written.
+ * The page's own entrance, in milliseconds rather than fractions.
  *
- * A multiple of the logo's *measured* size rather than a viewport figure, so
- * the mark occupies the same share of the screen at 390px as it does at 1440 —
- * `--u` already scales the logo with the composition, and this rides on it.
- * Roughly a sixth of the viewport's width, which is about where a brand mark
- * sits in the loaders this is in conversation with; a script or a wordmark
- * would want half the screen, a monogram this dense would look shouty at it.
+ * These are perceptual constants, not pace: 45ms apart is the interval a wave
+ * wants whatever the run is timed at — wider and the eye reads a queue, which
+ * is what an earlier version at 350ms got wrong — and a card takes 420ms to
+ * arrive because that is how long that particular entrance takes to land.
+ *
+ * `in` is the one number here that is written down twice: it is the duration
+ * on `bootCardIn` in globals.css, and it is needed here to know when the wave
+ * has finished. If that keyframe is retimed, retime this with it.
  */
-const SCALE = 4.3;
+const CARD = { step: 45, in: 420, chrome: 260 };
+/** How long a control handle is out for, and how far ahead of the line it goes. */
+const ARM = 0.1;
+const ARM_LEAD = 0.012;
+/**
+ * How far above its resting size the mark is drawn.
+ *
+ * A multiple of the logo's *measured* size, so the drawing is anchored to the
+ * thing it becomes rather than to a viewport figure. On the wide layout that
+ * lands it at about a fifth of the screen, which is where a brand mark sits in
+ * the loaders this is in conversation with: a script or a wordmark would want
+ * half the screen, a monogram this dense looks shouty at it.
+ */
+const SCALE = 5.4;
+/**
+ * ...and the ceiling that stops it shouting on a phone.
+ *
+ * `--u` scales the logo with the composition above 1000px and is a flat pixel
+ * below it, so the resting mark is the same 52px on a 390px phone as on a
+ * 1440px laptop — and five and a half times 52 is most of a phone screen.
+ * Measured against the *smaller* viewport axis so a landscape phone is caught
+ * by its height, which is the axis that is actually short.
+ */
+const MAX_SHARE = 0.42;
+
+/**
+ * The vector chrome, in device pixels.
+ *
+ * Sizes here are screen sizes, not drawing sizes: an anchor is the same small
+ * square whether the mark is being drawn at 200px or at 500px, exactly as it
+ * would be in the tool. They are divided down into user units once the mark's
+ * real size is known, which is the only reason this component measures at all
+ * beyond the flight. `anchor` and `head` are half-sizes; `hair` is a width.
+ */
+const PX = { anchor: 2.8, handleDot: 2.1, head: 3.2, hair: 1.5 };
 
 const CARDS = "[data-prox-card], [data-prox-passive]";
 const FOCAL = '[data-card="introduction"]';
@@ -77,7 +123,37 @@ type Flight = {
   /** The transform that lifts it to the middle of the screen, big. */
   readonly dx: number;
   readonly dy: number;
+  /** How much bigger — `SCALE`, unless the viewport is too small to take it. */
+  readonly k: number;
+  /** Drawing units per device pixel, at the size the mark is drawn. */
+  readonly unit: number;
 };
+
+/**
+ * When each path is drawn, and when each tone is filled.
+ *
+ * Time is handed out by *length*, not per path, so the hairline moves at one
+ * constant speed all the way round: the wedge is a third of the S's outline
+ * and takes a third as long. Dividing the beat equally instead made the small
+ * path look hurried and the long one look reluctant, which is the tell that a
+ * schedule was imposed on the drawing rather than taken from it.
+ */
+const BEATS = (() => {
+  const total = LOGO_PARTS.reduce((sum, p) => sum + p.len, 0);
+  let at = TRACE_FROM;
+  const parts = LOGO_PARTS.map((p) => {
+    const dur = TRACE * (p.len / total);
+    const from = at;
+    at += dur + LIFT;
+    return { from, dur, ends: from + dur };
+  });
+  /* A tone fills the moment its own last outline closes — so the S is already
+     solid while the Y is still being drawn. Two moments rather than one, which
+     is how the drawing actually goes. */
+  const inkAt = (tone: "s" | "y") =>
+    Math.max(...LOGO_PARTS.map((p, i) => (p.tone === tone ? parts[i].ends : 0)));
+  return { parts, ink: { s: inkAt("s"), y: inkAt("y") } };
+})();
 
 export default function BootSequence() {
   /* Read once, during the first render.
@@ -97,21 +173,12 @@ export default function BootSequence() {
     done.current = true;
     revealPage();
     markSeen();
-    /* And take the skip flag with it. Its rules carry `!important` and are not
-       scoped to `[data-booting]`, so left on `<html>` they go on overriding
-       `animation-delay` and `-duration` on every card for the rest of the
-       visit. Harmless today, and exactly the kind of stray global that becomes
-       a mystery later. */
-    document.documentElement.removeAttribute("data-boot-skip");
     /* And actually leave.
 
-       The previous version only removed the attribute, and the render guard
-       read a `booting` value captured at first render — so the overlay stayed
-       in the DOM at z-index 990 over the live homepage, forever. Every layer
-       inside it animated itself to transparent, which is the only reason it
-       was not obvious; the rulers were the one layer that had no exit written,
-       and they were the symptom. An end state, so there is nothing left to
-       animate away. */
+       An earlier version only removed the attribute, and the render guard read
+       a `booting` value captured at first render — so the overlay stayed in
+       the DOM at z-index 990 over the live homepage, forever. An end state, so
+       there is nothing left to animate away. */
     setGone(true);
   }, []);
 
@@ -140,42 +207,97 @@ export default function BootSequence() {
 
       /* Schedule every card. Written straight onto the elements rather than
          held in state — the cards are not this component's to render, and
-         re-rendering to move eight numbers would be work for nothing. */
-      const cards = Array.from(document.querySelectorAll<HTMLElement>(CARDS))
+         re-rendering to move eight numbers would be work for nothing.
+
+         EVERY card, and that word is the bug this fixes. Being scheduled is
+         also what *hides* a card — the stylesheet holds `[data-boot-card]` at
+         opacity 0 until its moment — so a card left out of this list is not
+         quietly skipped, it is on screen at full strength from the first
+         frame. The old filter dropped anything starting within 40px of the
+         bottom edge, which is a 40px band of viewport heights where the two
+         cards on the last row sat there in plain sight while the mark was
+         still being drawn. Whether the loader looked right came down to how
+         tall the window happened to be.
+
+         So the list is everything, and where a card is decides only when it
+         arrives: the ones on screen carry the wave, and the ones outside it
+         come home with the tail. */
+      const all = Array.from(document.querySelectorAll<HTMLElement>(CARDS))
         .map((el) => ({ el, b: el.getBoundingClientRect() }))
-        .filter(
-          ({ b }) => b.width > 40 && b.height > 40 && b.y < vh - 40 && b.y + b.height > 40,
-        );
+        .filter(({ b }) => b.width > 40 && b.height > 40);
+      const cards = all.filter(({ b }) => b.y < vh && b.y + b.height > 0);
+      const offscreen = all.filter((c) => !cards.includes(c));
 
       const focal = document.querySelector<HTMLElement>(FOCAL)?.getBoundingClientRect();
       const ox = focal ? focal.x + focal.width / 2 : vw / 2;
       const oy = focal ? focal.y + focal.height / 2 : vh / 2;
 
-      /* Ordered by distance from the Introduction, so the page opens outward
-         from the card the mark just landed in rather than in DOM order. 45ms
-         apart — the interval a wave wants. Wider than that and the eye reads a
-         queue, which is what an earlier version at 350ms got wrong. */
-      const lands = (HOLD_UNTIL + FLY - CARDS_LEAD) * BOOT_MS;
+      /* When the wave starts.
+
+         `CARDS_LEAD` is the intent — begin before the mark lands, so the two
+         motions overlap instead of queueing. The `min` is the guarantee: the
+         wave plus the chrome behind it takes a fixed number of milliseconds,
+         and if the beats above are ever retimed so that tail no longer fits
+         inside the run, the overlay is removed part-way through it and every
+         card still animating snaps to its end state. That is a cut, and it is
+         invisible in review because it only shows up on the last card or two.
+         Starting late enough to finish is worth more than starting exactly
+         where the fraction says. */
+      const tail = cards.length * CARD.step + CARD.chrome + CARD.in;
+      /* ...and the floor that keeps the wave off the drawing.
+
+         The `min` above can pull the wave arbitrarily early — it is a function
+         of how many cards are on screen, so a tall window or one more card on
+         the page moves it — and early enough is *during the sketch*, which
+         reads as the page giving up on its own animation. Nothing may arrive
+         before both tones are down and the mark is whole. If the two ever
+         genuinely conflict, the last card or two clipping at the hand-over is
+         the cheaper failure: it happens at the edge of a screen already
+         filling up, where the sketch is the thing being looked at. */
+      const drawn = (BEATS.ink.y + INK) * BOOT_MS;
+      const lands = Math.max(
+        drawn,
+        Math.min((HOLD_UNTIL + FLY - CARDS_LEAD) * BOOT_MS, BOOT_MS - tail),
+      );
       cards
         .map((c) => ({
           ...c,
           d: Math.hypot(c.b.x + c.b.width / 2 - ox, c.b.y + c.b.height / 2 - oy),
         }))
+        /* Ordered by distance from the Introduction, so the page opens
+           outward from the card the mark is landing in rather than in DOM
+           order. */
         .sort((a, b) => a.d - b.d)
         .forEach((c, i) => {
           c.el.dataset.bootCard = "";
-          c.el.style.setProperty("--boot-at", `${Math.round(lands + i * 45)}ms`);
+          c.el.style.setProperty(
+            "--boot-at",
+            `${Math.round(lands + i * CARD.step)}ms`,
+          );
         });
 
+      /* The cards nobody can see, held until the wave has passed. They are
+         off screen and the page is scroll-locked, so this is not about how
+         they look — it is so that a late reflow (a font landing, an image
+         settling) cannot slide one into view mid-sketch. Hidden costs nothing;
+         being wrong about what is visible is what caused this. */
+      const last = Math.round(lands + cards.length * CARD.step);
+      for (const c of offscreen) {
+        c.el.dataset.bootCard = "";
+        c.el.style.setProperty("--boot-at", `${last}ms`);
+      }
+
       /* The two moments the stylesheet needs, derived here so retiming the
-         sequence cannot desynchronise them. The previous version hardcoded the
+         sequence cannot desynchronise them. An earlier version hardcoded the
          chrome delay at 3200ms and it drifted the first time BOOT_MS moved. */
       const root = document.documentElement.style;
       root.setProperty("--boot-handover", `${Math.round((HOLD_UNTIL + FLY) * BOOT_MS)}ms`);
       root.setProperty(
         "--boot-chrome",
-        `${Math.round(lands + cards.length * 45 + 260)}ms`,
+        `${Math.round(lands + cards.length * CARD.step + CARD.chrome)}ms`,
       );
+
+      const k = Math.min(SCALE, (Math.min(vw, vh) * MAX_SHARE) / r.width);
 
       setFlight({
         x: r.x,
@@ -185,6 +307,13 @@ export default function BootSequence() {
         // Where the middle of the screen is, relative to where the logo lives.
         dx: vw / 2 - (r.x + r.width / 2),
         dy: vh / 2 - (r.y + r.height / 2),
+        k,
+        /* One device pixel, in drawing units, at the size the mark is drawn.
+           The rect is the *box* the logo is laid out in and the mark is fitted
+           inside it, so the scale that matters is whichever axis is tight. */
+        unit:
+          LOGO_BOX.w /
+          (Math.min(r.width, (r.height * LOGO_BOX.w) / LOGO_BOX.h) * k),
       });
     };
 
@@ -196,24 +325,27 @@ export default function BootSequence() {
       });
     }
 
-    /* Skippable, and it does not cut. Three seconds is short, but somebody who
-       has decided they have waited long enough should not have to watch the
-       rest — and the polite version of that brings everything home fast rather
-       than switching it off mid-gesture. */
-    const skip = () => {
-      document.documentElement.setAttribute("data-boot-skip", "");
-      window.setTimeout(finish, 340);
-    };
-    for (const e of ["keydown", "pointerdown", "wheel", "touchstart"]) {
-      window.addEventListener(e, skip, { once: true, passive: true });
-    }
+    /* Deliberately not skippable.
+
+       This used to end early on the first keydown, pointerdown, wheel or
+       touchstart, on the argument that somebody who has waited long enough
+       should not have to watch the rest. What that actually did was end the
+       sequence for anybody whose first instinct on a new page is to scroll —
+       which is most people, and a trackpad reports it before the page has
+       given them anything to read. The gesture that means "get on with it" and
+       the gesture that means "I am looking" are the same event, and guessing
+       wrong throws away the arrival rather than the wait.
+
+       So the run is the run. It is under four seconds, it happens once per
+       visitor, reduced motion opts out of it entirely, and the page beneath is
+       scroll-locked while it plays, so a scroll here loses nothing.
+
+       The safety timers below are what guarantee it ends; nothing the visitor
+       does can leave them stuck behind it. */
 
     return () => {
       cancelled = true;
       window.clearTimeout(fallback);
-      for (const e of ["keydown", "pointerdown", "wheel", "touchstart"]) {
-        window.removeEventListener(e, skip);
-      }
     };
   }, [booting, finish]);
 
@@ -234,7 +366,6 @@ export default function BootSequence() {
     if (!booting) return;
     const bail = window.setTimeout(() => {
       revealPage();
-      document.documentElement.removeAttribute("data-boot-skip");
       setGone(true);
     }, BOOT_MS * 2);
     return () => window.clearTimeout(bail);
@@ -242,25 +373,37 @@ export default function BootSequence() {
 
   if (!booting || gone || !flight) return null;
 
+  const u = flight.unit;
+  const ms = (f: number) => `${Math.round(f * BOOT_MS)}ms`;
+
   return (
     <div className={styles.boot} aria-hidden="true">
       <div
         className={styles.flight}
         style={
           {
-            "--run": `${BOOT_MS}ms`,
             left: `${flight.x}px`,
             top: `${flight.y}px`,
             width: `${flight.w}px`,
             height: `${flight.h}px`,
             "--dx": `${flight.dx}px`,
             "--dy": `${flight.dy}px`,
-            "--k": SCALE,
-            "--write": `${WRITE_FROM * BOOT_MS}ms`,
-            "--gap": `${STROKE_GAP * BOOT_MS}ms`,
-            "--stroke": `${STROKE * BOOT_MS}ms`,
-            "--hold": `${HOLD_UNTIL * BOOT_MS}ms`,
-            "--fly": `${FLY * BOOT_MS}ms`,
+            "--k": flight.k,
+            "--ink-s": ms(BEATS.ink.s),
+            "--ink-y": ms(BEATS.ink.y),
+            "--ink-run": ms(INK),
+            "--hold": ms(HOLD_UNTIL),
+            "--fly": ms(FLY),
+            "--let-go": ms(BEATS.ink.y + INK * 0.6),
+            "--arm": ms(ARM),
+            "--drop": ms(ARM * 0.42),
+            "--chrome-out": ms(INK * 1.6),
+            /* The traced hairline cannot use `vector-effect: non-scaling-stroke`
+               the way the anchors and handles do: that moves the *dash* into
+               device space too, so `stroke-dasharray` stops being the path's
+               length and the reveal runs at the wrong speed and stops early.
+               So it is a real user-unit width, sized here instead. */
+            "--hair": `${(PX.hair * flight.unit).toFixed(3)}`,
           } as React.CSSProperties
         }
       >
@@ -279,8 +422,105 @@ export default function BootSequence() {
         <div className={styles.lift}>
           <LogoMark
             className={styles.mark}
-            partClass={{ s: styles.s, y: styles.y }}
-          />
+            partClass={{ s: styles.inkS, y: styles.inkY }}
+          >
+            {/* The outlines, drawn. One dash the length of the whole path,
+                walked back to zero. */}
+            {LOGO_PARTS.map((part, i) => (
+              <path
+                key={`t${i}`}
+                className={styles.trace}
+                d={part.d}
+                style={
+                  {
+                    "--len": part.len,
+                    "--from": ms(BEATS.parts[i].from),
+                    "--dur": ms(BEATS.parts[i].dur),
+                  } as React.CSSProperties
+                }
+              />
+            ))}
+
+            {/* The handles. Two per curved corner, out of the path itself,
+                flicked out as the line reaches them and pulled back in behind
+                it — so at any moment there are two or three on screen and the
+                whole set never piles up. */}
+            {LOGO_PARTS.flatMap((part, i) =>
+              part.nodes.flatMap((node, j) =>
+                ([node.back, node.fwd] as const)
+                  .filter((h): h is readonly [number, number] => h !== null)
+                  .map((h, k) => (
+                    <g
+                      key={`h${i}-${j}-${k}`}
+                      className={styles.handle}
+                      style={
+                        {
+                          "--ox": `${node.on[0]}px`,
+                          "--oy": `${node.on[1]}px`,
+                          "--at": ms(
+                            BEATS.parts[i].from + node.at * BEATS.parts[i].dur - ARM_LEAD,
+                          ),
+                        } as React.CSSProperties
+                      }
+                    >
+                      {/* `vector-effect` is not an inherited property, so it
+                          has to sit on the shapes rather than on the group
+                          that carries the rest of their styling — set on the
+                          group it silently does nothing and the arms come out
+                          scaled with the mark. */}
+                      <line
+                        x1={node.on[0]}
+                        y1={node.on[1]}
+                        x2={h[0]}
+                        y2={h[1]}
+                        vectorEffect="non-scaling-stroke"
+                      />
+                      <circle cx={h[0]} cy={h[1]} r={PX.handleDot * u} />
+                    </g>
+                  )),
+              ),
+            )}
+
+            {/* The anchors. They stay once dropped: a path you have just drawn
+                is a path that is still selected. */}
+            {LOGO_PARTS.flatMap((part, i) =>
+              part.nodes.map((node, j) => (
+                <rect
+                  key={`a${i}-${j}`}
+                  className={styles.anchor}
+                  x={node.on[0] - PX.anchor * u}
+                  y={node.on[1] - PX.anchor * u}
+                  width={PX.anchor * 2 * u}
+                  height={PX.anchor * 2 * u}
+                  style={
+                    {
+                      "--ox": `${node.on[0]}px`,
+                      "--oy": `${node.on[1]}px`,
+                      "--at": ms(BEATS.parts[i].from + node.at * BEATS.parts[i].dur),
+                    } as React.CSSProperties
+                  }
+                />
+              )),
+            )}
+
+            {/* The point of the pen. `offset-path` walks it along the same
+                geometry the dash is uncovering, on the same clock, so it sits
+                on the end of the line rather than near it. */}
+            {LOGO_PARTS.map((part, i) => (
+              <circle
+                key={`p${i}`}
+                className={styles.head}
+                r={PX.head * u}
+                style={
+                  {
+                    "--path": `path("${part.d}")`,
+                    "--from": ms(BEATS.parts[i].from),
+                    "--dur": ms(BEATS.parts[i].dur),
+                  } as React.CSSProperties
+                }
+              />
+            ))}
+          </LogoMark>
         </div>
       </div>
     </div>

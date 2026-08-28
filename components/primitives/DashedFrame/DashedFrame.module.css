@@ -1,0 +1,13 @@
+/* Inset half a pixel on every side so the stroke — which straddles the rect's
+   edge — lands exactly on the parent's own edge. `overflow: visible` keeps the
+   outer half of it from being clipped by the svg's own box. */
+
+.frame {
+  position: absolute;
+  top: 0.5px;
+  left: 0.5px;
+  width: calc(100% - 1px);
+  height: calc(100% - 1px);
+  overflow: visible;
+  pointer-events: none;
+}

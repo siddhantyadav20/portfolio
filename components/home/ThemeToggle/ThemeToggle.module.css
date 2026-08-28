@@ -1,4 +1,5 @@
-/* Figma node 3:77 — 112x64, radius 60. Material is `.liquid` in globals.css.
+/* Figma node 80:7595 — 112x64, radius 60, 8px of padding around two 48px
+   halves. Material is `.liquid` in globals.css.
 
    No `squircle`: radius 60 on a 64px-tall box already rounds both ends fully,
    and smoothing a stadium only squares it off.
@@ -7,7 +8,20 @@
    card, and having it drift toward the composition's centre as the pointer
    approached made it feel like it was dodging the click. */
 
+/* `--u` is the homepage's container-query unit — one 1440th of the
+   composition's width — and it is declared in `app/page.module.css`, on the
+   homepage and nowhere else. This control is also worn by the case-study modal
+   and by the `/work/<slug>` route, where the variable does not exist: every
+   `calc(n * var(--u))` below resolved to nothing, so the shell lost its radius
+   and its padding and both glyphs collapsed to 0x0. The toggle was a blank
+   white rectangle on the route, with the icons present in the DOM and
+   invisible.
+
+   `1px` is the fallback, which is the value `--u` takes at 1440 anyway — so
+   the homepage keeps scaling exactly as it did, and everywhere else the
+   control is simply the size Figma draws it. */
 .toggle {
+  position: relative;
   display: flex;
   flex: none;
   gap: 0;
@@ -16,8 +30,10 @@
      rest of the composition below it. */
   width: var(--toggle-w);
   height: var(--toggle-h);
-  padding: calc(8 * var(--u));
-  border-radius: calc(60 * var(--u));
+  padding: calc(8 * var(--u, 1px));
+  border-radius: calc(60 * var(--u, 1px));
+  /* Figma 80:7596 clips the shell, and the pill travels inside it. */
+  overflow: hidden;
 }
 
 .toggle:hover {
@@ -29,6 +45,72 @@
   box-shadow: var(--liquid-cast-hi);
 }
 
+/* --- The pill ------------------------------------------------------------
+   One element that moves, rather than a background that appears under
+   whichever half is selected. That is the whole difference between a switch
+   and a pair of buttons: a switch has a position, and you can watch it change.
+
+   Two nested elements, because the pill does two things at two speeds. The
+   outer one travels, on `--spring-soft` — the site's own settle curve, which
+   overshoots a little, the way a physical switch does when it lands. The inner
+   one is the surface, and it squashes under a press and springs back; a press
+   has to answer in about a tenth of a second or it does not read as a
+   response, and that is a quarter of the time the travel wants. */
+
+.thumb {
+  position: absolute;
+  top: calc(8 * var(--u, 1px));
+  left: calc(8 * var(--u, 1px));
+  z-index: 0;
+
+  width: calc(48 * var(--u, 1px));
+  height: calc(48 * var(--u, 1px));
+
+  transform: translateX(0);
+  transition: transform 420ms var(--spring-soft);
+}
+
+.toggle[data-theme-at="dark"] .thumb {
+  transform: translateX(calc(48 * var(--u, 1px)));
+}
+
+.thumbFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--r-pill);
+
+  /* Figma 80:7597 — solid white under the selected half. */
+  background-color: #ffffff;
+
+  /* Stretched toward the half being reached for: origin at the pill's own far
+     edge, so it grows across the gap rather than out of the shell. */
+  transform-origin: left center;
+  transition: transform 260ms var(--spring-soft);
+}
+
+.toggle[data-theme-at="dark"] .thumbFill {
+  transform-origin: right center;
+}
+
+/* `:has` rather than a sibling selector — the pill is painted before both
+   options and the press can come from either. */
+.toggle:has(.option:active) .thumbFill {
+  transform: scaleX(1.12);
+}
+
+/* Figma 80:7604 — a second 15% white film over the shell's own, which is what
+   makes the pill read as raised on a dark plate. It used to be
+   `--surface-solid`, which in dark resolves to #222: the same value as the
+   plate underneath, so the pill was drawing itself in the colour of the thing
+   it was meant to stand out from and the control only ever said which theme
+   you could switch *to*. */
+:global(html[data-theme="dark"]) .thumbFill {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* --- The halves ---------------------------------------------------------- */
+
 .option {
   position: relative;
   z-index: 1;
@@ -38,30 +120,73 @@
   /* Two of these sit inside a 112x64 shell with 8px of padding, so they
      have to shrink with it — left at 48 they were taller than the shell's
      inner box the moment the composition scaled down. */
-  width: calc(48 * var(--u));
-  height: calc(48 * var(--u));
+  width: calc(48 * var(--u, 1px));
+  height: calc(48 * var(--u, 1px));
   border-radius: var(--r-pill);
 }
 
+/* --- The glyphs ----------------------------------------------------------
+   Both cuts of the icon, stacked in one box: the filled one for the selected
+   half (Figma 794:387 and 794:411) and the line one for the other (80:7603 and
+   80:7600). Both at full ink in the file — the selection is carried by the
+   pill and by the weight of the cut, not by dimming.
+
+   They cross-fade with a quarter-turn and a little scale, so the swap reads as
+   the same glyph thickening rather than as two icons trading places. The turn
+   is small on purpose: at 24px anything more becomes a spinning icon, which is
+   a different and much louder idea. */
+
+.glyphs {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(24 * var(--u, 1px));
+  height: calc(24 * var(--u, 1px));
+  transition: transform 260ms var(--spring-soft);
+}
+
 .glyph {
-  width: calc(24 * var(--u));
-  height: calc(24 * var(--u));
+  grid-area: 1 / 1;
+  width: calc(24 * var(--u, 1px));
+  height: calc(24 * var(--u, 1px));
+  transition: opacity 240ms ease, transform 460ms var(--spring-soft);
 }
 
-/* The selected half. `--surface-solid` rather than the #ffffff Figma draws,
-   because in dark that white pill is the brightest thing on the page and it
-   pulls the eye to a control nobody is looking at. */
-.active {
-  background-color: var(--surface-solid);
+.bold {
+  opacity: 0;
+  transform: scale(0.7) rotate(-25deg);
 }
 
-/* The unselected half is legible but clearly secondary. Without this both
-   glyphs sit at full ink and the control reads as two buttons rather than as
-   one two-state switch. */
-.option:not(.active) {
-  color: var(--ink-50);
+.line {
+  opacity: 1;
+  transform: none;
 }
 
-.option:not(.active):hover {
-  color: var(--ink-70);
+.glyphs[data-active] .bold {
+  opacity: 1;
+  transform: none;
+}
+
+.glyphs[data-active] .line {
+  opacity: 0;
+  transform: scale(0.7) rotate(25deg);
+}
+
+/* Only the half you are *not* on is worth reacting to — the other one is
+   already where you are. */
+.option[aria-pressed="false"]:hover .glyphs {
+  transform: scale(1.08);
+}
+
+/* The pill's travel and the glyph swap are the control's whole explanation of
+   itself, so with motion reduced they arrive rather than move. The states are
+   still fully distinct — a filled glyph on a pill against a line glyph on the
+   plate — which is why this can be a clean cut instead of a compromise. */
+@media (prefers-reduced-motion: reduce) {
+  .thumb,
+  .thumbFill,
+  .glyph,
+  .glyphs {
+    transition: none;
+  }
 }

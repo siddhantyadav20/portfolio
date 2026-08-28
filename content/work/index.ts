@@ -4,6 +4,7 @@ import { search } from "./search";
 import type { CaseStudy } from "./types";
 
 export type {
+  AsideItem,
   CaseStudy,
   StudyBlock,
   StudyCaption,
@@ -14,7 +15,11 @@ export type {
   StudyMeta,
   StudyOutcome,
   StudyOverlay,
+  StudyQuote,
+  StudyQuoteGroup,
   StudySection,
+  StudySlide,
+  StudyTableRow,
 } from "./types";
 export { heroStill } from "./types";
 

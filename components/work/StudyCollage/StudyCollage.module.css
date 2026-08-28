@@ -1,0 +1,69 @@
+/* Figma 703:12474. Three captures in mats, overlapping, inside a frame that
+   keeps the design's proportions at any width. */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+}
+
+.frame {
+  position: relative;
+  width: 100%;
+  /* The frame the three are placed in, so the percentages below mean what
+     they mean in the file. */
+  aspect-ratio: 832 / 474;
+}
+
+/* The 12px surround Figma draws around each capture — a mat, not a border:
+   it is what separates one screenshot from the one behind it, and without it
+   three light dashboards overlapping read as one torn image.
+
+   `#efefef` in the file, which is the light page's own near-white. In the
+   dark theme that would be a white card sitting in a black stack, so it
+   becomes the raised surface instead — the same relationship, inverted. */
+.mat {
+  position: absolute;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #efefef;
+  overflow: hidden;
+}
+
+:global(html[data-theme="dark"]) .mat {
+  background-color: var(--surface-raised);
+}
+
+.shot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  object-fit: cover;
+  object-position: top left;
+}
+
+/* Below the design's frame three overlapping 500px-wide dashboards are a
+   texture rather than a figure. They unstack into a plain column, each at its
+   own aspect ratio. */
+@media (max-width: 900px) {
+  .frame {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    aspect-ratio: auto;
+  }
+
+  .mat {
+    position: static;
+    width: 100% !important;
+    height: auto !important;
+    padding: 8px;
+  }
+
+  .shot {
+    height: auto;
+  }
+}

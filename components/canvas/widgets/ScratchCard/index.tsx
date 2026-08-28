@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { scratch as data } from "@/content/canvas";
+import { externalLinkProps } from "@/lib/externalLink";
 import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
 import { Coin, Wizard } from "./art";
 import { useVisible } from "@/lib/visible";
@@ -467,7 +468,7 @@ export default function ScratchCard() {
         {ready && (
           <>
             {data.href ? (
-              <a className={styles.cta} href={data.href}>
+              <a className={styles.cta} href={data.href} {...externalLinkProps(data.href)}>
                 PLAY NOW <span className={styles.arrow}>→</span>
               </a>
             ) : (

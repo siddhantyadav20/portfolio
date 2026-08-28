@@ -25,6 +25,8 @@ export const search: CaseStudy = {
   title: "Searching amidst a chaos of 104,122 remarks",
   subtitle: "Navigation first to search first, ~51m saved",
 
+  accent: "blue",
+
   body: null,
 
   meta: [

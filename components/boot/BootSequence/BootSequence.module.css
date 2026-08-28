@@ -1,17 +1,18 @@
 /* The signature.
 
-   Five classes and four keyframes, where the version this replaced had
-   eighteen and eleven. That reduction is the design, not a side effect of it.
-
    The cards are not styled here — they are the real homepage cards and they
    arrive under "Boot" in globals.css, on delays the component writes onto
-   them. This file draws only the mark. */
+   them. This file draws only the mark, and the vector chrome around it.
+
+   Everything below is opacity, transform or `stroke-dashoffset`, so the whole
+   sequence composites while React is still hydrating the page underneath. The
+   one exception is the fill, and it fades a shape that is already laid out. */
 
 .boot {
   position: fixed;
   inset: 0;
   /* Above every surface on the site — the palette sits at 950, the canvas at
-     900 — because for these three seconds this is the site. */
+     900 — because for the length of this sequence, this is the site. */
   z-index: 990;
   pointer-events: none;
 
@@ -68,8 +69,9 @@
   /* Released from the global `svg { max-width: 100% }`, which resolves against
      a parent that is only a positioning box. */
   max-width: none;
+  overflow: visible;
 
-  /* Follow-through: the mark settles once the second stroke lands.
+  /* Follow-through: the mark settles once the second tone lands.
 
      A hair over one percent, for about a fifth of a second, and it is the
      difference between a shape that appeared and a shape that was *put* there.
@@ -77,15 +79,14 @@
      animating `transform` and the three motions have to compose rather than
      fight. */
   transform-origin: center;
-  animation: settle 240ms var(--spring)
-    calc(var(--write) + var(--gap) + var(--stroke) - 60ms) both;
+  animation: settle var(--ink-run) var(--spring) var(--ink-y) both;
 }
 
 @keyframes settle {
   0% {
     transform: scale(1);
   }
-  35% {
+  38% {
     transform: scale(1.012);
   }
   100% {
@@ -93,76 +94,209 @@
   }
 }
 
-/* --- The two strokes ------------------------------------------------------
+/* --- The drawing ----------------------------------------------------------
 
-   Each is laid down by a wipe travelling along its own stroke direction, which
-   is why they are two animations and not one: the Y is a stem and reads bottom
-   to top; the S is a fold and reads down its 45deg diagonal. A single wipe
-   across both would be a curtain rather than a hand.
+   One dash as long as the whole path, walked back to zero. `--len` is the
+   path's real length in user units, measured when the geometry was fitted, so
+   nothing has to ask the DOM for `getTotalLength()` — which would be a layout
+   read on the first frame of the first paint of the site.
 
-   `clip-path: polygon()` interpolates when the point count matches, so the
-   edge can be a diagonal without registering a custom property to animate. */
+   THE ONE PLACE `non-scaling-stroke` MUST NOT BE USED. It is how everything
+   else here stays a hairline at any size, and it is wrong on this element:
+   it moves the whole stroke into device space, which takes `stroke-dasharray`
+   with it. The dash then measures the path in screen pixels while
+   `stroke-dashoffset` counts down a length in user units, so the two disagree
+   by whatever the scale happens to be — the line ran at the wrong speed and
+   arrived long before the pen did. This width is in user units, divided down
+   from a device-pixel figure by the component, which gets the same hairline
+   without touching the dash.
 
-/* --- The two strokes ------------------------------------------------------
-
-   Each is laid down by a wipe travelling along its own stroke direction, which
-   is why they are two animations and not one: the S is a fold and reads down
-   its 45deg diagonal; the Y is a stem and reads bottom to top. A single wipe
-   across both would be a curtain rather than a hand.
-
-   THE S GOES FIRST. It is the left half of a left-to-right ligature and the
-   dominant tone; writing the Y before it read backwards, the way watching
-   somebody cross a T before drawing it does.
-
-   THE POLYGONS ARE TIGHT TO THE SHAPE, and that is the difference between a
-   stroke and a flash. The first version swept from -60% to 260%, so full
-   coverage was reached about halfway through the duration and each stroke
-   appeared to snap complete while its animation was still running. These start
-   exactly clear of the shape and end exactly past it, so the edge is crossing
-   for the whole beat.
-
-   `clip-path: polygon()` interpolates when the point count matches, so the
-   edge can lean without registering a custom property to animate. Two points
-   are anchored and two travel — anchoring half of them is what makes the
-   degenerate "nothing visible" start state trivial to express. */
-
-/* The lean is 60% of the box height, not a full 100%: a steeper edge spends
-   most of its travel out beyond the glyph's top-left corner, and the first
-   version wasted about forty percent of the S's beat crossing empty space
-   before it touched anything. Start and end are set against the glyph's actual
-   bounds — just clear of it, and just past it. */
-.s {
-  clip-path: polygon(-50% -50%, 10% -50%, -50% 150%, -110% 150%);
-  animation: writeS var(--stroke) cubic-bezier(0.4, 0.02, 0.2, 1) var(--write)
-    forwards;
+   The easing is gentle rather than flat: a hand accelerates into a stroke and
+   decelerates out of it. It is the same curve on the head below, which is the
+   only reason the point of the pen stays on the end of the line. */
+.trace {
+  fill: none;
+  stroke: var(--ink-40);
+  stroke-width: var(--hair);
+  stroke-linecap: round;
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  animation:
+    draw var(--dur) cubic-bezier(0.42, 0, 0.32, 1) var(--from) forwards,
+    letGo var(--chrome-out) ease var(--let-go) forwards;
 }
 
-@keyframes writeS {
+@keyframes draw {
   to {
-    clip-path: polygon(-50% -50%, 115% -50%, 55% 150%, -110% 150%);
+    stroke-dashoffset: 0;
   }
 }
 
-.y {
-  clip-path: polygon(-50% 122%, 150% 102%, 150% 150%, -50% 150%);
-  animation: writeY var(--stroke) cubic-bezier(0.4, 0.02, 0.2, 1)
-    calc(var(--write) + var(--gap)) forwards;
-}
-
-@keyframes writeY {
+/* The whole vector chrome lets go together, once the last tone is down. It is
+   the deselect: the drawing stops being a path and becomes the mark. */
+@keyframes letGo {
   to {
-    clip-path: polygon(-50% 0%, 150% -20%, 150% 150%, -50% 150%);
+    opacity: 0;
   }
 }
 
-/* Skipping brings the whole thing home rather than cutting it. */
-:global(html[data-boot-skip]) .flight,
-:global(html[data-boot-skip]) .lift,
-:global(html[data-boot-skip]) .mark,
-:global(html[data-boot-skip]) .y,
-:global(html[data-boot-skip]) .s {
-  animation-delay: 0ms !important;
-  animation-duration: 260ms !important;
+/* --- The point of the pen -------------------------------------------------
+
+   `offset-path` walks it along the same geometry on the same clock and the
+   same curve as the dash, so it sits on the end of the line rather than near
+   it. It appears with the stroke and is gone the moment that path closes —
+   the pen lifts, and the next one starts somewhere else. */
+.head {
+  fill: var(--ink);
+  offset-path: var(--path);
+  offset-distance: 0%;
+  offset-rotate: 0deg;
+  opacity: 0;
+  animation:
+    lead var(--dur) cubic-bezier(0.42, 0, 0.32, 1) var(--from) forwards,
+    nib var(--dur) linear var(--from) forwards;
+}
+
+@keyframes lead {
+  to {
+    offset-distance: 100%;
+  }
+}
+
+@keyframes nib {
+  0%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Browsers without `offset-path` would park the nib at the origin of the
+   viewBox, where it would read as a stray dot in the corner for three seconds.
+   The rest of the sequence does not need it. */
+@supports not (offset-path: path("M0 0")) {
+  .head {
+    display: none;
+  }
+}
+
+/* --- The anchors ----------------------------------------------------------
+
+   Sized in user units by the component, from the mark's measured size, so the
+   square is the same seven pixels whatever the mark is being drawn at.
+   `transform-box: view-box` with the anchor's own coordinates as the origin is
+   what lets the pop happen about the point rather than about the corner of the
+   drawing. */
+.anchor {
+  fill: var(--page-base);
+  stroke: var(--ink-50);
+  stroke-width: 1.15;
+  vector-effect: non-scaling-stroke;
+  transform-box: view-box;
+  transform-origin: var(--ox) var(--oy);
+  opacity: 0;
+  animation:
+    drop var(--drop) var(--spring) var(--at) forwards,
+    letGo var(--chrome-out) ease var(--let-go) forwards;
+}
+
+/* Landing slightly large and settling is the difference between an anchor that
+   was placed and one that faded up. It is two frames of overshoot. */
+@keyframes drop {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* --- The handles ----------------------------------------------------------
+
+   Out of the path itself: these are the cubics' real control points. They flick
+   out as the line reaches them and pull back in behind it, so two or three are
+   on screen at once and the set never accumulates into a thicket — which is
+   what showing all fifty at once would be.
+
+   The delay runs a little ahead of the line on purpose. A handle that appears
+   exactly as the line arrives looks like a consequence of the line; one that is
+   already reaching out looks like the thing that *made* it.
+
+   Every duration here is a fraction of the run rather than a figure in
+   milliseconds, so retiming the sequence retimes the chrome with it. The first
+   version hardcoded 520ms and 90ms, which was right at three seconds and
+   nowhere near right at anything else. */
+.handle {
+  stroke: var(--ink-40);
+  fill: var(--ink-60);
+  stroke-width: 1;
+  transform-box: view-box;
+  transform-origin: var(--ox) var(--oy);
+  opacity: 0;
+  animation: arm var(--arm) cubic-bezier(0.33, 0.9, 0.3, 1) var(--at) forwards;
+}
+
+@keyframes arm {
+  0% {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+  22% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  34% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  62% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+}
+
+/* --- The ink --------------------------------------------------------------
+
+   Each tone floods in the moment its own outline closes, so the S is solid
+   while the Y is still being drawn. Not a cross-fade and not a wipe: the shape
+   was already there in outline, and this is it being given its weight. The
+   half-pixel of blur on the way in is what makes it read as ink arriving
+   rather than as an opacity ramp. */
+.inkS,
+.inkY {
+  opacity: 0;
+  animation: flood var(--ink-run) cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+.inkS {
+  animation-delay: var(--ink-s);
+}
+
+.inkY {
+  animation-delay: var(--ink-y);
+}
+
+@keyframes flood {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

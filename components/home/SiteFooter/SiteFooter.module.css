@@ -19,6 +19,27 @@
   background-color: var(--surface-glass);
   backdrop-filter: blur(var(--glass-blur));
   box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
+
+  /* The glyph inside is `.inkIcon`, so the plate holds the colour and the
+     stencil takes it from here. Ink is the homepage's — Figma 244:9343. */
+  color: var(--ink);
+}
+
+.mark {
+  width: 20px;
+  height: 20px;
+}
+
+/* Inside a surface with an accent of its own — a case study — the mark takes
+   it. Figma 821:1329: the same footer, drawn in the colour of the page it is
+   ending. The live dot under it does too, and needs no rule here: `--live` is
+   one of the tokens the accent block swaps.
+
+   `[data-accent]` is written by the route's `<main>` and by `ModalSurface`, and
+   is unscoped by CSS Modules the way `[data-stage]` is — one rule here rather
+   than a token that exists only to be overridden somewhere else. */
+[data-accent] .linkedin {
+  color: var(--accent);
 }
 
 .row {
@@ -47,6 +68,12 @@
   border-radius: var(--r-pill);
   background-color: var(--live);
 }
+
+/* The dot keeps the Figma treatment and loses the pulse it briefly had. The
+   ring was there to say "somebody is here now", and this number is not about
+   now — it is every browser since the counter shipped. An animation that means
+   nothing is worse than no animation, so what is left is the design's own
+   6px mark in the live colour. */
 
 .credit {
   display: flex;

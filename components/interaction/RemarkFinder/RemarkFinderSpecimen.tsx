@@ -29,7 +29,7 @@ export default function RemarkFinderSpecimen({ bare = false, className }: Props)
   if (bare) {
     return (
       <span className={[styles.bare, className].filter(Boolean).join(" ")}>
-        <RemarkFinder cue />
+        <RemarkFinder cue="view" />
       </span>
     );
   }
@@ -37,7 +37,7 @@ export default function RemarkFinderSpecimen({ bare = false, className }: Props)
   return (
     <figure className={[styles.figure, className].filter(Boolean).join(" ")}>
       <div className={`${styles.frame} squircle`}>
-        <RemarkFinder cue />
+        <RemarkFinder cue="view" />
       </div>
 
       <figcaption className={styles.caption}>

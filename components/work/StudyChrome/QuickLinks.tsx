@@ -20,8 +20,8 @@ type Props = {
  *
  * Ported from the Framer component that prototyped it, with two changes.
  *
- * The geometry is Figma's, not the prototype's: 2px lines with a 12px radius,
- * 8px apart, 20px wide at rest and 32px when active, in the reader's blue at
+ * The geometry is Figma's, not the prototype's: 3px lines with a 12px radius,
+ * 8px apart, 20px wide at rest and 28px when active, in the reader's blue at
  * full strength for the current section and 40% for the rest. The prototype
  * drew white lines 24px wide, 6px apart, and expressed its states as opacity —
  * which is the same idea sketched before the colours existed.

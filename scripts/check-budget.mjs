@@ -43,11 +43,28 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const BUDGET = {
   /**
    * The homepage's client JavaScript, in KB, uncompressed — the same basis
-   * Next's own build table uses. It sits at 538KB today, of which 379KB is the
-   * React and Next runtime and 110KB is the legacy polyfill chunk, so the part
-   * this site actually wrote is small and the headroom below is for that part.
+   * Next's own build table uses, minus the one chunk that basis over-counts.
+   *
+   * It sits at 428KB today, of which about 379KB is the React and Next
+   * runtime, so the part this site actually wrote is around 50KB and the
+   * headroom below is for that part.
+   *
+   * WHAT IS NOT IN THIS NUMBER, AND WHY
+   *
+   * Next also emits a ~110KB polyfill chunk, and this check used to add it in
+   * — which made the reported figure 538KB and the headroom mean much less
+   * than it looked. No visitor pays it. The chunk is linked with `noModule`,
+   * so every browser that understands `<script type="module">` skips it, and
+   * Next's default browserslist target is already Chrome/Edge/Firefox 111 and
+   * Safari 16.4. It exists for browsers this site does not have.
+   *
+   * That is the same reasoning `homepageJsBytes` already applies when it
+   * deduplicates a chunk shared between the layout and the page: report the
+   * number a real visitor is charged, not the number the build produced. It is
+   * still measured and still printed, on its own line, so it cannot grow
+   * unwatched — it just does not eat this budget.
    */
-  homepageJs: 600,
+  homepageJs: 480,
   /** The largest single file allowed in `public/`, in KB. */
   asset: 1200,
   /**
@@ -103,31 +120,41 @@ function homepageJsBytes() {
   }
 
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-  const files = [
-    ...(manifest.rootMainFiles ?? []),
-    ...(manifest.polyfillFiles ?? []),
-  ];
-  if (files.length === 0) {
+  const modern = manifest.rootMainFiles ?? [];
+  const polyfill = manifest.polyfillFiles ?? [];
+  if (modern.length === 0) {
     failures.push("The homepage's build manifest lists no chunks.");
     return null;
   }
 
   // Deduplicated: a chunk shared between the layout and the page is downloaded
   // once, so counting it twice would report a number no visitor ever pays.
-  let total = 0;
-  for (const file of new Set(files)) {
-    const at = join(dir, file);
-    if (existsSync(at)) total += statSync(at).size;
-  }
-  return total;
+  const bytes = (files) => {
+    let total = 0;
+    for (const file of new Set(files)) {
+      const at = join(dir, file);
+      if (existsSync(at)) total += statSync(at).size;
+    }
+    return total;
+  };
+
+  return { modern: bytes(modern), polyfill: bytes(polyfill) };
 }
 
 const js = homepageJsBytes();
 if (js !== null) {
-  const kb = js / KB;
+  const kb = js.modern / KB;
   const line = `homepage JS   ${kb.toFixed(0)}KB / ${BUDGET.homepageJs}KB`;
   if (kb > BUDGET.homepageJs) failures.push(line);
   else notes.push(line);
+
+  /* Printed, not budgeted — see BUDGET.homepageJs. Nobody downloads it, but a
+     silent number is one nobody notices doubling. */
+  if (js.polyfill > 0) {
+    notes.push(
+      `polyfills     ${(js.polyfill / KB).toFixed(0)}KB (noModule — not sent to any supported browser)`,
+    );
+  }
 }
 
 /* --- 2. Everything the browser can fetch ----------------------------------- */

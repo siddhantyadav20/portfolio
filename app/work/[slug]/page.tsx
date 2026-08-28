@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import ThemeToggle from "@/components/home/ThemeToggle";
 import GlassAction, { CloseGlyph } from "@/components/primitives/GlassAction";
+import EscapeHome from "@/components/work/StudyChrome/EscapeHome";
 import StudyReader from "@/components/work/StudyReader";
+import StudyShare from "@/components/work/StudyShare";
 import { STUDIES, getStudy, studyHref } from "@/content/work";
 import { notFound } from "next/navigation";
 import styles from "./page.module.css";
@@ -66,19 +68,38 @@ export default async function StudyPage({ params }: PageProps<"/work/[slug]">) {
   if (!study) notFound();
 
   return (
-    // The same purple the modal selects in, so a shared link reads as the
-    // surface it stands in for. See "Selection" in globals.css.
-    <main id="main" className={styles.page} data-selection="violet">
-      {/* Share is deliberately absent from this surface and not a gap: the
-          address bar already holds exactly the URL the modal's button copies,
-          and a control that duplicates the browser's own is a control that
-          has to be explained. */}
+    // The study's accent, on the element the whole page hangs off so the chrome
+    // above the reader is in it too — see "Accent themes" in globals.css. It
+    // also settles what the page highlights in: the `::selection` rules key on
+    // this same attribute, so a study cannot be written in one colour and
+    // highlight in another. It used to carry a separate `data-selection` naming
+    // a violet nothing else on the page used.
+    <main id="main" className={styles.page} data-accent={study.accent ?? "blue"}>
+      {/* Figma 258:9690 — Share, on its own at the top left.
+
+          It used to be absent here, on the argument that the address bar
+          already holds the URL the modal's button copies. That argument is
+          about the URL and the button is not: this is the surface a shared
+          link opens, so it is where most readers arrive and the only place
+          they are ever offered the chance to pass the study on. Leaving it out
+          meant the reader who received the link could not send it to anyone
+          else without going to the address bar for it. */}
+      <div className={styles.leading}>
+        <StudyShare />
+      </div>
+
       <div className={styles.controls}>
         <ThemeToggle />
         <GlassAction href="/" label="Close this case study">
           <CloseGlyph />
         </GlassAction>
       </div>
+
+      {/* And the same close from the keyboard. The modal has had Escape since
+          it was written and this page had none, which made one of two surfaces
+          that are deliberately identical answer a key the other ignored. Draws
+          nothing — see `EscapeHome`. */}
+      <EscapeHome href="/" />
 
       <StudyReader study={study} />
     </main>

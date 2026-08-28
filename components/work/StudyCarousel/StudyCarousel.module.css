@@ -1,0 +1,320 @@
+/* Figma 757:12676 — the explorations carousel.
+
+   832 wide in the file: a 566-tall card, 16px down to a row that carries the
+   scroller in the middle and the figure label at the right, and the two
+   arrows hung 64px outside the card on either side. */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  margin: 0;
+}
+
+/* The arrows are positioned against this rather than against the card, so
+   they centre on the card and ignore the row underneath — which is what
+   Figma's `top: calc(50% - 22px)` on the taller frame works out to. */
+.stage {
+  position: relative;
+  width: 100%;
+}
+
+/* --- The card — Figma 757:12677 ------------------------------------------ */
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: 48px;
+  width: 100%;
+  /* 566 in the file, which is the 502 screen plus 32 top and bottom. A floor
+     rather than a height, so a slide whose prose runs past it grows instead of
+     clipping — and so moving between a written slide and an unwritten one does
+     not collapse the card to nothing. */
+  min-height: 566px;
+  padding: 32px;
+  border-radius: var(--r-xl);
+  background-color: var(--surface-glass);
+  overflow: hidden;
+
+  /* The move. The card is keyed on the slide index, so this runs on every
+     change rather than only on mount: the arriving card slides in from the
+     edge it was fetched from and settles. `--from` is set by `data-dir`, which
+     is +1 going forward and -1 going back. */
+  animation: slide-in 420ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.card[data-dir="1"] {
+  --from: 40px;
+}
+
+.card[data-dir="-1"] {
+  --from: -40px;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--from, 40px));
+  }
+}
+
+/* A carousel is the one control where the motion *is* the information — it is
+   what says the cards are a sequence rather than a replacement. With motion
+   reduced it still has the counter and the dots to say so, and those are
+   enough. */
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}
+
+.screen,
+.slot {
+  flex: 0 0 236px;
+  width: 236px;
+  aspect-ratio: 236 / 502;
+  border-radius: var(--r-lg);
+}
+
+.screen {
+  height: auto;
+  object-fit: cover;
+}
+
+.slot {
+  background-color: var(--surface-raised);
+  border: 1px dashed var(--ink-40);
+}
+
+.column {
+  flex: 1 1 0;
+  min-width: 0;
+  align-self: center;
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* "EXPLORATION 1" — bold, with the file's 0.6px of tracking. Authored in
+   caps rather than transformed: it is a label, not a sentence that happens to
+   be shouted. */
+.eyebrow {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: var(--lh-wide);
+  letter-spacing: 0.6px;
+  color: var(--ink);
+}
+
+.body,
+.list {
+  margin: 0;
+  font-size: 13px;
+  line-height: var(--lh-wide);
+  color: var(--ink-60);
+}
+
+/* Numbered, because every list in this card is in Figma. `padding-left` is
+   the file's 19.5px of hanging indent, rounded — the marker sits in it and
+   the wrapped lines align under the first word rather than under the number. */
+.list {
+  padding-left: 20px;
+  list-style: decimal;
+}
+
+.list li + li {
+  margin-top: 4px;
+}
+
+/* Dashed, full width of the column — Figma 757:12683, whose dashes are 7 on
+   and 7 off rather than the page rules' 6/8. Same reason as `.dashRule` in
+   globals.css for stating it as a gradient. */
+.rule {
+  width: 100%;
+  height: 1px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--ink-20) 0 7px,
+    transparent 7px 14px
+  );
+}
+
+/* --- The verdict, in two columns — Figma 757:12684 ----------------------- */
+
+.verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 64px;
+  width: 100%;
+}
+
+.verdictColumn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.verdictTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: var(--lh-wide);
+}
+
+/* The file's #ea580b and #58a942 — which are the site's own accent and the
+   green it already uses for a positive delta, so neither is a new colour. */
+.verdictTitle[data-tone="rejected"] {
+  color: var(--accent);
+}
+
+.verdictTitle[data-tone="worked"] {
+  color: var(--green);
+}
+
+.pending {
+  margin: 0;
+  font-size: 13px;
+  font-style: italic;
+  line-height: var(--lh-wide);
+  color: var(--ink-50);
+}
+
+/* --- The arrows — Figma 757:12722 and 757:12787 -------------------------- */
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-pill);
+  background-color: var(--surface-solid);
+  color: var(--ink);
+  cursor: pointer;
+  transition: opacity 200ms ease, transform 200ms var(--ease, ease);
+}
+
+/* 0.4 is the file's own disabled state — it draws the Previous arrow that way
+   on the first slide, which is the state the carousel opens in. */
+.arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.arrow:not(:disabled):hover {
+  transform: translateY(-50%) scale(1.06);
+}
+
+/* The flip is part of `transform` rather than the standalone `rotate`
+   property. Individual transform properties resolve before `transform`, so
+   `rotate: 180deg` turned the element and *then* `translateY(-50%)` ran in the
+   turned frame — pushing it down half its height instead of up, which left the
+   two arrows 40px out of line with each other. */
+.prev {
+  left: -64px;
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.prev:not(:disabled):hover {
+  transform: translateY(-50%) rotate(180deg) scale(1.06);
+}
+
+.next {
+  right: -64px;
+}
+
+.chevron {
+  width: 40px;
+  height: 40px;
+}
+
+/* --- The row under the card ----------------------------------------------
+   The scroller is centred on the card and the label is at its right edge, on
+   one line — Figma draws both at y 582. A three-column grid with an empty
+   first cell, so the middle stays centred on the card no matter how wide the
+   label gets. */
+
+.footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: 100%;
+}
+
+.scroller {
+  grid-column: 2;
+}
+
+.label {
+  grid-column: 3;
+  /* `FigureLabel` right-aligns itself with `align-self`, which is the block
+     axis in a grid and does nothing here. */
+  justify-self: end;
+}
+
+/* Outside the design's frame the arrows have nowhere to hang. 64px past the
+   card needs 1344px of viewport — the 1120 content column, 48 of reader
+   padding either side and 64 of arrow — and below that they straddle the
+   card's edge instead, half over the gutter and half over its own padding. */
+@media (max-width: 1344px) {
+  .prev {
+    left: -20px;
+  }
+
+  .next {
+    right: -20px;
+  }
+}
+
+@media (max-width: 900px) {
+  .card {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    /* The 566 floor is the design's screen height beside its prose. Stacked,
+       the screen is 180 tall and the floor is just empty card under it. */
+    min-height: 0;
+    padding: 20px;
+    border-radius: var(--r-lg);
+  }
+
+  .screen,
+  .slot {
+    flex: none;
+    width: 180px;
+  }
+
+  /* Side by side, a rejected list and a kept list are a comparison; stacked
+     in a phone-width column at 64px apart they are two lists. 24 keeps them
+     one block. */
+  .verdict {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .prev {
+    left: -4px;
+  }
+
+  .next {
+    right: -4px;
+  }
+}

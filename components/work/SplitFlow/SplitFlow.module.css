@@ -76,14 +76,14 @@
 }
 
 /* --- Task labels ---------------------------------------------------------
-   The two halves the diagram exists to separate, so they carry the blue. */
+   The two halves the diagram exists to separate, so they carry the accent. */
 
 .task {
   position: absolute;
   display: flex;
   flex-direction: column;
   gap: calc(2 * var(--u));
-  color: var(--blue-bright);
+  color: var(--accent);
   white-space: nowrap;
 }
 

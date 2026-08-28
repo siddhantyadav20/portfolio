@@ -6,6 +6,7 @@ import styles from "./StudyExhibit.module.css";
 type Props = {
   view: ExhibitName;
   caption: StudyCaption;
+  className?: string;
 };
 
 /**
@@ -18,9 +19,9 @@ type Props = {
  * a component. Unlike a specimen, an exhibit ships no JavaScript — it is
  * something to read, not something to operate.
  */
-export default function StudyExhibit({ view, caption }: Props) {
+export default function StudyExhibit({ view, caption, className }: Props) {
   return (
-    <figure className={styles.block}>
+    <figure className={`${styles.block} ${className ?? ""}`}>
       <div className={`${styles.panel} squircle`}>{PANELS[view]}</div>
       <FigureLabel caption={caption} />
     </figure>

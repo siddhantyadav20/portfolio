@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import {
   OLD_PATH,
   OLD_PATH_TAPS,
@@ -237,8 +244,32 @@ const ROWS_BEFORE_MEASURE = 4;
 const DRILL_ROWS = 8;
 
 type Props = {
-  /** Play the unattended demonstration once, when scrolled into view. */
-  cue?: boolean;
+  /**
+   * Play the unattended demonstration once, and what should set it off.
+   *
+   * `"view"` is scrolled into view, which is what a specimen standing in the
+   * middle of a case study wants: the reader is there to read it, and it plays
+   * as they arrive at it.
+   *
+   * `"hover"` is the pointer arriving on the card, and it is what the homepage
+   * wants. Six cards demonstrating themselves the moment the page settles is
+   * six things moving at once and no way to tell which one you asked for; on
+   * hover it is one card answering one gesture. The Inspection card has always
+   * worked this way — its recording plays while the pointer is on it — and this
+   * is the other two joining it.
+   */
+  cue?: "view" | "hover";
+  /**
+   * What the pointer has to enter for `cue: "hover"` to fire. Defaults to the
+   * instrument itself.
+   *
+   * The homepage card passes its own root, for the reason the Design System
+   * card passes one to `ThemingInstrument`: there the whole card is the thing
+   * you point at, and a demonstration that only starts once you happen to
+   * cross the results list is a demonstration most people never see. Unused
+   * for `cue: "view"`, which has no pointer in it.
+   */
+  track?: RefObject<HTMLElement | null>;
   /** An upper bound on the result rows drawn. How many actually fit is
    *  measured — see ROW_HEIGHT. */
   rows?: number;
@@ -301,7 +332,8 @@ const DRILL_PANELS = (() => {
 })();
 
 export default function RemarkFinder({
-  cue: wantCue = false,
+  cue: wantCue,
+  track,
   rows = Infinity,
   className,
 }: Props) {
@@ -772,34 +804,50 @@ export default function RemarkFinder({
 
     /* --- The cue ---------------------------------------------------------- */
 
-    // Once, and only if it is actually on screen. Demonstrating itself out of
-    // view has done nothing except spend a frame budget.
+    /** Both triggers land here. Somebody who has already typed something or
+     *  already built something is not shown the demonstration: the card has
+     *  nothing left to prove to them and taking the field away to prove it
+     *  would be rude. Not while the dictation is running either — pressing the
+     *  mic before this had ever been triggered would otherwise have the card
+     *  interrupt itself — and not while it is already playing. */
+    function fireCue() {
+      if (
+        clock < 0 &&
+        voice < 0 &&
+        !queryRef.current &&
+        pickedRef.current.length === 0
+      ) {
+        clock = 0;
+        aimed = false;
+        took = false;
+        start();
+      }
+    }
+
+    // Scrolled to: once, and only if it is actually on screen. Demonstrating
+    // itself out of view has done nothing except spend a frame budget.
     let io: IntersectionObserver | undefined;
-    if (wantCue && !still && typeof IntersectionObserver !== "undefined") {
+    if (wantCue === "view" && !still && typeof IntersectionObserver !== "undefined") {
       io = new IntersectionObserver(
         ([entry]) => {
           if (!entry.isIntersecting) return;
-          // Somebody has already typed something, or already built something.
-          // The card has nothing left to prove to them and taking the field
-          // away to prove it would be rude. Not while the dictation is running
-          // either: pressing the mic before this had ever been scrolled to
-          // would otherwise have the card interrupt itself.
-          if (
-            clock < 0 &&
-            voice < 0 &&
-            !queryRef.current &&
-            pickedRef.current.length === 0
-          ) {
-            clock = 0;
-            aimed = false;
-            took = false;
-            start();
-          }
+          fireCue();
           io?.disconnect();
         },
         { threshold: 0.55 },
       );
       io.observe(root);
+    }
+
+    /* Hovered: on entry, and the listener stays. It is not "once" the way the
+       observer is — the guards in `fireCue` are what make it at most once, and
+       they are the right ones. Somebody who hovered off two seconds in and came
+       back has seen nothing and should get it; somebody it has already run for
+       has a row in the report, and that stops it. */
+    const onEnter = () => fireCue();
+    const hoverTarget = track?.current ?? root;
+    if (wantCue === "hover" && !still) {
+      hoverTarget.addEventListener("pointerenter", onEnter);
     }
 
     /* --- The mic ---------------------------------------------------------- */
@@ -825,10 +873,11 @@ export default function RemarkFinder({
     return () => {
       cancelAnimationFrame(frame);
       io?.disconnect();
+      hoverTarget.removeEventListener("pointerenter", onEnter);
       root.removeEventListener("remarkfinder:voice", onVoice);
       transport.current = null;
     };
-  }, [wantCue]);
+  }, [wantCue, track]);
 
   /**
    * Put a remark in the report, or take it back out.

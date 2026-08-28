@@ -9,6 +9,7 @@ import { useLazyStudyModal } from "@/components/home/CaseStudyModal/lazy";
 import DeviceMockup from "@/components/interaction/DeviceMockup";
 import { inspection } from "@/content/site";
 import { inspectionPhotos } from "@/content/work/inspection-photos";
+import { useIsLiveCard } from "@/components/work/StudyCardMode";
 import { useStudyUrl } from "@/components/work/useStudyUrl";
 import { canMorph, morph, warm } from "@/lib/viewTransition";
 import styles from "./InspectionExperience.module.css";
@@ -50,6 +51,12 @@ export default function InspectionExperience() {
    * mouse interaction doesn't match `:focus-visible`, so the card sat at rest
    * with the video running behind the still.
    */
+  /* A copy of this card in another study's footer keeps the hover, the
+     recording and the device's whole flight, and gives up the two things only
+     the original can own — the morph name and the modal. See
+     `StudyCardMode`. */
+  const live = useIsLiveCard();
+
   const [hovered, setHovered] = useState(false);
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -89,17 +96,19 @@ export default function InspectionExperience() {
    */
   const onLinkClick = useCallback(
     (e: React.MouseEvent) => {
+      // A copy has no modal to open; the anchor under it is the behaviour.
+      if (!live) return;
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
       void openStudy();
     },
-    [openStudy],
+    [openStudy, live],
   );
 
   // Deep links, Back, and keeping `/work/inspection-photos` in the address bar
   // while this is open. The one part of the modal plumbing this card does not
   // need its own copy of.
-  useStudyUrl(inspectionPhotos.slug, open, setOpen);
+  useStudyUrl(inspectionPhotos.slug, open, setOpen, live);
 
   const close = useCallback(() => {
     if (canMorph()) {
@@ -133,7 +142,7 @@ export default function InspectionExperience() {
         // released the moment the modal owns it, since two live elements
         // sharing a name abort the transition.
         style={
-          open || !inspectionPhotos.hero
+          open || !live || !inspectionPhotos.hero
             ? undefined
             : { viewTransitionName: inspectionPhotos.hero.morphName }
         }
@@ -141,8 +150,9 @@ export default function InspectionExperience() {
         onMouseEnter={() => {
           setHovered(true);
           // The moment before a click: start the modal's code and its images
-          // now, so the transition never has to wait for either.
-          warmModal();
+          // now, so the transition never has to wait for either. A copy has no
+          // modal to warm.
+          if (live) warmModal();
           MODAL_ASSETS.forEach(warm);
         }}
         onMouseLeave={() => setHovered(false)}

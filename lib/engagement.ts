@@ -9,8 +9,7 @@
    sides read.
    =========================================================================== */
 
-export type Reaction = "up" | "down";
-
+/** A comment as it is stored — nothing here depends on who is reading. */
 export type StudyComment = {
   readonly id: string;
   /** Empty where the author didn't give one — rendered as "Anonymous". */
@@ -20,28 +19,64 @@ export type StudyComment = {
   readonly at: number;
 };
 
+/**
+ * A comment as it is served: the stored record, plus how the person asking
+ * stands with it.
+ *
+ * Kept apart from `StudyComment` rather than folded into it, because the two
+ * differ in a way that matters — `liked` is true for one visitor and false for
+ * the next, so it can never be written down. Anything that stores or validates
+ * a comment takes the plain shape; only the read hands out this one.
+ */
+export type ThreadComment = StudyComment & {
+  readonly likes: number;
+  readonly liked: boolean;
+};
+
 export type Engagement = {
   /**
    * `false` when the store isn't wired up (no Upstash credentials). Both
    * surfaces then render the block as explicitly unavailable rather than
-   * showing zeroes, which would read as "nobody has ever reacted".
+   * showing zeroes, which would read as "nobody has ever liked this".
    */
   readonly configured: boolean;
-  readonly up: number;
-  readonly down: number;
-  readonly comments: readonly StudyComment[];
+
+  /** How many people have liked this study. */
+  readonly likes: number;
+  /** Whether the person asking is one of them. */
+  readonly liked: boolean;
+
+  /**
+   * How many comments the thread holds in total — not how many are in
+   * `comments`. The stats row states the size of the thread and the thread
+   * itself arrives a page at a time, so these are two different numbers and
+   * conflating them made the count shrink to whatever had been fetched.
+   */
+  readonly total: number;
+
+  /** One page of the thread, newest first. */
+  readonly comments: readonly ThreadComment[];
+  /** Where this page started, so the caller knows what to ask for next. */
+  readonly from: number;
 };
 
 export const EMPTY_ENGAGEMENT: Engagement = {
   configured: false,
-  up: 0,
-  down: 0,
+  likes: 0,
+  liked: false,
+  total: 0,
   comments: [],
+  from: 0,
 };
 
-/** How many comments a study keeps, and how many it hands out at once. */
+/** How many comments a study keeps. */
 export const COMMENT_CAP = 500;
-export const COMMENT_PAGE = 50;
+
+/** A page of the thread — Figma 798:900 draws four and then "Load More". */
+export const COMMENT_PAGE = 4;
+
+/** The most one request may ask for, however it asks. */
+export const COMMENT_MAX_PAGE = 50;
 
 export const NAME_MAX = 40;
 export const BODY_MAX = 600;
@@ -79,6 +114,25 @@ export function readComment(
 }
 
 /**
+ * A query parameter as a number, or the fallback.
+ *
+ * The absent case is checked before the conversion, and that is the whole
+ * point of the function rather than a nicety: `Number(null)` is `0`, not
+ * `NaN`, so a plain `Number.isFinite` guard accepts a missing parameter as a
+ * perfectly good zero. It did — the thread's default page size came out as
+ * `count=0`, which the store clamped to one, and every study served its first
+ * comment and then a "Load More" button.
+ *
+ * Anything a caller sends that is not a number is not an error worth a status
+ * code; it is a request for the default.
+ */
+export function readNumber(raw: string | null, fallback: number): number {
+  if (raw === null || raw.trim() === "") return fallback;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+/**
  * Everything except a newline and a tab, which are the only two control
  * characters anyone types on purpose.
  *
@@ -93,30 +147,4 @@ const CONTROL = /[\x00-\x08\x0B-\x1F\x7F]/g;
 function strip(raw: unknown): string {
   if (typeof raw !== "string") return "";
   return raw.replace(CARRIAGE, "\n").replace(CONTROL, "").trim();
-}
-
-/** "3 minutes ago", for a comment's timestamp. Absolute past a week. */
-export function relativeTime(at: number, now = Date.now()): string {
-  const seconds = Math.max(0, Math.round((now - at) / 1000));
-  if (seconds < 60) return "just now";
-
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-
-  const days = Math.round(hours / 24);
-  if (days <= 7) return `${days}d ago`;
-
-  /* Past a week "37d ago" stops being easier to read than the date itself.
-     `UTC` rather than the reader's zone: this renders on the client only, but
-     pinning it means two people in different places quoting the same comment
-     are quoting the same date. */
-  return new Date(at).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  });
 }

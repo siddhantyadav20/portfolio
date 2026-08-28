@@ -8,8 +8,8 @@ import { intro, linkedin } from "@/content/site";
  * `display: standalone` — someone who adds it to a home screen should get the
  * site in a browser, with the address bar they need to share it.
  *
- * `icons` is left to Next, which wires up `icon.tsx` and `apple-icon.tsx`
- * automatically.
+ * `icons` is left to Next, which wires up `app/icon.svg` and
+ * `app/apple-icon.png` automatically.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {

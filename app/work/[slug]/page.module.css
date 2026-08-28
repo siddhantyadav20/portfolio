@@ -2,12 +2,13 @@
 
    The study itself is `StudyReader`, which owns every measurement in it and is
    the same component the modal renders. What is left here is the chrome the
-   modal gets from `ModalSurface`: the top-right cluster, at the same 48px
-   inset, with the same 12px between the theme toggle and the close.
+   modal gets from `ModalSurface`: Share at the top left and the theme toggle
+   and close at the top right, both at the same 32px inset, with the same 12px
+   between the toggle and the close.
 
    The cluster is sticky rather than fixed for the reason the modal's is — it
-   is also what reserves Figma's 160px between the top of the frame and the
-   first line of the study: 48 above, 64 of control, 48 below. */
+   is also what reserves Figma's 120px between the top of the frame and the
+   first line of the study: 32 above, 64 of control, 24 below. */
 
 .page {
   min-height: 100svh;
@@ -16,14 +17,14 @@
 
 .controls {
   position: sticky;
-  top: 48px;
+  top: 32px;
   z-index: 3;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
   height: 64px;
-  margin: 48px 48px 48px;
+  margin: 32px 32px 24px;
 
   /* Right-aligned, full width, and sticky — so everything left of the theme
      toggle is an invisible bar lying across the top of the study, taking
@@ -37,9 +38,27 @@
   pointer-events: auto;
 }
 
+/* Fixed rather than sticky, like the modal's: it has no layout job — the
+   right-hand cluster already reserves the space above the study — and in flow
+   it would push the content down a second time. */
+.leading {
+  position: fixed;
+  top: 32px;
+  left: 32px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 @media (max-width: 900px) {
   .controls {
     top: 24px;
     margin: 24px 24px 32px;
+  }
+
+  .leading {
+    top: 24px;
+    left: 24px;
   }
 }

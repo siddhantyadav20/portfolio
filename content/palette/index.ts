@@ -174,7 +174,10 @@ function prosaic(block: StudyBlock): string[] {
     case "prose":
       return [...block.body];
     case "aside":
-      return [block.lead, ...block.body];
+      /* Only the paragraphs. Everything else in the column is an artefact
+         with a caption, and a caption is a label rather than a sentence
+         somebody would search for — see `prosaic`'s own contract above. */
+      return [block.lead, ...block.body.filter((i) => typeof i === "string")];
     case "note":
     case "insight":
       return [block.eyebrow, block.heading, ...block.body];
@@ -373,7 +376,7 @@ const cards: PaletteEntry[] = [
     id: "card:about",
     group: "start",
     label: `${about.eyebrow} ${about.title}`,
-    hint: about.story.title,
+    hint: about.story.afterStatement,
     keywords: "bio who story background personal portrait",
     to: { kind: "card", card: "about" },
   },

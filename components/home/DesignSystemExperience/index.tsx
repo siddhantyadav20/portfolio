@@ -8,6 +8,7 @@ import ThemingInstrument, {
   REST_MODE,
   REST_NAME,
 } from "@/components/interaction/ThemingInstrument";
+import { useIsLiveCard } from "@/components/work/StudyCardMode";
 import { useStudyModal } from "@/components/work/useStudyModal";
 import { designSystem as designSystemCopy } from "@/content/site";
 import { designSystem as study } from "@/content/work/design-system";
@@ -28,13 +29,26 @@ import styles from "./DesignSystemExperience.module.css";
  * instrument this element, so the gesture is the whole 386x578 rather than the
  * 346px window you watch it in.
  *
+ * And no `cue`. The instrument can play an unattended tour of the six presets
+ * on its own, and the specimen inside the study does; here it would be wrong
+ * twice over. The homepage should not have six cards demonstrating themselves
+ * the moment it settles, which is the thing being fixed — and on this card the
+ * hover *is* the animation, so a tour would be cancelled by the first pointer
+ * move that reached it anyway. Untouched, it sits at rest: a real still of the
+ * system, the way the Inspection card sits on a frame of its recording.
+ *
  * The anchor underneath all of it is still real: `/work/design-system` exists,
  * and a plain left click is upgraded to the morph rather than replacing the
  * navigation.
  */
 export default function DesignSystemExperience() {
+  /* A copy of this card in another study's footer keeps every interaction
+     and gives up the two things only the original can own — the morph name
+     and the modal. See `StudyCardMode`. */
+  const live = useIsLiveCard();
+
   const { Modal, open, closing, close, onLinkClick, prefetch } =
-    useStudyModal(study);
+    useStudyModal(study, live);
 
   const cardRef = useRef<HTMLAnchorElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
@@ -52,7 +66,7 @@ export default function DesignSystemExperience() {
         className={styles.card}
         aria-label={`${designSystemCopy.eyebrow} ${designSystemCopy.title} ${designSystemCopy.subtitle} — open case study`}
         data-cursor="view-project"
-        onMouseEnter={prefetch}
+        onMouseEnter={live ? prefetch : undefined}
         onClick={onLinkClick}
       >
         <div className={styles.heading}>
@@ -76,14 +90,13 @@ export default function DesignSystemExperience() {
         <span
           className={styles.shotFrame}
           style={
-            open || !study.hero
+            open || !live || !study.hero
               ? undefined
               : { viewTransitionName: study.hero.morphName }
           }
         >
           <ThemingInstrument
             track={cardRef}
-            cue
             readouts={{ label: labelRef, dots: dotsRef, mode: modeRef }}
           />
         </span>
