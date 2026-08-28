@@ -277,12 +277,26 @@
 }
 
 /* --- One column ------------------------------------------------------------
-   Full-bleed below 1001, for the reason the music player above it is: paired
-   on the wide grid, stacked here, and a 254-wide card centred in a 350 column
-   leaves a margin that belongs to neither the card nor the page. */
+   Paired with the music player rather than stacked under it, for the reason
+   given there: on the wide grid these two are a row, and in one column they
+   still are. The track it sits in is what sizes it. */
 @media (max-width: 1000px) {
   .card {
-    width: 100%;
-    flex: none;
+    width: auto;
+    min-width: 0;
+  }
+}
+
+/* Half a phone column is 167, and 20 of padding either side leaves 127 for a
+   blurb drawn at 22px against 214. It wraps to five lines there and pushes the
+   CTA 12px out through the bottom of a card whose height is fixed.
+
+   The blurb is what gives. It is the one piece of type on this card with room
+   to lose — the name, the role and the button are all already small — and at
+   18 it holds the same three-colour line over four lines instead of five, which
+   is what buys the button back. */
+@media (max-width: 600px) {
+  .blurb {
+    font-size: calc(18 * var(--u));
   }
 }

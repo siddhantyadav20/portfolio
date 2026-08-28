@@ -153,43 +153,21 @@
 
 /* --- One column ------------------------------------------------------------
 
-   Below 1001 the page is a single column and this card stops being one third
-   of a row. Left at its drawn width it became an orphan: 134px, left-aligned
-   in a 350px column, above a 260 and a 322 — three different right edges down
-   the same page, which is what made the phone layout read as reflowed rather
-   than designed.
+   It keeps the composition it is drawn with: portrait over label, 134 wide.
 
-   So: full-bleed, and the composition turns with it. Stretching the portrait
-   chip to 350 and leaving it a centred column would have put a 32px photo
-   adrift in the middle of a very wide box. Portrait and label sit on one line
-   instead and read left to right, like every other card on this layout.
+   This card was briefly rebuilt horizontally and full-bleed here, to fix a
+   real problem — 134px left-aligned in a 350px column, above a 260 and a 322,
+   was three ragged right edges down one page. Pairing it with the
+   Design/Engineer card solves the same problem better: the two are the same
+   116 tall, they are the same kind of thing, and side by side they hold the
+   column's full width between them. Which is the relationship they already
+   have on the wide grid.
 
-   The orbit needs nothing here — `hw` is read from `offsetWidth` every frame,
-   so the pills simply orbit a wider outline, and they still leave from the
-   portrait, which is now at one end of it. */
+   So the only rule needed here is that it does not stretch — the card beside
+   it is the one that takes up the slack. */
 @media (max-width: 1000px) {
   .wrap {
-    width: 100%;
-  }
-
-  .card {
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: calc(16 * var(--u));
-    padding: 0 calc(20 * var(--u));
-    text-align: left;
-  }
-
-  /* Bigger, because there is room for it to be and because the portrait is
-     the only image on the card — at 32 in a full-width band it reads as an
-     icon rather than a face. */
-  .photo {
-    width: calc(48 * var(--u));
-    height: calc(48 * var(--u));
-  }
-
-  .dest {
-    align-items: flex-start;
+    flex: none;
+    width: calc(134 * var(--u));
   }
 }

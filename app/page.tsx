@@ -52,11 +52,15 @@ export default function Home() {
               3,915. The three things a recruiter came for were last.
 
               Now it answers the questions in the order they get asked: who is
-              this (Introduction), what kind of designer (About, the
-              Design/Engineer card, the canvas), what have they shipped
-              (Inspection, Design System), how did they get here (Timeline,
-              Search), what are they doing now (the Store waitlist), and who
-              are they otherwise (music, LinkedIn).
+              this (Introduction), what have they shipped (Inspection, Design
+              System), how did they get here (Timeline, Search), what are they
+              doing now (the Store waitlist), who are they otherwise (music and
+              LinkedIn, side by side), and then the way in to more of them —
+              About, the Design/Engineer card and the canvas, together at the
+              end as one closing section rather than three chips.
+
+              The work leads, in other words, and the person is what the page
+              hands you on the way out.
 
               `.lead` exists only so the Introduction can lead while the rest of
               column 2 goes last — the two are one flow on the desktop grid and
@@ -64,12 +68,6 @@ export default function Home() {
           <div className={styles.band}>
             <div className={styles.lead}>
               <Introduction className={styles.intro} />
-            </div>
-
-            <div className={styles.topRow}>
-              <AboutMeCard />
-              <DesignEngineerCard />
-              <CanvasCard />
             </div>
 
             <div className={styles.col1}>
@@ -88,6 +86,16 @@ export default function Home() {
                 <MusicPlayer />
                 <LinkedInCard />
               </div>
+            </div>
+
+            {/* Last on a phone, and one section when it gets there: the two
+                116-tall chips pair off into a row and the canvas takes the
+                width under them. On the wide grid this is still the top row,
+                placed by the grid rather than by where it sits here. */}
+            <div className={styles.topRow}>
+              <AboutMeCard />
+              <DesignEngineerCard />
+              <CanvasCard />
             </div>
 
             <div className={styles.footerWrap}>

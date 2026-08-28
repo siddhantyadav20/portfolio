@@ -86,7 +86,13 @@
    The preview is a window onto the board rather than a laid-out composition,
    so a wider card simply shows more board — which is the point of it. */
 @media (max-width: 1000px) {
+  /* `flex-basis: 100%` rather than `width` alone: this card shares a wrapping
+     row with the About Me and Design/Engineer pair, and a full basis is what
+     pushes it onto its own line under them instead of trying to fit beside
+     them. The three then read as one block — two chips and the board below
+     them — which is what they are. */
   .card {
+    flex: 0 0 100%;
     width: 100%;
   }
 

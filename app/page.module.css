@@ -333,10 +333,19 @@
     align-items: stretch;
   }
 
+  /* Two chips on one line, the board on the next.
+
+     This is the page's closing section rather than its opening one — About Me
+     and the Design/Engineer card answer "who is this", and the canvas is the
+     way further in, so all three sit together at the end. Wrapping does the
+     work: About Me holds its drawn 134, the Design/Engineer card takes the
+     rest of the line, and the canvas has a full flex basis so it drops below
+     them. */
   .topRow {
     height: auto;
     flex-wrap: wrap;
     justify-content: flex-start;
+    gap: calc(16 * var(--u));
   }
 
   .col2,
@@ -351,8 +360,33 @@
      so this block used to hand a phone visitor the Introduction visually and
      the Inspection card on the first Tab. */
 
+  /* Still a row, and an even one.
+
+     These two are a pair on the wide grid and they stay one here — stacking
+     them turned a 280px block into a 592px one and left 48px of empty page
+     either side of each card, which is a third of a phone page spent on a
+     music player and a LinkedIn card.
+
+     A two-track grid rather than two flex children, and the difference is not
+     cosmetic. On flex the LinkedIn card came out wider than the player every
+     time: at half a phone column its 20px of padding cannot shrink below a
+     zero basis, so the pair split 147/187 instead of down the middle; and at
+     the 540 column the player, whose composition is absolutely positioned and
+     therefore has no intrinsic width, collapsed to 0 and gave LinkedIn the
+     whole row. Tracks are sized before anything inside them is consulted.
+
+     `minmax(0, 1fr)` and not a bare `1fr`, for the second half of that: an
+     `fr` track has an automatic *minimum* of its own content, which is the
+     same trap one level up. Zero as the floor is what makes the halves halves.
+
+     The gutter closes to 16 — half of a 350 column is 167 and every pixel of
+     the gap comes out of both cards. */
   .personality {
     margin-top: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: calc(16 * var(--u));
   }
 }
 
@@ -387,9 +421,9 @@
 
   /* The toggle stays pinned to the page's top-right corner, which is the
      affordance it was drawn as. Letting it rejoin the flow instead sounds
-     tidier and is much worse: `.topRow` is ordered fourth on this layout, so
-     an in-flow toggle lands roughly 4,000px down a phone page — a control
-     nobody will ever find.
+     tidier and is much worse: `.topRow` is now *last* on this layout, so an
+     in-flow toggle lands at the very bottom of a phone page — a control nobody
+     will ever find.
 
      What it can collide with is whatever is ordered *first*, which is `.lead`
      and so the Introduction. That block gets the clearance instead. */
@@ -409,16 +443,6 @@
 
   .topRow {
     align-items: flex-start;
-    gap: var(--gap);
   }
 
-  /* Stacked and full-bleed. They used to be centred at the 254 they are drawn
-     at, on the argument that widening them would move art their layouts place
-     by hand — it doesn't: the player's cover is a fill and the LinkedIn card
-     is a centred column, so both only get wider. Each card carries the rule
-     that lets it (see their own stylesheets); this just stops centring them. */
-  .personality {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }

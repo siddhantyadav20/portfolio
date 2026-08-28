@@ -11,20 +11,35 @@
   height: calc(116 * var(--u));
 }
 
-/* Stretching is only meaningful while the top row is a single line. Once it
-   wraps there is no spare width to absorb — and a flexible card in a wrapped
-   row is squeezed to nothing — so `flex` comes off here.
+/* In one column it is still the card that stretches, for the same reason: it
+   shares a row with About Me, About Me is fixed at the 134 it is drawn with,
+   and this takes whatever is left. At the 540 the tablet column uses that is
+   374; on a 350 phone it is 200.
 
-   It takes the full column rather than going back to its drawn 260. In one
-   column this card owns its row, and 260 left-aligned in a 350 column put a
-   third distinct right edge under the 134 of About Me and the 322 of Canvas.
-   The route inside is built to stretch — `.route` is a `max()` of its drawn
-   width and whatever the card gives it — so this is the one card in the row
-   that needed no internal change to fill the space. */
+   `min-width: 0` matters here — without it the route's own minimum becomes the
+   flex base and the pair stops fitting. */
 @media (max-width: 1000px) {
   .card {
-    flex: none;
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+  }
+}
+
+/* The route's floor, lifted.
+
+   `.journey` is `max(114.21u, 100% - 145.79u)` — a minimum length so the flight
+   never collapses, and the space left after DES and ENG. On a phone the second
+   term wins and is smaller than the floor: at a 200-wide card there are 54px
+   between the two labels, and holding the route at 114 pushes it straight
+   through ENG and out of the card.
+
+   The labels are the content and the route is the join between them, so it is
+   the route that gives. It is still long enough to read as a flight path, and
+   the plane still flies the whole of it. */
+@media (max-width: 600px) {
+  .journey {
+    width: calc(100% - 145.79 * var(--u));
   }
 }
 
