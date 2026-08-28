@@ -1,6 +1,19 @@
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+/* Phase, not `NODE_ENV`.
+ *
+ * This file used to read `process.env.NODE_ENV` to decide the dev-only
+ * `X-Frame-Options` relaxation below. It is `"development"` inside the running
+ * app — `app/dev/responsive/page.tsx` reads it and renders rather than
+ * 404s — but it is *not* `"development"` at the moment Next evaluates this
+ * config, so the relaxation never applied and `/dev/responsive` served
+ * `DENY` to its own iframes. The bench has therefore never worked: three
+ * empty frames, no error in the page, nothing to grep for.
+ *
+ * `phase` is the value Next passes for exactly this question, and it is the
+ * documented API for it. Production is unchanged and still `DENY`. */
+const buildConfig = (phase: string): NextConfig => ({
   /* Next advertises itself in an `X-Powered-By` response header by default.
      It tells a visitor nothing and tells everyone else which framework and
      therefore which advisories to try. */
@@ -74,7 +87,7 @@ const nextConfig: NextConfig = {
              untouched — anything deployed still says DENY. */
           {
             key: "X-Frame-Options",
-            value: process.env.NODE_ENV === "development" ? "SAMEORIGIN" : "DENY",
+            value: phase === PHASE_DEVELOPMENT_SERVER ? "SAMEORIGIN" : "DENY",
           },
           /* Send the origin to other sites, the full URL to our own. Without
              this a case-study URL leaks in the Referer of every outbound
@@ -90,6 +103,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-};
+});
 
-export default nextConfig;
+export default buildConfig;
