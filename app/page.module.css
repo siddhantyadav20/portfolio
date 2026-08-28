@@ -445,6 +445,12 @@
     scroll-snap-type: x proximity;
     margin-inline: calc(-24 * var(--u));
     padding-inline: calc(24 * var(--u));
+    /* Snapping happens against the *snapport*, which is the scrollport inset by
+       `scroll-padding` — not by `padding`. Without this the first card snapped
+       its left edge to the container's edge, scrolling the 24 of padding out
+       from under itself and parking the music player flush against the
+       section's border. */
+    scroll-padding-inline: calc(24 * var(--u));
     /* The cards carry their own shadows and the scroll port would clip them
        against a hard edge; a little room under them keeps that off. */
     padding-bottom: calc(4 * var(--u));
@@ -468,13 +474,54 @@
    room the frame leaves above the first line and below the last.
    --------------------------------------------------------------------------- */
 
-@media (max-width: 600px) {
+@media (max-width: 500px) {
+  /* ONE DESIGN PIXEL, AGAIN — this time off the phone frame.
+
+     Above 1000 the whole composition is a uniform scale of the 1440 frame:
+     `--u` is one design pixel expressed as a fraction of the width there
+     actually is, and every geometric value is a multiple of it. Below 500 the
+     same thing now happens off Figma's 390 frame. A 360 phone gets the design
+     at 0.92, a 430 phone at 1.10, and nothing reflows in between — the page is
+     the drawing, resized, exactly as it is on a desktop.
+
+     Between the two, 501 to 1000, `--u` stays its registered 1px and the
+     layout is the one column at the sizes it is drawn. That band is a tablet
+     and there is no frame for one; inventing a scale for it would be guessing
+     where this is transcribing.
+
+     The mechanics are the wide grid's, for the same reason they are its: the
+     page padding moves off `.page` and onto `.band` as a margin, so `.page`'s
+     content box is the whole viewport and `--u` can be a fraction of 390
+     rather than of 390-minus-a-padding-derived-from-itself. */
   .page {
-    /* The blur bar parks over the last of the page, and the home indicator
-       sits under that again. */
-    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-    padding-left: max(var(--page-pad), env(safe-area-inset-left, 0px));
-    padding-right: max(var(--page-pad), env(safe-area-inset-right, 0px));
+    padding: 0;
+  }
+
+  .band,
+  .themeToggle {
+    --u: calc(100cqw / 390);
+  }
+
+  .band {
+    /* The frame's 24 inset, now scaling with everything else. `max()` against
+       the safe area because with `viewport-fit=cover` the page draws into the
+       notch in landscape, and 24 design pixels is not always enough to clear
+       a sensor housing. */
+    margin-top: calc(24 * var(--u));
+    margin-left: max(calc(24 * var(--u)), env(safe-area-inset-left, 0px));
+    margin-right: max(calc(24 * var(--u)), env(safe-area-inset-right, 0px));
+    /* The blur bar parks over the last of the page and the home indicator sits
+       under that again. */
+    margin-bottom: calc(96 * var(--u) + env(safe-area-inset-bottom, 0px));
+    /* The 540 cap is the tablet column's, and there is no cap here: the band
+       is the page. Left at `min(540px, 100%)` it would be 100% *plus* the
+       margins above and overflow by both of them. */
+    max-width: none;
+  }
+
+  .themeToggle {
+    top: max(calc(24 * var(--u)), env(safe-area-inset-top, 0px));
+    right: max(calc(24 * var(--u)), env(safe-area-inset-right, 0px));
   }
 
   /* The toggle stays pinned to the page's top-right corner, which is the

@@ -771,3 +771,27 @@
     filter: blur(2px);
   }
 }
+
+/* --- The phone frame -------------------------------------------------------
+
+   Figma 843:2492 draws this block with no card under it at all — the fill is
+   `rgba(255,255,255,0)` and the padding is 24 vertical, 12 horizontal. On a
+   phone it sits between the Inspection card and the Design System card, and
+   giving it a surface of its own made three cards in a row where the frame has
+   two cards and a passage of text.
+
+   So the surface comes off and only the padding stays. `background: none`
+   rather than a transparent token, because CardShell's `translucent` also
+   brings a border and a backdrop-filter, and all three have to go together —
+   a blur with nothing behind it still costs a compositor layer. */
+@media (max-width: 1000px) {
+  .card {
+    max-width: 100%;
+    min-height: 0;
+    padding: calc(24 * var(--u)) calc(12 * var(--u));
+    background: none;
+    border: 0;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+}

@@ -183,7 +183,7 @@
    `max-width` because 315 is wider than the content box of a 360 screen, and a
    card that overflows the page is worse than one that is 12px narrower than
    the frame draws it. */
-@media (max-width: 600px) {
+@media (max-width: 500px) {
   .card {
     width: calc(315 * var(--u));
     max-width: 100%;

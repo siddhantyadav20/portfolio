@@ -15,6 +15,32 @@ export const THEME_ATTR = "data-theme";
 export const THEME_KEY = "sy-theme";
 
 /**
+ * The browser chrome's colour, per theme — `--page-base` from globals.css.
+ *
+ * Modern mobile Safari and Chrome tint their own toolbars with the page's
+ * `theme-color` rather than drawing a bar above it, which is why the site
+ * appears to run edge to edge there. That is the browser's design and there is
+ * no opting out of it; what there *is* to get right is which colour it uses.
+ *
+ * `app/layout.tsx` declares two `theme-color` metas behind
+ * `prefers-color-scheme`, which is correct until the visitor uses the toggle:
+ * a stored choice always beats the OS on this site (see `THEME_SCRIPT`), and
+ * nothing was telling the chrome that. Pick light on a dark-mode phone and the
+ * toolbars stayed #111 above a #f3f3f3 page — the blend the browser is going
+ * for, in the wrong direction.
+ *
+ * So one more meta, written by us, carrying no `media` and therefore always
+ * matching. The spec says the first matching one wins, so it is inserted at
+ * the top of <head>; the two declared ones stay underneath as the answer for a
+ * visitor with JavaScript off.
+ */
+export const CHROME_ID = "sy-chrome";
+export const CHROME: Record<Theme, string> = {
+  light: "#f3f3f3",
+  dark: "#111111",
+};
+
+/**
  * The pre-paint script, as source.
  *
  * Injected into <head> and run synchronously before the browser paints
@@ -46,7 +72,13 @@ export const THEME_SCRIPT = `try{var s=localStorage.getItem(${JSON.stringify(
   THEME_KEY,
 )});var t=s==="light"||s==="dark"?s:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute(${JSON.stringify(
   THEME_ATTR,
-)},t)}catch(e){}`;
+)},t);var m=document.createElement("meta");m.id=${JSON.stringify(
+  CHROME_ID,
+)};m.name="theme-color";m.content=t==="dark"?${JSON.stringify(
+  "#111111",
+)}:${JSON.stringify(
+  "#f3f3f3",
+)};document.head.insertBefore(m,document.head.firstChild)}catch(e){}`;
 
 /* ===========================================================================
    The theme as an external store.
@@ -100,8 +132,27 @@ export function subscribeTheme(onChange: () => void) {
  * custom property under `html[data-theme="dark"]`, so one attribute flip
  * repaints the whole site with no React re-render involved anywhere.
  */
+/**
+ * Keep the browser chrome on the theme the site is actually showing.
+ *
+ * Creating the meta if the pre-paint script could not — that script is wrapped
+ * in a try/catch for Safari's private mode, and a theme is not worth a blank
+ * page, so this cannot assume it ran.
+ */
+export function paintChrome(theme: Theme) {
+  let meta = document.getElementById(CHROME_ID) as HTMLMetaElement | null;
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.id = CHROME_ID;
+    meta.name = "theme-color";
+    document.head.insertBefore(meta, document.head.firstChild);
+  }
+  meta.content = CHROME[theme];
+}
+
 export function writeTheme(theme: Theme) {
   document.documentElement.setAttribute(THEME_ATTR, theme);
+  paintChrome(theme);
   try {
     localStorage.setItem(THEME_KEY, theme);
   } catch {

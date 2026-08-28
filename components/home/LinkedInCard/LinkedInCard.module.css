@@ -291,16 +291,3 @@
   }
 }
 
-/* Half a phone column is 167, and 20 of padding either side leaves 127 for a
-   blurb drawn at 22px against 214. It wraps to five lines there and pushes the
-   CTA 12px out through the bottom of a card whose height is fixed.
-
-   The blurb is what gives. It is the one piece of type on this card with room
-   to lose — the name, the role and the button are all already small — and at
-   18 it holds the same three-colour line over four lines instead of five, which
-   is what buys the button back. */
-@media (max-width: 600px) {
-  .blurb {
-    font-size: calc(18 * var(--u));
-  }
-}

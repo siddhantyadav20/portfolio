@@ -370,11 +370,3 @@
   }
 }
 
-/* Half of a 350 column is 159, and 24 of inset either side of that leaves 111
-   for two lines of type. Tighten the inset before the type. */
-@media (max-width: 600px) {
-  .chip {
-    left: calc(12 * var(--u));
-    right: calc(12 * var(--u));
-  }
-}
