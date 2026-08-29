@@ -103,7 +103,7 @@ export default function LinkedInCard() {
 
   return (
     <CardShell
-      radius={48}
+      radius={32}
       className={`${styles.card} ${lit ? styles.lit : ""}`}
       data-card="linkedin"
     >

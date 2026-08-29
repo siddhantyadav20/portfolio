@@ -1,8 +1,11 @@
 /* Figma "LinkedIn", node 80:7629 — 254x280, pad 20, space-between.
 
-   Radius is 48 rather than Figma's 24, by request, with the file's 100% corner
-   smoothing carried over: CardShell adds `.squircle`, so the card is an iOS
-   superellipse and not a rounded rect.
+   RADIUS IS NOT FIGMA'S HERE. Figma draws it 24; a note that stood here
+   said 48 "by request"; the corner guide now sets 32 on the wide grid and
+   24 on the phone, and supersedes both. The file's 100% corner smoothing
+   is carried over either way — CardShell adds `.squircle`, so the card is
+   an iOS-smoothed corner rather than a circular one, and the surfaces
+   painted over it take `border-radius: inherit` so they follow.
 
    ---------------------------------------------------------------------------
    Default -> Hover.
@@ -297,6 +300,6 @@
    surfaces take `border-radius: inherit`, so they follow. */
 @media (max-width: 500px) {
   .card.card {
-    border-radius: calc(32 * var(--u));
+    border-radius: calc(24 * var(--u));
   }
 }

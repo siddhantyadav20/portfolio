@@ -468,7 +468,7 @@ export default function AboutMeCard() {
         <CardShell
           as="button"
           type="button"
-          radius={32}
+          radius={24}
           data-card="about"
           static
           className={styles.card}

@@ -98,7 +98,7 @@ export default function MusicPlayer() {
 
   return (
     <CardShell
-      radius={48}
+      radius={32}
       surface="solid"
       data-card="music"
       className={`${styles.card} ${playing ? styles.playing : ""}`}

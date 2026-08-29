@@ -1,4 +1,10 @@
-/* Figma node 244:9505 — 134x116, radius 32, pad 12 top/bottom, space-between.
+/* Figma node 244:9505 — 134x116, pad 12 top/bottom, space-between.
+
+   RADIUS IS NOT FIGMA'S HERE. It comes from the corner guide, which sets
+   24px on the wide grid and 20 on the phone. Both carry `corner-shape:
+   squircle` via CardShell. The phone value lives in the `max-width: 500px`
+   block at the foot of this file; the desktop one is the `radius` prop in
+   index.tsx.
 
    The wrapper exists because the tool pills orbit the card's *border* and cards
    clip their contents. It is also what the cursor-proximity field moves —
@@ -183,6 +189,6 @@
    surfaces take `border-radius: inherit`, so they follow. */
 @media (max-width: 500px) {
   .card.card {
-    border-radius: calc(16 * var(--u));
+    border-radius: calc(20 * var(--u));
   }
 }

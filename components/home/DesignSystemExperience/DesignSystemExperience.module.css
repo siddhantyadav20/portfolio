@@ -1,4 +1,10 @@
-/* Figma node 244:9359 — 386x578, radius 24, surface #FFF @0.7 */
+/* Figma node 244:9359 — 386x578, surface #FFF @0.7.
+
+   RADIUS IS NOT FIGMA'S HERE. It comes from the corner guide, which sets
+   48px on the wide grid and 32 on the phone. Both carry `corner-shape:
+   squircle` via CardShell. The phone value lives in the `max-width: 500px`
+   block at the foot of this file; the desktop one is the `radius` prop in
+   index.tsx. */
 
 .card {
   display: block;

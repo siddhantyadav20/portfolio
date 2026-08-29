@@ -793,5 +793,9 @@
     border: 0;
     backdrop-filter: none;
     box-shadow: none;
+    /* No surface, so no corner. Stated rather than left at the desktop's 32,
+       because a radius on a box with nothing to round is a number that will
+       one day be read as intent. */
+    border-radius: 0;
   }
 }

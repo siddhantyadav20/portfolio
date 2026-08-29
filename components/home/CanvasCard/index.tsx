@@ -227,7 +227,7 @@ export default function CanvasCard() {
   return (
     <>
       <CardShell
-        radius={24}
+        radius={48}
         surface="solid"
         className={styles.card}
         data-card="canvas"
