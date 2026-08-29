@@ -109,3 +109,6 @@
 .r48 {
   border-radius: var(--r-2xl);
 }
+.r64 {
+  border-radius: var(--r-3xl);
+}

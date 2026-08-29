@@ -2,7 +2,7 @@
    Layer order matches Figma: bg, scrim, title, chip, device.
 
    RADIUS IS NOT FIGMA'S HERE. It comes from the corner guide, which sets
-   48px on the wide grid and 32 on the phone. Both carry `corner-shape:
+   64px on the wide grid and 32 on the phone. Both carry `corner-shape:
    squircle` via CardShell. The phone value lives in the `max-width: 500px`
    block at the foot of this file; the desktop one is the `radius` prop in
    index.tsx.

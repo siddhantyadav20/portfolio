@@ -134,7 +134,7 @@ export default function InspectionExperience() {
       <CardShell
         as="a"
         href={inspection.href}
-        radius={48}
+        radius={64}
         data-card="inspection"
         surface="none"
         className={styles.card}
