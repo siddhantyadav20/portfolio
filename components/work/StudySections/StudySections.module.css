@@ -164,22 +164,6 @@
   height: auto;
 }
 
-/* A strip of replacement text over the screenshot. White ground, because it
-   is standing in for a white row in the board underneath — and deliberately
-   *not* themed: it is part of the photograph, and a dark strip over a light
-   screenshot would read as a redaction rather than as a ticket title. */
-.overlay {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  padding: 0 4px;
-  background-color: #ffffff;
-  font-size: 11px;
-  line-height: var(--lh-read);
-  color: #222222;
-  white-space: nowrap;
-  overflow: hidden;
-}
 
 /* --- The note ------------------------------------------------------------
    Figma 548:12177 — a beat inside the section, not a new one. */

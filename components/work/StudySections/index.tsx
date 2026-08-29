@@ -250,23 +250,6 @@ function Item({ item }: { item: AsideItem }) {
               sizes="(max-width: 900px) 100vw, 832px"
             />
 
-            {/* Figma 529:12089/12091 — the two ticket titles this study is
-                about, laid over the ones the board happened to be showing.
-                Positioned as fractions of the frame so they travel with it. */}
-            {item.overlays?.map((o) => (
-              <span
-                key={o.text}
-                className={styles.overlay}
-                style={{
-                  left: `${o.left * 100}%`,
-                  top: `${o.top * 100}%`,
-                  width: `${o.width * 100}%`,
-                  height: `${o.height * 100}%`,
-                }}
-              >
-                {o.text}
-              </span>
-            ))}
           </div>
           <FigureLabel caption={item.caption} />
         </figure>

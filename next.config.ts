@@ -50,9 +50,16 @@ const buildConfig = (phase: string): NextConfig => ({
        so a future change to it is a decision rather than an accident. */
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
 
-    /* A year. These are content-hashed by the optimiser, so a stale cache is
-       not a risk and the default 60s means a repeat visitor re-validates
-       every image on the board. */
+    /* A year, and the reason to keep it is that the default 60s makes a repeat
+       visitor re-validate every image on the board.
+
+       An earlier note here said these are content-hashed by the optimiser and
+       a stale cache is therefore not a risk. They are not. `/_next/image` keys
+       on the *source path* — `?url=/media/foo.png&w=…&q=…` — so replacing a
+       file's bytes under the same name leaves everyone who has already seen it
+       on the old picture for the length of this TTL. That happened once, with
+       the JIRA backlog figure, and the fix was to give the new export a new
+       name. Re-export freely; rename whenever the content changes. */
     minimumCacheTTL: 31_536_000,
   },
 

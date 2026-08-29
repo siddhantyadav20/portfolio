@@ -92,26 +92,6 @@ export type StudyCaption = {
 };
 
 /**
- * A strip of text laid over a screenshot — Figma 529:12089 and 529:12091.
- *
- * The JIRA figure is a real board with two of its ticket titles replaced, so
- * the reader sees the tickets the story is about rather than whatever happened
- * to be in the sprint. Flattening that into the export would bake #222 text
- * into a PNG that has to survive a theme switch, and would make two sentences
- * of the argument unreadable to a screen reader and unfindable by search.
- *
- * Positions are fractions of the figure's own box (0–1), not pixels, because
- * the figure is fluid and the strips have to travel with it.
- */
-export type StudyOverlay = {
-  readonly text: string;
-  readonly left: number;
-  readonly top: number;
-  readonly width: number;
-  readonly height: number;
-};
-
-/**
  * One of the three headline numbers under the hero — Figma 529:11825.
  *
  * `note` is what the number is *of*, and it is not optional: "52" and "89%"
@@ -206,7 +186,6 @@ export type AsideItem =
       readonly kind: "figure";
       readonly media: Omit<StudyMedia, "caption">;
       readonly caption: StudyCaption;
-      readonly overlays?: readonly StudyOverlay[];
     }
 
   /** The three overlapping analytics captures — Figma 703:12474. Their

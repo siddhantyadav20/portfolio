@@ -14,7 +14,6 @@ export type {
   StudyMedia,
   StudyMeta,
   StudyOutcome,
-  StudyOverlay,
   StudyQuote,
   StudyQuoteGroup,
   StudySection,

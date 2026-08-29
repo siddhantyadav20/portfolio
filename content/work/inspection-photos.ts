@@ -113,32 +113,22 @@ export const inspectionPhotos: CaseStudy = {
             {
               kind: "figure",
               media: {
-                src: "/media/inspection-jira.png",
-                alt: "Two tickets in the Winspect backlog: one asking for categorisation inside the camera flow, one for a Zillow integration",
+                /* Renamed rather than replaced in place. `/_next/image` keys
+                   its cache on the source path, not on the bytes, and
+                   `minimumCacheTTL` is a year — so swapping a file's contents
+                   under the same name leaves every returning visitor on the old
+                   picture until 2027. A new name is a new cache entry. */
+                src: "/media/inspection-backlog.png",
+                /* The two ticket titles are in the picture now rather than in
+                   two strips laid over it, so the alt text is where they live
+                   for a screen reader and for find-in-page. Keep them here
+                   verbatim if the screenshot is ever re-exported. */
+                alt:
+                  "Two tickets in the Winspect backlog. WNC-713: allow categorisation on the camera flow by allowing inspectors to choose inspection categories. WNC-2506: Zillow integration, automatically add property details using Zillow's info.",
                 width: 1664,
-                height: 252,
+                height: 240,
               },
               caption: { index: "1.1", label: "JIRA Backlog", tag: "SPRINT" },
-              /* The board is real and its ticket titles are not the two this
-                 story is about, so they are covered over rather than the whole
-                 figure being faked. Fractions of the 832x120 frame it is drawn
-                 in — see the aside's figure in `StudySections`. */
-              overlays: [
-                {
-                  text: "Allow categorisation on the camera flow by allowing inspectors to choose insp...",
-                  left: 108 / 832,
-                  top: 32 / 120,
-                  width: 397 / 832,
-                  height: 24 / 120,
-                },
-                {
-                  text: "Zillow Integration <> Automatically add property details using zillow’s info",
-                  left: 113 / 832,
-                  top: 60 / 120,
-                  width: 397 / 832,
-                  height: 24 / 120,
-                },
-              ],
             },
           ],
         },
