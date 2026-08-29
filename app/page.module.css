@@ -437,7 +437,8 @@
     gap: calc(64 * var(--u));
     padding: calc(24 * var(--u));
     border: 1px solid var(--ink-20);
-    border-radius: calc(24 * var(--u));
+    --sq-r: calc(24 * var(--u));
+    border-radius: var(--sq-r);
     background: var(--surface-glass);
   }
 
@@ -503,7 +504,25 @@
    are left alone: they are smaller than the set, not part of it. */
 @media (max-width: 500px) {
   .closing {
-    border-radius: calc(32 * var(--u));
+    --sq-r: calc(32 * var(--u));
+    border-radius: var(--sq-r);
+  }
+}
+
+/* The closing section is the one squircle on the page that is not a CardShell,
+   so it carries its own fallback — see the note in CardShell.module.css for
+   why the radius has to be zeroed for the mask to be the shape.
+
+   Its 1px border is the cost: a border is painted to the box and then cut by
+   the mask, so it thins slightly at the corners. On a hairline at this radius
+   that is a fair trade for the corner being right. */
+@supports not (corner-shape: squircle) {
+  @media (max-width: 1000px) {
+    .closing {
+      border-radius: 0;
+      -webkit-mask-box-image: var(--sq-mask) 64 fill / var(--sq-r) / 0 stretch;
+      mask-border: var(--sq-mask) 64 fill / var(--sq-r) / 0 stretch;
+    }
   }
 }
 

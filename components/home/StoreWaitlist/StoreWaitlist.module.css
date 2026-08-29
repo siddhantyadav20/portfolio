@@ -795,7 +795,12 @@
     box-shadow: none;
     /* No surface, so no corner. Stated rather than left at the desktop's 32,
        because a radius on a box with nothing to round is a number that will
-       one day be read as intent. */
+       one day be read as intent.
+
+       `--sq-r` goes with it. Without `corner-shape` the squircle is a mask,
+       and a mask does not care that there is no background to round — left at
+       32 it would clip this block's own text to a corner that is not there. */
+    --sq-r: 0px;
     border-radius: 0;
   }
 }

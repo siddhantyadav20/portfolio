@@ -176,6 +176,6 @@
    order across two modules. */
 @media (max-width: 500px) {
   .card.card {
-    border-radius: calc(32 * var(--u));
+    --sq-r: calc(32 * var(--u));
   }
 }

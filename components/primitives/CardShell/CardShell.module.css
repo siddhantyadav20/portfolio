@@ -61,6 +61,11 @@
      acceptable trade here and would not be on a surface with a real shadow. */
   clip-path: border-box;
 
+  /* The radius, from `--sq-r`, which the `.rNN` classes below set and each
+     card's own stylesheet re-sets at the phone breakpoint. One property, so
+     the fallback further down has exactly one thing to take away. */
+  border-radius: var(--sq-r);
+
   /* Written by the cursor-proximity controller; inert until then. */
   --prox-x: 0px;
   --prox-y: 0px;
@@ -95,20 +100,44 @@
 /* --- Radii --------------------------------------------------------------- */
 
 .r16 {
-  border-radius: var(--r-sm);
+  --sq-r: var(--r-sm);
 }
 .r20 {
-  border-radius: var(--r-md);
+  --sq-r: var(--r-md);
 }
 .r24 {
-  border-radius: var(--r-lg);
+  --sq-r: var(--r-lg);
 }
 .r32 {
-  border-radius: var(--r-xl);
+  --sq-r: var(--r-xl);
 }
 .r48 {
-  border-radius: var(--r-2xl);
+  --sq-r: var(--r-2xl);
 }
 .r64 {
-  border-radius: var(--r-3xl);
+  --sq-r: var(--r-3xl);
+}
+
+/* --- The squircle, where `corner-shape` does not exist ---------------------
+
+   The mask in globals.css does the shaping here, and `border-radius` has to
+   get out of its way: a squircle is *fuller* than the circle of the same
+   radius, so a rounded box masked by a squircle is still the rounded box —
+   the intersection is the circle. Zeroing the radius is what lets the mask be
+   the shape rather than a no-op over the top of one.
+
+   `.card` rather than the `.rNN` classes, because the phone overrides in each
+   card's own stylesheet raise their specificity to reach past CardShell and
+   this needs to sit above all of them. It only has to win against `.card`
+   above, which it does by coming later in the same file.
+
+   `clip-path: border-box` follows the zeroed radius and stops clipping the
+   corners, which is fine: the mask clips the whole subtree, transformed
+   descendants included, which is the job the clip-path was doing. */
+@supports not (corner-shape: squircle) {
+  .card {
+    border-radius: 0;
+    -webkit-mask-box-image: var(--sq-mask) 64 fill / var(--sq-r) / 0 stretch;
+    mask-border: var(--sq-mask) 64 fill / var(--sq-r) / 0 stretch;
+  }
 }
