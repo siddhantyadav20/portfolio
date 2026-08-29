@@ -105,6 +105,6 @@
    surfaces take `border-radius: inherit`, so they follow. */
 @media (max-width: 500px) {
   .card.card {
-    border-radius: calc(24 * var(--u));
+    border-radius: calc(32 * var(--u));
   }
 }

@@ -105,3 +105,14 @@
     margin-inline: auto;
   }
 }
+
+/* 32 on a phone. The frame draws this corner 24 like most of the others, and
+   the whole set is a step rounder here by choice — see the note in
+   app/page.module.css. `.card.card` because CardShell's own radius class has
+   the same specificity as this one and would otherwise be settled by source
+   order across two modules. */
+@media (max-width: 500px) {
+  .card.card {
+    border-radius: calc(32 * var(--u));
+  }
+}

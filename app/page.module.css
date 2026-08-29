@@ -490,6 +490,23 @@
   }
 }
 
+/* --- The phone's corner ----------------------------------------------------
+
+   Every box that the frame draws at 24 is 32 here instead — the case studies,
+   the canvas, the personality pair and this section around them — by choice
+   rather than by transcription. It is one step, applied to the whole set at
+   once, so the page keeps a single corner rather than gaining a second one.
+
+   The cards carry their own copy of this in their own stylesheets, because
+   their radius comes from a CardShell class that only they can outrank. The
+   16 of About Me and the 20 of the Design/Engineer card are the frame's and
+   are left alone: they are smaller than the set, not part of it. */
+@media (max-width: 500px) {
+  .closing {
+    border-radius: calc(32 * var(--u));
+  }
+}
+
 /* --- Phone -----------------------------------------------------------------
 
    Below 600 the 540 column above is wider than the screen and the page is the
