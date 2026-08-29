@@ -83,13 +83,35 @@
    The toggle is smaller here than on the homepage and not by a uniform scale
    — 112x64 with 8 of padding around two 48s becomes 88x48 with 4 around two
    40s — so it is four tokens rather than a transform. See ThemeToggle. */
+/* --- The close, pinned ----------------------------------------------------
+
+   Out of flow and fixed, the same as the share button on the other side, so it
+   is reachable the whole way down a study that is four screens tall on a
+   desktop and thirty on a phone. The theme switch stays in the flow and
+   scrolls away with the page — it is a setting, not a way out, and it was the
+   one that read as a bar lying over the reading.
+
+   `.controls` keeps its height and so keeps reserving the row, and gains the
+   close's width plus the row's own gutter as padding on the right, so the
+   switch sits exactly where it sat when the two were siblings. */
+.close {
+  position: fixed;
+  top: 32px;
+  right: 32px;
+  z-index: 3;
+}
+
+.controls {
+  padding-right: calc(64px + 12px);
+}
+
 @media (max-width: 500px) {
-  /* The 24 above the controls is the scroller's padding, not the controls'
+  /* The 24 above the controls is the parent's padding, not the controls'
      margin. In flow with no border or padding between them, a top margin here
      collapses straight out through the parent: it moved the whole column down
-     instead of offsetting the row inside it, which put the close and the theme
-     switch at 48 while the share button — `position: fixed`, so no collapsing
-     — sat correctly at 24. Padding cannot collapse, so the two agree. */
+     instead of offsetting the row inside it, which put the theme switch at 48
+     while the share button — `position: fixed`, so no collapsing — sat
+     correctly at 24. Padding cannot collapse, so the two agree. */
   .page {
     padding-top: 24px;
   }
@@ -97,11 +119,24 @@
   .controls {
     height: 48px;
     margin: 0 16px 48px;
+    padding-right: calc(48px + 12px);
 
-    --toggle-w: 88px;
-    --toggle-h: 48px;
-    --toggle-pad: 4px;
-    --toggle-option: 40px;
+    /* The homepage's control, scaled — not the frame's own 88x48, which is
+       112x64 with its padding and halves reduced by different fractions and
+       therefore a second design rather than the same one smaller.
+
+       `--u` is what the whole site scales geometry with, so 0.75 of it is the
+       homepage toggle at the height the frame asks for: 84x48 with 6 of
+       padding around two 36s. The two size tokens are derived from the same
+       number so nothing can drift out of step with the rest. */
+    --u: 0.75px;
+    --toggle-w: calc(112 * var(--u));
+    --toggle-h: calc(64 * var(--u));
+  }
+
+  .close {
+    top: 24px;
+    right: 16px;
   }
 
   .leading {

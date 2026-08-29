@@ -35,15 +35,33 @@ export const FOCUSABLE = [
  * globals.css.
  */
 export function restoreFocus(opener: HTMLElement | null) {
-  if (!opener?.focus) return;
+  focusQuietly(opener);
+}
 
-  opener.setAttribute("data-focus-restore", "");
-  opener.addEventListener(
-    "blur",
-    () => opener.removeAttribute("data-focus-restore"),
-    { once: true },
-  );
-  opener.focus();
+/**
+ * Focus something without giving it a focus ring.
+ *
+ * Chrome scores a *programmatic* focus on a button as `:focus-visible`, which
+ * is right for a keyboard user arriving and wrong for everyone else — open a
+ * case study by tapping its card and the close button came up already ringed,
+ * with nothing on the screen having been keyboarded at all.
+ *
+ * The suppression is scoped to exactly as long as focus sits where we put it:
+ * `data-focus-restore` goes on before the focus and comes off the moment focus
+ * moves, so tabbing back to the same control afterwards rings it normally. A
+ * key press also clears it, so a keyboard user who arrives, presses Tab and
+ * comes back has rings from the first keystroke rather than the first blur.
+ *
+ * See "Focus" in globals.css for the rule this attribute switches off.
+ */
+export function focusQuietly(el: HTMLElement | null | undefined) {
+  if (!el?.focus) return;
+
+  const clear = () => el.removeAttribute("data-focus-restore");
+  el.setAttribute("data-focus-restore", "");
+  el.addEventListener("blur", clear, { once: true });
+  el.addEventListener("keydown", clear, { once: true });
+  el.focus();
 }
 
 /**
@@ -146,7 +164,9 @@ export function useModalShell({
     const root = rootRef.current;
     const first = () =>
       root?.querySelector<HTMLElement>(FOCUSABLE) ?? undefined;
-    (initialFocusRef?.current ?? first())?.focus();
+    /* Quietly: this fires on open, so on a tap it is a focus nobody asked
+       for and a ring nobody earned. See `focusQuietly`. */
+    focusQuietly(initialFocusRef?.current ?? first());
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {

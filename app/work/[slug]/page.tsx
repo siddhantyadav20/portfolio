@@ -90,7 +90,11 @@ export default async function StudyPage({ params }: PageProps<"/work/[slug]">) {
 
       <div className={styles.controls}>
         <ThemeToggle />
-        <GlassAction href="/" label="Close this case study">
+        <GlassAction
+          href="/"
+          className={styles.close}
+          label="Close this case study"
+        >
           <CloseGlyph />
         </GlassAction>
       </div>

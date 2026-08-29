@@ -140,7 +140,12 @@ export default function ModalSurface({
       <div className={styles.controls}>
         {actions}
 
-        <GlassAction ref={closeRef} label="Close" onClick={onClose}>
+        <GlassAction
+          ref={closeRef}
+          className={styles.close}
+          label="Close"
+          onClick={onClose}
+        >
           <CloseGlyph />
         </GlassAction>
       </div>
