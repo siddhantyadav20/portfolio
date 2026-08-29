@@ -16,7 +16,7 @@ type Props = {
  * here rather than authored in `content/work`: an editor choosing which three
  * screenshots to show should not also have to place them. Three is the number
  * the layout knows; a fourth would fall back to sitting under the third, which
- * is the honest failure — see `SLOTS`.
+ * is the honest failure — see the slot rules in the stylesheet.
  *
  * Everything is a percentage of the frame's own box, and the box carries the
  * design's aspect ratio, so the arrangement survives the reader being narrower
@@ -27,7 +27,7 @@ export default function StudyCollage({ images, caption }: Props) {
     <figure className={styles.block}>
       <div className={styles.frame}>
         {images.map((image, i) => (
-          <div key={image.src} className={styles.mat} style={SLOTS[i]}>
+          <div key={image.src} className={styles.mat} data-slot={i}>
             <Image
               src={image.src}
               alt={image.alt}
@@ -46,14 +46,9 @@ export default function StudyCollage({ images, caption }: Props) {
   );
 }
 
-/** Fractions of the 832x474 frame — Figma 703:12472, 703:12466 and 703:12469,
- *  in that order, which is back to front. */
-const SLOTS: readonly React.CSSProperties[] = [
-  { left: pc(34, 832), top: pc(14, 474), width: pc(407, 832), height: pc(207, 474) },
-  { left: 0, top: pc(181, 474), width: pc(569, 832), height: pc(293, 474) },
-  { left: pc(305, 832), top: pc(53, 474), width: pc(527, 832), height: pc(271, 474) },
-];
+/* Where each capture sits is in the stylesheet now, keyed by `data-slot`.
 
-function pc(value: number, of: number): string {
-  return `${(value / of) * 100}%`;
-}
+   It was three inline style objects, which is the one place CSS cannot reach:
+   the phone frame stacks these three differently — same overlap, different
+   rectangle — and an inline `left` cannot be answered by a media query without
+   `!important` on every property. See StudyCollage.module.css. */

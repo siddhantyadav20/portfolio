@@ -26,6 +26,8 @@
 /* The recording's slot — 236x502 at the design's width, shrinking with the
    panel but never growing past it. */
 .slot {
+  /* Back on the left up here — see the note in index.tsx. */
+  order: -1;
   flex: 0 1 236px;
   min-width: 0;
   aspect-ratio: 236 / 502;
@@ -72,9 +74,45 @@
     border-radius: var(--r-lg);
   }
 
+  /* `flex: 1 1 0` is a *row* instruction. Turned into a column it starts
+     applying to the block axis, so the card's height basis became 0 and the
+     flow inside it collapsed to nothing — the title rendered, the diagram did
+     not, and the panel showed a heading above an empty placeholder. */
+  .card {
+    flex: none;
+  }
+
   .slot {
     flex: none;
     width: 160px;
+    align-self: center;
+  }
+}
+
+/* --- The phone frame -------------------------------------------------------
+
+   Figma 863:4889. The panel is a column of two: the flow card at 310 wide with
+   16 of panel padding round it, then the recording 236 wide and centred, 32
+   below. The recording keeps the width it is drawn at rather than the 160 the
+   tablet block gives it.
+
+   The flow itself is untouched. It is already wider than any phone and already
+   scrolls inside its own container — `.scroll` in SplitFlow, which is the only
+   thing on this page that scrolls sideways and the only thing that should. */
+@media (max-width: 500px) {
+  .panel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 32px;
+    padding: 16px;
+    border-radius: var(--r-xl);
+  }
+
+  .slot {
+    /* In flow order down here: the frame puts the recording second. */
+    order: 0;
+    flex: none;
+    width: 236px;
     align-self: center;
   }
 }

@@ -24,6 +24,30 @@
    `#efefef` in the file, which is the light page's own near-white. In the
    dark theme that would be a white card sitting in a black stack, so it
    becomes the raised surface instead — the same relationship, inverted. */
+/* Fractions of the 832x474 frame — Figma 703:12472, 703:12466 and 703:12469,
+   in that order, which is back to front: the heatmaps underneath, the
+   behaviour flows over them, the dashboards on top. */
+.mat[data-slot="0"] {
+  left: 4.0865%;
+  top: 2.9536%;
+  width: 48.9183%;
+  height: 43.6709%;
+}
+
+.mat[data-slot="1"] {
+  left: 0;
+  top: 38.1857%;
+  width: 68.3894%;
+  height: 61.8143%;
+}
+
+.mat[data-slot="2"] {
+  left: 36.6587%;
+  top: 11.1814%;
+  width: 63.3413%;
+  height: 57.1730%;
+}
+
 .mat {
   position: absolute;
   padding: 12px;
@@ -47,8 +71,8 @@
 
 /* Below the design's frame three overlapping 500px-wide dashboards are a
    texture rather than a figure. They unstack into a plain column, each at its
-   own aspect ratio. */
-@media (max-width: 900px) {
+   own aspect ratio — between 501 and 900, where there is no frame to follow. */
+@media (max-width: 900px) and (min-width: 501px) {
   .frame {
     display: flex;
     flex-direction: column;
@@ -65,5 +89,59 @@
 
   .shot {
     height: auto;
+  }
+}
+
+/* --- The phone frame -------------------------------------------------------
+
+   Figma 863:5003 keeps the three overlapping rather than unstacking them, in a
+   342x359 rectangle of its own: the heatmaps top-left, the behaviour flows
+   along the bottom, the dashboards across the middle-right and on top of both.
+
+   Which is why the slots moved out of the JSX. Same figure, different
+   rectangle — the fractions below are of the phone frame, not of the 832x474
+   one, and none of them is a scale of it.
+
+   The mat comes down with everything else: 6 of surround against 12, and a 4
+   corner against 8. */
+@media (max-width: 500px) {
+  .frame {
+    aspect-ratio: 342 / 359;
+  }
+
+  .mat {
+    padding: 6px;
+    border-radius: 4px;
+  }
+
+  .shot {
+    border-radius: 2px;
+  }
+
+  .mat[data-slot="0"] {
+    left: 0;
+    top: 0;
+    width: 95.906%;
+    height: 46.518%;
+  }
+
+  /* The one that hangs a little past the column, as the frame draws it —
+     345 of art in 342 of room. */
+  .mat[data-slot="1"] {
+    left: 0;
+    top: auto;
+    bottom: 0;
+    width: 100.877%;
+    height: 49.582%;
+  }
+
+  /* Centred on the frame's middle, two pixels down, and pinned right. */
+  .mat[data-slot="2"] {
+    left: auto;
+    right: 0;
+    top: calc(50% + 2px);
+    translate: 0 -50%;
+    width: 76.608%;
+    height: 37.604%;
   }
 }

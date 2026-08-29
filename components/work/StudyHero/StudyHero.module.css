@@ -113,3 +113,53 @@
     border-radius: var(--r-xl);
   }
 }
+
+/* --- The phone frame -------------------------------------------------------
+
+   Figma 863:4849. The hero stops being a 1120x700 rectangle scaled down — at
+   342 that is 214px tall, a letterbox with a phone in it — and becomes a 520
+   portrait with the device large enough to read.
+
+   Every number below is that frame's, as a fraction of it, so the composite
+   still scales with the column instead of stranding the device on a narrower
+   screen.
+
+   The device box is the hand's, and the screen inside it is untouched: the
+   frame places the masked screen at 11.386% / 1.499% / 41.41% / 60.48% of the
+   hand, which is the 11.43 / 1.50 / 41.14 / 60.47 DeviceMockup already uses.
+   Same composite, moved and enlarged — which is why this is four properties
+   and not a second mockup. */
+@media (max-width: 500px) {
+  .frame {
+    aspect-ratio: auto;
+    height: 520px;
+  }
+
+  /* 1120x700 at its own size, centred and pinned to the top — the frame is the
+     crop. As percentages rather than pixels so a 360 screen sees the same
+     picture slightly narrower rather than a differently-scaled one. The 3%
+     overfill the wide layout needs is pointless here: the plate's baked corners
+     are hundreds of pixels outside this clip already. */
+  .plate {
+    inset: auto;
+    top: 0;
+    left: 50%;
+    width: 327.485%;
+    /* `max-width: 100%` is set on every image in the reset, and it silently
+       clamped this back to the frame — the height took, the width did not, and
+       the plate sat as a 342-wide strip against the frame's white. */
+    max-width: none;
+    height: 134.615%;
+    /* `transform`, not the `translate` property: the base rule already writes
+       `transform` here, and having the two fight over the same element is how
+       the centring went missing the first time. */
+    transform: translateX(-50%);
+  }
+
+  .device {
+    left: 6.266%;
+    top: 7.546%;
+    width: 140.096%;
+    height: 133.03%;
+  }
+}

@@ -40,17 +40,24 @@ export default function StudyExhibit({ view, caption, className }: Props) {
 const PANELS: Record<ExhibitName, React.ReactNode> = {
   "inspection-split-flow": (
     <>
-      <div className={styles.slot} data-placeholder="">
-        <span className="srOnly">
-          A recording of the existing camera flow, not yet captured
-        </span>
-      </div>
-
+      {/* The card first, which is both the phone frame's order (Figma
+          863:4889 puts the flow above the recording) and the more useful
+          reading order — the diagram is the argument and the recording is the
+          evidence for it. The wide layout puts the recording back on the left
+          with `order`, which costs nothing here: the slot is a placeholder
+          `div` with no focusable content, so paint order and tab order cannot
+          disagree about it. */}
       <div className={styles.card}>
         <p className={styles.cardTitle}>
           The existing workflow split one job into two
         </p>
         <SplitFlow />
+      </div>
+
+      <div className={styles.slot} data-placeholder="">
+        <span className="srOnly">
+          A recording of the existing camera flow, not yet captured
+        </span>
       </div>
     </>
   ),

@@ -110,3 +110,43 @@
     font-size: 14px;
   }
 }
+
+/* --- The phone frame -------------------------------------------------------
+
+   Figma 863:4949, and the whole point of it is that the table does not scroll
+   here. The wide layout keeps its measure and lets the frame slide sideways —
+   a 320px term beside a sentence needs 560 before the page does — but the
+   frame fits the column instead: a 148 term, both sides at 12px, and the
+   sentence wrapping to as many lines as it needs.
+
+   So `min-width` comes off. Left on, the scroller stays a scroller and the
+   reader has to drag a table sideways on the one screen where that is hardest
+   to notice is possible at all. */
+@media (max-width: 500px) {
+  .table {
+    min-width: 0;
+  }
+
+  .term {
+    width: 148px;
+    font-size: 12px;
+  }
+
+  .meaning {
+    font-size: 12px;
+  }
+
+  .label {
+    font-size: 11px;
+  }
+
+  /* 12 top and bottom against the wide layout's 16, and a 40px header. */
+  .cell {
+    padding: 12px 0;
+  }
+
+  .label {
+    padding-top: 11px;
+    padding-bottom: 11px;
+  }
+}
