@@ -15,9 +15,16 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+  /* Not sticky.
+
+     It used to ride the top of the study the whole way down, on the argument
+     that a 4000px page needs its close and its theme switch within reach. In
+     practice it is a control cluster hovering over the reading — and the
+     element is the full width of the column, so even with `pointer-events`
+     handed back to its children it is a bar lying across everything the eye is
+     trying to read. It scrolls away with the page now, on every width. */
 .controls {
-  position: sticky;
-  top: 32px;
+  position: relative;
   z-index: 3;
   display: flex;
   align-items: center;

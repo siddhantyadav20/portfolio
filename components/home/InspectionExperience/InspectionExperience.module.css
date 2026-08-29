@@ -170,23 +170,37 @@
 
 /* --- The phone frame -------------------------------------------------------
 
-   315x480, centred — Figma 843:2798, and the one card the frame insets from
-   the column rather than running to its edges.
+   Full width, and 480 tall whatever that width is.
 
-   The height is not stated because it cannot disagree: `aspect-ratio` is
-   420/640 and 315 is exactly three quarters of 420, so the box resolves to 480
-   on its own. Nothing inside needs saying either — every value in this card is
-   `cqw`, hundredths of its own width, so the photograph, the device, the hand
-   and the info chip are one object at 75% rather than a composition that has
-   to be re-laid-out at a second size.
+   The frame draws this card 315x480 and inset from the column; the ask is that
+   it runs to the column's edges instead while keeping the frame's height. So
+   `aspect-ratio` comes off and the height is stated — the one card on the page
+   whose box is not a pure scale of what it is drawn as.
 
-   `max-width` because 315 is wider than the content box of a 360 screen, and a
-   card that overflows the page is worse than one that is 12px narrower than
-   the frame draws it. */
+   Nothing inside needs a second set of numbers. Every value in this card is
+   `cqw`, hundredths of its own width, so the composition still scales as one
+   object; at 342 rather than 315 it is simply painted 1.086x and the device,
+   which already runs off the bottom of the card by design, runs off it a
+   little further. `overflow: hidden` was always what handled that.
+
+   The photograph is `object-fit: cover`, so a shorter-than-natural box crops
+   it rather than stretching it. */
 @media (max-width: 500px) {
   .card {
-    width: calc(315 * var(--u));
-    max-width: 100%;
-    margin-inline: auto;
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    aspect-ratio: auto;
+    height: calc(480 * var(--u));
+  }
+}
+
+/* The frame's corner, Figma 843:2798. `.card.card` because CardShell's own radius
+   class has the same specificity as this one and would otherwise win or lose on
+   source order across two modules — doubling the class settles it. Inner
+   surfaces take `border-radius: inherit`, so they follow. */
+@media (max-width: 500px) {
+  .card.card {
+    border-radius: calc(24 * var(--u));
   }
 }

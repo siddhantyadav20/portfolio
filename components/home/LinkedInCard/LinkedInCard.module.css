@@ -291,3 +291,12 @@
   }
 }
 
+/* The frame's corner, Figma 844:2952. `.card.card` because CardShell's own radius
+   class has the same specificity as this one and would otherwise win or lose on
+   source order across two modules — doubling the class settles it. Inner
+   surfaces take `border-radius: inherit`, so they follow. */
+@media (max-width: 500px) {
+  .card.card {
+    border-radius: calc(24 * var(--u));
+  }
+}

@@ -527,25 +527,30 @@
   }
 
   .band {
-    /* The frame's 24 inset, now scaling with everything else. `max()` against
-       the safe area because with `viewport-fit=cover` the page draws into the
-       notch in landscape, and 24 design pixels is not always enough to clear
-       a sensor housing. */
-    margin-top: calc(24 * var(--u));
+    /* Figma 843:2477 is `px-[24px] py-[120px]`. The 120 above is what clears
+       the theme toggle — 32 down, 64 of control, 24 under it — which is also
+       why `.lead` no longer carries a padding of its own: that calc read
+       `--toggle-h`, which is only defined above 1001, so below it the whole
+       expression was invalid and the declaration was being dropped. The frame
+       states the number outright instead of deriving it from a token that is
+       not in scope. */
+    margin-top: calc(120 * var(--u));
     margin-left: max(calc(24 * var(--u)), env(safe-area-inset-left, 0px));
     margin-right: max(calc(24 * var(--u)), env(safe-area-inset-right, 0px));
-    /* The blur bar parks over the last of the page and the home indicator sits
-       under that again. */
-    margin-bottom: calc(96 * var(--u) + env(safe-area-inset-bottom, 0px));
+    /* The frame's other 120, plus the home indicator under it. The blur bar
+       parks over the last of the page. */
+    margin-bottom: calc(120 * var(--u) + env(safe-area-inset-bottom, 0px));
     /* The 540 cap is the tablet column's, and there is no cap here: the band
        is the page. Left at `min(540px, 100%)` it would be 100% *plus* the
        margins above and overflow by both of them. */
     max-width: none;
   }
 
+  /* 32 from the top and the right in the frame, which is 8 further out than
+     the page's own 24 inset. */
   .themeToggle {
-    top: max(calc(24 * var(--u)), env(safe-area-inset-top, 0px));
-    right: max(calc(24 * var(--u)), env(safe-area-inset-right, 0px));
+    top: max(calc(32 * var(--u)), env(safe-area-inset-top, 0px));
+    right: max(calc(32 * var(--u)), env(safe-area-inset-right, 0px));
   }
 
   /* The toggle stays pinned to the page's top-right corner, which is the
@@ -558,6 +563,6 @@
      and so the Introduction. That block gets the clearance instead, measured
      off the thing that has to clear it rather than off an unrelated token. */
   .lead {
-    padding-top: calc(var(--page-pad) + var(--toggle-h) + var(--gap));
+    padding-top: 0;
   }
 }

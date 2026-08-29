@@ -263,6 +263,17 @@ export default function CanvasCard() {
           }
           // Fetch the surface at the moment before the click, so awaiting it
           // in openCanvas is normally already settled.
+          /* `pointerdown` as well as hover, and this is the phone fix.
+
+             Warming was hover-only, so a touch device never warmed anything: the
+             modal's chunk and its hero were both fetched inside the click, and
+             the click then hands React a whole case study to render
+             synchronously inside a view transition. That stall is the lag.
+
+             `pointerdown` fires at finger-down, which buys the length of the tap
+             before `click` lands — usually enough for the chunk, and it costs a
+             mouse visitor nothing since hover has already warmed by then. */
+          onPointerDown={() => void loadSurface()}
           onMouseEnter={() => void loadSurface()}
           onClick={(e: React.MouseEvent) => {
             // Let modified clicks do what they always do — new tab, new window.

@@ -120,6 +120,25 @@
   gap: calc(16 * var(--u));
 }
 
+/* One row on a phone, as the frame draws it (Figma 843:2652).
+
+   The frame's own row does not quite fit the frame: Copy Email is about 133
+   wide, the search pill is a stated 200, and 133 + 16 + 200 is 349 in a 342
+   column — so in Figma the second pill runs 7px under the frame's clip. Rather
+   than reproduce a clipped control or stack them, the search pill gives back
+   the 7: it is the one of the two carrying a fixed width, and losing a few
+   pixels of the gap between its label and the shortcut chip costs nothing
+   anybody can see. */
+@media (max-width: 500px) {
+  .ctas {
+    flex-wrap: nowrap;
+  }
+
+  .ctas > * {
+    min-width: 0;
+  }
+}
+
 .srOnlyEmail {
   position: absolute;
   width: 1px;
