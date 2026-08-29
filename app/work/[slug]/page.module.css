@@ -60,12 +60,52 @@
 
 @media (max-width: 900px) {
   .controls {
-    top: 24px;
     margin: 24px 24px 32px;
   }
 
   .leading {
     top: 24px;
     left: 24px;
+  }
+}
+
+/* --- The phone frame -------------------------------------------------------
+
+   Figma 860:3112 puts the study's chrome on one line at the top of the frame:
+   the share button 48 square at x=16, the theme toggle 88x48, and the close
+   48 square ending 16 from the other edge — all at y=24, with the study's
+   first line at y=120.
+
+   So 24 above, 48 of control, 48 below. The bottom of that is a margin here
+   rather than a number in the content, which is what keeps the two in step if
+   the control ever changes height again.
+
+   The toggle is smaller here than on the homepage and not by a uniform scale
+   — 112x64 with 8 of padding around two 48s becomes 88x48 with 4 around two
+   40s — so it is four tokens rather than a transform. See ThemeToggle. */
+@media (max-width: 500px) {
+  /* The 24 above the controls is the scroller's padding, not the controls'
+     margin. In flow with no border or padding between them, a top margin here
+     collapses straight out through the parent: it moved the whole column down
+     instead of offsetting the row inside it, which put the close and the theme
+     switch at 48 while the share button — `position: fixed`, so no collapsing
+     — sat correctly at 24. Padding cannot collapse, so the two agree. */
+  .page {
+    padding-top: 24px;
+  }
+
+  .controls {
+    height: 48px;
+    margin: 0 16px 48px;
+
+    --toggle-w: 88px;
+    --toggle-h: 48px;
+    --toggle-pad: 4px;
+    --toggle-option: 40px;
+  }
+
+  .leading {
+    top: 24px;
+    left: 16px;
   }
 }

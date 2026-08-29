@@ -57,3 +57,17 @@
 .bar:last-child {
   transform: translate(-50%, -50%) rotate(45deg);
 }
+
+/* 48 on a phone, against the 64 the wide frame draws — Figma 863:5234 and
+   863:5239, the close and the share on the mobile case study.
+
+   The glyph inside does not change with it: the frame keeps the cross at the
+   same 18.2 box and 23.756 strokes in the smaller plate, and the share icon at
+   24. So this is the disc only, and `place-items: center` re-centres what is
+   already there. */
+@media (max-width: 500px) {
+  .action {
+    width: 48px;
+    height: 48px;
+  }
+}

@@ -19,7 +19,15 @@
 
    `1px` is the fallback, which is the value `--u` takes at 1440 anyway — so
    the homepage keeps scaling exactly as it did, and everywhere else the
-   control is simply the size Figma draws it. */
+   control is simply the size Figma draws it.
+
+   `--toggle-pad` and `--toggle-option` are the other two numbers the shell is
+   built from — its inset and the size of each half — and they are tokens for
+   the same reason `--toggle-w` and `--toggle-h` are. The case study draws this
+   control smaller than the homepage does and not by a uniform scale: 112x64
+   with 8 of padding around two 48s becomes 88x48 with 4 around two 40s. Four
+   properties set on an ancestor is the whole of that, and nothing here needs
+   to know which surface it is on. */
 .toggle {
   position: relative;
   display: flex;
@@ -30,7 +38,7 @@
      rest of the composition below it. */
   width: var(--toggle-w);
   height: var(--toggle-h);
-  padding: calc(8 * var(--u, 1px));
+  padding: var(--toggle-pad, calc(8 * var(--u, 1px)));
   border-radius: calc(60 * var(--u, 1px));
   /* Figma 80:7596 clips the shell, and the pill travels inside it. */
   overflow: hidden;
@@ -59,19 +67,19 @@
 
 .thumb {
   position: absolute;
-  top: calc(8 * var(--u, 1px));
-  left: calc(8 * var(--u, 1px));
+  top: var(--toggle-pad, calc(8 * var(--u, 1px)));
+  left: var(--toggle-pad, calc(8 * var(--u, 1px)));
   z-index: 0;
 
-  width: calc(48 * var(--u, 1px));
-  height: calc(48 * var(--u, 1px));
+  width: var(--toggle-option, calc(48 * var(--u, 1px)));
+  height: var(--toggle-option, calc(48 * var(--u, 1px)));
 
   transform: translateX(0);
   transition: transform 420ms var(--spring-soft);
 }
 
 .toggle[data-theme-at="dark"] .thumb {
-  transform: translateX(calc(48 * var(--u, 1px)));
+  transform: translateX(var(--toggle-option, calc(48 * var(--u, 1px))));
 }
 
 .thumbFill {
@@ -120,8 +128,8 @@
   /* Two of these sit inside a 112x64 shell with 8px of padding, so they
      have to shrink with it — left at 48 they were taller than the shell's
      inner box the moment the composition scaled down. */
-  width: calc(48 * var(--u, 1px));
-  height: calc(48 * var(--u, 1px));
+  width: var(--toggle-option, calc(48 * var(--u, 1px)));
+  height: var(--toggle-option, calc(48 * var(--u, 1px)));
   border-radius: var(--r-pill);
 }
 

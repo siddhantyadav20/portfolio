@@ -378,3 +378,51 @@
     gap: 32px;
   }
 }
+
+/* --- The impact cards, on a phone ------------------------------------------
+
+   Figma 863:4831. Three metrics do not fit across 342, and the frame does not
+   shrink them to make them: the first card takes the full width and the other
+   two pair off under it. A grid rather than a wrapping flex row, so the pair
+   is two equal halves whatever their text does — the same reason the
+   personality row on the homepage is a grid.
+
+   Everything else about the card comes down with the width: 12 of padding
+   against 24, a 16 corner against 24, and 12 between the cards against 32. */
+@media (max-width: 500px) {
+  .outcomeRow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  /* The full-width one. `:first-child` rather than a modifier class because
+     which card leads is a fact about the row, not about the card — the same
+     three items are a plain row of three on the wide grid. */
+  .outcomeRow > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .outcome {
+    padding: 12px;
+    border-radius: 16px;
+    --sq-r: 16px;
+  }
+
+  /* 24/14/15/13 in the frame's desktop; 18/12/13/12 here. */
+  .outcomeValue {
+    font-size: 18px;
+  }
+
+  .outcomeLabel {
+    font-size: 12px;
+  }
+
+  .outcomeNote {
+    font-size: 13px;
+  }
+
+  .outcomeFootnote {
+    font-size: 12px;
+  }
+}

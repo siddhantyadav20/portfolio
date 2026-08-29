@@ -719,6 +719,18 @@
    so putting it one level out costs nothing and makes the unit mean what it
    says. */
 .next {
+
+  /* The slide animates in from 32px to one side, and `backwards` fill means
+     that offset is on it before the animation starts as well as during it. On
+     a 390 screen the card is already the full width of the column, so those
+     32px are 32px of page — the document scrolled sideways and stayed there in
+     any state where the animation had not begun.
+
+     Clipped on the stage rather than on the slide: clipping the slide clips
+     what is inside it, not where it sits. `clip` rather than `hidden` so this
+     does not become a scroll container, which would change what `sticky`
+     inside it can do and give the carousel a scrollport it never wanted. */
+  overflow-x: clip;
   container-type: inline-size;
   display: flex;
   flex-direction: column;
@@ -766,6 +778,7 @@
   height: calc(100cqw * 626 / 386);
 
   animation: card-in 460ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+
 }
 
 /* Coming from the right going forward, from the left coming back — the same
