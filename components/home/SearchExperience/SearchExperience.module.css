@@ -10,6 +10,10 @@
   flex: none;
 }
 
+/* Figma 869:5895 — 346 wide now rather than 241. The redesign gave the card a
+   third line ("Search library without digging through categories") and it is
+   the widest thing in the block; at the old width it wrapped to two and pushed
+   the plate off its 169. */
 .heading {
   position: absolute;
   top: calc(24 * var(--u));
@@ -17,7 +21,7 @@
   display: flex;
   flex-direction: column;
   gap: calc(8 * var(--u));
-  width: calc(241 * var(--u));
+  width: calc(346 * var(--u));
 }
 
 .title {
@@ -43,18 +47,22 @@
 }
 
 /* --- The instrument ------------------------------------------------------
-   Anchored where the Figma "Search" plate was, and given the rest of the card
-   down to the outcome chip. That gap was always empty — the plate ended around
-   y=285 and the chip starts at 530 — because the results state it was waiting
-   for had not been designed. It is the results, the tap counter and the old
-   flow's panels now, and all three need the same box. */
+   Anchored where Figma's "Search" plate is (869:5965, x24 y169 w346) and given
+   everything below it. That gap was empty for a long time — the plate ends at
+   y=285 and the chip started at 530 — because the results state it was waiting
+   for had not been designed. 869:6917 designs it, and it is a scroller: a
+   finding is about 150 tall and the card has room for under two. */
 
 .stage {
   position: absolute;
   top: calc(169 * var(--u));
   left: calc(24 * var(--u));
   right: calc(16 * var(--u));
-  height: calc(350 * var(--u));
+  /* Down to the card's own bottom inset rather than to a measured height. The
+     instrument's results state is a scroller and wants every pixel there is;
+     the 350 here was cut to clear an outcome chip that now leaves the moment
+     the search starts. */
+  bottom: calc(24 * var(--u));
 }
 
 /* --- Outcome chip --------------------------------------------------------- */
@@ -62,13 +70,38 @@
 
 .chip {
   position: absolute;
-  top: calc(530 * var(--u));
+  bottom: calc(24 * var(--u));
   right: calc(24 * var(--u));
   display: flex;
   align-items: flex-end;
   gap: calc(16 * var(--u));
   width: calc(202 * var(--u));
   padding: calc(12 * var(--u));
+  transition: transform 520ms var(--spring-soft), opacity 320ms ease;
+}
+
+/* The chip leaves once the search is under way — Figma slides it from
+   `right: 24` to `right: -226`, which is 250 of travel and puts it fully off
+   the card.
+
+   It is the right call and worth saying why: the chip is the card's *claim*
+   ("Navigation first" struck through, "Search first", "~51m saved") and the
+   states behind it are the card's *evidence*. Once the evidence is on screen
+   the claim is the thing in front of it, and 202px of it sits exactly where a
+   finding's Add button wants to be.
+
+   Keyed off the instrument's own phase through `:has`, so nothing has to lift
+   state out of it for one transform. A browser without `:has` drops the rule
+   and keeps the chip — which is the old behaviour, and a fine place to land. */
+.card:has([data-phase]:not([data-phase="idle"])) .chip {
+  transform: translateX(calc(250 * var(--u)));
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip {
+    transition: none;
+  }
 }
 
 .compare {

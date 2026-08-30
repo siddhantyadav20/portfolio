@@ -14,17 +14,45 @@ const NATIVE_CURSOR =
 const VARIANT_TARGET = "[data-cursor]";
 
 /**
+ * A control that is its own click target, and so its own answer to "what
+ * happens if I press here".
+ *
+ * This exists because a card can now offer "View Project" while holding things
+ * that do something else. The Inspection and Design System cards are anchors all
+ * the way down — every pixel of them opens the study, so the badge is honest
+ * everywhere. The Search card is not: it is a `div` holding a live search field,
+ * a library picker, and an Add button per finding, and a 132px disc reading
+ * "View Project" hovering over `Add` promises a case study to a press that adds
+ * a remark to a report.
+ *
+ * So the rule is about nesting rather than about any one card: a control found
+ * *inside* the element offering the variant takes precedence over it, and the
+ * pointer goes back to the plain arrow. A card that is itself the control — the
+ * two anchors — finds itself here and is unaffected, because it is the element
+ * carrying the attribute rather than something within it.
+ *
+ * And a nested control that *does* lead where the badge says opts back in by
+ * declaring the variant on itself: the lookup below takes the nearest
+ * `[data-cursor]`, so such an element becomes its own holder and this rule
+ * stops applying to it. The Search card's heading link is the case that needs
+ * it — the badge would otherwise vanish over the one thing on that card which
+ * really does open the project.
+ */
+const CONTROL =
+  'a[href], button, select, textarea, input, label, [role="button"], [role="option"], [contenteditable="true"]';
+
+/**
  * The site's cursor, replacing the OS arrow to give the page a designer's-canvas
  * feel. Two variants, both straight out of Figma's "Custom Cursors"
  * component:
  *
  *   Page          the default — the arrow glyph, tip on the pointer.
  *   View Project  a 132px disc of tinted glass, centred on the pointer. Shown
- *                 only over elements carrying `data-cursor="view-project"`,
- *                 which today is the Inspection case-study card and nothing
- *                 else. The variant is read off the attribute rather than
- *                 hard-coded to a selector so the next card that needs one only
- *                 has to declare it.
+ *                 only over elements carrying `data-cursor="view-project"`.
+ *                 The variant is read off the attribute rather than hard-coded
+ *                 to a selector, so the next card that needs one only has to
+ *                 declare it — and a control nested inside such a card takes
+ *                 the plain arrow back. See CONTROL.
  *
  * A third variant, Scrub, used to live here for the timeline's ruler, because
  * `cursor: grab` could not: the `cursor: none` rule this component switches on
@@ -120,7 +148,8 @@ export default function CanvasCursor() {
       if (overNative) hide();
       else show();
 
-      const variant = t?.closest(VARIANT_TARGET)?.getAttribute("data-cursor");
+      const holder = t?.closest(VARIANT_TARGET) ?? null;
+      let variant = holder?.getAttribute("data-cursor") ?? null;
 
       // `data-cursor="none"` means the surface draws its own pointer and this
       // one would be a second cursor on screen — the drawing canvas has a
@@ -130,6 +159,16 @@ export default function CanvasCursor() {
         hide();
         el!.removeAttribute("data-variant");
         return;
+      }
+
+      // Over a control the card merely contains — see CONTROL. The variant is
+      // dropped rather than the cursor hidden, so what is under the pointer is
+      // the ordinary arrow and not nothing.
+      if (variant) {
+        const control = t?.closest(CONTROL) ?? null;
+        if (control && control !== holder && holder!.contains(control)) {
+          variant = null;
+        }
       }
 
       if (variant) el!.setAttribute("data-variant", variant);

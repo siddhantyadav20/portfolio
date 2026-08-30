@@ -376,7 +376,7 @@ const cards: PaletteEntry[] = [
     id: "card:about",
     group: "start",
     label: `${about.eyebrow} ${about.title}`,
-    hint: about.story.afterStatement,
+    hint: about.lede,
     keywords: "bio who story background personal portrait",
     to: { kind: "card", card: "about" },
   },

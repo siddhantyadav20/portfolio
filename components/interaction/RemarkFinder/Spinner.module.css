@@ -1,0 +1,62 @@
+/* The searching loader — a Lottie, and the ring that stands in for it while
+   the player is still in flight. See the header in Spinner.tsx. */
+
+.spinner {
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--size);
+  height: var(--size);
+}
+
+.lottie {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The stand-in. A conic sweep masked to a ring, which is the same two strokes
+   the Lottie is made of — a full track at a low alpha and a brighter arc over
+   it — so the swap when the real one mounts is a change of motion rather than
+   a change of picture.
+
+   The stroke is a proportion of the box rather than a fixed pixel, because this
+   is drawn at 14px inside the Send button and at 32px under the field, and a
+   1.5px ring at both sizes reads as two different weights. */
+.ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgb(from var(--blue-bright) r g b / 0.2) 0deg 270deg,
+    var(--blue-bright) 360deg
+  );
+  mask-image: radial-gradient(
+    closest-side,
+    transparent calc(100% - 12%),
+    #000 calc(100% - 11%)
+  );
+  animation: spin 1s linear infinite;
+}
+
+/* Hidden rather than unmounted — see the note beside it in the markup. */
+.ring[data-ready] {
+  opacity: 0;
+  animation: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* The fallback is what someone who asked for less motion actually keeps, so it
+   is the one that has to stop moving. The Lottie never mounts for them at all
+   — see the effect. */
+@media (prefers-reduced-motion: reduce) {
+  .ring {
+    animation: none;
+  }
+}

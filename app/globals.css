@@ -4,6 +4,36 @@
    Light mode only for now — see "Theming" at the bottom.
    ========================================================================== */
 
+/* ==========================================================================
+   The scaling unit
+   Registered here rather than beside the homepage grid that varies it, because
+   the *initial value* is what every other route depends on.
+
+   `@property` is global wherever it is written, but the file it is written in
+   still has to load. This lived in `app/page.module.css`, which ships with the
+   homepage and nothing else — so on `/work/[slug]` `--u` was not registered,
+   had no initial value, and every `calc(N * var(--u))` in a component shared
+   with a case study resolved to an invalid length and was dropped. The
+   instrument in the Search study's hero rendered with no padding, no radius and
+   no gaps for exactly that reason.
+
+   Registered as a `<length>`, which is the load-bearing part: an unregistered
+   custom property is substituted as raw text, so `cqw` inside it would be
+   re-resolved against whichever container it is *used* in — and the homepage's
+   cards are containers themselves. Registered, it computes to an absolute
+   length where it is declared and inherits as that length.
+
+   1px means design pixels land as CSS pixels anywhere nothing overrides it,
+   which is what a component drawn at its natural size in a reading column
+   wants. The homepage overrides it on `.band` — see page.module.css.
+   ========================================================================== */
+
+@property --u {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 1px;
+}
+
 :root {
   /* --- Ink ------------------------------------------------------------- */
   --ink: #222222;

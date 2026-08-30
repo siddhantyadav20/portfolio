@@ -5,6 +5,21 @@ import styles from "./HeadChart.module.css";
 /** One id, because there is one of these on the page. */
 const CLIP = "about-head-clip";
 
+type Props = {
+  /**
+   * Drawn inside the portrait frame rather than as a section of the page.
+   *
+   * Two things change and both are forced by the box. The caption goes: the
+   * button around it says what it is, and a heading inside a photograph is a
+   * heading nobody asked for. And the arrangement drops to the legend layout —
+   * the same one the stylesheet already falls back to on a narrow viewport,
+   * because nine chips placed by angle need about 760px to clear each other and
+   * the frame is 402. That fallback existed for phones; this is the second
+   * caller for it, which is why it is now a class as well as a media query.
+   */
+  inset?: boolean;
+};
+
 /**
  * What's in the head — a pie chart wearing a silhouette.
  *
@@ -24,16 +39,18 @@ const CLIP = "about-head-clip";
  * nothing but markup; the entrance is CSS, keyed off `[data-stage]` the way
  * every other block in this reader is.
  */
-export default function HeadChart() {
+export default function HeadChart({ inset = false }: Props) {
   const { interests } = about;
   const { wedges, head } = chart(interests.items);
 
   return (
-    <figure className={styles.figure}>
-      <figcaption className={styles.caption}>
-        <h2 className={styles.title}>{interests.title}</h2>
-        <p className={styles.note}>{interests.note}</p>
-      </figcaption>
+    <figure className={styles.figure} data-inset={inset ? "" : undefined}>
+      {!inset && (
+        <figcaption className={styles.caption}>
+          <h2 className={styles.title}>{interests.title}</h2>
+          <p className={styles.note}>{interests.note}</p>
+        </figcaption>
+      )}
 
       <div className={styles.stage}>
         <svg

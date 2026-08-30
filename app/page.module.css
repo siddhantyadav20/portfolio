@@ -71,11 +71,8 @@
    absolute length here and inherits as that length.
    ========================================================================== */
 
-@property --u {
-  syntax: "<length>";
-  inherits: true;
-  initial-value: 1px;
-}
+/* Registered in globals.css, not here — this file only ships with the homepage,
+   and every other route needs the initial value too. See the note there. */
 
 @media (min-width: 1001px) {
   /* Every inset moves onto `.band` as a margin. `.page` cannot express them

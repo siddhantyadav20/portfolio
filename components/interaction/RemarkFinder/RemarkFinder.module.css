@@ -1,202 +1,84 @@
-/* The Search card's instrument. Two flows in one frame, one of them leaving. */
+/* The Search card's instrument — Figma 869:6921, all four states.
 
-/* Registered, and so not inherited.
+   Every number below is a design pixel off that frame, scaled by `--u` the way
+   the rest of the card is: the card is 386 wide in the file and fluid past
+   1440, so nothing here may be a fixed px except hairlines.
 
-   The same lesson CardShell and ThemingInstrument both write down: an
-   unregistered custom property is inherited by definition, so rewriting one per
-   frame invalidates the style of every element beneath it — here that is three
-   drill panels, twenty-odd rows and five results. Registered with
-   `inherits: false`, the invalidation stops at the element that reads it.
-
-   `--step` is a plain number rather than a length because the track is
-   translated by a percentage of itself; `<number>` is what `calc()` wants on
-   both sides of that. */
-@property --open {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 0;
-}
-@property --step {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 0;
-}
+   `--u` is registered in globals.css with an initial value of 1px, which is
+   what lets this same stylesheet serve the case study's hero: nothing there
+   overrides it, so the design pixels land as CSS pixels and the instrument is
+   drawn at its natural size. The registration used to live in the homepage's
+   own module, which does not ship with `/work/[slug]` — so on the study route
+   `--u` resolved to nothing and every length here was dropped. */
 
 .finder {
+  /* The two hues the file uses that the site has no token for.
+
+     `--flag` is Figma 869:6519's #EB5757, which is not `--red` (#EF3340): the
+     site's red is an error, and this is a report flagging a finding. They are
+     close enough that sharing one would have been tempting and wrong — the
+     first time somebody tunes the error red, every inspection report on the
+     card changes colour with it.
+
+     `--firm` is the globe badge's #A77318. It reads as the other half of a pair
+     with the blue beside it — yours in the product's own blue, everybody's in
+     something that is deliberately not. */
+  --flag: #eb5757;
+  --firm: #a77318;
+
   display: flex;
   flex-direction: column;
-  gap: calc(12 * var(--u));
+  /* Plate bottom sits at 285 in the file and the list head at 317. */
+  gap: calc(32 * var(--u));
   width: 100%;
   height: 100%;
-}
-
-/* Everything the two flows contend over. The legend is deliberately outside
-   it — see the note in the markup. */
-.frame {
-  position: relative;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: calc(12 * var(--u));
   min-height: 0;
 }
 
-/* --- The way it used to work ---------------------------------------------
-   Laid over the field rather than beside it, because that is what it was: the
-   same screen, before.
-
-   It shrinks very slightly as it leaves rather than growing. Both directions
-   read as "going", but only one of them reads as *folding away*, which is what
-   the card says is happening — and a panel that grows on its way out is also
-   wider than the frame holding it, which put seven pixels of it outside the
-   box at the design width. Clipping that at the frame is not an option: the
-   frame is also what carries the field's blue bloom, and `overflow: hidden`
-   would cut the one piece of colour the card has. */
-
-.drill {
-  /* Declared here and not on `.finder`, because `inherits: false` means here is
-     the only place it would be read from. That is the whole point of
-     registering it — the invalidation stops at this element instead of walking
-     three panels and twenty rows — but it also makes writing it onto an
-     ancestor a silent no-op, which is worth one line to say out loud. The loop
-     writes to this element and to `.drillTrack` directly, the way
-     ThemingInstrument writes `--seam-top` onto the seam rather than the skin. */
-  --open: 0;
-
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  overflow: hidden;
-  border: 1px solid var(--ink-20);
-  border-radius: var(--r-md);
-  background-color: var(--surface-raised);
-  backdrop-filter: blur(12px);
-  /* The second half of the crossing, not all of it.
-
-     Fading one flow up while the other fades down at the same rate leaves both
-     of them half-legible across the middle of the transition, and two lists you
-     can read through each other is a dissolve — which is the one thing this
-     moment must not look like, because the card's claim is that one of these
-     replaced the other. The outgoing flow is gone by the midpoint (see
-     `nowEl.style.opacity` in the loop) and this one starts there. */
-  opacity: clamp(0, calc((var(--open) - 0.5) * 2), 1);
-  transform: scale(calc(1 - 0.03 * (1 - var(--open))));
-  transform-origin: 50% 24%;
-  pointer-events: none;
+/* Both lifted on a dark ground, the same move `--accent` makes at the bottom of
+   globals.css: a value tuned to sit on white reads as a stain over #222. */
+:global(html[data-theme="dark"]) .finder {
+  --flag: #ff8080;
+  --firm: #d9a445;
 }
 
-.drillTrack {
-  --step: 0;
+/* ==========================================================================
+   The plate — Figma 80:7698
 
-  display: flex;
-  width: 300%;
-  height: 100%;
-  /* The push. One transform for three panels, driven by the same channel the
-     tap pips are rounded from, so the count and the movement cannot disagree. */
-  transform: translateX(calc(var(--step) * -33.3333%));
-}
-
-.panel {
-  display: flex;
-  flex: 0 0 33.3333%;
-  flex-direction: column;
-  gap: calc(6 * var(--u));
-  padding: calc(12 * var(--u)) calc(16 * var(--u));
-  min-width: 0;
-}
-
-.crumb {
-  font-size: calc(11 * var(--u));
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--ink-40);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.panelRows {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.panelRow {
-  display: flex;
-  align-items: center;
-  gap: calc(8 * var(--u));
-  height: calc(32 * var(--u));
-  padding: 0 2px;
-  border-bottom: 1px solid var(--ink-10, rgba(0, 0, 0, 0.06));
-  font-size: calc(13 * var(--u));
-  font-weight: 500;
-  color: var(--ink);
-  min-width: 0;
-}
-
-.panelText {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-/* The row the demonstration taps. It lights rather than moves: a row that
-   slid would be a second thing travelling while the whole panel is already
-   travelling under it. */
-.panelRow[data-chosen] {
-  color: #1f97dd;
-  font-weight: 600;
-}
-
-.chevron {
-  flex: none;
-  width: calc(5 * var(--u));
-  height: calc(5 * var(--u));
-  border-top: 1.5px solid var(--ink-40);
-  border-right: 1.5px solid var(--ink-40);
-  transform: rotate(45deg);
-}
-
-/* --- The way it works now -------------------------------------------------
-   The field and its results as one object, so the collapse can hand the frame
-   from one flow to the other with a single opacity rather than fading each
-   piece separately. */
-
-.now {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: calc(12 * var(--u));
-  min-height: 0;
-}
+   It does not move between states. The four frames in the file all draw it at
+   the same place, and that is the thing that makes the card read as one screen
+   doing something rather than as four screens in a row: the states happen
+   underneath it.
+   ========================================================================== */
 
 .plate {
   position: relative;
   z-index: 1;
   flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(16 * var(--u));
   padding: calc(16 * var(--u));
-  border: 1px solid var(--ink-20);
-  border-radius: var(--r-md);
-  background-color: var(--surface-raised);
-  backdrop-filter: blur(12px);
-  /* The card's one piece of colour, kept from the original Default state. */
+  border: 1px solid rgba(25, 25, 25, 0.05);
+  border-radius: calc(20 * var(--u));
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(6px);
+  /* The card's one piece of colour. */
   box-shadow: 0 0 24px rgba(31, 151, 221, 0.12);
 }
 
 :global(html[data-theme="dark"]) .plate {
+  border-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.06);
   box-shadow: 0 0 28px rgba(31, 151, 221, 0.18);
 }
 
 /* No ring while typing.
 
-   Carried over from the card's own stylesheet, where it was worked out and
-   written down: a text field always matches `:focus-visible` regardless of how
-   focus arrived, so the global orange outline drew a rectangle inside a plate
-   that is already the boundary. The plate takes the indicator instead, in the
-   card's blue rather than the site accent. */
+   A text field always matches `:focus-visible` regardless of how focus arrived,
+   so the global accent outline drew a rectangle inside a plate that is already
+   the boundary. The plate takes the indicator instead, in the card's own blue
+   rather than the site accent. */
 .input:focus-visible {
   outline: none;
 }
@@ -213,19 +95,30 @@
   height: calc(32 * var(--u));
 }
 
-.icon {
-  display: flex;
-  flex: none;
-  width: calc(19 * var(--u));
+/* 19.197 × 20 in the file, which is not a rounding error — it is the glyph's
+   own aspect, and squaring it puts the lens off-centre against the text. */
+.searchIcon {
+  width: calc(19.197 * var(--u));
   height: calc(20 * var(--u));
+  color: var(--ink-strong);
   opacity: 0.6;
 }
 
+/* Fills the row's full 32 rather than sitting at its natural text height.
+
+   Two reasons, and the second is the one that is easy to miss. It is a bigger
+   target for a press aimed at the field. And the row is inside a card wearing
+   the "View Project" badge — an input shorter than the row it is in leaves a
+   band of padding above and below it that still resolves to the card, so the
+   pointer flicked between the glass disc and the I-beam while crossing what
+   looks like one control. */
 .input {
   flex: 1;
   min-width: 0;
+  height: 100%;
   font-size: calc(15 * var(--u));
   font-weight: 500;
+  line-height: normal;
   color: var(--ink-strong);
 }
 
@@ -233,16 +126,19 @@
   color: var(--ink-50);
 }
 
+/* The field is `type="search"`, which buys the Escape-clears behaviour every
+   browser already has — and a native clear affordance that is not in the file
+   and would sit where Send is. */
 .input::-webkit-search-cancel-button {
   display: none;
 }
 
-/* --- The mic --------------------------------------------------------------
-   The other way in. Voice is not a novelty on this product: the person using
-   it is up a ladder or under a house, and the remark they want is the one they
-   would least like to thumb-type. */
+/* --- Send ---------------------------------------------------------------
+   One button in three conditions rather than three buttons: dim until there is
+   something to send, filled once there is, and holding the loader while the
+   search runs. */
 
-.mic {
+.send {
   position: relative;
   display: flex;
   flex: none;
@@ -251,320 +147,760 @@
   width: calc(32 * var(--u));
   height: calc(32 * var(--u));
   border-radius: var(--r-pill);
-  background-color: #1f97dd;
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.06);
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.mic:hover {
-  transform: scale(1.06);
-}
-
-.micIcon {
-  background-color: #fff;
-}
-
-/* The level meter replaces the icon while the dictation plays.
-
-   Deliberately a CSS animation and not a driven one. It is not reading a
-   signal — there is no microphone open — and a JavaScript loop writing five
-   heights per frame would be dressing that up as measurement. A keyframe loop
-   is the honest shape for a thing that is indicating "listening" rather than
-   reporting a level. */
-.meter {
-  position: absolute;
-  display: none;
-  align-items: center;
-  gap: 2px;
-  height: calc(14 * var(--u));
-}
-
-.meter i {
-  width: 2px;
-  height: calc(4 * var(--u));
-  border-radius: 1px;
-  background-color: #fff;
-  animation: meter 900ms ease-in-out infinite;
-}
-
-.meter i:nth-child(2) { animation-delay: 120ms; }
-.meter i:nth-child(3) { animation-delay: 240ms; }
-.meter i:nth-child(4) { animation-delay: 90ms; }
-.meter i:nth-child(5) { animation-delay: 300ms; }
-
-@keyframes meter {
-  0%, 100% { height: 4px; }
-  50% { height: 14px; }
-}
-
-.finder[data-listening] .micIcon { display: none; }
-.finder[data-listening] .meter { display: flex; }
-
-.finder[data-listening] .mic {
-  animation: pulse 1600ms ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(31, 151, 221, 0.4); }
-  50% { box-shadow: 0 0 0 6px rgba(31, 151, 221, 0); }
-}
-
-/* Someone who asked for less motion still gets the field, the dictation and
-   the results — what stops is the decoration that was only ever indicating. */
-@media (prefers-reduced-motion: reduce) {
-  .meter i,
-  .finder[data-listening] .mic {
-    animation: none;
-  }
-  .meter i { height: 9px; }
-  .mic { transition: none; }
-  /* The tick still appears — it is the confirmation that a remark landed in
-     the report, and confirmation is information. What goes is its scale-in. */
-  .tick { transition: opacity 200ms ease; transform: rotate(-45deg); }
-}
-
-/* --- What it just did ----------------------------------------------------- */
-
-.legend {
-  display: flex;
-  align-items: center;
-  gap: calc(10 * var(--u));
-  flex: none;
-  min-height: calc(22 * var(--u));
-  font-size: calc(12 * var(--u));
-  font-weight: 500;
-  line-height: var(--lh);
-}
-
-/* The tap counter, which is also the control that replays what it counts.
-
-   It carries a hit area the dots do not: 7px circles are a readout, and a
-   readout you are meant to press has to be pressable at the size a finger
-   arrives at. The padding is cancelled by an equal negative margin, so the
-   legend lays out against the dots exactly as it did when they were a span. */
-.pips {
-  display: flex;
-  align-items: center;
-  flex: none;
-  padding: calc(6 * var(--u)) calc(8 * var(--u));
-  margin: calc(-6 * var(--u)) calc(-8 * var(--u));
-  border-radius: var(--r-pill);
-  transition: background-color 180ms ease;
-}
-
-.pips:hover,
-.pips:focus-visible {
-  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
-}
-
-.pipRow {
-  display: flex;
-  align-items: center;
-  gap: calc(5 * var(--u));
-}
-
-/* The tap counter. Same grammar as the Design System card's preset dots — an
-   active one stretches rather than grows, so the row never steps sideways. */
-.pip {
-  width: calc(7 * var(--u));
-  height: calc(7 * var(--u));
-  border-radius: 999px;
-  background-color: var(--ink);
-  opacity: 0.18;
+  background-color: var(--blue-bright);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.06);
+  /* Figma 80:7705 draws the unarmed state at 40%. */
+  opacity: 0.4;
   transition:
-    width 220ms cubic-bezier(0.16, 1, 0.3, 1),
     opacity 220ms ease,
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
     background-color 220ms ease;
 }
 
-.pip[data-on] {
-  width: calc(16 * var(--u));
+.send[data-armed] {
   opacity: 1;
-  background-color: #1f97dd;
 }
 
-.count {
-  flex: 1;
-  min-width: 0;
-  color: var(--ink-50);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.send[data-armed]:hover {
+  transform: scale(1.06);
 }
 
-/* The chip that used to be a disabled `Select category`. */
-.scope {
-  flex: none;
-  padding: calc(3 * var(--u)) calc(9 * var(--u));
+/* Figma 80:7718: the fill drops to a fifth while the loader is in it, so the
+   arrow's weight does not compete with the thing that is moving. */
+.send[data-busy] {
+  opacity: 1;
+  background-color: rgba(31, 151, 221, 0.2);
+  box-shadow: none;
+}
+
+.sendIcon {
+  width: calc(11.25 * var(--u));
+  height: calc(9.2 * var(--u));
+  color: #fff;
+  /* The file's Send is the same right-pointing arrow the site already ships,
+     turned to point up. One asset, two directions. */
+  transform: rotate(-90deg);
+}
+
+/* --- The library picker ---------------------------------------------------
+   The chip from the file, and a small panel of libraries under it. */
+
+.picker {
+  position: relative;
+  align-self: flex-start;
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  height: calc(36 * var(--u));
+  padding: 0 calc(12 * var(--u));
   border-radius: var(--r-pill);
-  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
-  font-size: calc(11 * var(--u));
+  background-color: rgba(25, 25, 25, 0.05);
+  transition: background-color 200ms ease;
+}
+
+:global(html[data-theme="dark"]) .category {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.category:hover,
+.category:focus-within {
+  background-color: rgba(25, 25, 25, 0.09);
+}
+
+:global(html[data-theme="dark"]) .category:hover,
+:global(html[data-theme="dark"]) .category:focus-within {
+  background-color: rgba(255, 255, 255, 0.13);
+}
+
+/* Open, and narrowed past the default — either one is the chip saying it has
+   been touched rather than sitting there looking like furniture. */
+.category[data-open] {
+  background-color: rgba(31, 151, 221, 0.12);
+}
+
+.categoryLabel {
+  font-size: calc(12 * var(--u));
   font-weight: 600;
+  line-height: normal;
   color: var(--ink-strong);
   white-space: nowrap;
 }
 
-/* --- What it found -------------------------------------------------------- */
+/* 4 wide × 8 tall in the file, turned a quarter to point down — so the box is
+   the *glyph's* 4×8 and the rotation is what makes it read as 8×4 on screen.
+   Sized the other way round it came out as a dash: `mask-size: contain` fits a
+   4×8 stencil into an 8×4 box by shrinking it to 2×4 first, and then the
+   rotation turns that stub sideways. */
+.categoryChevron {
+  width: calc(4 * var(--u));
+  height: calc(8 * var(--u));
+  color: var(--ink-strong);
+  transform: rotate(-90deg);
+  transition: transform 240ms var(--spring-soft);
+}
 
-.results {
+/* Points back at the panel it opened. */
+.category[data-open] .categoryChevron {
+  transform: rotate(90deg);
+}
+
+/* --- The panel -----------------------------------------------------------
+   Hung under the chip and out of the plate's flow, so opening it does not push
+   the suggestions down — the list underneath is what you are choosing a library
+   *for*, and having it jump as you tick boxes is the one thing this must not
+   do. */
+
+.sources {
+  position: absolute;
+  top: calc(100% + 6 * var(--u));
+  left: 0;
+  z-index: 3;
   display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: 2px;
-  min-height: 0;
-  /* The old flow's list was the thing you scrolled. This one is not: five rows
-     is what the card can hold, and a scroll area inside a card only invites a
-     gesture that fights the page. The count in the legend is what says there
-     are more. */
-  overflow: hidden;
+  min-width: calc(190 * var(--u));
+  padding: calc(6 * var(--u));
+  border: 1px solid rgba(25, 25, 25, 0.07);
+  border-radius: calc(14 * var(--u));
+  background-color: var(--surface-raised);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 calc(8 * var(--u)) calc(28 * var(--u)) rgba(0, 0, 0, 0.1),
+    0 0 calc(24 * var(--u)) rgba(31, 151, 221, 0.1);
+  animation: drop 200ms var(--spring-soft) both;
+  transform-origin: top left;
 }
 
-.row {
-  position: relative;
-  flex: none;
-  padding: calc(7 * var(--u)) calc(34 * var(--u)) calc(7 * var(--u)) calc(10 * var(--u));
-  border-radius: calc(10 * var(--u));
+:global(html[data-theme="dark"]) .sources {
+  border-color: rgba(255, 255, 255, 0.1);
+  background-color: #2a2a2a;
+}
+
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-4 * var(--u))) scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sources {
+    animation: none;
+  }
+}
+
+.source {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  padding: calc(8 * var(--u)) calc(10 * var(--u));
+  border-radius: calc(8 * var(--u));
   cursor: pointer;
-  /* Rows this inspector has never used sit at a lower contrast and without the
-     rule below — the ranking's decision, made visible, rather than a styling
-     choice about importance. */
-  opacity: 0.5;
-  transition:
-    opacity 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
+  font-size: calc(13 * var(--u));
+  font-weight: 500;
+  line-height: normal;
+  color: var(--ink-strong);
+  white-space: nowrap;
+  transition: background-color 160ms ease;
 }
 
-.row[data-mine] {
-  opacity: 1;
-  background-color: color-mix(in srgb, var(--ink) 4%, transparent);
+.source:hover {
+  background-color: rgba(25, 25, 25, 0.05);
 }
 
-/* Reachable, and it says so. A row a pointer is over comes up to full contrast
-   whatever the ranking thought of it — the dimming is the ranking talking, not
-   a claim that the row is unavailable. */
-.row:hover {
-  opacity: 1;
-  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
+:global(html[data-theme="dark"]) .source:hover {
+  background-color: rgba(255, 255, 255, 0.07);
 }
 
-/* The keyboard's cursor. Not the same thing as being in the report — this is
-   where Enter would land, so it is drawn as an aim rather than as a state, in
-   the card's blue and with a ring the pointer's hover deliberately does not
-   get. Two cursors on screen at once is how a combobox stops making sense. */
-.row[data-active] {
-  opacity: 1;
-  background-color: color-mix(in srgb, #1f97dd 10%, transparent);
-  box-shadow: inset 0 0 0 1px rgba(31, 151, 221, 0.35);
+/* The real checkbox is `srOnly`, so the ring has to be drawn here or focus is
+   invisible for anyone driving this with a keyboard. */
+.source:has(:focus-visible) {
+  outline: 2px solid var(--blue-bright);
+  outline-offset: -2px;
 }
 
-/* In the report. The tick is the whole indicator: a row that is in the report
-   is not less available — pressing it again takes it back out — so nothing
-   here dims, moves or strikes it through. */
-.row[data-in-report] {
-  opacity: 1;
+/* The last library on cannot be turned off, and says so by going quiet rather
+   than by refusing a press with no explanation. */
+.source:has(:disabled) {
+  cursor: default;
+  opacity: 0.55;
 }
 
 .tick {
-  position: absolute;
-  top: 50%;
-  right: calc(12 * var(--u));
-  width: calc(11 * var(--u));
-  height: calc(6 * var(--u));
-  margin-top: calc(-4 * var(--u));
-  border-left: 1.75px solid var(--green);
-  border-bottom: 1.75px solid var(--green);
-  border-bottom-left-radius: 1px;
-  transform: rotate(-45deg) scale(0.6);
-  opacity: 0;
-  transition:
-    opacity 200ms ease,
-    transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.row[data-in-report] .tick {
-  opacity: 1;
-  transform: rotate(-45deg) scale(1);
-}
-
-/* --- The dead end --------------------------------------------------------
-   Designed, rather than left as the empty box a `.filter()` returns.
-
-   It is also the only place the card can make its point in the negative: five
-   characters bought a certainty the old flow could not sell at any number of
-   taps, because down a tree an empty branch and a wrong guess look identical. */
-
-.blank {
-  display: flex;
+  position: relative;
   flex: none;
+  width: calc(16 * var(--u));
+  height: calc(16 * var(--u));
+  border: 1.5px solid var(--ink-20);
+  border-radius: calc(5 * var(--u));
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.source[data-on] .tick {
+  border-color: var(--blue-bright);
+  background-color: var(--blue-bright);
+}
+
+/* Two borders and a rotation rather than an icon file — it is a check mark, and
+   a network request to say "yes" is not worth making. */
+.tick::after {
+  content: "";
+  position: absolute;
+  top: calc(2 * var(--u));
+  left: calc(5 * var(--u));
+  width: calc(4 * var(--u));
+  height: calc(8 * var(--u));
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  opacity: 0;
+  transform: rotate(45deg) scale(0.6);
+  transition:
+    opacity 160ms ease,
+    transform 200ms var(--spring-soft);
+}
+
+.source[data-on] .tick::after {
+  opacity: 1;
+  transform: rotate(45deg) scale(1);
+}
+
+/* ==========================================================================
+   What is under the plate
+
+   One box for all three of the states that have anything in them. It scrolls,
+   because it has to: a finding is about 150 design pixels tall and the card
+   leaves room for under two of them, which is why Figma 869:6917 draws the
+   third one running off the bottom edge.
+   ========================================================================== */
+
+.below {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* The last line fades rather than being cut mid-word — and the mask is only
+     at the bottom, so the first row stays hard against the plate. */
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - 32 * var(--u)),
+    transparent 100%
+  );
+  scrollbar-width: none;
+}
+
+.below::-webkit-scrollbar {
+  display: none;
+}
+
+/* Nothing to scroll in these two, so nothing to fade. A mask over the centred
+   loader would dim the one thing on screen. */
+.finder[data-phase="idle"] .below,
+.finder[data-phase="searching"] .below {
+  mask-image: none;
+}
+
+/* The states cross rather than cut. Only the incoming one animates: the
+   outgoing one is unmounted the moment the phase changes, and a pair of
+   opposing fades over the same box is a dissolve — which reads as two lists
+   being confused with each other rather than one replacing the other. */
+.suggestions,
+.searching,
+.results {
+  animation: rise 320ms var(--spring-soft) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(calc(6 * var(--u)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .suggestions,
+  .searching,
+  .results {
+    animation: none;
+  }
+}
+
+/* --- The two list headings ------------------------------------------------ */
+
+.suggestions {
+  display: flex;
   flex-direction: column;
-  gap: calc(4 * var(--u));
-  padding: calc(14 * var(--u)) calc(10 * var(--u)) 0;
+  gap: calc(20 * var(--u));
 }
 
-.blankTitle {
-  font-size: calc(13 * var(--u));
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: calc(16 * var(--u));
+}
+
+.listHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(12 * var(--u));
+}
+
+.listTitle {
+  font-size: calc(16 * var(--u));
   font-weight: 600;
-  line-height: 1.35;
-  color: var(--ink);
+  line-height: 1.7;
+  color: var(--ink-strong);
+  white-space: nowrap;
 }
 
-.blankNote {
+/* The column header for the two badges, Figma 869:6275. */
+.usageHead {
   font-size: calc(12 * var(--u));
   font-weight: 500;
-  line-height: var(--lh);
+  color: var(--blue-bright);
+  white-space: nowrap;
+}
+
+/* The old card's sharpest readout, kept in the space the results heading
+   leaves, with the sample disclosed in the same breath. Quiet on purpose: it is
+   evidence for anyone who looks, not a second headline. */
+.readout {
+  font-size: calc(11 * var(--u));
+  font-weight: 500;
+  color: var(--ink-40);
+  white-space: nowrap;
+}
+
+.blank {
+  font-size: calc(13 * var(--u));
+  font-weight: 500;
+  line-height: 1.6;
   color: var(--ink-50);
 }
 
-.rowText {
-  font-size: calc(13 * var(--u));
-  font-weight: 500;
-  line-height: 1.35;
-  color: var(--ink);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  overflow: hidden;
-}
+/* --- A suggestion --------------------------------------------------------- */
 
-.mark {
-  background: none;
-  color: #1f97dd;
-  font-weight: 700;
-}
-
-.rowMeta {
+.rows {
   display: flex;
-  align-items: baseline;
-  gap: calc(8 * var(--u));
-  margin-top: 2px;
-  font-size: calc(11 * var(--u));
-  font-weight: 500;
-  line-height: var(--lh);
-  color: var(--ink-40);
+  flex-direction: column;
+  gap: calc(20 * var(--u));
 }
 
-/* The evidence. Read down this column and the paths disagree with each other,
-   which is a set the drill-down above could not have produced. */
-.path {
-  flex: 1;
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(12 * var(--u));
+  width: 100%;
+  text-align: left;
+  border-radius: calc(8 * var(--u));
+  transition: opacity 160ms ease;
+}
+
+.row:hover {
+  opacity: 0.62;
+}
+
+.rowTitle {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
   min-width: 0;
+}
+
+.rowIcon {
+  width: calc(19.197 * var(--u));
+  height: calc(20 * var(--u));
+  color: var(--ink-strong);
+  opacity: 0.6;
+}
+
+.rowLabel {
+  font-size: calc(13 * var(--u));
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--ink-strong);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.viaPath {
-  flex: none;
-  color: #1f97dd;
+/* What the query actually matched. The rows are ranked by this inspector's own
+   history first and match quality second, so the marks are the only thing on a
+   row that explains its text — without them the ordering looks arbitrary. */
+.hit {
+  background: none;
+  color: inherit;
+  font-weight: 700;
 }
 
-.used {
+/* --- The two counts ------------------------------------------------------- */
+
+.usage {
+  display: flex;
   flex: none;
-  color: var(--green);
+  align-items: center;
+  gap: calc(8 * var(--u));
 }
 
-.row:not([data-mine]) .used {
+.mine,
+.everyone {
+  display: flex;
+  align-items: center;
+  gap: calc(2 * var(--u));
+  font-size: calc(12 * var(--u));
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* Yours: the one of the two that ranks anything, and so the one with a fill.
+   Figma gives it a fixed 49 wide; a min-width instead, because the sample runs
+   from 0 to 26 and the real library would not stop there. */
+.mine {
+  min-width: calc(49 * var(--u));
+  height: calc(27 * var(--u));
+  padding: calc(5 * var(--u)) calc(6 * var(--u)) calc(5 * var(--u))
+    calc(4 * var(--u));
+  border-radius: calc(8 * var(--u));
+  background-color: rgba(17, 120, 171, 0.1);
+  font-weight: 600;
+  color: var(--blue);
+}
+
+:global(html[data-theme="dark"]) .mine {
+  background-color: rgba(75, 180, 230, 0.16);
+}
+
+/* Everybody's. Figma gives it 43, which is the width of the `917` it happens to
+   have drawn — `1,024` two rows above it in the same file already overflows
+   that. 56 holds four digits and a comma, which is what the sample's largest
+   count needs, and it is a `min-width` so a bigger library still grows rather
+   than clipping.
+
+   Both badges being at their minimum for every row in the sample is what keeps
+   the two of them in clean columns down the list. That column is the whole
+   reason the numbers are legible at a glance: they are there to be *compared*,
+   row against row, and a ragged right edge makes that a reading task. */
+.everyone {
+  min-width: calc(56 * var(--u));
+  height: calc(20 * var(--u));
+  font-weight: 500;
+  color: var(--firm);
+}
+
+.usageIcon {
+  width: calc(16 * var(--u));
+  height: calc(16 * var(--u));
+}
+
+.globeIcon {
+  width: calc(20 * var(--u));
+  height: calc(20 * var(--u));
+}
+
+/* --- Searching ------------------------------------------------------------ */
+
+.searching {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(24 * var(--u));
+  height: 100%;
+}
+
+/* The lines are stacked in one grid cell rather than swapped in and out, so
+   the loader never changes height as it moves between libraries — the longest
+   supporting line reserves the box and the shorter ones sit inside it. A
+   loader that nudges the card while you are reading it is worse than one that
+   says nothing. */
+.searchingLines {
+  display: grid;
+  place-items: center;
+}
+
+.searchingLine {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(4 * var(--u));
+  text-align: center;
+  opacity: 0;
+  transform: translateY(calc(4 * var(--u)));
+  transition:
+    opacity 240ms ease,
+    transform 320ms var(--spring-soft);
+}
+
+.searchingLine[data-on] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .searchingLine {
+    transition: none;
+    transform: none;
+  }
+}
+
+.searchingNote {
+  font-size: calc(14 * var(--u));
+  font-weight: 500;
+  color: var(--ink-60);
+}
+
+/* What that library actually is. The picker names the source in two words and
+   this is the sentence that says what those two words mean — which is the whole
+   reason the loader is held long enough to read. */
+.searchingSupport {
+  font-size: calc(12 * var(--u));
+  font-weight: 500;
   color: var(--ink-40);
+}
+
+/* ==========================================================================
+   A finding — Figma 869:6510
+   ========================================================================== */
+
+.findings {
+  display: flex;
+  flex-direction: column;
+}
+
+.finding {
+  display: flex;
+  flex-direction: column;
+  gap: calc(20 * var(--u));
+  padding: calc(20 * var(--u)) 0;
+}
+
+.finding:first-child {
+  padding-top: 0;
+}
+
+/* The rule between findings. `border-style: dashed` hands the dash length to
+   the browser, which derives it from the border width and comes out around 2 on
+   2 off — a dotted hairline next to the file's rhythm. The gradient states the
+   pattern instead, at the same 6/8 the rest of the site's long rules use. */
+.finding + .finding {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--ink-20) 0 6px,
+    transparent 6px 14px
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: 0 0;
+}
+
+.findingHead {
+  display: flex;
+  flex-direction: column;
+  gap: calc(8 * var(--u));
+}
+
+.findingTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(12 * var(--u));
+}
+
+/* The branch the finding was filed under, and the evidence for the whole card:
+   a result list whose paths disagree with each other is a list no single walk
+   down the tree could have produced. */
+.branch {
+  font-size: calc(12 * var(--u));
+  font-weight: 500;
+  color: var(--blue);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.severity {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: calc(6 * var(--u));
+  height: calc(28 * var(--u));
+  padding: 0 calc(12 * var(--u));
+  border-radius: var(--r-pill);
+  background-color: rgb(from var(--flag) r g b / 0.1);
+  font-size: calc(10 * var(--u));
+  font-weight: 600;
+  color: var(--flag);
+  white-space: nowrap;
+}
+
+.severityIcon {
+  width: calc(12 * var(--u));
+  height: calc(12 * var(--u));
+}
+
+.findingTitle {
+  font-size: calc(15 * var(--u));
+  font-weight: 600;
+  color: var(--ink-strong);
+}
+
+.where {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  font-size: calc(11 * var(--u));
+  font-weight: 500;
+  color: var(--ink-70);
+}
+
+.whereIcon {
+  width: calc(16 * var(--u));
+  height: calc(16 * var(--u));
+}
+
+/* --- What it will say on the report --------------------------------------- */
+
+.body {
+  position: relative;
+  font-size: calc(13 * var(--u));
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--ink-strong);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+
+.body[data-open] {
+  display: block;
+  -webkit-line-clamp: none;
+  line-clamp: none;
+}
+
+/* Sits over the end of the clamped last line, which is where the file puts it —
+   `...It i... Show more`. Absolute rather than inline because a `-webkit-box`
+   clamps its own children too, so an inline button on the fifth line would be
+   clipped along with the text it is offering to reveal. The fade behind it is
+   the plate's ground, so the word it covers goes out rather than being cut. */
+.showMore {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding-left: calc(28 * var(--u));
+  /* The ground it has to fade out of is the *card's*, not the plate's: these
+     findings sit on the card surface, which is white at 70% over the page. Mixed
+     rather than written as a literal, so it follows both of them. */
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, #fff 70%, var(--page-base)) calc(24 * var(--u))
+  );
+  font-size: inherit;
+  line-height: inherit;
+  color: var(--blue);
+}
+
+:global(html[data-theme="dark"]) .showMore {
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, #fff 6%, var(--page-base)) calc(24 * var(--u))
+  );
+}
+
+.showMore:hover {
+  text-decoration: underline;
+}
+
+/* The editor `Edit & Add` opens. Sized to the clamp it replaces, so opening it
+   does not jump the block it is in. */
+.editor {
+  width: 100%;
+  padding: calc(8 * var(--u)) calc(10 * var(--u));
+  border: 1px solid rgba(31, 151, 221, 0.4);
+  border-radius: calc(8 * var(--u));
+  background-color: var(--surface-raised);
+  font: inherit;
+  font-size: calc(13 * var(--u));
+  line-height: 1.6;
+  color: var(--ink-strong);
+  resize: none;
+}
+
+.editor:focus-visible {
+  outline: none;
+  border-color: var(--blue-bright);
+}
+
+/* --- The two controls ----------------------------------------------------- */
+
+.findingFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(12 * var(--u));
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: calc(12 * var(--u));
+}
+
+.edit,
+.add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(32 * var(--u));
+  border-radius: calc(8 * var(--u));
+  font-size: calc(11 * var(--u));
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 200ms ease;
+}
+
+.edit {
+  padding: 0 calc(12 * var(--u));
+  background-color: var(--surface-raised);
+  color: var(--blue);
+}
+
+.edit:disabled {
+  opacity: 0.4;
+}
+
+.add {
+  min-width: calc(64 * var(--u));
+  padding: 0 calc(16 * var(--u));
+  background-color: var(--blue-flood);
+  box-shadow: 0 0 24px rgba(0, 89, 130, 0.12);
+  color: #fff;
+}
+
+.edit:hover:not(:disabled),
+.add:hover {
+  transform: scale(1.04);
+}
+
+/* In the report. It stays the same button — this is a toggle, and a control
+   that changed shape on commit would read as a different control. */
+.add[data-in] {
+  background-color: var(--green);
+  box-shadow: none;
 }

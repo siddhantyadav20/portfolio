@@ -4,7 +4,14 @@
    What this file owns is the chip: its type, its plate, its pointer, and the
    point at which the whole arrangement gives up and becomes a legend. */
 
+/* Named, and a container, because the switch below is about how much room this
+   figure has rather than how wide the window is. It used to be a viewport media
+   query, which was true while the only narrow case was a phone; the portrait
+   frame is a second narrow case on a 1440 desktop, and a query on the window
+   cannot see it. `cqw` inside a callout still resolves against `.stage`, which
+   is the nearer container and the one those numbers were written for. */
 .figure {
+  container: headfig / inline-size;
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -177,7 +184,7 @@
    under it with a swatch each. The figure says the same thing; it just stops
    saying it by position. */
 
-@media (max-width: 760px) {
+@container headfig (max-width: 760px) {
   .figure {
     gap: 24px;
   }
@@ -252,5 +259,60 @@
   .swatch {
     display: block;
     align-self: center;
+  }
+}
+
+/* --- Inside the portrait ---------------------------------------------------
+   The legend layout again, at the size a 402x728 frame can hold — and at the
+   size a 342x420 one can, which is the tighter of the two and what the second
+   block below is for. Everything here is size; the arrangement is the legend's
+   and comes from the container query above. */
+
+.figure[data-inset] {
+  gap: 16px;
+  max-width: none;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.figure[data-inset] .stage {
+  gap: 16px;
+  max-width: none;
+}
+
+.figure[data-inset] .head {
+  width: min(62%, 210px);
+}
+
+.figure[data-inset] .callouts {
+  gap: 6px;
+}
+
+.figure[data-inset] .callout {
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.figure[data-inset] .share,
+.figure[data-inset] .name {
+  padding: 5px 0;
+}
+
+.figure[data-inset] .swatch {
+  width: 8px;
+  height: 8px;
+}
+
+/* The short frame. Below this the head has to give up more than the chips do —
+   a legend that has wrapped to five rows is still readable and a 90px head is
+   not a head. */
+@media (max-width: 1000px) {
+  .figure[data-inset] .head {
+    width: min(48%, 150px);
+  }
+
+  .figure[data-inset] .callout {
+    font-size: 11px;
   }
 }

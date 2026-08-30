@@ -8,7 +8,7 @@
    twenty because the card's whole argument needs a corpus wide enough to be
    wrong-shaped.
 
-   WHAT THIS IS, PLAINLY: fifty-eight demo remarks written for this site. They
+   WHAT THIS IS, PLAINLY: sixty-one demo remarks written for this site. They
    are not an export of the real library, and `used` counts are not one
    inspector's real history. PROJECT.md forbids inventing metrics and this file
    is not an exception to that — it is why `SAMPLE_NOTE` exists and why the
@@ -30,10 +30,44 @@
 
 import { prefixAt, tokenize, wordStarts } from "@/lib/match";
 
+/**
+ * How urgently a remark reads on the report.
+ *
+ * Three labels, and in Figma 869:6513 all three are drawn the same way — the
+ * same red pill, the same danger glyph. That is the file's decision and not an
+ * oversight to correct: an inspector's report flags a finding or it does not,
+ * and grading the flag by colour would invite a reader to skim past the pale
+ * ones. The word carries the distinction; the pill carries the attention.
+ */
+export type Severity = "action" | "inspection" | "maintenance";
+
+/** What each severity says on the pill. */
+export const SEVERITY_LABEL: Record<Severity, string> = {
+  action: "Action Required",
+  inspection: "Inspection Needed",
+  maintenance: "Maintenance Required",
+};
+
 export type Remark = {
+  /**
+   * The short name an inspector scans for, and the one the suggestions list and
+   * a result's heading both draw — Figma 869:6049 and 869:6520 are the same
+   * string at two sizes.
+   *
+   * Split from `text` because the two are read at different moments and at
+   * different lengths. You pick a remark off four words; you put a paragraph in
+   * the report. Before the redesign there was only `text`, which meant the
+   * suggestions list was a column of clamped sentences and every row began with
+   * the same three words.
+   */
+  readonly label: string;
+  /** The remark as it lands in the report: the sentence the client reads. */
   readonly text: string;
   readonly category: string;
   readonly subcategory: string;
+  /** Where on the property it was observed — Figma 869:6524. */
+  readonly location: string;
+  readonly severity: Severity;
   /**
    * How many times this inspector has reached for this remark before.
    *
@@ -44,6 +78,16 @@ export type Remark = {
    * at the top of a list you did not have to navigate to.
    */
   readonly used: number;
+  /**
+   * How many times the whole company has reached for it — the globe badge
+   * beside the person one, Figma 869:6080.
+   *
+   * It ranks nothing. It is there because the two numbers disagreeing is the
+   * interesting case: a remark the firm leans on that *you* have barely used is
+   * a prompt, and one you use constantly that nobody else does is a house
+   * style. A single count could say neither.
+   */
+  readonly global: number;
 };
 
 /** The real library's size, from the Figma file. Display only — see the header. */
@@ -55,87 +99,455 @@ export const SAMPLE_NOTE = "demo sample";
 
 export const REMARKS: readonly Remark[] = [
   // --- Roofing -------------------------------------------------------------
-  { category: "Roofing", subcategory: "Shingles", used: 23, text: "Cracked and curling shingles observed at the south slope" },
-  { category: "Roofing", subcategory: "Shingles", used: 17, text: "Missing shingle tabs; underlayment is exposed" },
-  { category: "Roofing", subcategory: "Shingles", used: 9, text: "Granule loss consistent with the age of the covering" },
-  { category: "Roofing", subcategory: "Flashing", used: 12, text: "Step flashing at the chimney is rusted and lifting" },
-  { category: "Roofing", subcategory: "Flashing", used: 8, text: "Sealant at the flashing has cracked and pulled away" },
-  { category: "Roofing", subcategory: "Gutters", used: 21, text: "Downspout discharges against the foundation" },
-  { category: "Roofing", subcategory: "Gutters", used: 14, text: "Gutters hold standing water; slope correction needed" },
-  { category: "Roofing", subcategory: "Chimney", used: 6, text: "Chimney crown is cracked; water entry is likely" },
-  { category: "Roofing", subcategory: "Chimney", used: 4, text: "Mortar joints at the chimney are eroded" },
+  {
+    label: "Cracked and Curling Shingles",
+    text: "Cracked and curling shingles observed at the south slope",
+    category: "Roofing", subcategory: "Shingles",
+    location: "South Slope", severity: "action",
+    used: 23, global: 1_842,
+  },
+  {
+    label: "Missing Shingle Tabs",
+    text: "Missing shingle tabs; underlayment is exposed",
+    category: "Roofing", subcategory: "Shingles",
+    location: "Rear Slope", severity: "action",
+    used: 17, global: 1_024,
+  },
+  {
+    label: "Granule Loss on Covering",
+    text: "Granule loss consistent with the age of the covering",
+    category: "Roofing", subcategory: "Shingles",
+    location: "Main Roof", severity: "maintenance",
+    used: 9, global: 913,
+  },
+  {
+    label: "Rusted Step Flashing",
+    text: "Step flashing at the chimney is rusted and lifting",
+    category: "Roofing", subcategory: "Flashing",
+    location: "Chimney", severity: "action",
+    used: 12, global: 764,
+  },
+  {
+    label: "Cracked Flashing Sealant",
+    text: "Sealant at the flashing has cracked and pulled away",
+    category: "Roofing", subcategory: "Flashing",
+    location: "Roof Penetrations", severity: "maintenance",
+    used: 8, global: 690,
+  },
+  {
+    label: "Downspout Against Foundation",
+    text: "Downspout discharges against the foundation",
+    category: "Roofing", subcategory: "Gutters",
+    location: "Rear Elevation", severity: "action",
+    used: 21, global: 1_506,
+  },
+  {
+    label: "Standing Water in Gutters",
+    text: "Gutters hold standing water; slope correction needed",
+    category: "Roofing", subcategory: "Gutters",
+    location: "Front Elevation", severity: "maintenance",
+    used: 14, global: 1_118,
+  },
+  {
+    label: "Cracked Chimney Crown",
+    text: "Chimney crown is cracked; water entry is likely",
+    category: "Roofing", subcategory: "Chimney",
+    location: "Chimney", severity: "action",
+    used: 6, global: 588,
+  },
+  {
+    label: "Eroded Mortar Joints",
+    text: "Mortar joints at the chimney are eroded",
+    category: "Roofing", subcategory: "Chimney",
+    location: "Chimney", severity: "maintenance",
+    used: 4, global: 472,
+  },
 
   // --- Exterior ------------------------------------------------------------
-  { category: "Exterior", subcategory: "Grading", used: 19, text: "Grade slopes toward the structure at the rear" },
-  { category: "Exterior", subcategory: "Siding", used: 15, text: "Siding is in contact with grade; conducive to decay" },
-  { category: "Exterior", subcategory: "Siding", used: 11, text: "Cracking in the stucco below the window openings" },
-  { category: "Exterior", subcategory: "Windows", used: 13, text: "Failed thermal seal; fogging between the panes" },
-  { category: "Exterior", subcategory: "Decks", used: 10, text: "Guardrail spacing exceeds four inches" },
-  { category: "Exterior", subcategory: "Decks", used: 5, text: "Deck ledger is nailed rather than bolted" },
-  { category: "Exterior", subcategory: "Walkways", used: 7, text: "Cracked and heaved walkway creates a trip hazard" },
+  {
+    label: "Grade Slopes Toward Structure",
+    text: "Grade slopes toward the structure at the rear",
+    category: "Exterior", subcategory: "Grading",
+    location: "Rear Yard", severity: "action",
+    used: 19, global: 1_355,
+  },
+  {
+    label: "Siding in Contact with Grade",
+    text: "Siding is in contact with grade; conducive to decay",
+    category: "Exterior", subcategory: "Siding",
+    location: "Side Walls", severity: "inspection",
+    used: 15, global: 1_087,
+  },
+  {
+    label: "Cracked Stucco Below Windows",
+    text: "Cracking in the stucco below the window openings",
+    category: "Exterior", subcategory: "Siding",
+    location: "Front and Side Walls", severity: "inspection",
+    used: 11, global: 869,
+  },
+  {
+    label: "Failed Thermal Seal",
+    text: "Failed thermal seal; fogging between the panes",
+    category: "Exterior", subcategory: "Windows",
+    location: "Exterior Windows", severity: "inspection",
+    used: 13, global: 942,
+  },
+  {
+    label: "Guardrail Spacing Too Wide",
+    text: "Guardrail spacing exceeds four inches",
+    category: "Exterior", subcategory: "Decks",
+    location: "Rear Deck", severity: "action",
+    used: 10, global: 812,
+  },
+  {
+    label: "Deck Ledger Not Bolted",
+    text: "Deck ledger is nailed rather than bolted",
+    category: "Exterior", subcategory: "Decks",
+    location: "Rear Deck", severity: "action",
+    used: 5, global: 517,
+  },
+  {
+    label: "Heaved Walkway",
+    text: "Cracked and heaved walkway creates a trip hazard",
+    category: "Exterior", subcategory: "Walkways",
+    location: "Driveway and Walkways", severity: "action",
+    used: 7, global: 703,
+  },
 
   // --- Structure -----------------------------------------------------------
-  { category: "Structure", subcategory: "Foundation", used: 26, text: "Vertical crack in the foundation wall, under an eighth of an inch" },
-  { category: "Structure", subcategory: "Foundation", used: 14, text: "Efflorescence on the foundation wall indicates moisture" },
-  { category: "Structure", subcategory: "Foundation", used: 3, text: "Horizontal cracking with inward displacement" },
-  { category: "Structure", subcategory: "Crawlspace", used: 16, text: "Vapor barrier is torn and incomplete" },
-  { category: "Structure", subcategory: "Crawlspace", used: 8, text: "Standing water observed in the crawlspace" },
-  { category: "Structure", subcategory: "Framing", used: 4, text: "Notched floor joist exceeds the allowable depth" },
-  { category: "Structure", subcategory: "Framing", used: 2, text: "Sistered joists are not fully bearing at the beam" },
+  {
+    label: "Vertical Foundation Crack",
+    text: "Vertical crack in the foundation wall, under an eighth of an inch",
+    category: "Structure", subcategory: "Foundation",
+    location: "Foundation Wall", severity: "inspection",
+    used: 26, global: 1_930,
+  },
+  {
+    label: "Efflorescence on Foundation",
+    text: "Efflorescence on the foundation wall indicates moisture",
+    category: "Structure", subcategory: "Foundation",
+    location: "Basement", severity: "inspection",
+    used: 14, global: 1_101,
+  },
+  {
+    label: "Horizontal Foundation Cracking",
+    text: "Horizontal cracking with inward displacement",
+    category: "Structure", subcategory: "Foundation",
+    location: "Foundation Wall", severity: "action",
+    used: 3, global: 415,
+  },
+  {
+    label: "Torn Vapor Barrier",
+    text: "Vapor barrier is torn and incomplete",
+    category: "Structure", subcategory: "Crawlspace",
+    location: "Crawlspace", severity: "maintenance",
+    used: 16, global: 1_162,
+  },
+  {
+    label: "Standing Water in Crawlspace",
+    text: "Standing water observed in the crawlspace",
+    category: "Structure", subcategory: "Crawlspace",
+    location: "Crawlspace", severity: "action",
+    used: 8, global: 736,
+  },
+  {
+    label: "Over-Notched Floor Joist",
+    text: "Notched floor joist exceeds the allowable depth",
+    category: "Structure", subcategory: "Framing",
+    location: "Crawlspace", severity: "inspection",
+    used: 4, global: 468,
+  },
+  {
+    label: "Sistered Joists Not Bearing",
+    text: "Sistered joists are not fully bearing at the beam",
+    category: "Structure", subcategory: "Framing",
+    location: "Basement", severity: "inspection",
+    used: 2, global: 331,
+  },
 
   // --- Electrical ----------------------------------------------------------
-  { category: "Electrical", subcategory: "Panel", used: 22, text: "Double-tapped breaker in the main panel" },
-  { category: "Electrical", subcategory: "Panel", used: 6, text: "Panel cover screws are pointed and may pierce conductors" },
-  { category: "Electrical", subcategory: "Panel", used: 5, text: "Federal Pacific panel; replacement recommended" },
-  { category: "Electrical", subcategory: "Outlets", used: 19, text: "Missing GFCI protection at the kitchen counter" },
-  { category: "Electrical", subcategory: "Outlets", used: 12, text: "Open ground at the bedroom receptacles" },
-  { category: "Electrical", subcategory: "Outlets", used: 9, text: "Reversed polarity at the garage receptacle" },
-  { category: "Electrical", subcategory: "Wiring", used: 11, text: "Exposed splice outside of a junction box" },
-  { category: "Electrical", subcategory: "Wiring", used: 3, text: "Knob-and-tube wiring remains active" },
-  { category: "Electrical", subcategory: "Fixtures", used: 2, text: "Cracked lens on the exterior fixture" },
+  {
+    label: "Double-Tapped Breaker",
+    text: "Double-tapped breaker in the main panel",
+    category: "Electrical", subcategory: "Panel",
+    location: "Main Panel", severity: "action",
+    used: 22, global: 1_674,
+  },
+  {
+    label: "Pointed Panel Cover Screws",
+    text: "Panel cover screws are pointed and may pierce conductors",
+    category: "Electrical", subcategory: "Panel",
+    location: "Main Panel", severity: "maintenance",
+    used: 6, global: 604,
+  },
+  {
+    label: "Federal Pacific Panel",
+    text: "Federal Pacific panel; replacement recommended",
+    category: "Electrical", subcategory: "Panel",
+    location: "Main Panel", severity: "action",
+    used: 5, global: 559,
+  },
+  {
+    label: "Missing GFCI Protection",
+    text: "Missing GFCI protection at the kitchen counter",
+    category: "Electrical", subcategory: "Outlets",
+    location: "Kitchen", severity: "action",
+    used: 19, global: 1_398,
+  },
+  {
+    label: "Open Ground at Receptacles",
+    text: "Open ground at the bedroom receptacles",
+    category: "Electrical", subcategory: "Outlets",
+    location: "Bedrooms", severity: "inspection",
+    used: 12, global: 907,
+  },
+  {
+    label: "Reversed Polarity",
+    text: "Reversed polarity at the garage receptacle",
+    category: "Electrical", subcategory: "Outlets",
+    location: "Garage", severity: "inspection",
+    used: 9, global: 781,
+  },
+  {
+    label: "Exposed Splice",
+    text: "Exposed splice outside of a junction box",
+    category: "Electrical", subcategory: "Wiring",
+    location: "Attic", severity: "action",
+    used: 11, global: 848,
+  },
+  {
+    label: "Active Knob-and-Tube Wiring",
+    text: "Knob-and-tube wiring remains active",
+    category: "Electrical", subcategory: "Wiring",
+    location: "Attic", severity: "action",
+    used: 3, global: 402,
+  },
+  {
+    label: "Cracked Fixture Lens",
+    text: "Cracked lens on the exterior fixture",
+    category: "Electrical", subcategory: "Fixtures",
+    location: "Exterior Walls", severity: "maintenance",
+    used: 2, global: 318,
+  },
 
   // --- Plumbing ------------------------------------------------------------
-  { category: "Plumbing", subcategory: "Water heater", used: 20, text: "TPR discharge terminates too high above the floor" },
-  { category: "Plumbing", subcategory: "Water heater", used: 15, text: "No expansion tank on a closed system" },
-  { category: "Plumbing", subcategory: "Drains", used: 18, text: "Slow drain at the hall bath lavatory" },
-  { category: "Plumbing", subcategory: "Drains", used: 7, text: "S-trap under the kitchen sink is not vented" },
-  { category: "Plumbing", subcategory: "Supply", used: 13, text: "Corrosion at the water heater supply connections" },
-  { category: "Plumbing", subcategory: "Supply", used: 4, text: "Polybutylene supply piping observed" },
-  { category: "Plumbing", subcategory: "Fixtures", used: 10, text: "Loose toilet at the floor flange" },
-  { category: "Plumbing", subcategory: "Fixtures", used: 1, text: "Cracked toilet tank lid" },
+  {
+    label: "TPR Discharge Terminates High",
+    text: "TPR discharge terminates too high above the floor",
+    category: "Plumbing", subcategory: "Water heater",
+    location: "Water Heater", severity: "action",
+    used: 20, global: 1_442,
+  },
+  {
+    label: "No Expansion Tank",
+    text: "No expansion tank on a closed system",
+    category: "Plumbing", subcategory: "Water heater",
+    location: "Water Heater", severity: "inspection",
+    used: 15, global: 1_063,
+  },
+  {
+    label: "Slow Drain at Lavatory",
+    text: "Slow drain at the hall bath lavatory",
+    category: "Plumbing", subcategory: "Drains",
+    location: "Hall Bath", severity: "maintenance",
+    used: 18, global: 1_287,
+  },
+  {
+    label: "Unvented S-Trap",
+    text: "S-trap under the kitchen sink is not vented",
+    category: "Plumbing", subcategory: "Drains",
+    location: "Kitchen", severity: "inspection",
+    used: 7, global: 688,
+  },
+  {
+    label: "Corroded Supply Connections",
+    text: "Corrosion at the water heater supply connections",
+    category: "Plumbing", subcategory: "Supply",
+    location: "Water Heater", severity: "maintenance",
+    used: 13, global: 956,
+  },
+  {
+    label: "Polybutylene Supply Piping",
+    text: "Polybutylene supply piping observed",
+    category: "Plumbing", subcategory: "Supply",
+    location: "Basement", severity: "action",
+    used: 4, global: 449,
+  },
+  {
+    label: "Loose Toilet at Flange",
+    text: "Loose toilet at the floor flange",
+    category: "Plumbing", subcategory: "Fixtures",
+    location: "Hall Bath", severity: "maintenance",
+    used: 10, global: 803,
+  },
+  {
+    label: "Cracked Tank Lid",
+    text: "Cracked toilet tank lid",
+    category: "Plumbing", subcategory: "Fixtures",
+    location: "Primary Bath", severity: "maintenance",
+    used: 1, global: 264,
+  },
 
   // --- HVAC ----------------------------------------------------------------
-  { category: "HVAC", subcategory: "Furnace", used: 24, text: "Filter is heavily loaded and restricting airflow" },
-  { category: "HVAC", subcategory: "Furnace", used: 6, text: "Cracked heat exchanger suspected; further evaluation needed" },
-  { category: "HVAC", subcategory: "Condenser", used: 17, text: "Unit is past its expected service life" },
-  { category: "HVAC", subcategory: "Condenser", used: 12, text: "Condenser fins are bent and dirty" },
-  { category: "HVAC", subcategory: "Ducts", used: 8, text: "Disconnected duct in the crawlspace" },
-  { category: "HVAC", subcategory: "Ducts", used: 5, text: "Flex duct is crushed behind the air handler" },
+  {
+    label: "Heavily Loaded Filter",
+    text: "Filter is heavily loaded and restricting airflow",
+    category: "HVAC", subcategory: "Furnace",
+    location: "Furnace", severity: "maintenance",
+    used: 24, global: 1_760,
+  },
+  {
+    label: "Suspected Cracked Heat Exchanger",
+    text: "Cracked heat exchanger suspected; further evaluation needed",
+    category: "HVAC", subcategory: "Furnace",
+    location: "Furnace", severity: "action",
+    used: 6, global: 611,
+  },
+  {
+    label: "Unit Past Service Life",
+    text: "Unit is past its expected service life",
+    category: "HVAC", subcategory: "Condenser",
+    location: "Condenser", severity: "inspection",
+    used: 17, global: 1_240,
+  },
+  {
+    label: "Bent and Dirty Fins",
+    text: "Condenser fins are bent and dirty",
+    category: "HVAC", subcategory: "Condenser",
+    location: "Condenser", severity: "maintenance",
+    used: 12, global: 894,
+  },
+  {
+    label: "Disconnected Duct",
+    text: "Disconnected duct in the crawlspace",
+    category: "HVAC", subcategory: "Ducts",
+    location: "Crawlspace", severity: "action",
+    used: 8, global: 727,
+  },
+  {
+    label: "Crushed Flex Duct",
+    text: "Flex duct is crushed behind the air handler",
+    category: "HVAC", subcategory: "Ducts",
+    location: "Air Handler", severity: "maintenance",
+    used: 5, global: 542,
+  },
 
   // --- Interior ------------------------------------------------------------
-  { category: "Interior", subcategory: "Walls & ceilings", used: 20, text: "Hairline cracking at the drywall seams" },
-  { category: "Interior", subcategory: "Walls & ceilings", used: 16, text: "Ceiling stain below the upstairs bath; dry at inspection" },
-  { category: "Interior", subcategory: "Doors", used: 14, text: "Door rubs at the head and does not latch" },
-  { category: "Interior", subcategory: "Stairs", used: 11, text: "Handrail is not continuous" },
-  { category: "Interior", subcategory: "Floors", used: 9, text: "Cracked tile at the entry" },
-  { category: "Interior", subcategory: "Floors", used: 6, text: "Squeaking and deflection in the hall floor" },
-  { category: "Interior", subcategory: "Fireplace", used: 7, text: "Firebox refractory panels are cracked" },
+  {
+    label: "Hairline Drywall Cracking",
+    text: "Hairline cracking at the drywall seams",
+    category: "Interior", subcategory: "Walls & ceilings",
+    location: "Living Room", severity: "maintenance",
+    used: 20, global: 1_419,
+  },
+  {
+    label: "Ceiling Stain Below Bath",
+    text: "Ceiling stain below the upstairs bath; dry at inspection",
+    category: "Interior", subcategory: "Walls & ceilings",
+    location: "Upstairs Hall", severity: "inspection",
+    used: 16, global: 1_155,
+  },
+  {
+    label: "Door Rubs and Will Not Latch",
+    text: "Door rubs at the head and does not latch",
+    category: "Interior", subcategory: "Doors",
+    location: "Bedrooms", severity: "maintenance",
+    used: 14, global: 1_071,
+  },
+  {
+    label: "Handrail Not Continuous",
+    text: "Handrail is not continuous",
+    category: "Interior", subcategory: "Stairs",
+    location: "Main Stairs", severity: "action",
+    used: 11, global: 836,
+  },
+  {
+    label: "Cracked Entry Tile",
+    text: "Cracked tile at the entry",
+    category: "Interior", subcategory: "Floors",
+    location: "Entry", severity: "maintenance",
+    used: 9, global: 774,
+  },
+  {
+    label: "Squeaking Hall Floor",
+    text: "Squeaking and deflection in the hall floor",
+    category: "Interior", subcategory: "Floors",
+    location: "Upstairs Hall", severity: "maintenance",
+    used: 6, global: 596,
+  },
+  {
+    label: "Cracked Refractory Panels",
+    text: "Firebox refractory panels are cracked",
+    category: "Interior", subcategory: "Fireplace",
+    location: "Living Room", severity: "action",
+    used: 7, global: 715,
+  },
 
   // --- Insulation & ventilation --------------------------------------------
-  { category: "Insulation", subcategory: "Attic", used: 21, text: "Bath fan terminates into the attic" },
-  { category: "Insulation", subcategory: "Attic", used: 18, text: "Insulation depth is below current standards" },
-  { category: "Insulation", subcategory: "Attic", used: 3, text: "Daylight is visible at the roof sheathing" },
-  { category: "Insulation", subcategory: "Ventilation", used: 12, text: "Dryer duct is unsupported and sagging" },
-  { category: "Insulation", subcategory: "Ventilation", used: 10, text: "Blocked soffit vents at the eaves" },
+  {
+    label: "Bath Fan Terminates in Attic",
+    text: "Bath fan terminates into the attic",
+    category: "Insulation", subcategory: "Attic",
+    location: "Attic", severity: "action",
+    used: 21, global: 1_530,
+  },
+  {
+    label: "Insulation Below Standard Depth",
+    text: "Insulation depth is below current standards",
+    category: "Insulation", subcategory: "Attic",
+    location: "Attic", severity: "maintenance",
+    used: 18, global: 1_293,
+  },
+  {
+    label: "Daylight at Roof Sheathing",
+    text: "Daylight is visible at the roof sheathing",
+    category: "Insulation", subcategory: "Attic",
+    location: "Attic", severity: "action",
+    used: 3, global: 424,
+  },
+  {
+    label: "Sagging Dryer Duct",
+    text: "Dryer duct is unsupported and sagging",
+    category: "Insulation", subcategory: "Ventilation",
+    location: "Laundry", severity: "maintenance",
+    used: 12, global: 921,
+  },
+  {
+    label: "Blocked Soffit Vents",
+    text: "Blocked soffit vents at the eaves",
+    category: "Insulation", subcategory: "Ventilation",
+    location: "Eaves", severity: "maintenance",
+    used: 10, global: 795,
+  },
 
   // --- Never reached for on this account -----------------------------------
   // The library is not the same thing as your library, and a results list that
   // cannot show the difference cannot show the feature. These three match the
   // demonstration's query and sink below everything the inspector has written
-  // before, which is the ranking doing its job in public.
-  { category: "Structure", subcategory: "Foundation", used: 0, text: "Cracking at the slab is typical of shrinkage" },
-  { category: "Roofing", subcategory: "Shingles", used: 0, text: "Cracked ridge cap at the hip" },
-  { category: "Interior", subcategory: "Walls & ceilings", used: 0, text: "Cracked plaster at the interior corner" },
+  // before, which is the ranking doing its job in public. Their `global` counts
+  // are the other half of that: the firm reaches for them, and this inspector
+  // never has.
+  {
+    label: "Shrinkage Cracking at Slab",
+    text: "Cracking at the slab is typical of shrinkage",
+    category: "Structure", subcategory: "Foundation",
+    location: "Garage Slab", severity: "inspection",
+    used: 0, global: 287,
+  },
+  {
+    label: "Cracked Ridge Cap",
+    text: "Cracked ridge cap at the hip",
+    category: "Roofing", subcategory: "Shingles",
+    location: "Hip and Ridge", severity: "maintenance",
+    used: 0, global: 233,
+  },
+  {
+    label: "Cracked Interior Plaster",
+    text: "Cracked plaster at the interior corner",
+    category: "Interior", subcategory: "Walls & ceilings",
+    location: "Dining Room", severity: "maintenance",
+    used: 0, global: 198,
+  },
 ];
 
 /* --- The taxonomy, derived ------------------------------------------------
@@ -206,13 +618,21 @@ export const OLD_PATH_TAPS = OLD_PATH_WIDTHS.length;
 
 export type Hit = {
   readonly remark: Remark;
-  /** Character ranges in `remark.text` that the query matched, in order, so the
-   *  results list can show *why* a row is there without re-running the match. */
+  /**
+   * Character ranges in `remark.label` that the query matched, in order, so the
+   * suggestions list can show *why* a row is there without re-running the
+   * match.
+   *
+   * Into the label rather than the body, because the label is what both places
+   * that highlight actually draw — the suggestion row and a result's heading.
+   * Marks into a string nothing renders are marks nobody can see, and the
+   * redesign moved the visible string.
+   */
   readonly marks: readonly (readonly [number, number])[];
   /** True when the query only matched the row's taxonomy path — you typed
-   *  "roof" and this is a roofing remark that never says the word. The old flow
-   *  could only ever find rows this way; search finds them as well as, not
-   *  instead of, the text. */
+   *  "roof" and this is a roofing remark whose label and body never say the
+   *  word. The old flow could only ever find rows this way; search finds them
+   *  as well as, not instead of, the text. */
   readonly viaPath: boolean;
 };
 
@@ -254,30 +674,48 @@ export function searchRemarks(query: string, category?: string): Hit[] {
     // library, most-reached-for first — the answer already on screen, which is
     // the state the old flow could not have at all.
     return [...pool]
-      .sort((a, b) => b.used - a.used || a.text.localeCompare(b.text))
+      .sort((a, b) => b.used - a.used || a.label.localeCompare(b.label))
       .map((remark) => ({ remark, marks: [], viaPath: false }));
   }
 
   const hits: { hit: Hit; score: number }[] = [];
 
   for (const remark of pool) {
+    /* Three surfaces, in the order they are worth: what the row is called, what
+       it will say in the report, and where the tree filed it. Splitting the
+       label out of the body is what makes the first tier possible at all —
+       before the redesign there was one string doing both jobs, so "missing"
+       scored the same whether it opened the remark's name or turned up in the
+       ninth word of a sentence. */
+    const label = remark.label.toLowerCase();
     const text = remark.text.toLowerCase();
     const path = `${remark.category} ${remark.subcategory}`.toLowerCase();
-    const starts = wordStarts(text);
+    const labelStarts = wordStarts(label);
+    const textStarts = wordStarts(text);
     const pathStarts = wordStarts(path);
 
     const marks: (readonly [number, number])[] = [];
     let quality = 0;
     let viaPath = false;
+    let inBody = false;
     let matchedAll = true;
 
     for (const token of tokens) {
-      const at = prefixAt(text, starts, token);
+      const at = prefixAt(label, labelStarts, token);
       if (at !== undefined) {
         marks.push([at, token.length]);
-        // The first word of a remark is what an inspector scans, so a hit there
-        // is worth more than the same hit buried mid-sentence.
-        quality += at === 0 ? 3 : 2;
+        // The first word of a label is what an inspector scans, so a hit there
+        // is worth more than the same hit further along it.
+        quality += at === 0 ? 4 : 3;
+        continue;
+      }
+      // Not in the name, but in the paragraph it will put in the report. Worth
+      // finding — type "underlayment" and the row that says it should come
+      // back — and worth less than the name, and unmarked, because the
+      // suggestion row does not draw the body.
+      if (prefixAt(text, textStarts, token) !== undefined) {
+        quality += 2;
+        inBody = true;
         continue;
       }
       if (prefixAt(path, pathStarts, token) !== undefined) {
@@ -293,12 +731,16 @@ export function searchRemarks(query: string, category?: string): Hit[] {
 
     marks.sort((a, b) => a[0] - b[0]);
     hits.push({
-      hit: { remark, marks, viaPath: viaPath && marks.length === 0 },
+      hit: { remark, marks, viaPath: viaPath && marks.length === 0 && !inBody },
       score: remark.used * LIBRARY_WEIGHT + quality,
     });
   }
 
-  hits.sort((a, b) => b.score - a.score || a.hit.remark.text.localeCompare(b.hit.remark.text));
+  hits.sort(
+    (a, b) =>
+      b.score - a.score ||
+      a.hit.remark.label.localeCompare(b.hit.remark.label),
+  );
   return hits.map((h) => h.hit);
 }
 

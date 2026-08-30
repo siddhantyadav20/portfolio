@@ -1,464 +1,630 @@
-/* The About reader.
+/* The About reader — Figma 826:1340 (desktop) and 887:7656 (mobile).
 
-   A DELIBERATE DEPARTURE FROM THE CASE-STUDY READER, which this used to be a
-   copy of. The two readers want opposite things: a study is an argument, built
-   in one centred column of even blocks separated by dashed rules, and the
-   evenness is the point — no section claims more than another. A person is not
-   an argument. This one is asymmetric, has one thing that is clearly the
-   loudest, and is ranged left the whole way down so it reads like a letter.
+   Two layouts and one set of type. The desktop frame is 1440 with a 1120
+   column inset 160 either side; the mobile frame is 390 with a 342 column inset
+   24. Everything between them is the same content in one column instead of two,
+   which is why almost nothing below is duplicated per breakpoint — the grid
+   collapses and the type steps down, and that is the whole of it.
 
-   What it keeps: the plate and the controls (ModalSurface), the theme tokens,
-   the accent, and the portrait morph. What it drops: the 1120 column, the
-   dashed rules between blocks, the centred stack, and the 40/24 title pair.
+   Fixed pixels rather than the homepage's `--u` scaling. The modal is a reading
+   surface at any width, not a 1440 frame being drawn at a fraction of itself,
+   and the case-study reader beside it makes the same choice. */
 
-   One measure governs the whole file: `--measure`, 34em, about 62 characters
-   at the story's size. Every block of running text is capped at it. The old
-   version ran 24px prose across the full 960 — ninety-odd characters a line,
-   roughly twice what anybody reads without losing the start of the next one. */
-
+/* 1120 of column plus its own 24 either side, so the same rule gives the
+   desktop frame its 1120 and the mobile frame its 342 inside a 390 — and so
+   nothing touches the edge at the widths in between, which a bare
+   `max-width: 1120px` did. */
 .page {
-  --measure: 34em;
-  --edge: clamp(24px, 5vw, 96px);
-
   display: flex;
   flex-direction: column;
-  /* Bigger gaps than the study's 64: with no rules between sections, space is
-     the only thing separating them, so it has to do the whole job. */
-  gap: clamp(56px, 7.5vw, 104px);
   width: 100%;
-  max-width: 1180px;
+  max-width: 1168px;
   margin: 0 auto;
-  padding: 0 var(--edge) clamp(96px, 14vw, 200px);
+  padding: 120px 24px 0;
 }
 
-/* --- The opening -------------------------------------------------------------
-   Words left, portrait right. The reference this was drawn from puts its title
-   on one side and its subject on the other, and it is the right arrangement
-   for the same reason a book jacket uses it: two things of unequal weight,
-   balanced by placement rather than by being the same size.
+/* The site footer, which this reader carries because the file gives it one.
+   It is a plain element selector because the footer brings its own module's
+   classes and this is the one thing about it that belongs to the page around
+   it — how far it sits from the last thing read. */
+.page > footer {
+  margin-top: 96px;
+}
 
-   `align-items: end` rather than start or centre — the statement's last line
-   and the portrait's base sit on one line, which is what makes an asymmetric
-   pair read as deliberate rather than as two blocks that happen to be near
-   each other. */
+/* ==========================================================================
+   The opening — Figma 886:7391
+   ========================================================================== */
 
-.open {
+.intro {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: clamp(32px, 5vw, 72px);
-  width: 100%;
+  /* 670 of words, 48 of gutter, 402 of photograph. */
+  grid-template-columns: minmax(0, 1fr) 402px;
+  gap: 48px;
+  align-items: start;
 }
 
-.openWords {
+.introText {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 48px;
   min-width: 0;
 }
 
-/* Name and section, on one line with a rule between them. Small caps at a wide
-   track — the one piece of typography here borrowed from a masthead rather
-   than from the rest of the site, because that is exactly what it is. */
-.kicker {
+.header {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-50);
+  flex-direction: column;
 }
 
-.kickerRule {
-  width: 40px;
-  height: 1px;
-  background-color: var(--ink-20);
-}
-
-/* The largest type on the site, and it earns it: this is the sentence the
-   whole portfolio is an argument for.
-
-   `clamp` rather than a breakpoint, because a statement set at one size and
-   then jumped to another at 900px reads as two different decisions. Leading is
-   1.05 — display type wants to be tighter than the 1.5 the site uses for
-   everything else, and at this size the default would open a gap between lines
-   wide enough to lose the sentence in. */
-.statement {
-  max-width: 15ch;
-  margin: 0;
+/* Coral, and it is the site's own: `--live` is the footer's visitor dot, which
+   is the only other place the page speaks in the first person. The greeting
+   takes it at 60% so the name is the louder of the two without being a second
+   colour. */
+.greeting {
   font-family: var(--font-display), Georgia, serif;
   font-weight: 700;
-  font-size: clamp(38px, 6.2vw, 76px);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  text-wrap: balance;
+  font-size: 48px;
+  line-height: var(--lh-wide);
+  letter-spacing: 1.92px;
+  color: rgb(from var(--live) r g b / 0.6);
+}
+
+.name {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 72px;
+  line-height: var(--lh-wide);
+  letter-spacing: 1.44px;
+  color: var(--live);
+}
+
+/* The pronunciation joke. A flex row rather than a sentence, because the
+   separators are 4px dots and a dot between two words in running text is a
+   different mark with a different meaning. */
+.puns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 24px;
+  line-height: 40px;
+  color: var(--ink-70);
+}
+
+.pun {
+  display: flex;
+  align-items: center;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  margin: 0 12px;
+  border-radius: var(--r-pill);
+  background-color: var(--ink-70);
+}
+
+.lede {
+  font-size: 22px;
+  line-height: var(--lh-wide);
+  color: var(--ink-70);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px;
+  align-items: start;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.columnTitle {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: var(--lh-wide);
   color: var(--ink);
 }
 
-.afterStatement {
-  max-width: var(--measure);
-  font-size: clamp(17px, 1.6vw, 20px);
-  line-height: var(--lh-read);
+.columnBody {
+  font-size: 17px;
+  line-height: var(--lh-wide);
+  color: var(--ink-70);
+}
+
+/* The two phrases the design lifts out of the quiet prose. Full ink and a step
+   of weight, and nothing else — this is emphasis inside a paragraph, not a
+   label. */
+.strong {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* ==========================================================================
+   The portrait, and what is under it
+   ========================================================================== */
+
+.portraitCell {
+  position: relative;
+}
+
+/* A button, for the reason the component gives. Everything that makes it not
+   look like one is here: no border, no background of its own, and the
+   photograph filling it. */
+.portrait {
+  position: relative;
+  display: block;
+  width: 402px;
+  height: 728px;
+  overflow: hidden;
+  border-radius: 48px;
+  background-color: var(--surface-raised);
+  box-shadow: 0 0 24px 12px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+
+:global(html[data-theme="dark"]) .portrait {
+  box-shadow: 0 0 24px 12px rgba(0, 0, 0, 0.32);
+}
+
+.portraitImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* The file's crop is baked into the asset, so this is centre — see
+     `about.portrait`. The vertical bias is for the short mobile frame, where
+     the same asset has to give up its bottom rather than its head. */
+  object-position: 50% 12%;
+  transition:
+    opacity 420ms ease,
+    filter 420ms ease,
+    transform 520ms var(--spring-soft);
+}
+
+/* The dissection, laid over the photograph rather than replacing it — the
+   photograph stays underneath at a low opacity, which is what makes it read as
+   *seeing into* the head rather than as two pictures swapping. */
+.chart {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity 320ms ease,
+    transform 520ms var(--spring-soft);
+  pointer-events: none;
+}
+
+/* The label. Sits at the bottom of the frame on a plate, so it is legible over
+   whichever part of the photograph is behind it. */
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  background-color: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(8px);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ink);
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+:global(html[data-theme="dark"]) .hint {
+  background-color: rgba(30, 30, 30, 0.82);
+}
+
+/* --- The two ways in -------------------------------------------------------
+   Hover on a fine pointer, and the pressed state everywhere. The hover rule is
+   behind `(hover: hover)` so a touch screen does not inherit a sticky hover
+   from the tap that opened it — which is the classic way this interaction goes
+   wrong on a phone. */
+
+@media (hover: hover) and (pointer: fine) {
+  .portrait:hover .portraitImg {
+    opacity: 0.12;
+    filter: grayscale(1);
+    transform: scale(1.03);
+  }
+
+  .portrait:hover .chart {
+    opacity: 1;
+    transform: none;
+  }
+
+  .portrait:hover .hint,
+  .portrait:focus-visible .hint {
+    opacity: 1;
+  }
+}
+
+/* Latched — by a press, or by a keyboard. Written after the hover rules so it
+   wins when both apply. */
+.portrait[data-open] .portraitImg {
+  opacity: 0.12;
+  filter: grayscale(1);
+  transform: scale(1.03);
+}
+
+.portrait[data-open] .chart {
+  opacity: 1;
+  transform: none;
+}
+
+.portrait[data-open] .hint {
+  opacity: 1;
+}
+
+/* On a touch screen the label is the only affordance there is, so it does not
+   wait to be hovered. */
+@media (hover: none) {
+  .hint {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portraitImg,
+  .chart {
+    transition-duration: 1ms;
+    transform: none;
+  }
+
+  .portrait:hover .portraitImg,
+  .portrait[data-open] .portraitImg {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   The blocks — Figma 887:7528, 887:7556, 887:7603
+
+   One shape for all three: a 240px label, a 48px gutter, and the rest.
+   ========================================================================== */
+
+.rule {
+  height: 0;
+  margin: 80px 0;
+  border: 0;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--ink-20) 0 6px,
+    transparent 6px 14px
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+}
+
+.block {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.blockTitle {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+/* --- Super powers ---------------------------------------------------------- */
+
+.powers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 40px;
+  align-items: start;
+}
+
+.power {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.powerTitle {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.powerBody {
+  font-size: 17px;
+  line-height: var(--lh-wide);
   color: var(--ink-60);
 }
 
-/* --- The portrait ------------------------------------------------------------
-   A circle, and it has to stay one: it is the far end of the morph the card
-   starts, and the card's portrait is a circle. Matching the shape at both ends
-   is what keeps the transition a pure scale with nothing to squash. */
+/* --- Experience and education ---------------------------------------------- */
 
-.openPortrait {
+.entries {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  gap: 24px;
 }
 
-.portrait {
-  position: relative;
-  /* Smaller than the 360 it was when it stood alone in the middle of the page.
-     Beside the statement it is the second thing, and a portrait that outweighs
-     the sentence turns a personal page into a headshot. */
-  width: clamp(180px, 22vw, 260px);
-  aspect-ratio: 1;
+/* 100 of year, 100 of gutter, and the rest — Figma 887:7574. Areas rather than
+   nesting, so the year can be a sibling of the employer here and land on the
+   same line as it on the mobile frame without the markup saying it twice. */
+.entry {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  column-gap: 100px;
+  row-gap: 8px;
+  align-items: start;
+  grid-template-areas:
+    "years org"
+    "years role"
+    "years prose";
+}
+
+.years {
+  grid-area: years;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: var(--lh-wide);
+  color: var(--ink-60);
+}
+
+.entryProse,
+.entryNote {
+  grid-area: prose;
+  /* 16 between the header and the prose, where the rows above sit at 8. */
+  margin-top: 8px;
+}
+
+.org {
+  grid-area: org;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.role {
+  grid-area: role;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.entryProse {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 15px;
+  line-height: var(--lh-wide);
+  color: var(--ink-70);
+}
+
+.entryNote {
+  font-size: 15px;
+  line-height: var(--lh-wide);
+  color: var(--ink-60);
+}
+
+/* ==========================================================================
+   The strip — Figma 886:7445
+
+   Full-bleed: it is the one element that leaves the reader's column, which is
+   what makes it read as a break between the person and the CV rather than as
+   another block. The negative margin is the modal's own padding, undone.
+   ========================================================================== */
+
+.reel {
+  /* Out to both edges of the modal. No matching padding to put the content
+     back: the file starts the first plate hard against x=0, and the inset that
+     was here cancelled the bleed it was written next to. */
+  margin: 80px calc(50% - 50vw);
+  width: 100vw;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.reel::-webkit-scrollbar {
+  display: none;
+}
+
+.reel:focus-visible {
+  outline: 2px solid var(--ink-70);
+  outline-offset: 4px;
+}
+
+/* Fixed 360 with the plates overflowing it top and bottom, which is the file's
+   arrangement — the strip is a window onto photographs that are taller than it,
+   not a row of things that fit. */
+.plates {
+  display: flex;
+  align-items: flex-start;
+  height: 360px;
   overflow: hidden;
-  border-radius: var(--r-pill);
-  background-color: var(--surface-solid);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 18px 48px rgba(0, 0, 0, 0.08);
 }
 
-.portrait img {
+.plate {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  background-color: var(--surface-raised);
+}
+
+.plate img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.tools {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* The eight that have no export yet. Marked rather than hidden — see the
+   `data-placeholder` convention. */
+.plate[data-placeholder] {
+  border: 12px solid var(--page-base);
+  background-color: rgb(from var(--ink) r g b / 0.04);
 }
 
-.tool {
-  --liquid-body: 0.55;
+/* ==========================================================================
+   Mobile — Figma 887:7656
 
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--r-pill);
-}
+   One column, and the two places the arrangement genuinely differs rather than
+   merely narrowing: the photograph moves up between the lede and the two short
+   columns, and an entry's year moves out of its own column and onto the end of
+   the employer's line.
+   ========================================================================== */
 
-/* --- The colophon ------------------------------------------------------------
-   Four facts on one line, over a hairline. The device is a masthead's, and it
-   is doing what a paragraph of adjectives usually does on a page like this:
-   saying where somebody is, what they do and how long they have done it,
-   without asking to be believed about any of it. */
-
-.facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 28px 40px;
-  width: 100%;
-  padding-top: 28px;
-  border-top: 1px solid var(--ink-20);
-}
-
-.fact {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.factLabel {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-50);
-}
-
-.factValue {
-  font-size: 17px;
-  line-height: var(--lh);
-  color: var(--ink);
-  text-wrap: balance;
-}
-
-/* --- The long version --------------------------------------------------------
-   The only block on the page with a reading measure, because it is the only
-   one anybody reads a paragraph at a time. */
-
-.story {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: var(--measure);
-  font-size: clamp(18px, 1.7vw, 21px);
-  line-height: var(--lh-read);
-  color: var(--ink-80);
-}
-
-/* Not lorem. The page says the prose is not written yet and points at the part
-   that is — `data-placeholder` marks it as unfinished in development, and it
-   reads as an honest note in production. */
-.pending {
-  font-style: italic;
-  color: var(--ink-60);
-}
-
-/* --- Sections ---------------------------------------------------------------- */
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-  width: 100%;
-}
-
-.sectionHead {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.sectionTitle {
-  font-family: var(--font-display), Georgia, serif;
-  font-weight: 700;
-  font-size: clamp(24px, 2.6vw, 30px);
-  line-height: 1.2;
-  color: var(--ink);
-}
-
-.sectionNote {
-  max-width: var(--measure);
-  font-size: 16px;
-  line-height: var(--lh);
-  color: var(--ink-60);
-}
-
-/* --- The path ----------------------------------------------------------------
-   The homepage scrubs these same entries along a draggable ruler, which is a
-   good toy and a poor way to read eight things in order. Here they are a
-   column: year, role, place, newest first.
-
-   The rule runs down the year column rather than around each row, so the list
-   reads as one continuous thing — a spine, which is what a career is being
-   drawn as. */
-
-.path {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 640px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.stop {
-  display: grid;
-  grid-template-columns: 84px minmax(0, 1fr);
-  gap: 24px;
-  padding: 18px 0;
-  border-top: 1px solid var(--ink-20);
-}
-
-.stop:last-child {
-  border-bottom: 1px solid var(--ink-20);
-}
-
-/* A post and a thing shipped while holding one, told apart by the year alone.
-
-   Two earlier passes at this were worse. Greying the launches read as a
-   hierarchy and put the three most recent, most substantial entries at the
-   quietest end of a list somebody skims to find out what this person has done
-   lately — exactly backwards. Tagging each launch "SHIPPED" said it three
-   times in a row, because the launches happen to be contiguous, and a label
-   that repeats down a list stops being read after the first one.
-
-   So the distinction is one thing in one place: the accent marks a job. The
-   section note says so once, in a sentence, which is where a legend belongs. */
-.stop[data-kind="work"] .year {
-  font-weight: 500;
-  color: var(--ink-40);
-}
-
-.year {
-  font-size: 15px;
-  font-weight: 600;
-  /* Tabular, so the column of years is a column rather than eight ragged
-     ones — every glyph in it is a digit, which is exactly the case the figure
-     set exists for. */
-  font-variant-numeric: tabular-nums;
-  color: var(--accent);
-}
-
-.stopBody {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.stopTitle {
-  font-size: 17px;
-  font-weight: 500;
-  line-height: var(--lh);
-  color: var(--ink);
-}
-
-.stopContext {
-  font-size: 15px;
-  line-height: var(--lh);
-  color: var(--ink-60);
-}
-
-/* --- Elsewhere ---------------------------------------------------------------
-   Rows rather than a row of buttons. Each one names what it is on the left and
-   what you get on the right, so the destination is legible before it is
-   clicked — which is the whole difference between a contact section and a row
-   of unlabelled icons. */
-
-.links {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 640px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.link {
-  display: grid;
-  grid-template-columns: 84px minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: 24px;
-  width: 100%;
-  padding: 18px 0;
-  border: none;
-  border-top: 1px solid var(--ink-20);
-  background: none;
-  font: inherit;
-  text-align: left;
-  color: var(--ink);
-  cursor: pointer;
-  transition: color 220ms ease;
-}
-
-.links li:last-child .link {
-  border-bottom: 1px solid var(--ink-20);
-}
-
-.link:hover:not([data-placeholder]),
-.link:focus-visible {
-  color: var(--accent);
-}
-
-/* Nothing to go to yet. The row stays, marked, rather than vanishing — a
-   contact list that silently omits a channel is one nobody knows is coming. */
-.link[data-placeholder] {
-  cursor: default;
-}
-
-.linkLabel {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-50);
-}
-
-.linkValue {
-  font-size: 17px;
-  line-height: var(--lh);
-  color: inherit;
-  overflow-wrap: anywhere;
-}
-
-/* The glyph does the confirming on Copy Email — it swaps to a tick — so it
-   moves rather than sits: a mark that only changes shape is one people are not
-   sure they saw change. */
-.linkArrow {
-  font-size: 15px;
-  color: var(--ink-40);
-  transition: transform 260ms var(--spring-soft), color 220ms ease;
-}
-
-.link:hover:not([data-placeholder]) .linkArrow,
-.link:focus-visible .linkArrow {
-  color: var(--accent);
-  transform: translate(2px, -2px);
-}
-
-.link[data-state="copied"] {
-  color: var(--accent);
-}
-
-.link[data-state="copied"] .linkArrow {
-  color: var(--accent);
-  transform: none;
-}
-
-.link[data-state="failed"] .linkArrow {
-  color: var(--red);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .linkArrow {
-    transition: color 220ms ease;
+@media (max-width: 1000px) {
+  .page {
+    padding-top: 96px;
   }
 
-  .link:hover .linkArrow,
-  .link:focus-visible .linkArrow {
-    transform: none;
+  .intro {
+    display: flex;
+    flex-direction: column;
+    /* Restated, and load-bearing: the desktop rule aligns the two grid columns
+       to their tops, and a column flex box inherits that as "shrink every child
+       to its content" — which left the photograph at the width of its own hint
+       label instead of the frame's. */
+    align-items: stretch;
+    gap: 48px;
   }
-}
 
-/* --- Narrow -------------------------------------------------------------------
-   The opening stops being two columns and becomes one, portrait first: on a
-   phone the statement is four or five lines, and a portrait pushed under it
-   is a portrait nobody scrolls back up to see. */
+  .introText {
+    display: contents;
+  }
 
-@media (max-width: 860px) {
-  .open {
+  .header {
+    order: 1;
+  }
+
+  .lede {
+    order: 2;
+    font-size: 17px;
+  }
+
+  /* Between the lede and the columns — Figma 887:8573. */
+  .portraitCell {
+    order: 3;
+  }
+
+  .columns {
+    order: 4;
     grid-template-columns: minmax(0, 1fr);
-    justify-items: start;
-    gap: 32px;
+    gap: 24px;
   }
 
-  .openPortrait {
-    order: -1;
-    align-items: flex-start;
+  .greeting {
+    font-size: 32px;
+    letter-spacing: 1.28px;
   }
 
-  .statement {
-    max-width: 20ch;
+  .name {
+    font-size: 48px;
+    letter-spacing: 0.96px;
   }
 
-  .stop,
-  .link {
-    grid-template-columns: 64px minmax(0, 1fr) auto;
-    gap: 16px;
+  .puns {
+    font-size: 14px;
+    line-height: 22px;
   }
-}
 
-@media (max-width: 560px) {
-  .stop,
-  .link {
+  .dot {
+    margin: 0 8px;
+  }
+
+  .portrait {
+    width: 100%;
+    height: 420px;
+    border-radius: 32px;
+  }
+
+  .rule {
+    margin: 56px 0;
+  }
+
+  .block {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .blockTitle {
+    font-size: 20px;
+  }
+
+  .powers {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .powerTitle,
+  .powerBody,
+  .columnBody,
+  .lede {
+    font-size: 15px;
+  }
+
+  .columnTitle {
+    font-size: 16px;
+  }
+
+  /* The year leaves its column and joins the employer's line, right-aligned —
+     Figma 887:8631. The role goes *above* the employer here rather than below
+     it, which is a different arrangement rather than a narrowing of the desktop
+     one, so the areas are restated instead of allowed to reflow. */
+  .entry {
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 4px 16px;
+    column-gap: 12px;
+    row-gap: 8px;
+    grid-template-areas:
+      "role  role"
+      "org   years"
+      "prose prose";
   }
 
-  /* The year and the label move above what they label rather than beside it —
-     at this width a 64px first column leaves the second one too narrow to hold
-     "UX Design Specialist" on one line. */
-  .year,
-  .linkLabel {
-    grid-column: 1 / -1;
+  .years {
+    justify-self: end;
+    align-self: center;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .role {
+    font-size: 14px;
+    color: var(--ink-60);
+  }
+
+  .org {
+    font-size: 16px;
+  }
+
+  .entryProse,
+  .entryNote {
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  .reel {
+    margin: 56px calc(50% - 50vw);
+  }
+
+  .page > footer {
+    margin-top: 64px;
+  }
+
+  .plates {
+    height: 320px;
   }
 }

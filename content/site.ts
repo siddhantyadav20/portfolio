@@ -70,14 +70,61 @@ export const inspection = {
 } as const;
 
 export const search = {
-  title: "Searching amidst a chaos",
-  subtitle: "of 104,122 remarks",
+  /* Both lines of the heading, as one string, with the count and its noun tied
+     together by a non-breaking space.
+
+     Figma 869:6399 breaks this after `in`, and left to itself the box breaks it
+     after `104,122` instead — the display face here is narrower than the file's,
+     so the first three words plus the number still fit on one line and the
+     second line is the single word `remarks`. A hard `<br>` would fix the
+     design width and be wrong at every other, since this card is fluid past
+     1440. Making `104,122 remarks` one unbreakable unit states the intent
+     rather than the measurement: the number never gets separated from what it
+     counts, and the break lands after `in` at any width where it has to break
+     at all. */
+  title: "Finding signal in 104,122\u00A0remarks",
+  subtitle: "Search library without digging through categories",
   placeholder: "What did you observe?",
 
-  /* `category: "Select category"` used to live here, naming a disabled button
-     on the card. The control it named is gone — the old flow's category step is
-     played out by the instrument now and then replaced by a live count of how
-     many categories the answer spanned, so there is no copy left to hold. */
+  /**
+   * The libraries a search can run against, in the order the loader visits
+   * them.
+   *
+   * The chip named a disabled `Select category` button for a long time and the
+   * card dropped it rather than ship a control that did nothing. It is a picker
+   * over these now, and it mirrors the real product: an inspector searches what
+   * they have written themselves by default, and reaches for the network or the
+   * expert content when their own library does not have the remark yet. In
+   * WINspect the middle one is the SP (Service Provider) library; `Community`
+   * is what it is called out here, where nobody knows what an SP is.
+   *
+   * `searching` and `support` are the two lines the loader shows while that
+   * source is being searched — see the note above `SEARCH_PER_SOURCE` in
+   * RemarkFinder for what the loader does and does not actually change.
+   */
+  libraries: [
+    {
+      id: "mine",
+      label: "My Library",
+      searching: "Searching your library",
+      support: "Your saved inspection knowledge",
+    },
+    {
+      id: "community",
+      label: "Community",
+      searching: "Searching the community",
+      support: "Observations from other inspectors",
+    },
+    {
+      id: "sme",
+      label: "SME",
+      searching: "Searching the SME Toolkit",
+      support: "Expert-curated observations & templates",
+    },
+  ],
+
+  /** What the chip says when more than one is on. */
+  librariesLabel: (n: number) => `${n} Libraries`,
   before: "Navigation first",
   after: "Search first",
   delta: "~51m saved",
@@ -95,6 +142,17 @@ export const designSystem = {
   studySlug: "design-system",
 } as const;
 
+/**
+ * A run of prose with emphasis in it.
+ *
+ * The About page sets two phrases in full ink inside otherwise quiet
+ * paragraphs — the current role, and the four-hours-to-forty-minutes number.
+ * A plain string cannot carry that and a string with markup in it would need
+ * parsing at the call site, so a paragraph is a list of runs and a `strong`
+ * one is the emphasised kind.
+ */
+export type Rich = readonly (string | { readonly strong: string })[];
+
 export const about = {
   eyebrow: "About",
   title: "Me",
@@ -111,73 +169,240 @@ export const about = {
     { name: "After Effects", icon: "/icons/tool-after-effects.svg" },
   ],
 
-  /**
-   * The About reader.
-   *
-   * A PERSONAL PAGE, NOT A CASE STUDY, and the copy is written to that: first
-   * person, specifics over adjectives, and no claim that is not already true
-   * somewhere else in this file. What is genuinely not decided yet — the story
-   * in Siddhant's own words, and the city — stays `null` and renders as a
-   * marked placeholder, which is the same rule the rest of the site follows.
-   * A page that invents a biography is worse than a page with a gap in it.
-   */
-  story: {
-    /** The eyebrow over the statement — who, and what. Both live in `linkedin`
-     *  already; naming them here would be a second copy to keep in step. */
-    kicker: "About",
+  /* --- The opening — Figma 886:7394 ------------------------------------ */
 
-    /**
-     * The opening statement, and the largest type on the site.
-     *
-     * It is `intro.tagline` verbatim rather than a second attempt at saying
-     * the same thing. That line is the best sentence on this site and the one
-     * the homepage already leads with; a personal page that opened with a
-     * different, weaker version of it would read as two people talking.
-     */
-    afterStatement:
-      "Five years of it, mostly for people whose hands are full and whose screens are outdoors.",
-
-    /** The long version. Placeholder — see the note above. */
-    body: null as readonly string[] | null,
-
-    /** Where the prose will go, said plainly while it is not there. */
-    bodyPending:
-      "The long version is still being written — the short one is above, and the path below is the honest outline of it.",
-  },
+  greeting: "Hello,",
+  name: "I’m Siddhant",
 
   /**
-   * The colophon under the opening: four facts, no adjectives.
+   * The pun line, as its three beats.
    *
-   * Everything here except the city is derived from something else in this
-   * file — the current role from the last timeline entry, the years from
-   * `dayOne`, the tools from `about.tools` — and is assembled in the component
-   * rather than restated, so none of it can go stale on its own.
+   * Written as a list rather than one string because the design sets a 4px dot
+   * between them rather than a slash or a comma — see `.pun` in the
+   * stylesheet. It is a pronunciation gloss and a joke about the name, so the
+   * two halves have to stay separable.
    */
-  facts: {
-    basedLabel: "Based in",
-    /** Not decided. Renders as a marked placeholder. */
-    based: null as string | null,
-    currentlyLabel: "Currently",
-    beforeLabel: "Before that",
-    studiedLabel: "Studied",
-    sinceLabel: "Designing since",
-    toolsLabel: "Working in",
+  puns: ["/siddh", "aant/", "but I start from where it ends"],
+
+  lede:
+    "I'm a product designer with 5 years of experience who thrives on all " +
+    "things ambiguous and gnarly. With a strong focus on craft, storytelling, " +
+    "and high exploration output. I enjoy diving into the details, solving " +
+    "problems thoughtfully, and bringing order to chaos.",
+
+  /**
+   * The portrait, and the thing the head chart hides behind.
+   *
+   * Cropped at authoring time to the window Figma 886:7392 shows rather than
+   * positioned at that window in CSS. The file places the source at 180% wide
+   * and 133% tall with a negative offset, which is a zoom past `cover` and
+   * cannot be expressed as an `object-position` — but it can be expressed as a
+   * different file, and a file that is already the right rectangle also stops
+   * the browser downloading the two thirds of the photograph nobody sees.
+   */
+  portrait: {
+    src: "/media/siddhant-portrait.jpg",
+    alt: "Siddhant, standing in a garden",
+    width: 900,
+    height: 1630,
   },
 
-  /** The career, as a list rather than as the homepage's draggable ruler.
-   *  Built from `timeline.entries` — see `AboutModal`. */
-  path: {
-    title: "The path",
-    note: "Newest first. The years in orange are the jobs; the rest are things shipped while holding one.",
+  /**
+   * What the portrait turns into.
+   *
+   * The head chart was a section of its own in the previous reader and is now
+   * the answer to poking at the photograph — see `HeadChart` and the
+   * `dissect` block in `AboutModal`. The label is what a pointer is told
+   * before it finds out; it has to promise something without spoiling it.
+   */
+  dissect: {
+    hint: "Have a look inside",
+    close: "Put it back",
   },
 
-  /** The sign-off. Destinations that already exist elsewhere in this file are
-   *  referenced, not retyped. */
-  elsewhere: {
-    title: "Elsewhere",
-    note: "The fastest way to reach me is the first one.",
-    instagram: "https://instagram.com/designzoid_",
-    instagramHandle: "@designzoid_",
+  dayJob: {
+    title: "Day job",
+    body: [
+      "Currently, I am a ",
+      { strong: "User Experience Specialist at WIN Home Inspection" },
+      ". Before that, I designed at Mistry.Store which is a homebuilding " +
+        "material e-commerce business and LikeMinds which is a plug & play " +
+        "community platform. I hold a Bsc(Hons) in Computer Science from the " +
+        "University of Delhi.",
+    ] as Rich,
+  },
+
+  outOfOffice: {
+    title: "Out of office",
+    body: [
+      "When I'm not building things, I love going out, playing football, " +
+        "basketball and video games, cooking, designing, and capturing moments " +
+        "through photography. I'm a natural puzzler with a passion for trivia " +
+        "and crosswords! If I've piqued your interest, feel free to reach out!",
+    ] as Rich,
+  },
+
+  /* --- Figma 887:7528 --------------------------------------------------- */
+
+  superPowers: {
+    title: "My Super Powers",
+    items: [
+      {
+        title: "Structure in ambiguity",
+        body:
+          "I have a knack for adding clarity and structure to ambiguous " +
+          "problems and environments. I love making complex situations easier " +
+          "for others to navigate and understand.",
+      },
+      {
+        title: "Storytelling",
+        body:
+          "I love taking complicated concepts and crafting easy to understand " +
+          "narratives through animations and visuals on slide decks.",
+      },
+      {
+        title: "Design speed",
+        body:
+          "I have optimized my workflows and tools to focus on generating ideas " +
+          "and exploring a larger volume of options in a shorter amount of " +
+          "time, allowing me to explore solutions thoroughly and deeply.",
+      },
+      {
+        title: "Design 🤝 development",
+        body:
+          "I understand software systems and limitations. I can also get in the " +
+          "trenches with my devs. This means anything from fixing small bugs in " +
+          "production to code reviews in Gitbhub.",
+      },
+    ],
+  },
+
+  /**
+   * The full-bleed strip — Figma 886:7445.
+   *
+   * Nine plates at the file's own widths, heights and vertical nudges, and
+   * only one of them has an export behind it: the other eight are unfilled
+   * rectangles in Figma too. They are kept at their sizes rather than dropped,
+   * because the rhythm of the strip is the design and a strip of one photo is
+   * not it — and marked as placeholders so the gap reads as unfinished rather
+   * than broken. See the `data-placeholder` convention in globals.css.
+   */
+  reel: {
+    label: "Photos",
+    plates: [
+      { w: 280, h: 458, y: -49, src: null },
+      { w: 201, h: 362, y: -1, src: "/media/siddhant-portrait.jpg" },
+      { w: 280, h: 509, y: -74, src: null },
+      { w: 332, h: 600, y: -120, src: null },
+      { w: 322, h: 360, y: 0, src: null },
+      { w: 300, h: 558, y: -99, src: null },
+      { w: 336, h: 360, y: 0, src: null },
+      { w: 232, h: 412, y: -26, src: null },
+      { w: 332, h: 444, y: -42, src: null },
+    ] as readonly {
+      readonly w: number;
+      readonly h: number;
+      readonly y: number;
+      readonly src: string | null;
+    }[],
+  },
+
+  /* --- Figma 887:7556 --------------------------------------------------- */
+
+  experience: {
+    title: "Experience",
+    entries: [
+      {
+        years: "2023 - Now",
+        org: "WIN Home Inspection",
+        role: "User Experience Specialist",
+        body: [
+          [
+            "Designed a home inspection app which allows the inspectors based " +
+              "in the USA to generate a fully fledged report using their library " +
+              "of remarks or through AI, along which the app also contained an " +
+              "exhaustive list of features to help them complete the inspections " +
+              "quickly. We brought the time it took to complete an inspection " +
+              "from ",
+            { strong: "4 hours to 40 minutes" },
+            ".",
+          ],
+          [
+            "Worked on a template management system that controls the service " +
+              "templates including categories, remarks, search, reminders, etc. " +
+              "for the app.",
+          ],
+          [
+            "Worked on the final interactive and PDF Report which gets sent out " +
+              "to the stakeholders involved like Clients, Buyer’s Agent and " +
+              "Seller’s Agent with multiple features and a negotiation tool for " +
+              "the agents specifically.",
+          ],
+        ] as readonly Rich[],
+      },
+      {
+        /* 2022, not the 2021 the desktop frame prints. `timeline.dayOne` puts
+           this entry at 2022.55 and the mobile frame agrees; the desktop label
+           is the stale one of the two. */
+        years: "2022 - 2023",
+        org: "Mistry.Store",
+        role: "Lead UX Designer + Product Lead",
+        body: [
+          [
+            "Lead the design & product conceptualisation from scratch for a " +
+              "startup that dealt in sourcing & delivering home building " +
+              "materials to professionals like Interior Designers, Contractors, " +
+              "Architects, etc.",
+          ],
+          [
+            "Onboarded all the partners within the first month of the app by " +
+              "giving them a platform from where they could choose and add " +
+              "products using AI tagging, track and maintain orders and " +
+              "invoices, view catalogs to showcase it to their clients, and an " +
+              "earnings platform which was used by marketing team to promote " +
+              "sales using bonus vouchers, loyalty points, sponsored trips, etc.",
+          ],
+        ] as readonly Rich[],
+      },
+      {
+        years: "2021 - 2022",
+        org: "LikeMinds",
+        role: "UX Designer",
+        body: [
+          [
+            "Worked with the design team to create a product which offered the " +
+              "users to join or create a community where they could have " +
+              "limited (or unlimited via subscription) access to customisable " +
+              "chat groups, managing one time or recurring events, shared " +
+              "resources categorised by folders, engaging daily streak " +
+              "leaderboards, study or informative cohorts and more…",
+          ],
+        ] as readonly Rich[],
+      },
+    ],
+  },
+
+  /* --- Figma 887:7603 --------------------------------------------------- */
+
+  education: {
+    title: "Education",
+    entries: [
+      {
+        years: "2018 - 2021",
+        org: "University of Delhi",
+        role: "Bsc. (Hons) Computer Science",
+        note: "CGPA - 7.1",
+      },
+      {
+        years: "2004 - 2018",
+        org: "St. Columba’s School",
+        role: "Majors: Computer Science, Maths, Physics, Chemistry",
+        /* The mobile frame repeats the university's CGPA under the school,
+           which is a copy-paste in the file rather than a fact — the desktop
+           frame has no third line here. Left off. */
+        note: null as string | null,
+      },
+    ],
   },
 
   /**
