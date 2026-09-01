@@ -3,7 +3,7 @@
 
    RADIUS IS NOT FIGMA'S HERE. It comes from the corner guide, which sets
    64px on the wide grid and 32 on the phone. Both carry `corner-shape:
-   squircle` via CardShell. The phone value lives in the `max-width: 500px`
+   squircle` via CardShell. The phone value lives in the `width < 700px`
    block at the foot of this file; the desktop one is the `radius` prop in
    index.tsx.
 
@@ -157,7 +157,7 @@
 /* The card never grows past its design width — the composite is a photograph
    and upscaling it would only soften it — but it is free to shrink, and now
    the contents shrink with it rather than being cropped away. */
-@media (max-width: 1000px) {
+@media (width < 700px) {
   /* The column, not the drawn 420.
 
      Everything in this card is already in `cqw` and the height follows the
@@ -191,7 +191,7 @@
 
    The photograph is `object-fit: cover`, so a shorter-than-natural box crops
    it rather than stretching it. */
-@media (max-width: 500px) {
+@media (width < 700px) {
   .card {
     width: 100%;
     max-width: none;
@@ -205,7 +205,7 @@
    class has the same specificity as this one and would otherwise win or lose on
    source order across two modules — doubling the class settles it. Inner
    surfaces take `border-radius: inherit`, so they follow. */
-@media (max-width: 500px) {
+@media (width < 700px) {
   .card.card {
     --sq-r: calc(32 * var(--u));
   }

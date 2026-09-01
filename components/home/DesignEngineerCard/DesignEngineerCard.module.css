@@ -28,7 +28,7 @@
 
    `min-width: 0` matters here — without it the route's own minimum becomes the
    flex base and the pair stops fitting. */
-@media (max-width: 1000px) {
+@media (width < 700px) {
   .card {
     flex: 1 1 auto;
     min-width: 0;
@@ -365,7 +365,7 @@
    inside `transform` rather than moving to `left`, because index.tsx reads the
    *computed* transform to fly the plane along this path — splitting the offset
    across two properties would hand it half a matrix. */
-@media (max-width: 500px) {
+@media (width < 700px) {
   .journey {
     transform: translate(calc(27 * var(--u)), calc(78.336 * var(--u)))
       matrix(0.9961, -0.0886, -0.0886, -0.9961, 0, 0);
@@ -383,7 +383,7 @@
    class has the same specificity as this one and would otherwise win or lose on
    source order across two modules — doubling the class settles it. Inner
    surfaces take `border-radius: inherit`, so they follow. */
-@media (max-width: 500px) {
+@media (width < 700px) {
   .card.card {
     --sq-r: calc(20 * var(--u));
   }

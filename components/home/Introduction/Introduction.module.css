@@ -129,7 +129,7 @@
    the 7: it is the one of the two carrying a fixed width, and losing a few
    pixels of the gap between its label and the shortcut chip costs nothing
    anybody can see. */
-@media (max-width: 500px) {
+@media (width < 700px) {
   .ctas {
     flex-wrap: nowrap;
   }
@@ -147,7 +147,7 @@
   clip-path: inset(50%);
 }
 
-@media (max-width: 1000px) {
+@media (width < 700px) {
   .title {
     font-size: calc(36 * var(--u));
   }

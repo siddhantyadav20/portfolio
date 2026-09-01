@@ -297,7 +297,7 @@
 
 /* --- Narrow viewports ----------------------------------------------------- */
 
-@media (max-width: 900px) {
+@media (width < 700px) {
   .sections {
     gap: 40px;
   }

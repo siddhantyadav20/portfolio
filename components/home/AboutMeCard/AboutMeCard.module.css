@@ -2,7 +2,7 @@
 
    RADIUS IS NOT FIGMA'S HERE. It comes from the corner guide, which sets
    24px on the wide grid and 20 on the phone. Both carry `corner-shape:
-   squircle` via CardShell. The phone value lives in the `max-width: 500px`
+   squircle` via CardShell. The phone value lives in the `width < 700px`
    block at the foot of this file; the desktop one is the `radius` prop in
    index.tsx.
 
@@ -171,7 +171,7 @@
 
    So the only rule needed here is that it does not stretch — the card beside
    it is the one that takes up the slack. */
-@media (max-width: 1000px) {
+@media (width < 700px) {
   /* 100x104 in the phone frame (Figma 843:2628), against the 134x116 it is
      drawn at on the wide grid. It keeps its composition — portrait over
      label — and only loses the size, because the card beside it is the one
@@ -187,7 +187,7 @@
    class has the same specificity as this one and would otherwise win or lose on
    source order across two modules — doubling the class settles it. Inner
    surfaces take `border-radius: inherit`, so they follow. */
-@media (max-width: 500px) {
+@media (width < 700px) {
   .card.card {
     --sq-r: calc(20 * var(--u));
   }

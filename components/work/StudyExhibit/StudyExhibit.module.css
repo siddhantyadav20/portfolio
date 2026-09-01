@@ -65,7 +65,7 @@
 /* Below the design frame the recording and the diagram stop being side by
    side — 236px of phone next to a 644px diagram inside a phone-width column
    is neither of them. */
-@media (max-width: 900px) {
+@media (width < 700px) {
   .panel {
     flex-direction: column;
     align-items: stretch;
@@ -99,7 +99,7 @@
    The flow itself is untouched. It is already wider than any phone and already
    scrolls inside its own container — `.scroll` in SplitFlow, which is the only
    thing on this page that scrolls sideways and the only thing that should. */
-@media (max-width: 500px) {
+@media (width <= 500px) {
   .panel {
     flex-direction: column;
     align-items: stretch;

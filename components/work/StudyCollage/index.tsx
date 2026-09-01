@@ -35,7 +35,7 @@ export default function StudyCollage({ images, caption }: Props) {
               height={image.height}
               className={styles.shot}
               loading="lazy"
-              sizes="(max-width: 900px) 70vw, 570px"
+              sizes="(width < 700px) 70vw, 570px"
             />
           </div>
         ))}

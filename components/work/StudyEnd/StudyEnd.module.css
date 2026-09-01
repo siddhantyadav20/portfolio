@@ -6,6 +6,11 @@
    Everything below is the file's, except where a number is named as ours. */
 
 .end {
+  /* So `.columns` below can ask how much room it actually has rather than how
+     wide the window is. Named, so it cannot bind to some other inline-size
+     container an ancestor introduces later. */
+  container: studyEnd / inline-size;
+
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -804,12 +809,17 @@
   }
 }
 
-/* --- Narrow viewports -----------------------------------------------------
-   Two columns at 606 and 386 need 1056 before the padding. Below the design's
-   frame the card stops being a sidebar and becomes what it is — the next thing
-   to read, after the thread. */
+/* --- Not enough room for two columns --------------------------------------
 
-@media (max-width: 1024px) {
+   400 + 120 + 600 is the file's 1120, so the pair genuinely stops fitting
+   below that — a real content constraint, not a device width, which is why it
+   was never the reader's breakpoint and why it is a container query now. Asked
+   of this section's own box it is also right inside the modal, where the
+   viewport says nothing useful about how wide the study is.
+
+   Below it the card stops being a sidebar and becomes what it is — the next
+   thing to read, after the thread. */
+@container studyEnd (width < 1120px) {
   .columns {
     grid-template-columns: minmax(0, 1fr);
     gap: 48px;
@@ -827,7 +837,7 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (width < 700px) {
   .ask {
     font-size: 20px;
   }

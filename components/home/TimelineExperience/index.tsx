@@ -272,7 +272,7 @@ export default function TimelineExperience() {
      something anything can act on. */
   const [horizontal, setHorizontal] = useState(false);
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1000px)");
+    const mq = window.matchMedia("(width < 700px)");
     const read = () => setHorizontal(mq.matches);
     read();
     mq.addEventListener("change", read);
@@ -312,7 +312,7 @@ export default function TimelineExperience() {
        own pixels, the transform the loop writes and `--read` are all unchanged.
        What changes is which side of the bounding box is the tape's length, and
        which pointer coordinate runs along it. */
-    const turned = window.matchMedia("(max-width: 1000px)");
+    const turned = window.matchMedia("(width < 700px)");
 
     /** The tape's axis in screen terms: how long it is, and where it starts. */
     const along = () => {

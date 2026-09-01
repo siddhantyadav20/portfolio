@@ -170,7 +170,7 @@
    `components/primitives/GlassAction`, because the `/work/<slug>` route needs
    the identical cluster and is a server component. */
 
-@media (max-width: 900px) {
+@media (width < 700px) {
   .controls {
     margin: 24px 24px 32px;
   }
@@ -217,7 +217,7 @@
   padding-right: calc(64px + 12px);
 }
 
-@media (max-width: 500px) {
+@media (width <= 500px) {
   /* The 24 above the controls is the parent's padding, not the controls'
      margin. In flow with no border or padding between them, a top margin here
      collapses straight out through the parent: it moved the whole column down

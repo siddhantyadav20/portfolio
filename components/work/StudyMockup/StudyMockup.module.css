@@ -40,7 +40,7 @@
   border: 1px dashed var(--ink-40);
 }
 
-@media (max-width: 900px) {
+@media (width < 700px) {
   .panel {
     padding: 20px;
     border-radius: var(--r-lg);

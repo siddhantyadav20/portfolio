@@ -103,7 +103,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 1000px) {
+@media (width < 700px) {
   .row {
     grid-template-columns: 1fr;
     justify-items: center;

@@ -6,6 +6,7 @@
    else. */
 
 .anatomy {
+  container: anatomy / inline-size;
   margin: 4px 0 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -115,12 +116,24 @@
   color: var(--ink-50);
 }
 
-/* One column once two of these stop being readable side by side. The modal
-   and the route reach this at different page widths, so it is a plain media
-   query on the block rather than a breakpoint borrowed from either. */
-@media (max-width: 760px) {
-  .anatomy {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
+/* One column once two of these stop being readable side by side.
+
+   A container query, and the comment this replaces is why: "the modal and the
+   route reach this at different page widths, so it is a plain media query on
+   the block rather than a breakpoint borrowed from either". That is the exact
+   problem `@container` solves — the block now asks about its own box, so it is
+   right in the modal and on the route without either of them having to agree
+   on a viewport width. 760 was always this block's own width, not the
+   window's. */
+@container anatomy (width < 760px) {
+  /* The cells span rather than the track count changing: `.anatomy` is the
+     container being queried and an element cannot be restyled by its own
+     container query. Same single column, stated from the other side.
+
+     The gap stays 32 for the same reason — it is the container's property. It
+     used to narrow to 24 here, which is the one thing this conversion gives
+     up, and 32 between two stacked specimens is not wrong. */
+  .cell {
+    grid-column: 1 / -1;
   }
 }

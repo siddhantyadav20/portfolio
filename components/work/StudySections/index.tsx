@@ -208,7 +208,7 @@ function Block({ block }: { block: StudyBlock }) {
             // Every figure is below the fold on both surfaces — the modal
             // opens at the title and the route starts at the hero.
             loading="lazy"
-            sizes="(max-width: 1024px) 100vw, 960px"
+            sizes="(width < 700px) 100vw, 960px"
           />
           {block.caption && (
             <figcaption className={styles.caption}>{block.caption}</figcaption>
@@ -247,7 +247,7 @@ function Item({ item }: { item: AsideItem }) {
               height={item.media.height}
               className={styles.shotImage}
               loading="lazy"
-              sizes="(max-width: 900px) 100vw, 832px"
+              sizes="(width < 700px) 100vw, 832px"
             />
 
           </div>

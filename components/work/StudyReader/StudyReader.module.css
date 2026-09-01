@@ -67,12 +67,21 @@
 /* The footer, at the page's own padding rather than the reader's — it is the
    width of the page, not of the column. 160 above it is the reader's own block
    rhythm; the file draws 154, which is a content-driven height rather than a
-   chosen number. 64 below it is Figma 821:1327's own bottom padding, and it is
-   now the bottom of the band as well as of the page. */
+   chosen number.
+
+   THE OTHER THREE NUMBERS ARE THE HOMEPAGE'S, and are the same three in the
+   About reader — every footer on the site now sits in the same frame. 64 either
+   side is the homepage's 32 of page padding plus the 32 its footer is inset
+   inside the band (Figma 244:9343 draws 1312 in a 1440 frame, and the About
+   frame draws the same); 96 below is the clearance the blur bar wants at the
+   bottom of a page. Fixed pixels rather than the homepage's `* --u`, because
+   this surface is a reader at any width rather than a frame being drawn at a
+   fraction of itself — the two agree at 1440, which is where the file is. The
+   1440 cap that used to be here is gone with them: the homepage's footer spans
+   its band at every width, and a capped one pulled visibly narrower than it on
+   the first screen wider than the frame. */
 .footer {
-  max-width: var(--page-w);
-  margin: 0 auto;
-  padding: 160px var(--page-pad) 64px;
+  padding: 160px 64px 96px;
 }
 
 /* Figma's Content frame: 80 between the intro, the rule, and each section. */
@@ -319,7 +328,7 @@
    together. The one thing that reflows is the outcome row, which is three
    cards side by side and nothing else in the layout is. */
 
-@media (max-width: 900px) {
+@media (width < 700px) {
   .inner {
     padding: 0 24px;
   }
@@ -335,8 +344,10 @@
     margin-top: 64px;
   }
 
+  /* The frame at the phone's scale, and the homepage's again: 24 either side,
+     and the 120 under it that clears the blur bar and the home indicator. */
   .footer {
-    padding: 96px 24px 48px;
+    padding: 96px 24px calc(120px + env(safe-area-inset-bottom, 0px));
   }
 
   .content,
@@ -389,7 +400,7 @@
 
    Everything else about the card comes down with the width: 12 of padding
    against 24, a 16 corner against 24, and 12 between the cards against 32. */
-@media (max-width: 500px) {
+@media (width <= 500px) {
   .outcomeRow {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

@@ -28,7 +28,7 @@
   color: var(--ink-50);
 }
 
-@media (max-width: 900px) {
+@media (width < 700px) {
   .flow {
     --u: 1px;
   }

@@ -142,7 +142,7 @@ span.avatar {
 
 /* Two quote cards side by side inside a phone-width column are two columns of
    four-word lines. */
-@media (max-width: 900px) {
+@media (width < 700px) {
   .groups {
     gap: 32px;
   }

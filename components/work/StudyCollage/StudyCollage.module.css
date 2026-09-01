@@ -1,7 +1,11 @@
 /* Figma 703:12474. Three captures in mats, overlapping, inside a frame that
    keeps the design's proportions at any width. */
 
+/* Named, so the query below cannot accidentally resolve against some other
+   inline-size container an ancestor introduces later. */
 .block {
+  container: collage / inline-size;
+
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -71,8 +75,15 @@
 
 /* Below the design's frame three overlapping 500px-wide dashboards are a
    texture rather than a figure. They unstack into a plain column, each at its
-   own aspect ratio — between 501 and 900, where there is no frame to follow. */
-@media (max-width: 900px) and (min-width: 501px) {
+   own aspect ratio.
+
+   A container query, not a viewport one. This was `501 to 900` — a band that
+   no longer exists now the reader has a single breakpoint, and which was never
+   about the viewport anyway: what decides whether three 500px shots read as a
+   figure is how wide *this collage* is, not how wide the window is. Asked of
+   its own box it stays right wherever the collage is placed, and it is one
+   less width for anyone to keep in step. 832 is the design's own frame. */
+@container collage (width < 832px) {
   .frame {
     display: flex;
     flex-direction: column;
@@ -104,7 +115,7 @@
 
    The mat comes down with everything else: 6 of surround against 12, and a 4
    corner against 8. */
-@media (max-width: 500px) {
+@media (width <= 500px) {
   .frame {
     aspect-ratio: 342 / 359;
   }

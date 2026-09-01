@@ -177,7 +177,7 @@
 /* Below the design's frame the rail has nowhere to stand: 32px from the left
    edge of a phone is inside the text column, and the labels would open across
    it. The progress bar stays — it costs no width. */
-@media (max-width: 900px) {
+@media (width < 700px) {
   .rail {
     display: none;
   }

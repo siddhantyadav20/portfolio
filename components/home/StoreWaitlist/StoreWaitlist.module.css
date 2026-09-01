@@ -784,7 +784,7 @@
    rather than a transparent token, because CardShell's `translucent` also
    brings a border and a backdrop-filter, and all three have to go together —
    a blur with nothing behind it still costs a compositor layer. */
-@media (max-width: 1000px) {
+@media (width < 700px) {
   .card {
     max-width: 100%;
     min-height: 0;

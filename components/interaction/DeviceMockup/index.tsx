@@ -58,7 +58,7 @@ export default function DeviceMockup({
         src="/media/inspection-hand.png"
         alt=""
         fill
-        sizes="(max-width: 900px) 100vw, 700px"
+        sizes="(width < 700px) 100vw, 700px"
         priority
         className={styles.hand}
       />

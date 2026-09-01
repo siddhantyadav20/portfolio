@@ -128,7 +128,7 @@ export default function PrototypeScreen({
         src="/media/inspection-screen.png"
         alt=""
         fill
-        sizes="(max-width: 900px) 40vw, 280px"
+        sizes="(width < 700px) 40vw, 280px"
         priority
         className={styles.poster}
       />
@@ -160,7 +160,7 @@ export default function PrototypeScreen({
         src="/media/inspection-screen-chrome.png"
         alt=""
         fill
-        sizes="(max-width: 900px) 40vw, 280px"
+        sizes="(width < 700px) 40vw, 280px"
         className={styles.chrome}
       />
     </div>

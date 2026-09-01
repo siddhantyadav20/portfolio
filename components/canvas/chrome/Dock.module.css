@@ -40,7 +40,7 @@
 
 /* The labels collapse before the dock does. Five words at 13px is wider than a
    phone, and the glyphs alone still name the places once you have been. */
-@media (max-width: 720px) {
+@media (width < 700px) {
   .label {
     display: none;
   }

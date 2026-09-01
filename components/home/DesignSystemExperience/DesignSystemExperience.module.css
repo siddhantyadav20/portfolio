@@ -2,7 +2,7 @@
 
    RADIUS IS NOT FIGMA'S HERE. It comes from the corner guide, which sets
    48px on the wide grid and 32 on the phone. Both carry `corner-shape:
-   squircle` via CardShell. The phone value lives in the `max-width: 500px`
+   squircle` via CardShell. The phone value lives in the `width < 700px`
    block at the foot of this file; the desktop one is the `radius` prop in
    index.tsx. */
 
@@ -57,7 +57,13 @@
      this frame is a known 346x256 and, until the ResizeObserver has run, the
      preview would otherwise paint at its full 1440x1024 — a zoomed corner of
      a dashboard. That is the whole of what someone with JavaScript off ever
-     sees, so it has to be right rather than merely brief. */
+     sees, so it has to be right rather than merely brief.
+
+     346/1440 and 256/1024 are both 0.25, which is why one number covers this
+     frame in both axes. It is the wide grid's number and the phone's — below
+     500 `--u` scales, so the frame is ~0.775 of the viewport and 0.25 still
+     covers to about a 460px phone. The tablet band needs its own; see the
+     501-to-1000 block at the foot of this file. */
   --ds-scale: 0.25;
 }
 
@@ -163,9 +169,41 @@
   white-space: nowrap;
 }
 
-@media (max-width: 1000px) {
+/* The column, not the drawn 386.
+
+   `max-width` was the wrong property: it caps a box, it never grows one whose
+   `width` is already stated, so between 501 and 1000 — where `--u` is its
+   registered 1px — this card sat at a literal 386 inside a column up to 540
+   wide, left-aligned under an Inspection card and above a Search card that
+   both run to the column's edges. That is the ragged edge the phone layout was
+   rebuilt to get rid of; see the same note on InspectionExperience.
+
+   Nothing inside needs a second set of numbers. `.shotFrame` is anchored
+   `left: 40u; right: 0`, so the extra width lands in the preview, which is
+   where this card wants it — and ThemingInstrument measures that frame with a
+   ResizeObserver and rewrites `--ds-scale` from it, so the dashboard re-covers
+   the wider box on its own. The heading, the preset row and the chip are all
+   left-anchored and stay where they are drawn. */
+@media (width < 700px) {
   .card {
-    max-width: 100%;
+    width: 100%;
+  }
+}
+
+/* The no-JS still, recomputed for the narrow branch.
+
+   0.25 is exactly right at the 390 frame — the frame there is 302x256 and
+   256/1024 is 0.25 — but `--u` climbs to its 1.345 cap, and at the cap this
+   frame is 406x344 and needs 0.336. One value has to cover the whole branch,
+   and `cover` tolerates being too big far better than being too small: the
+   overspill is clipped by this frame, so on a 390 phone this is a closer crop
+   of the dashboard rather than a letterboxed one.
+
+   Only ever seen with JavaScript off. Everyone else has it overwritten by
+   ThemingInstrument's ResizeObserver before their first paint. */
+@media (width < 700px) {
+  .shotFrame {
+    --ds-scale: 0.336;
   }
 }
 
@@ -174,7 +212,7 @@
    app/page.module.css. `.card.card` because CardShell's own radius class has
    the same specificity as this one and would otherwise be settled by source
    order across two modules. */
-@media (max-width: 500px) {
+@media (width < 700px) {
   .card.card {
     --sq-r: calc(32 * var(--u));
   }

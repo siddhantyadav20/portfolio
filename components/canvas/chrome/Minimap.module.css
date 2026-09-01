@@ -41,7 +41,7 @@
   transition: all 0.12s linear;
 }
 
-@media (max-width: 720px) {
+@media (width < 700px) {
   .map {
     display: none;
   }

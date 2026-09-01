@@ -100,7 +100,7 @@
   background-size: auto 1px;
 }
 
-@media (max-width: 900px) {
+@media (width < 700px) {
   .term {
     width: 200px;
     font-size: 15px;
@@ -122,7 +122,7 @@
    So `min-width` comes off. Left on, the scroller stays a scroller and the
    reader has to drag a table sideways on the one screen where that is hardest
    to notice is possible at all. */
-@media (max-width: 500px) {
+@media (width <= 500px) {
   .table {
     min-width: 0;
   }

@@ -108,7 +108,7 @@
   box-shadow: var(--liquid-cast-hi);
 }
 
-@media (max-width: 900px) {
+@media (width < 700px) {
   .frame {
     border-radius: var(--r-xl);
   }
@@ -129,7 +129,7 @@
    hand, which is the 11.43 / 1.50 / 41.14 / 60.47 DeviceMockup already uses.
    Same composite, moved and enlarged — which is why this is four properties
    and not a second mockup. */
-@media (max-width: 500px) {
+@media (width <= 500px) {
   .frame {
     aspect-ratio: auto;
     height: 520px;

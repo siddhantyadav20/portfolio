@@ -184,13 +184,13 @@
   font-size: 11px;
 }
 
-@media (max-width: 720px) {
+@media (width < 700px) {
   .hint {
     display: none;
   }
 }
 
-@media (max-width: 900px) {
+@media (width < 700px) {
   .controls {
     top: 24px;
     right: 24px;

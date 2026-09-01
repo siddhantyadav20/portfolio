@@ -283,7 +283,7 @@
    Paired with the music player rather than stacked under it, for the reason
    given there: on the wide grid these two are a row, and in one column they
    still are. The track it sits in is what sizes it. */
-@media (max-width: 1000px) {
+@media (width < 700px) {
   /* The 252 the phone frame draws, not a half of the row. `.personality` is a
      scroller here (see app/page.module.css): the frame's own row does not fit
      and clips the LinkedIn card, so the pair keeps its size and the row moves
@@ -298,7 +298,7 @@
    class has the same specificity as this one and would otherwise win or lose on
    source order across two modules — doubling the class settles it. Inner
    surfaces take `border-radius: inherit`, so they follow. */
-@media (max-width: 500px) {
+@media (width < 700px) {
   .card.card {
     --sq-r: calc(24 * var(--u));
   }

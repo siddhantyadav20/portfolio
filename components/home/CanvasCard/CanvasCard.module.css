@@ -3,7 +3,7 @@
 
    RADIUS IS NOT FIGMA'S HERE. It comes from the corner guide, which sets
    48px on the wide grid and 32 on the phone. Both carry `corner-shape:
-   squircle` via CardShell. The phone value lives in the `max-width: 500px`
+   squircle` via CardShell. The phone value lives in the `width < 700px`
    block at the foot of this file; the desktop one is the `radius` prop in
    index.tsx. */
 
@@ -91,7 +91,7 @@
 
    The preview is a window onto the board rather than a laid-out composition,
    so a wider card simply shows more board — which is the point of it. */
-@media (max-width: 1000px) {
+@media (width < 700px) {
   /* `flex-basis: 100%` rather than `width` alone: this card shares a wrapping
      row with the About Me and Design/Engineer pair, and a full basis is what
      pushes it onto its own line under them instead of trying to fit beside
@@ -117,7 +117,7 @@
    app/page.module.css. `.card.card` because CardShell's own radius class has
    the same specificity as this one and would otherwise be settled by source
    order across two modules. */
-@media (max-width: 500px) {
+@media (width < 700px) {
   .card.card {
     --sq-r: calc(32 * var(--u));
   }

@@ -45,17 +45,17 @@
 
    The composition is a fixed 1440 frame: 1376 of band, split 386 | 540 | 386
    with 32px gutters, and every card places its contents in absolute pixels
-   against its own Figma width. Between 1000 and 1440 that had no answer. The
-   grid squeezed the two flexible tracks and left the rigid ones alone, so at
-   1001px the Search card was **0px wide** and the Designer/Engineer card was
-   too — both had collapsed entirely, on a layout that is supposed to be the
-   desktop one.
+   against its own Figma width. Below 1440 that had no answer. The grid
+   squeezed the two flexible tracks and left the rigid ones alone, so at the
+   moment the bento came on the Search card was **0px wide** and the
+   Designer/Engineer card was too — both had collapsed entirely, on a layout
+   that is supposed to be the desktop one.
 
    `--u` is one pixel of the 1440 design, expressed as a fraction of whatever
    width we actually have. Every geometric value in the composition — tracks,
    gutters, the page padding, card boxes, the type inside them — is restated as
    a multiple of it, so the whole page is one uniform scale of the 1440 frame
-   at every width from 1001 up. Nothing is capped and nothing is centred: at
+   at every width from 700 up. Nothing is capped and nothing is centred: at
    1920 the page is the same composition at 1.333x, page padding included.
 
    The one cost is resolution. `inspection-hand.png` is a 692px source painted
@@ -74,7 +74,29 @@
 /* Registered in globals.css, not here — this file only ships with the homepage,
    and every other route needs the initial value too. See the note there. */
 
-@media (min-width: 1001px) {
+/* --- The bento, 700 and up -------------------------------------------------
+
+   THE ONE BREAKPOINT ON THIS PAGE. It changes the arrangement — one column
+   below, the three-column bento here — and nothing else decides anything.
+
+   Both sides are pure uniform scales of a Figma frame, so there is no third
+   regime to keep in step and no scale to coordinate: `--u` is one design pixel
+   as a fraction of the width there actually is, and every geometric value on
+   the page is a multiple of it. That is why this file no longer has a 500 or a
+   1000 in it.
+
+   THE SEAM IS REAL AND IS DELIBERATE. At 699 the h1 is ~48px and at 701 it is
+   ~21px, because the two frames are 390 and 1440 and a single viewport cannot
+   be both. A seamless single breakpoint would have to sit at ~1180, which
+   would leave every iPad in portrait on the phone layout — the thing this
+   breakpoint exists to avoid. The jump is the price of the tablet getting the
+   real composition, and it was chosen with the numbers in hand.
+
+   What that costs: below ~1200 the bento shrinks type in exact proportion, so
+   a 744 iPad mini renders the 14px labels at 7.2px. Accepted, knowingly. The
+   only fix is for the bento to reflow rather than scale, which is a second
+   arrangement and a second breakpoint. */
+@media (width >= 700px) {
   /* Every inset moves onto `.band` as a margin. `.page` cannot express them
      itself: it is the query container, and a container cannot read its own
      `cqw` — which is exactly the circularity that kept the padding stuck at a
@@ -90,8 +112,17 @@
 
   .band {
     /* 32 top and sides, 96 bottom — the page's old padding, now scaling. The
-       deeper bottom is the sticky blur bar's clearance. */
-    margin: calc(32 * var(--u)) calc(32 * var(--u)) calc(96 * var(--u));
+       deeper bottom is the sticky blur bar's clearance.
+
+       The sides take the notch into account, which they did not have to when
+       this block started at 1001: a phone in landscape is 844 to 932 wide and
+       so lands here now, not on the narrow branch. Portrait phones are below
+       700 and report no left/right inset, which is why the narrow branch can
+       leave this out. */
+    margin: calc(32 * var(--u))
+      max(calc(32 * var(--u)), env(safe-area-inset-right, 0px))
+      calc(96 * var(--u))
+      max(calc(32 * var(--u)), env(safe-area-inset-left, 0px));
     --gap: calc(32 * var(--u));
     --col-1: calc(386 * var(--u));
     --col-2: calc(540 * var(--u));
@@ -111,10 +142,6 @@
   .themeToggle {
     --toggle-w: calc(112 * var(--u));
     --toggle-h: calc(64 * var(--u));
-    /* The notch `max()` below is a phone concern and there is no phone at
-       these widths, so this is the plain scaled inset. */
-    top: calc(32 * var(--u));
-    right: calc(32 * var(--u));
   }
 }
 
@@ -123,12 +150,16 @@
    position so reading and tab order are unchanged. */
 .themeToggle {
   position: absolute;
-  /* `max(...)` rather than the bare token: with `viewport-fit=cover` set the
+  /* `max(...)` rather than the bare inset: with `viewport-fit=cover` set the
      page draws into the notch, and this is the one control pinned close
      enough to the top-right corner to land under a sensor housing in
-     landscape. The page box already does this on its other three sides. */
-  top: max(var(--page-pad), env(safe-area-inset-top, 0px));
-  right: max(var(--page-pad), env(safe-area-inset-right, 0px));
+     landscape. The page box already does this on its other three sides.
+
+     Stated once here rather than per branch. `32 * --u` is what both frames
+     draw, and `--u` is whichever branch's the viewport is in — so this one
+     declaration is the phone's 32 and the bento's 32 at the same time. */
+  top: max(calc(32 * var(--u)), env(safe-area-inset-top, 0px));
+  right: max(calc(32 * var(--u)), env(safe-area-inset-right, 0px));
   z-index: 10;
 }
 
@@ -338,14 +369,62 @@
    at the frame's edge. They keep their drawn width here and the row scrolls.
    ========================================================================== */
 
-@media (max-width: 1000px) {
-  /* One centred column at the widest card's design width. */
+@media (width < 700px) {
+  /* ONE DESIGN PIXEL, off the phone frame.
+
+     The same mechanism the bento uses, pointed at Figma 843:2477 instead of
+     the 1440 frame: a 360 phone gets the drawing at 0.92, a 430 phone at 1.10,
+     and nothing reflows in between — the page is the drawing, resized.
+
+     THE `min()` IS THE CAP, AND IT IS NOT A BREAKPOINT. Left uncapped this
+     ratio runs to 1.795 by 700 and the drawing is 80% oversize — a phone
+     layout inflated to fill a laptop. Capped at 1.345 the column stops growing
+     at 460 (342 x 1.345) once the viewport passes ~525, and centres in what is
+     left. Retune it freely: nothing else reads it.
+
+     This block is the old 1000 and 500 blocks merged. They always described
+     the same single column at two different scales, and the 501-to-1000 band
+     between them — where `--u` was frozen at its registered 1px — is what made
+     the page a phone layout stranded in a tablet window, 54% of the viewport
+     filled at 1000px. There is no frozen band now. */
+  .page {
+    padding: 0;
+  }
+
+  .band,
+  .themeToggle {
+    --u: min(100cqw / 390, 1.345px);
+    --toggle-w: calc(112 * var(--u));
+    --toggle-h: calc(64 * var(--u));
+  }
+
+  /* One centred column at the width the frame draws it. */
   .band {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
     grid-auto-flow: row;
-    max-width: min(540px, 100%);
+
+    /* The column AND its inset, in one declaration.
+
+       342 is the 390 frame minus its two 24 insets, so while `--u` is still
+       climbing this resolves to exactly 0.877 of the viewport and the `auto`
+       margins either side come out at the 24 the frame asks for. Once `--u`
+       caps, it is a flat 460 and the same `auto` centres it. One rule covers
+       both, which is why there is no second query here for the inset.
+
+       No left/right safe-area `max()`: a notched phone reports those insets in
+       landscape, and landscape is 844+ and therefore the bento's branch, which
+       does carry them. */
+    max-width: calc(342 * var(--u));
     margin-inline: auto;
+
+    /* Figma 843:2477 is `px-[24px] py-[120px]`. The 120 above is what clears
+       the pinned theme toggle: 32 down, 64 of control, 24 under it. */
+    margin-top: calc(120 * var(--u));
+    /* The frame's other 120, plus the home indicator under it. The blur bar
+       parks over the last of the page. */
+    margin-bottom: calc(120 * var(--u) + env(safe-area-inset-bottom, 0px));
+
     /* 64 between sections, which is the frame's own rhythm and twice what the
        holding pattern used. It is the single change that stops the page
        reading as a list of cards. */
@@ -499,7 +578,7 @@
    their radius comes from a CardShell class that only they can outrank. The
    16 of About Me and the 20 of the Design/Engineer card are the frame's and
    are left alone: they are smaller than the set, not part of it. */
-@media (max-width: 500px) {
+@media (width < 700px) {
   .closing {
     --sq-r: calc(32 * var(--u));
     border-radius: var(--sq-r);
@@ -514,88 +593,11 @@
    the mask, so it thins slightly at the corners. On a hairline at this radius
    that is a fair trade for the corner being right. */
 @supports not (corner-shape: squircle) {
-  @media (max-width: 1000px) {
+  @media (width < 700px) {
     .closing {
       border-radius: 0;
       -webkit-mask-box-image: var(--sq-mask) 64 fill / var(--sq-r) / 0 stretch;
       mask-border: var(--sq-mask) 64 fill / var(--sq-r) / 0 stretch;
     }
-  }
-}
-
-/* --- Phone -----------------------------------------------------------------
-
-   Below 600 the 540 column above is wider than the screen and the page is the
-   frame's own width. What this block carries is what the frame states at 390
-   and the 1000 block cannot: the page inset, the toggle's clearance, and the
-   room the frame leaves above the first line and below the last.
-   --------------------------------------------------------------------------- */
-
-@media (max-width: 500px) {
-  /* ONE DESIGN PIXEL, AGAIN — this time off the phone frame.
-
-     Above 1000 the whole composition is a uniform scale of the 1440 frame:
-     `--u` is one design pixel expressed as a fraction of the width there
-     actually is, and every geometric value is a multiple of it. Below 500 the
-     same thing now happens off Figma's 390 frame. A 360 phone gets the design
-     at 0.92, a 430 phone at 1.10, and nothing reflows in between — the page is
-     the drawing, resized, exactly as it is on a desktop.
-
-     Between the two, 501 to 1000, `--u` stays its registered 1px and the
-     layout is the one column at the sizes it is drawn. That band is a tablet
-     and there is no frame for one; inventing a scale for it would be guessing
-     where this is transcribing.
-
-     The mechanics are the wide grid's, for the same reason they are its: the
-     page padding moves off `.page` and onto `.band` as a margin, so `.page`'s
-     content box is the whole viewport and `--u` can be a fraction of 390
-     rather than of 390-minus-a-padding-derived-from-itself. */
-  .page {
-    padding: 0;
-  }
-
-  .band,
-  .themeToggle {
-    --u: calc(100cqw / 390);
-  }
-
-  .band {
-    /* Figma 843:2477 is `px-[24px] py-[120px]`. The 120 above is what clears
-       the theme toggle — 32 down, 64 of control, 24 under it — which is also
-       why `.lead` no longer carries a padding of its own: that calc read
-       `--toggle-h`, which is only defined above 1001, so below it the whole
-       expression was invalid and the declaration was being dropped. The frame
-       states the number outright instead of deriving it from a token that is
-       not in scope. */
-    margin-top: calc(120 * var(--u));
-    margin-left: max(calc(24 * var(--u)), env(safe-area-inset-left, 0px));
-    margin-right: max(calc(24 * var(--u)), env(safe-area-inset-right, 0px));
-    /* The frame's other 120, plus the home indicator under it. The blur bar
-       parks over the last of the page. */
-    margin-bottom: calc(120 * var(--u) + env(safe-area-inset-bottom, 0px));
-    /* The 540 cap is the tablet column's, and there is no cap here: the band
-       is the page. Left at `min(540px, 100%)` it would be 100% *plus* the
-       margins above and overflow by both of them. */
-    max-width: none;
-  }
-
-  /* 32 from the top and the right in the frame, which is 8 further out than
-     the page's own 24 inset. */
-  .themeToggle {
-    top: max(calc(32 * var(--u)), env(safe-area-inset-top, 0px));
-    right: max(calc(32 * var(--u)), env(safe-area-inset-right, 0px));
-  }
-
-  /* The toggle stays pinned to the page's top-right corner, which is the
-     affordance it was drawn as. Letting it rejoin the flow instead sounds
-     tidier and is much worse: `.closing` is now last on this layout, so an
-     in-flow toggle lands at the very bottom of a phone page — a control
-     nobody will ever find.
-
-     What it can collide with is whatever is ordered *first*, which is `.lead`
-     and so the Introduction. That block gets the clearance instead, measured
-     off the thing that has to clear it rather than off an unrelated token. */
-  .lead {
-    padding-top: 0;
   }
 }

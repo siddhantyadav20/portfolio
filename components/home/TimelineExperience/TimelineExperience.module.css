@@ -499,7 +499,7 @@
    Three things did have to be told: the numbers counter-rotate so they stay
    upright, the grip lets vertical touches through to the page, and the loop
    reads the pointer along X instead of Y. See `turned` in index.tsx. */
-@media (max-width: 1000px) {
+@media (width < 700px) {
   .card {
     width: 100%;
     max-width: 100%;
