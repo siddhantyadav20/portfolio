@@ -85,7 +85,12 @@ export default function Introduction({ className }: { className?: string }) {
       <div className={styles.ctas}>
         <CtaPill
           onClick={copyEmail}
-          icon={<span className="inkIcon" style={{ ["--icon" as string]: "url(/icons/chat.svg)", width: 20, height: 20 }} />}
+          icon={
+            <span
+              className="inkIcon"
+              style={{ ["--icon" as string]: "url(/icons/chat.svg)" }}
+            />
+          }
         >
           {copied ? "Copied!" : failed ? intro.email : "Copy Email"}
         </CtaPill>

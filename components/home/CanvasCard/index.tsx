@@ -89,7 +89,7 @@ export default function CanvasCard() {
     let frame = 0;
     let targetX = 0;
     let targetY = 0;
-    // Measured rather than assumed, because the card goes fluid under 1000px.
+    // Measured rather than assumed, because the card goes fluid under 700px.
     const r0 = shell.getBoundingClientRect();
     const baseX = r0.width / 2 - HOME.x * PREVIEW_SCALE;
     const baseY = r0.height / 2 - HOME.y * PREVIEW_SCALE;
@@ -254,11 +254,7 @@ export default function CanvasCard() {
           icon={
             <span
               className="inkIcon"
-              style={{
-                ["--icon" as string]: "url(/icons/mouse-square.svg)",
-                width: 20,
-                height: 20,
-              }}
+              style={{ ["--icon" as string]: "url(/icons/mouse-square.svg)" }}
             />
           }
           // Fetch the surface at the moment before the click, so awaiting it

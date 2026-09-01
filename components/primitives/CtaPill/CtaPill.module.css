@@ -72,8 +72,20 @@
   height: calc(var(--cta-icon, 20) * var(--u));
 }
 
-.icon :global(img),
-.icon :global(svg) {
+/* WHATEVER THE CALLER PUTS IN THE SLOT FILLS IT — not just `img` and `svg`.
+
+   This used to name those two, and the two callers passing a masked `.inkIcon`
+   span had to state `width: 20; height: 20` inline to get a size at all: the
+   span has no intrinsic size, and as a flex child with nothing to stretch it
+   that is a zero-wide box. An inline style beats this stylesheet, so those
+   icons were then pinned at a literal 20px while the slot around them scaled
+   with `--u` — invisible at 1440, where the slot is also 20, and increasingly
+   wrong below it. At the 700 breakpoint the slot is 9.7px and the icon was
+   still 20.
+
+   So the slot sizes and the child fills it, whatever the child is. Callers set
+   `--cta-icon` if they want a different number; nobody restates it inline. */
+.icon > :global(*) {
   width: 100%;
   height: 100%;
 }
