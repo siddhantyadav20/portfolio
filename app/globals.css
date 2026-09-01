@@ -98,6 +98,20 @@
   --page-wash-to: rgba(237, 237, 237, 0.55);
   --page-wash-angle: 97deg;
 
+  /* THE OVERSCROLL COLOUR, and not `--page-base`.
+
+     Rubber-band past either end of the page and what shows is the canvas, not
+     `body` — and the wash does not reach it. `background-attachment: fixed`
+     anchors the gradient to the viewport, so when body's background propagates
+     to the canvas only the flat `background-color` extends into the overscroll
+     region. That painted bare #f3f3f3 against a page washed to #ebebeb-#f0f0f0:
+     a white band above the content and another below it.
+
+     So this is the page as *painted* — the same middle-of-the-wash value the
+     browser toolbars use, and for the same reason. Keep it in step with
+     `CHROME` in lib/theme.ts; that comment carries the arithmetic. */
+  --page-edge: #ededed;
+
   --surface: rgba(255, 255, 255, 0.7); /* most cards */
   --surface-solid: #ffffff; /* Canvas, Music Player */
   --surface-glass: rgba(255, 255, 255, 0.4); /* theme toggle, footer, modal */
@@ -252,10 +266,10 @@
    322 and 372 — so the padding is what gives first, before any card is asked
    to reflow.
 
-   This is deliberately the *only* geometry token that moves. The column
-   widths below 1000px are already irrelevant (the band collapses to one
-   column there), and the gutter is vertical by then. */
-@media (max-width: 500px) {
+   This is deliberately the *only* geometry token that moves, and since the
+   homepage now zeroes `.page`'s padding on both sides of its one breakpoint,
+   the only thing still reading it is `/not-found`. */
+@media (width < 700px) {
   :root {
     /* 24, from the phone frame's own `px-[24px]` (Figma 843:2477). It was 20,
        chosen before there was a phone design to read it off. */
@@ -305,6 +319,15 @@
 html {
   -webkit-text-size-adjust: 100%;
   color-scheme: light;
+
+  /* What the overscroll shows, at both ends, on both platforms.
+
+     Stating a background here also stops `body`'s from propagating to the
+     canvas, which is the mechanism that was painting the bare base up there.
+     `body` keeps its own — it is `min-height: 100svh` and as tall as the
+     document, so it still covers every pixel of the page itself, and this only
+     shows where body is not: the rubber-band gap. */
+  background-color: var(--page-edge);
 }
 
 html[data-theme="dark"] {
@@ -1341,6 +1364,9 @@ html[data-theme="dark"] {
   --page-base: #111111;
   --page-wash-from: #131313;
   --page-wash-to: rgba(15, 15, 15, 0.55);
+  /* The wash's middle here too. It lands on the base, which is why dark never
+     showed the band the light theme did — see the note beside the light one. */
+  --page-edge: #111111;
 
   --surface: #222222;
   --surface-solid: #222222;

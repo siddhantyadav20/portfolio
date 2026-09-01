@@ -4,7 +4,7 @@ import CanvasCursor from "@/components/interaction/CanvasCursor";
 import PaletteHost from "@/components/palette/PaletteHost";
 import { intro, linkedin } from "@/content/site";
 import { BOOT_SCRIPT } from "@/lib/boot";
-import { THEME_SCRIPT } from "@/lib/theme";
+import { CHROME, THEME_SCRIPT } from "@/lib/theme";
 import { canela, outfit } from "./fonts";
 import WebVitals from "./vitals";
 import "./globals.css";
@@ -75,13 +75,20 @@ export const metadata: Metadata = {
 
 /**
  * `themeColor` is the browser chrome around the page on mobile, and it has to
- * track the theme or the address bar stays white above a dark page. The two
- * values are `--page-base` from globals.css, light and dark.
+ * track the theme or the address bar stays white above a dark page.
+ *
+ * These two are the JavaScript-off answer only. With the theme script running,
+ * `paintChrome` overwrites them on every toggle, because a stored choice beats
+ * the OS here and a `prefers-color-scheme` meta cannot know that.
+ *
+ * The values come from `CHROME` rather than being written out again — they are
+ * the page as painted, wash included, and the note there explains why that is
+ * not `--page-base`.
  */
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f3f3f3" },
-    { media: "(prefers-color-scheme: dark)", color: "#111111" },
+    { media: "(prefers-color-scheme: light)", color: CHROME.light },
+    { media: "(prefers-color-scheme: dark)", color: CHROME.dark },
   ],
   /**
    * The page draws into the notch and the home-indicator area rather than

@@ -15,7 +15,8 @@ export const THEME_ATTR = "data-theme";
 export const THEME_KEY = "sy-theme";
 
 /**
- * The browser chrome's colour, per theme — `--page-base` from globals.css.
+ * The browser chrome's colour, per theme — the page as *painted*, which is not
+ * `--page-base`.
  *
  * Modern mobile Safari and Chrome tint their own toolbars with the page's
  * `theme-color` rather than drawing a bar above it, which is why the site
@@ -35,8 +36,30 @@ export const THEME_KEY = "sy-theme";
  * visitor with JavaScript off.
  */
 export const CHROME_ID = "sy-chrome";
+
+/* NOT `--page-base`. That is the colour under the wash, and the wash is opaque
+   where it starts — so the base is never what anyone actually sees.
+ *
+ * `body` paints `--page-base` and then a `--page-wash-from` -> `--page-wash-to`
+ * gradient over it at 97deg, `background-attachment: fixed`. Compositing the
+ * one over the other across the viewport's width:
+ *
+ *              left edge   middle    right edge
+ *     light      #ebebeb   #ededed      #f0f0f0
+ *     dark       #131313   #111111      #101010
+ *
+ * The toolbars are one flat colour across a band the page varies along, so the
+ * middle is the closest a single value can sit to all of it. Light was set to
+ * the base, #f3f3f3 — three to eight levels lighter than any pixel beside it,
+ * which is exactly enough to read as a white strip laid over the page rather
+ * than as the page continuing. Dark's base already happened to land on the
+ * middle, which is why only one of the two ever looked wrong.
+ *
+ * If the wash changes, recompute these. The arithmetic is premultiplied-alpha
+ * interpolation along the gradient, then `over` the base — the same thing the
+ * compositor does. */
 export const CHROME: Record<Theme, string> = {
-  light: "#f3f3f3",
+  light: "#ededed",
   dark: "#111111",
 };
 
@@ -75,9 +98,9 @@ export const THEME_SCRIPT = `try{var s=localStorage.getItem(${JSON.stringify(
 )},t);var m=document.createElement("meta");m.id=${JSON.stringify(
   CHROME_ID,
 )};m.name="theme-color";m.content=t==="dark"?${JSON.stringify(
-  "#111111",
+  CHROME.dark,
 )}:${JSON.stringify(
-  "#f3f3f3",
+  CHROME.light,
 )};document.head.insertBefore(m,document.head.firstChild)}catch(e){}`;
 
 /* ===========================================================================
@@ -135,19 +158,46 @@ export function subscribeTheme(onChange: () => void) {
 /**
  * Keep the browser chrome on the theme the site is actually showing.
  *
+ * THE META IS REPLACED, NOT EDITED, AND THAT IS THE WHOLE POINT.
+ *
+ * Setting `content` on the meta that is already there is the obvious way to do
+ * this and it does not work on iOS Safari: the toolbars keep whichever colour
+ * they resolved at load, so the site toggles underneath a bar that stays on
+ * the old theme for the rest of the visit. Safari re-resolves `theme-color`
+ * when the set of candidate metas changes, not when one of them mutates.
+ * Removing the node and inserting a fresh one is a change it notices.
+ *
+ * The others are rewritten too. `app/layout.tsx` declares two more behind
+ * `prefers-color-scheme`, and once JavaScript is running they are stale by
+ * definition — the visitor's stored choice beats the OS here, so a phone in OS
+ * dark showing the site in light has a `(prefers-color-scheme: dark)` meta
+ * sitting in the head claiming #111. The spec says the first *matching* meta
+ * wins and ours is first, but Safari has not always agreed, and the cheapest
+ * way to not depend on that is to leave nothing behind that could win and be
+ * wrong. With JavaScript off they are untouched and still correct.
+ *
  * Creating the meta if the pre-paint script could not — that script is wrapped
  * in a try/catch for Safari's private mode, and a theme is not worth a blank
  * page, so this cannot assume it ran.
  */
 export function paintChrome(theme: Theme) {
-  let meta = document.getElementById(CHROME_ID) as HTMLMetaElement | null;
-  if (!meta) {
-    meta = document.createElement("meta");
-    meta.id = CHROME_ID;
-    meta.name = "theme-color";
-    document.head.insertBefore(meta, document.head.firstChild);
+  const colour = CHROME[theme];
+
+  document.getElementById(CHROME_ID)?.remove();
+
+  const meta = document.createElement("meta");
+  meta.id = CHROME_ID;
+  meta.name = "theme-color";
+  meta.content = colour;
+  document.head.insertBefore(meta, document.head.firstChild);
+
+  /* The `media` ones from layout.tsx. Left alone they are a second opinion
+     that disagrees with the toggle. */
+  for (const other of document.querySelectorAll<HTMLMetaElement>(
+    'meta[name="theme-color"][media]',
+  )) {
+    other.content = colour;
   }
-  meta.content = CHROME[theme];
 }
 
 export function writeTheme(theme: Theme) {
