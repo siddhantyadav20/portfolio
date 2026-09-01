@@ -307,7 +307,7 @@
 /* The short frame. Below this the head has to give up more than the chips do —
    a legend that has wrapped to five rows is still readable and a 90px head is
    not a head. */
-@media (max-width: 1000px) {
+@media (width < 700px) {
   .figure[data-inset] .head {
     width: min(48%, 150px);
   }

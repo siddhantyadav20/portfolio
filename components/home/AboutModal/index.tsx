@@ -6,6 +6,7 @@ import SiteFooter from "@/components/home/SiteFooter";
 import ThemeToggle from "@/components/home/ThemeToggle";
 import ModalSurface, { MODAL_VT } from "@/components/primitives/ModalSurface";
 import { about, type Rich } from "@/content/site";
+import Greeting from "./Greeting";
 import HeadChart from "./HeadChart";
 import styles from "./AboutModal.module.css";
 
@@ -55,7 +56,7 @@ type Props = {
  */
 export default function AboutModal({ open, closing = false, onClose }: Props) {
   const {
-    greeting,
+    greetings,
     name,
     puns,
     lede,
@@ -107,7 +108,7 @@ export default function AboutModal({ open, closing = false, onClose }: Props) {
               data-stage="title"
               style={MODAL_VT.title}
             >
-              <p className={styles.greeting}>{greeting}</p>
+              <Greeting items={greetings} />
               <h1 className={styles.name}>{name}</h1>
               <p className={styles.puns}>
                 {puns.map((pun, i) => (
@@ -232,8 +233,15 @@ export default function AboutModal({ open, closing = false, onClose }: Props) {
           </ol>
         </section>
 
-        <SiteFooter />
       </article>
+
+      {/* Outside the reader's column on purpose. The footer is the width of the
+          page rather than of the words — Figma draws it at 1312 in a 1440 frame
+          where the column is 1120 — and it now sits in the same frame as the
+          homepage's and the case study's. See `.footerFrame`. */}
+      <div className={styles.footerFrame}>
+        <SiteFooter />
+      </div>
     </ModalSurface>
   );
 }
@@ -294,7 +302,7 @@ function Dissect({
           alt={portrait.alt}
           width={portrait.width}
           height={portrait.height}
-          sizes="(max-width: 1000px) 100vw, 402px"
+          sizes="(width < 700px) 100vw, 402px"
           priority={false}
         />
 

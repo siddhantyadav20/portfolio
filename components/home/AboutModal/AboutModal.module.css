@@ -20,15 +20,38 @@
   width: 100%;
   max-width: 1168px;
   margin: 0 auto;
-  padding: 120px 24px 0;
+  /* 160 from the top of the reader to the first line, and 64 under the footer.
+
+     THE TOP NUMBER IS NOT ALL THIS ELEMENT'S. The modal's control row is in
+     the flow above this — 32 down, 64 of button, 24 under it — so it has
+     already spent 120 of the 160 before the page begins. 40 is what is left,
+     and it is written as the remainder rather than as a round number so it is
+     obvious what to change if that row ever moves.
+
+     The page stops at the last line it reads. Everything under that belongs to
+     the footer's own frame, which is not in this column — see
+     `.footerFrame`. */
+  padding: calc(160px - 120px) 24px 0;
 }
 
-/* The site footer, which this reader carries because the file gives it one.
-   It is a plain element selector because the footer brings its own module's
-   classes and this is the one thing about it that belongs to the page around
-   it — how far it sits from the last thing read. */
-.page > footer {
-  margin-top: 96px;
+/* The footer's frame, and it is the homepage's frame — Figma 244:9343 and the
+   About file's own 887:7643 draw the same 1312-wide footer in a 1440 frame,
+   which is 64 either side once the page's 32 of padding and the 32 the footer
+   is inset inside the band are added up. 96 under it is the homepage's
+   clearance for the blur bar. `StudyReader`'s `.footer` is the same three
+   numbers, so the three surfaces that end in this footer end the same way.
+
+   96 above it is this reader's own gap from the last thing read, and stays a
+   number of its own: what sits above a footer is the page's business.
+
+   No column and no max-width: the homepage's footer spans its band at every
+   width, and one capped at 1440 would have pulled 33px narrower than it on the
+   first screen wider than the frame. The insets are fixed pixels where the
+   homepage's scale with `--u`, which is this surface's own rule — they agree at
+   1440 and are within a few pixels either side of it. */
+.footerFrame {
+  width: 100%;
+  padding: 96px 64px 96px;
 }
 
 /* ==========================================================================
@@ -141,6 +164,270 @@
 .strong {
   font-weight: 500;
   color: var(--ink);
+}
+
+/* --- The greeting's typewriter — see `Greeting.tsx` ------------------------
+
+   THE LINE NEVER MOVES, AND THAT IS THIS BLOCK'S ONE HARD JOB. Word, caret and
+   comma are three inline boxes in a single line box, so they sit on one
+   baseline by construction rather than by arithmetic — which is what Hindi
+   needed, having ridden a few pixels high back when each language was its own
+   stacked block with its own line box to fall through.
+
+   Sharing a line box is only half of it. A line box is as tall as the tallest
+   thing in it, and Noto Serif Devanagari's ascent at this size is taller than
+   Canela's — enough to push the shared baseline down a couple of pixels for
+   the length of one word, which reads as the whole line settling. So every
+   inline box in here is deliberately *shorter* than the paragraph's own strut:
+   `line-height: 1` on the word, and a caret that stays inside the cap height.
+   The strut wins in every language, and the baseline is the same pixel in all
+   of them.
+   -------------------------------------------------------------------------- */
+
+/* A button that has to look like nothing. `inline-block` rather than a flex
+   row: a flex container would put each child in a box of its own and take the
+   shared line box — and the shared baseline — away again. */
+.greetingButton {
+  position: relative;
+  display: inline-block;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.greetingButton:focus-visible {
+  outline: 2px solid rgb(from var(--live) r g b / 0.6);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+/* The affordance, and the only thing that says this line is a control. It sits
+   just under the baseline rather than at the bottom of the line box — the box
+   is 160% of the type, so its bottom edge is nowhere near the letters. */
+.greetingButton::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc((1lh - 1em) / 2 + 0.1em);
+  height: 2px;
+  border-radius: var(--r-pill);
+  background-color: currentColor;
+  opacity: 0;
+  transform: scaleX(0.4);
+  transform-origin: left center;
+  transition:
+    opacity 220ms ease,
+    transform 520ms var(--spring-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .greetingButton:hover::after {
+    opacity: 0.4;
+    transform: none;
+  }
+}
+
+.greetingButton:focus-visible::after {
+  opacity: 0.4;
+  transform: none;
+}
+
+/* `inline-block` so the glitch has a box to jitter and to hang its two ghosts
+   inside; `line-height: 1` so that box can never out-measure the paragraph's
+   strut and move the baseline under it. */
+.greetingWord {
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+}
+
+/* The Devanagari face, and only where Devanagari is set. Canela has no
+   Devanagari and the platform's fallback for it is a lottery — see
+   `app/fonts-devanagari.ts`. The size step is optical: the face runs a little
+   larger on the body at a given size, and its tracking is drawn in rather than
+   added. */
+.greetingWord:lang(hi) {
+  font-family: var(--font-devanagari), var(--font-display), serif;
+  font-size: 0.92em;
+  letter-spacing: 0;
+}
+
+/* The caret. Kept inside the cap height and dipped a little under the baseline,
+   the way a real one sits — and, less visibly, so it cannot be the tallest
+   thing in the line box either. */
+.greetingCaret {
+  display: inline-block;
+  width: 3px;
+  height: 0.68em;
+  margin-left: 0.08em;
+  vertical-align: -0.12em;
+  border-radius: 2px;
+  background-color: currentColor;
+  opacity: 0.85;
+}
+
+/* Blinking is the resting state, not the working one: a caret that blinks while
+   it is typing looks like two animations fighting. `steps(1)` because a caret
+   does not fade. */
+.greetingCaret[data-blink] {
+  animation: caretBlink 1.06s steps(1, end) infinite;
+}
+
+@keyframes caretBlink {
+  0%,
+  50% {
+    opacity: 0.85;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Punctuation belongs to a finished word. It sits against the word and ahead of
+   the caret — Figma draws "Hello," as one thing, and a caret between them puts
+   the comma seven pixels off the o — and drops to a ghost of itself while the
+   word is half-typed rather than leaving, which would take its width with it
+   and make the line jump. */
+.greetingComma {
+  opacity: 0.22;
+  transition: opacity 300ms ease;
+}
+
+.greetingComma[data-settled] {
+  opacity: 1;
+}
+
+/* --- The glitch -----------------------------------------------------------
+
+   Three hundred milliseconds of the line losing its grip on which language it
+   is in, and the beat that makes the backspacing that follows read as a
+   decision rather than as a loop restarting.
+
+   `steps(1, end)` on all three animations, so every keyframe is a hard cut.
+   Interpolating between them would be a wobble; a glitch is a sequence of wrong
+   frames. The two ghosts are the word again, drawn from `data-text`, clipped to
+   a band and thrown either side of it — the split you get from a signal that
+   has lost its colour channels, in the page's own coral rather than in the
+   usual cyan and magenta.
+   -------------------------------------------------------------------------- */
+
+.greetingWord[data-glitch] {
+  animation: greetGlitch 300ms steps(1, end) both;
+}
+
+.greetingWord[data-glitch]::before,
+.greetingWord[data-glitch]::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.greetingWord[data-glitch]::before {
+  filter: hue-rotate(-38deg);
+  animation: greetGhostA 300ms steps(1, end) both;
+}
+
+.greetingWord[data-glitch]::after {
+  filter: hue-rotate(36deg);
+  animation: greetGhostB 300ms steps(1, end) both;
+}
+
+@keyframes greetGlitch {
+  0% {
+    transform: none;
+  }
+  14% {
+    transform: translate3d(-3px, 1px, 0) skewX(-6deg);
+  }
+  28% {
+    transform: translate3d(2px, -2px, 0) skewX(4deg);
+  }
+  42% {
+    transform: translate3d(-2px, 0, 0);
+  }
+  56% {
+    transform: translate3d(4px, 1px, 0) skewX(-3deg);
+  }
+  70% {
+    transform: translate3d(-1px, -1px, 0);
+  }
+  84% {
+    transform: translate3d(2px, 0, 0) skewX(2deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes greetGhostA {
+  0%,
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  14% {
+    opacity: 0.75;
+    clip-path: inset(8% 0 62% 0);
+    transform: translate3d(-6px, 0, 0);
+  }
+  42% {
+    opacity: 0.6;
+    clip-path: inset(52% 0 26% 0);
+    transform: translate3d(5px, 0, 0);
+  }
+  70% {
+    opacity: 0.7;
+    clip-path: inset(24% 0 48% 0);
+    transform: translate3d(-4px, 0, 0);
+  }
+}
+
+@keyframes greetGhostB {
+  0%,
+  100% {
+    opacity: 0;
+    clip-path: inset(100% 0 0 0);
+  }
+  28% {
+    opacity: 0.65;
+    clip-path: inset(58% 0 12% 0);
+    transform: translate3d(6px, 0, 0);
+  }
+  56% {
+    opacity: 0.5;
+    clip-path: inset(18% 0 54% 0);
+    transform: translate3d(-5px, 0, 0);
+  }
+  84% {
+    opacity: 0.6;
+    clip-path: inset(70% 0 4% 0);
+    transform: translate3d(3px, 0, 0);
+  }
+}
+
+/* The languages are content and stay. What goes is the mechanism: no typing, no
+   backspacing, no glitch — the component swaps the word whole on the same clock
+   and the caret stops blinking, because a blink is the one thing left that
+   would still be moving. */
+@media (prefers-reduced-motion: reduce) {
+  .greetingCaret[data-blink],
+  .greetingWord[data-glitch] {
+    animation: none;
+  }
+
+  .greetingWord[data-glitch]::before,
+  .greetingWord[data-glitch]::after {
+    content: none;
+  }
 }
 
 /* ==========================================================================
@@ -486,9 +773,18 @@
    the employer's line.
    ========================================================================== */
 
-@media (max-width: 1000px) {
+@media (width < 700px) {
+  /* 144 from the top of the plate — the control row spends 120 of it here
+     too. */
   .page {
-    padding-top: 96px;
+    padding-top: calc(144px - 120px);
+  }
+
+  /* The footer's frame at the phone's scale, and the homepage's again: 24
+     either side, and the 120 under it that clears the blur bar and the home
+     indicator. */
+  .footerFrame {
+    padding: 64px 24px calc(120px + env(safe-area-inset-bottom, 0px));
   }
 
   .intro {
@@ -618,10 +914,6 @@
 
   .reel {
     margin: 56px calc(50% - 50vw);
-  }
-
-  .page > footer {
-    margin-top: 64px;
   }
 
   .plates {

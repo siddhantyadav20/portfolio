@@ -171,7 +171,25 @@ export const about = {
 
   /* --- The opening — Figma 886:7394 ------------------------------------ */
 
-  greeting: "Hello,",
+  /**
+   * The greeting, in every language it is willing to say it in.
+   *
+   * A list rather than a string because the line cycles — see `Greeting`. The
+   * comma is not in here: it belongs to the design rather than to any of these
+   * languages, so the component sets it once and lets it slide as the word
+   * under it changes width. `lang` is on each entry because it is set on the
+   * element too, which is what lets a browser pick the right face and a screen
+   * reader the right voice.
+   *
+   * English first, and that is load-bearing: it is what the page renders
+   * before the cycle starts and what a reduced-motion visitor keeps.
+   */
+  greetings: [
+    { lang: "en", word: "Hello" },
+    { lang: "hi", word: "नमस्ते" },
+    { lang: "es", word: "Hola" },
+  ],
+
   name: "I’m Siddhant",
 
   /**
