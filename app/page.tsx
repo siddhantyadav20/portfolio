@@ -13,6 +13,7 @@ import ThemeToggle from "@/components/home/ThemeToggle";
 import TimelineExperience from "@/components/home/TimelineExperience";
 import CanvasCard from "@/components/home/CanvasCard";
 import ProximityField from "@/components/interaction/ProximityField";
+import SmoothScroll from "@/components/interaction/SmoothScroll";
 import styles from "./page.module.css";
 
 /**
@@ -23,6 +24,12 @@ import styles from "./page.module.css";
 export default function Home() {
   return (
     <>
+      {/* Momentum scrolling, and only here. The case studies are documents and
+          read better native — see the note in the component. Rendered outside
+          the field because it draws nothing and is not part of the
+          composition the pointer is pushing around. */}
+      <SmoothScroll />
+
       <ProximityField>
         <main id="main" className={styles.page}>
           {/* Pinned to the page's top-right corner by this class rather than

@@ -44,6 +44,12 @@ const WARM_TIMEOUT_MS = 400;
  * Losing the race costs the morph its sharpest frame, which is the correct
  * trade against not opening.
  */
+/* The homepage's smooth-scroll loop listens for these; see
+   `components/interaction/SmoothScroll`. Names rather than an import, so the
+   dependency points one way only — nothing in lib/ pulls in a component. */
+export const SCROLL_PAUSE = "sy-scroll-pause";
+export const SCROLL_RESUME = "sy-scroll-resume";
+
 export function warm(src: string) {
   let p = warmed.get(src);
   if (!p) {
@@ -85,14 +91,31 @@ export function canMorph() {
  * is exactly what it should cost.
  */
 export function morph(update: () => void, settled?: () => void) {
+  /* The homepage smooths its own scrolling, and a rAF loop writing `scrollTo`
+     under a snapshot is writing to a document nobody is looking at — the
+     position it lands on is the one the new view inherits, so a glide still in
+     flight can finish the morph somewhere the visitor did not ask to be.
+
+     An event rather than an import: this module is the plumbing under every
+     card on the site and has no business knowing whether a scroll library is
+     mounted. Nothing listening is the normal case — every route but one. */
+  window.dispatchEvent(new Event(SCROLL_PAUSE));
+
   // flushSync so the DOM is already updated when the browser takes its "after"
   // snapshot — startViewTransition captures synchronously.
   const transition = document.startViewTransition(() => flushSync(update));
   transition.ready.catch(() => {});
   transition.updateCallbackDone.catch(() => {});
   // `finally`, not `then`: a skipped transition rejects, and the follow-on beat
-  // still has to run or the card is left frozen in its hovered state.
-  transition.finished.catch(() => {}).finally(() => settled?.());
+  // still has to run or the card is left frozen in its hovered state. The
+  // resume rides with it for the same reason: a skip must not leave the page
+  // unable to scroll.
+  transition.finished
+    .catch(() => {})
+    .finally(() => {
+      window.dispatchEvent(new Event(SCROLL_RESUME));
+      settled?.();
+    });
 }
 
 /**
