@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Arrow, { u, type ArrowSpec } from "@/components/work/FlowArrow";
 import styles from "./SplitFlow.module.css";
 
 /**
@@ -52,17 +53,6 @@ const DOCUMENT: readonly BoxSpec[] = [
   { x: 525, y: 362, w: 80, h: 82, lines: ["Attach", "Images"] },
 ];
 
-/** Where a line starts, how long it runs, and whether it ends in a head. */
-type ArrowSpec = {
-  /** The line's own coordinate — its centre, not the SVG box's corner. */
-  x: number;
-  y: number;
-  len: number;
-  dir: "right" | "left" | "up" | "down";
-  /** A plain rule with no head: a route being traced rather than a step. */
-  plain?: boolean;
-};
-
 const ARROWS: readonly ArrowSpec[] = [
   { x: 139, y: 101, len: 32, dir: "right" },
   { x: 345, y: 101, len: 32, dir: "right" },
@@ -79,8 +69,6 @@ const ARROWS: readonly ArrowSpec[] = [
   { x: 353, y: 403, len: 32, dir: "right" },
   { x: 477, y: 403, len: 32, dir: "right" },
 ];
-
-const u = (n: number) => `calc(${n} * var(--u))`;
 
 export default function SplitFlow() {
   return (
@@ -157,52 +145,5 @@ function Task({
       <span className={styles.taskIndex}>{index}</span>
       <span className={styles.taskName}>{name}</span>
     </div>
-  );
-}
-
-/**
- * One connector.
- *
- * Figma exports these as filled paths with `#222222` at 50% baked in, which is
- * a hole in the layout the moment the page is dark — so they are re-drawn here
- * as strokes in `currentColor`, at the geometry the export measures: a 1px
- * rule, and a head of two 4px arms meeting at 45deg with round caps and joins.
- * The SVG box is 8 units on its short side and the line runs down its middle,
- * which is why every arrow is offset by 4 from the coordinate it is given.
- */
-function Arrow({ x, y, len, dir, plain }: ArrowSpec) {
-  const horizontal = dir === "right" || dir === "left";
-  const w = horizontal ? len : 8;
-  const h = horizontal ? 8 : len;
-
-  const line = horizontal ? `M0 4H${len}` : `M4 0V${len}`;
-  const head = {
-    right: `M${len - 4.5} 0.5 L${len - 0.5} 4 L${len - 4.5} 7.5`,
-    left: `M4.5 0.5 L0.5 4 L4.5 7.5`,
-    down: `M0.5 ${len - 4.5} L4 ${len - 0.5} L7.5 ${len - 4.5}`,
-    up: `M0.5 4.5 L4 0.5 L7.5 4.5`,
-  }[dir];
-
-  return (
-    <svg
-      className={styles.arrow}
-      style={{
-        left: u(horizontal ? x : x - 4),
-        top: u(horizontal ? y - 4 : y),
-        width: u(w),
-        height: u(h),
-      }}
-      viewBox={`0 0 ${w} ${h}`}
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d={plain ? line : `${line} ${head}`}
-        stroke="currentColor"
-        strokeWidth={1}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }

@@ -28,6 +28,21 @@
   border-radius: var(--r-lg);
 }
 
+/* A desktop product screen: the panel's whole width, at the ratio a dashboard
+   is actually shaped. The padding comes down with it — 64px of plate either
+   side of a full-width screen is a frame competing with its own contents,
+   which is fine around a 236px handset and wrong around a 704px screen. */
+.panel[data-shape="screen"] {
+  padding: 32px;
+}
+
+[data-shape="screen"] .screen,
+[data-shape="screen"] .slot {
+  flex: 1 1 auto;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+}
+
 .screen {
   height: auto;
   object-fit: cover;
@@ -49,5 +64,12 @@
   .screen,
   .slot {
     width: 180px;
+  }
+
+  /* Except a screen, which is already the panel's width and has nothing to
+     narrow to. */
+  [data-shape="screen"] .screen,
+  [data-shape="screen"] .slot {
+    width: 100%;
   }
 }

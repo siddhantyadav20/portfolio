@@ -339,12 +339,23 @@ const cards: PaletteEntry[] = [
     group: "evidence",
     label: designSystem.stat,
     hint: designSystem.statDetail,
-    keywords: "design system scale reuse",
+    /* "tokens" used to find this row through its own label, back when the
+       label was "281 Reusable Tokens". The label is now the study's opening
+       claim and says nothing about tokens, so the word moves here along with
+       the rest of the vocabulary somebody types when they mean this study.
+       `tests/palette.test.ts` holds the line that "tokens" still lands here. */
+    keywords:
+      "design system scale reuse tokens variables primitives semantic theming",
     to: { kind: "study", slug: designSystem.studySlug },
     study: designSystem.studySlug,
     preview: {
       title: `${designSystem.eyebrow} ${designSystem.title}`,
-      figure: { value: "281", label: "Reusable tokens", note: designSystem.statDetail },
+      /* Was "281 / Reusable tokens", which counted the licensed foundation's
+         variables rather than anything of Siddhant's. The study's own opening
+         claim instead — and a hardcoded value here rather than a fourth field
+         on the card, because the card states two numbers and the tile has room
+         for one. */
+      figure: { value: "12", label: "Products", note: designSystem.statDetail },
       tint: "violet",
     },
   },

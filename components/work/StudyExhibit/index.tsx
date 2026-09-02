@@ -1,4 +1,5 @@
 import FigureLabel from "@/components/work/FigureLabel";
+import GovernanceLoop from "@/components/work/GovernanceLoop";
 import SplitFlow from "@/components/work/SplitFlow";
 import type { StudyCaption, StudyExhibit as ExhibitName } from "@/content/work";
 import styles from "./StudyExhibit.module.css";
@@ -60,5 +61,17 @@ const PANELS: Record<ExhibitName, React.ReactNode> = {
         </span>
       </div>
     </>
+  ),
+
+  /* The Design System study's governance model. One card and nothing beside
+     it — unlike the split flow above, the diagram is the whole exhibit, so it
+     gets the panel's full width rather than half of it. */
+  "winconnect-governance-loop": (
+    <div className={styles.card}>
+      <p className={styles.cardTitle}>
+        A request becomes a component, or it doesn&rsquo;t
+      </p>
+      <GovernanceLoop />
+    </div>
   ),
 };

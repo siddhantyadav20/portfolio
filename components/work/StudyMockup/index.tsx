@@ -5,6 +5,9 @@ import styles from "./StudyMockup.module.css";
 
 type Props = {
   image: StudyMedia | null;
+  /** Which slot to reserve — see the note on the `mockup` item in
+   *  `content/work/types.ts`. Defaults to the phone Figma drew. */
+  shape?: "phone" | "screen";
   caption: StudyCaption;
 };
 
@@ -15,11 +18,21 @@ type Props = {
  * launch section shows what shipped, and there is no diagram to argue with.
  * `image` is `null` until the screen is exported, and the slot is then marked
  * rather than filled — Figma draws it empty too.
+ *
+ * `shape` widened this past the one frame in the file. The phone is what
+ * Figma drew and stays the default; a desktop product screen asks for
+ * `"screen"` and gets the panel's full width instead of a 236px column, which
+ * is the difference between showing a CRM and showing a picture of a CRM
+ * squeezed into a handset.
  */
-export default function StudyMockup({ image, caption }: Props) {
+export default function StudyMockup({
+  image,
+  shape = "phone",
+  caption,
+}: Props) {
   return (
     <figure className={styles.block}>
-      <div className={`${styles.panel} squircle`}>
+      <div className={`${styles.panel} squircle`} data-shape={shape}>
         {image ? (
           <Image
             src={image.src}
@@ -28,7 +41,9 @@ export default function StudyMockup({ image, caption }: Props) {
             height={image.height}
             className={styles.screen}
             loading="lazy"
-            sizes="236px"
+            sizes={
+              shape === "screen" ? "(width < 700px) 100vw, 832px" : "236px"
+            }
           />
         ) : (
           <div className={styles.slot} data-placeholder="">

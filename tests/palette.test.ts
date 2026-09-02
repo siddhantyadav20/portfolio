@@ -100,10 +100,33 @@ describe("the index is derived, not authored", () => {
 
 describe("searchPalette", () => {
   it("answers a number question with the number", () => {
-    // The behaviour the whole feature is for: "tokens" is not a request to
-    // navigate to a page called Tokens, it is a question with an answer.
-    const [top] = searchPalette("tokens");
-    expect(top.entry.label).toBe(designSystem.stat);
+    // The behaviour the whole feature is for: "products" is not a request to
+    // navigate to a page called Products, it is a question with an answer, and
+    // the answer is a row whose own label states the number.
+    //
+    // The query used to be "tokens", answered by "281 Reusable Tokens". That
+    // number counted a licensed foundation's variables rather than any of
+    // Siddhant's work and has been removed from the site, so this points at
+    // the number that replaced it.
+    //
+    // It asserts the shape rather than one row's id, because two rows now
+    // state this number honestly — the card's headline and the study's Scope
+    // — and which of them wins is a ranking detail, not the behaviour. That
+    // labels are read from content and never restated is held by its own test
+    // above.
+    const [top] = searchPalette("products");
+    expect(top.entry.study).toBe("design-system");
+    expect(top.entry.label).toMatch(/12 products/i);
+  });
+
+  it("still lands a concept query in the study that owns it", () => {
+    // The other half of what the old "tokens" case covered, and the half that
+    // survives the copy change: the word no longer appears in any label, so
+    // every hit is a keywords match — and it still has to arrive in the right
+    // study rather than scattering across three.
+    const hits = searchPalette("tokens");
+    expect(hits.length).toBeGreaterThan(0);
+    expect(hits[0].entry.study).toBe("design-system");
   });
 
   it("puts a visible-label match above a keywords-only match", () => {
@@ -204,7 +227,10 @@ describe("context", () => {
   it("ranks the study you are standing in above the one you are not", () => {
     // "design" matches things in every study. Reading the Design System study
     // and searching it should not offer you somebody else's section first.
-    const [cold] = searchPalette("a contract");
+    // The query used to be "a contract", after a section of that name; the
+    // study was rewritten and the section went with it. Any phrase unique to
+    // one study proves the same thing.
+    const [cold] = searchPalette("permission model");
     expect(cold.entry.study).toBe("design-system");
 
     const inspection = searchPalette("problem", { study: "inspection-photos" });

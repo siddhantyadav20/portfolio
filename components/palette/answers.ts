@@ -87,8 +87,8 @@ function shipped(): Answer {
  * The honest answer is "both", and the site can only argue it by pointing at
  * things rather than asserting it — which is lucky, because pointing at things
  * is what this whole file does. The design system is the strongest single
- * exhibit: 281 tokens across 12 products is a number that only exists if
- * somebody sat in the seam between the two.
+ * exhibit: one designer holding twelve products to one library for three years
+ * is a thing that only happens if somebody sat in the seam between the two.
  */
 function build(): Answer {
   return {

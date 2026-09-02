@@ -1,0 +1,8 @@
+/* `overflow: visible` because the head's round caps and the 1px stroke both
+   sit a fraction outside the 8-unit viewBox, and a clipped arrowhead reads as
+   a rendering bug rather than as a tight crop. */
+
+.arrow {
+  position: absolute;
+  overflow: visible;
+}

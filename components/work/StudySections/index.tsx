@@ -271,7 +271,13 @@ function Item({ item }: { item: AsideItem }) {
       return <StudyCarousel slides={item.slides} caption={item.caption} />;
 
     case "mockup":
-      return <StudyMockup image={item.image} caption={item.caption} />;
+      return (
+        <StudyMockup
+          image={item.image}
+          shape={item.shape}
+          caption={item.caption}
+        />
+      );
 
     case "quotes":
       return <StudyQuotes groups={item.groups} />;

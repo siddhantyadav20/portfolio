@@ -1,0 +1,88 @@
+/* The same scaling trick `SplitFlow` uses, and for the same reason.
+
+   `--u` is `100cqw / 760`, so one unit is one 760th of the available width and
+   the whole drawing — boxes, type, arrowheads, chips — scales as a single
+   piece. A percentage layout would have scaled the boxes and left 14px text
+   sitting inside them.
+
+   At the site's one breakpoint it stops: the unit locks to 1px and the panel
+   scrolls sideways instead. Past a point a proportional diagram is not a
+   smaller diagram, it is an unreadable one. */
+
+.scroll {
+  container-type: inline-size;
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.flow {
+  --u: calc(100cqw / var(--w));
+
+  position: relative;
+  width: calc(var(--w) * var(--u));
+  height: calc(var(--h) * var(--u));
+  /* The arrows draw in `currentColor`, so the whole diagram's line weight is
+     one declaration and it follows the theme instead of carrying a baked ink. */
+  color: var(--ink-50);
+}
+
+@media (width < 700px) {
+  .flow {
+    --u: 1px;
+  }
+}
+
+/* --- Boxes ---------------------------------------------------------------
+   A near-transparent white on the panel's own ground with a 20% hairline: the
+   fill is doing almost nothing and the border is the shape. Matched to
+   `SplitFlow` deliberately — two diagrams in one portfolio that draw a box two
+   different ways read as two authors. */
+
+.box {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  padding: calc(16 * var(--u));
+  border: 1px solid var(--ink-20);
+  border-radius: calc(8 * var(--u));
+  background-color: rgb(255 255 255 / 0.1);
+}
+
+/* The two ends of the loop — the test that decides what gets in, and the audit
+   that decides what stays. Everything else in the diagram is a step; these two
+   are the judgements, and they are the reason the study claims a system rather
+   than a library. The accent is the study's own, so this follows a rose study
+   as readily as a blue one. */
+.box[data-accent-box] {
+  border-color: var(--accent);
+  background-color: var(--accent-wash);
+}
+
+.boxText {
+  font-size: calc(14 * var(--u));
+  line-height: var(--lh-read);
+  color: var(--ink-80);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.boxLine {
+  display: block;
+}
+
+/* --- The chips -----------------------------------------------------------
+   YES, NO and PROMOTE, sitting on the rules they label. Opaque, because that
+   is what makes them read as a break in the line rather than as text floating
+   over it. */
+
+.chip {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  background-color: var(--surface-raised);
+  font-size: calc(13 * var(--u));
+  font-weight: 500;
+  line-height: var(--lh-read);
+  color: var(--ink-50);
+}

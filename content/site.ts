@@ -136,8 +136,14 @@ export const designSystem = {
   eyebrow: "Scaling a",
   title: "Design System",
   subtitle: "across 12 products",
-  stat: "281 Reusable Tokens",
-  statDetail: "Used across 12 products",
+  /* The card's headline number, and it is deliberately not a token count.
+     "281 Reusable Tokens" counted the licensed foundation's variables rather
+     than anything of mine, and the number appeared nowhere in the study it
+     links to. These two are the study's own opening claim — twelve products,
+     one designer, three years — trimmed to what the 163-unit chip can hold on
+     one `nowrap` line each. */
+  stat: "1 Designer, 12 Products",
+  statDetail: "One library, since 2023",
   href: "/work/design-system",
   studySlug: "design-system",
 } as const;

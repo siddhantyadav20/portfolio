@@ -68,11 +68,17 @@ export type StudyLive =
  *
  * Same indirection as `StudyLive` and for the same reason, but a different
  * job: a specimen is something the reader operates, an exhibit is something
- * they read. The existing-workflow flowchart is a diagram of a *problem*, so
- * it is built from DOM rather than shipped as a flat export — it has to theme,
- * and its text has to be selectable and readable by a screen reader.
+ * they read. Both of these are built from DOM rather than shipped as flat
+ * exports — they have to theme, and their text has to be selectable and
+ * readable by a screen reader.
+ *
+ * The existing-workflow flowchart is a diagram of a *problem*. The governance
+ * loop is a diagram of a *mechanism* — the one claim in the Design System
+ * study that prose could only assert.
  */
-export type StudyExhibit = "inspection-split-flow";
+export type StudyExhibit =
+  | "inspection-split-flow"
+  | "winconnect-governance-loop";
 
 /**
  * The label under a figure — Figma 529:11967, and five more like it.
@@ -212,10 +218,18 @@ export type AsideItem =
       readonly caption: StudyCaption;
     }
 
-  /** A device screen alone in a framed panel — Figma 757:12844. */
+  /** A device screen alone in a framed panel — Figma 757:12844.
+   *
+   *  `shape` is which slot the panel reserves. Figma draws one shape — a
+   *  236x502 phone — because the study it was drawn for launched on a phone,
+   *  and that stays the default so nothing about the Inspection study moves.
+   *  A desktop product screen in a portrait phone frame is not a smaller
+   *  version of the right figure, it is the wrong one, so the Design System
+   *  study asks for `"screen"`: the panel's full width at 16/10. */
   | {
       readonly kind: "mockup";
       readonly image: StudyMedia | null;
+      readonly shape?: "phone" | "screen";
       readonly caption: StudyCaption;
     }
 

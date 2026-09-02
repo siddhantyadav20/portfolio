@@ -98,11 +98,6 @@
   line-height: var(--lh-read);
 }
 
-.arrow {
-  position: absolute;
-  overflow: visible;
-}
-
 /* A wrapper rather than the image itself, because `next/image` with `fill`
    needs a positioned box to fill and the box is what carries the `--u`
    geometry. Figma mirrors this instance; the same file is used unflipped in
