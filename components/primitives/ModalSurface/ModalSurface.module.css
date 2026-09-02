@@ -15,6 +15,28 @@
   overflow-y: auto;
   overscroll-behavior: contain;
 
+  /* The bar down the right edge, in the surface's own hue rather than the
+     browser's grey — a study's blue or rose, the homepage's orange in the
+     About reader. It reads `--accent` off this same element, which is where
+     `data-accent` is written, so a reader cannot end up scrolling in a colour
+     it isn't drawn in.
+
+     60% rather than the accent flat: the thumb is the tallest continuous run
+     of colour on the plate, and at full strength it competes with the things
+     the accent is actually for — a section marker, an outcome's number, the
+     progress bar directly above it. Transparent track, so what shows behind
+     the thumb is the page's own wash.
+
+     The standard properties only, which is what the Terminal and the Book's
+     spread already use here. Safari supports neither and styles scrollbars
+     through `::-webkit-scrollbar`, but any rule of that family switches it
+     from macOS's overlay scrollbar to a classic one that takes 15px of layout
+     width — so the modal would sit 15px narrower than the page it morphed out
+     of, on the one surface where the two are on screen together. Safari keeps
+     its native bar. */
+  scrollbar-width: thin;
+  scrollbar-color: rgb(from var(--accent) r g b / 0.6) transparent;
+
   background-color: var(--page-base);
   background-image: linear-gradient(
     var(--page-wash-angle),
