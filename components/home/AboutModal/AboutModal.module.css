@@ -490,7 +490,16 @@
 }
 
 /* The label. Sits at the bottom of the frame on a plate, so it is legible over
-   whichever part of the photograph is behind it. */
+   whichever part of the photograph is behind it.
+
+   Visible at rest, on every pointer. It used to fade in on hover, which left
+   the photograph on a desktop looking like a photograph: nothing about it said
+   it was a control, and the only way to find out was to happen to put the
+   pointer on it. A touch screen has never had that problem — it has no hover
+   to hide behind, so the label has always simply been there — and this is that
+   behaviour on the other pointers rather than a new idea. The affordance is
+   the whole reason the label exists; hiding it until you have already found
+   the thing it labels is the one moment it cannot do its job. */
 .hint {
   position: absolute;
   left: 50%;
@@ -505,8 +514,6 @@
   line-height: 1;
   white-space: nowrap;
   color: var(--ink);
-  opacity: 0;
-  transition: opacity 240ms ease;
 }
 
 :global(html[data-theme="dark"]) .hint {
@@ -517,7 +524,11 @@
    Hover on a fine pointer, and the pressed state everywhere. The hover rule is
    behind `(hover: hover)` so a touch screen does not inherit a sticky hover
    from the tap that opened it — which is the classic way this interaction goes
-   wrong on a phone. */
+   wrong on a phone.
+
+   Only the photograph and the chart are in here. The label is not one of the
+   two ways in — it is what tells you there is a way in — so it sits outside
+   both states and outside this query. */
 
 @media (hover: hover) and (pointer: fine) {
   .portrait:hover .portraitImg {
@@ -529,11 +540,6 @@
   .portrait:hover .chart {
     opacity: 1;
     transform: none;
-  }
-
-  .portrait:hover .hint,
-  .portrait:focus-visible .hint {
-    opacity: 1;
   }
 }
 
@@ -548,18 +554,6 @@
 .portrait[data-open] .chart {
   opacity: 1;
   transform: none;
-}
-
-.portrait[data-open] .hint {
-  opacity: 1;
-}
-
-/* On a touch screen the label is the only affordance there is, so it does not
-   wait to be hovered. */
-@media (hover: none) {
-  .hint {
-    opacity: 1;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
