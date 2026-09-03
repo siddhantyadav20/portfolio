@@ -19,7 +19,7 @@ import { recents, remember } from "../recents";
 import { AnswerPanel } from "./Answer";
 import { Peek } from "./Peek";
 import { Results, rowId } from "./Results";
-import { run } from "../run";
+import { hrefFor, run, verbFor } from "../run";
 import styles from "./CommandPalette.module.css";
 
 /* ===========================================================================
@@ -158,6 +158,19 @@ export default function CommandPalette({
   if (prevQuery !== query) {
     setPrevQuery(query);
     setActive(0);
+    /* Typing is a way out of an answer panel.
+
+       The field stays focused and editable behind an answer — it has to, since
+       Escape backs out one layer and the whole point is that you have not lost
+       your place — so every keystroke was landing in a box whose results were
+       not on screen. You could type six characters, watch the counter climb
+       and see nothing change. Anyone who has used a palette expects typing to
+       search; this makes the expectation true rather than teaching people that
+       the field is sometimes dead.
+
+       Only on a *change*, so backing out of an answer with Escape leaves the
+       query where it was instead of being read as a keystroke. */
+    if (view.kind !== "search") setView({ kind: "search" });
   }
 
   const [wasOpen, setWasOpen] = useState(open);
@@ -234,8 +247,29 @@ export default function CommandPalette({
   }, [active]);
 
   const go = useCallback(
-    async (entry: PaletteEntry) => {
+    async (entry: PaletteEntry, newTab = false) => {
       remember(entry);
+
+      /* ⌘↵ and ⌘-click, on the rows that have a URL behind them.
+
+         The palette is the fastest way to reach any page on this site, which
+         makes it the place somebody lines up three studies to read — and
+         "open, read, come back, open the palette again, retype" is the loop it
+         was supposed to end. `hrefFor` answers `null` for a camera move, a
+         clipboard write and a panel composed in this box, and those fall
+         through to their ordinary behaviour rather than doing nothing: a
+         modifier that silently swallows the keypress is worse than one that is
+         quietly ignored.
+
+         The panel stays open, because that is the whole point of a background
+         tab — you are queueing, not leaving. */
+      if (newTab) {
+        const href = hrefFor(entry.to);
+        if (href) {
+          window.open(href, "_blank", "noopener,noreferrer");
+          return;
+        }
+      }
 
       if (entry.to.kind === "answer") {
         if (entry.to.answer === "tour") {
@@ -273,13 +307,15 @@ export default function CommandPalette({
     } else if (e.key === "Enter") {
       e.preventDefault();
       const hit = ordered[active];
-      if (hit) void go(hit.entry);
+      if (hit) void go(hit.entry, e.metaKey || e.ctrlKey);
     }
   }
 
   if (!open || typeof document === "undefined") return null;
 
-  const activeId = ordered[active] ? rowId(ordered[active].entry) : undefined;
+  const activeEntry = ordered[active]?.entry;
+  const activeId = activeEntry ? rowId(activeEntry) : undefined;
+  const activeHref = activeEntry ? hrefFor(activeEntry.to) : null;
 
   return createPortal(
     <div
@@ -312,6 +348,19 @@ export default function CommandPalette({
             autoComplete="off"
             spellCheck={false}
           />
+          {/* How much is under the fold.
+
+              A list you can only see six rows of gives no sense of whether a
+              query landed on one answer or forty, and "keep pressing Down
+              until something changes" is the behaviour that produces. Only
+              while something is typed: the empty state is a curated eight, and
+              counting a menu is faintly absurd. */}
+          {view.kind === "search" && query && ordered.length > 0 && (
+            <span className={styles.count} aria-hidden="true">
+              {ordered.length}
+            </span>
+          )}
+
           {/* A real button, not a hint.
 
               It read `esc` and did nothing, which is correct on a desktop and
@@ -351,7 +400,7 @@ export default function CommandPalette({
               onPick={go}
               onSuggest={setQuery}
             />
-            <Peek preview={ordered[active]?.entry.preview} />
+            <Peek entry={ordered[active]?.entry} />
           </div>
         )}
 
@@ -362,10 +411,51 @@ export default function CommandPalette({
           <span aria-live="polite" className={styles.toast}>
             {toast}
           </span>
+          {/* The verb, read off the highlighted row — see `verbFor`.
+
+              `⌘↵` is offered only where there is a URL behind the row, because
+              a shortcut advertised on a row that cannot honour it is worse
+              than no shortcut: it gets tried once, appears broken, and is
+              never tried again. */}
+          {/* The keys that actually work *here*.
+
+              An answer panel takes no arrows — `onKeyDown` returns early on
+              anything but the search view — and it was still advertising them,
+              alongside a verb for a highlighted row that is not on screen. A
+              footer describing the previous view is worse than an empty one:
+              it is the panel telling you about keys it will ignore. Escape is
+              what an answer honours, and `onEscape` backs out one layer rather
+              than closing, so that is what it says. */}
+          {view.kind === "answer" ? (
+            <span className={styles.hints}>
+              <kbd>esc</kbd> back
+            </span>
+          ) : (
           <span className={styles.hints}>
-            <kbd>↑↓</kbd> move <kbd>↵</kbd> open{" "}
-            <kbd>{commandKeyLabel()}K</kbd> toggle
+            <kbd>↑↓</kbd> move
+            {activeEntry && (
+              <>
+                {/* Hidden wherever the peek column is drawn, because the peek's
+                    own floor already says it — and said forty pixels apart, on
+                    two bars stacked against the same corner, it read as the
+                    panel repeating itself rather than as two hints. The peek
+                    keeps the verb because it is next to the thing the verb
+                    acts on; the footer keeps the mechanics. Below the peek's
+                    breakpoint there is no other place for it, so it comes
+                    back — see the stylesheet. */}
+                <span className={styles.hintVerb}>
+                  <kbd>↵</kbd> {verbFor(activeEntry.to)}
+                </span>
+                {activeHref && (
+                  <>
+                    <kbd>{commandKeyLabel()}↵</kbd> new tab
+                  </>
+                )}
+              </>
+            )}
+            <kbd>{commandKeyLabel()}K</kbd> close
           </span>
+          )}
         </div>
       </div>
     </div>,

@@ -233,3 +233,79 @@ async function runAction(action: string): Promise<RunResult> {
       return { keepOpen: true };
   }
 }
+
+/* ===========================================================================
+   What Enter is about to do.
+
+   The footer used to read "↑↓ move  ↵ open  ⌘K toggle" no matter which row was
+   lit, and "open" is a lie on four of the eight destination kinds — Enter on
+   "Copy email" copies, Enter on the canvas flies, Enter on a question composes
+   a panel without leaving the box. A hint that is wrong half the time trains
+   people to stop reading it.
+
+   So the verb is read off the highlighted row. It lives here rather than in
+   the panel because this is the file that knows what each destination does;
+   `run` above and `verbFor` below have to be changed in the same edit or the
+   label drifts from the behaviour, and being adjacent is what makes that
+   obvious.
+   =========================================================================== */
+
+export function verbFor(to: PaletteDestination): string {
+  switch (to.kind) {
+    case "study":
+      // A section is a different promise from a study: one opens the reader at
+      // the top, the other lands you on a specific heading inside it.
+      return to.section ? "Jump to section" : "Open study";
+    case "route":
+      return "Open page";
+    case "external":
+      return "Open in new tab";
+    case "card":
+      return "Show on the page";
+    case "canvas":
+      return "Fly there";
+    case "answer":
+      return "Show me";
+    case "action":
+      switch (to.action) {
+        case "copy-email":
+          return "Copy email";
+        case "copy-link":
+          return "Copy this link";
+        case "theme":
+          return "Switch theme";
+        case "resume":
+          return "Open résumé";
+        case "linkedin":
+          return "Open LinkedIn";
+      }
+  }
+}
+
+/**
+ * The URL behind a row, where there is one.
+ *
+ * Only the three destinations that are genuinely a page: ⌘↵ and ⌘-click are
+ * "open this somewhere else", and there is no somewhere else for a camera
+ * move, a clipboard write or a panel composed inside this one. Those keep
+ * their ordinary behaviour under the modifier rather than doing nothing, which
+ * is the failure mode of a palette that checks for a modifier and forgets the
+ * rows that cannot honour it.
+ *
+ * A study answers with its real prerendered route even when the homepage would
+ * have opened it as a modal — a new tab has no card to morph out of.
+ */
+export function hrefFor(to: PaletteDestination): string | null {
+  switch (to.kind) {
+    case "study": {
+      const href = studyHref(to.slug);
+      return to.section ? `${href}#${to.section}` : href;
+    }
+    case "route":
+      return to.href;
+    case "external":
+      return to.href;
+    default:
+      return null;
+  }
+}

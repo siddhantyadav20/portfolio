@@ -2,7 +2,13 @@
 
    Sizing note: the panel is a fixed-height column, not a box that grows with
    its results. A panel that resizes on every keystroke makes the row under
-   your cursor move while you are reaching for it. */
+   your cursor move while you are reaching for it.
+
+   That was the intent from the start and it was written as `max-height`, which
+   is the opposite of it — a flex column under a maximum is still a box that
+   grows with its content. Type "design" for forty-four results and then "email"
+   for one and the sheet collapsed by 260px mid-keystroke. `height` is the rule
+   the paragraph above was describing. */
 
 .backdrop {
   position: fixed;
@@ -24,8 +30,8 @@
   display: grid;
   place-items: start center;
   padding: clamp(16px, 12vh, 140px) 20px 20px;
-  background-color: color-mix(in srgb, var(--ink) 38%, transparent);
-  backdrop-filter: blur(5px);
+  background-color: color-mix(in srgb, var(--ink) 44%, transparent);
+  backdrop-filter: blur(6px);
   animation: fade 160ms ease;
 }
 
@@ -41,18 +47,36 @@
   /* Wide enough for a list and a picture side by side. It was 620 when it was
      only a list; the peek column is what earns the rest. */
   width: min(900px, 100%);
-  max-height: min(560px, 76vh);
+  height: min(560px, 76vh);
   border-radius: var(--r-xl);
+  /* A hairline as well as a shadow.
+
+     The panel is white on a scrim over a page that is very nearly white, and a
+     shadow alone left the top corners dissolving into the blur — the sheet had
+     no edge, which is most of what made it read as unfinished. One pixel of
+     ink at 8% is the whole fix. */
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
   background-color: var(--surface-raised);
-  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.3);
+  /* Three casts rather than one. A single 90px blur is a grey cloud; contact,
+     form and ambient is what a sheet lifted off a page actually drops. */
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 14px 30px -10px rgb(0 0 0 / 0.14),
+    0 48px 96px -28px rgb(0 0 0 / 0.36);
   overflow: hidden;
 
   opacity: 0;
-  transform: translateY(10px) scale(0.99);
-  /* The house curve. Same one every view transition and the modal plate use. */
+  transform: translateY(12px) scale(0.985);
+  /* The transform runs on `--spring` — the damped spring sampled in globals.css
+     that the canvas camera and the timeline dial already use. It overshoots
+     about four percent and settles, which is the difference between a panel
+     that is *placed* on the page and one that arrives with mass. Opacity stays
+     on a plain ease: a spring on opacity overshoots past 1, which clamps, so
+     the fade would finish early and the sheet would appear to stop moving
+     while it was still moving. */
   transition:
-    opacity 200ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 180ms ease,
+    transform 420ms var(--spring);
 }
 
 .panel[data-enter] {
@@ -67,7 +91,7 @@
   align-items: center;
   gap: 12px;
   flex: 0 0 auto;
-  padding: 18px 20px;
+  padding: 17px 18px 17px 20px;
   border-bottom: 1px solid var(--ink-20);
 }
 
@@ -108,6 +132,19 @@
   outline: none;
 }
 
+/* How many rows are under the fold. Tabular figures so the chip does not
+   change width between 8 and 11 while you are typing past it. */
+.count {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  background-color: color-mix(in srgb, var(--ink) 6%, transparent);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-50);
+}
+
 .esc {
   flex: 0 0 auto;
   display: grid;
@@ -122,6 +159,9 @@
   font-size: 11px;
   color: var(--ink-40);
   cursor: pointer;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease;
 }
 
 .esc:hover {
@@ -163,38 +203,203 @@
   min-height: 0;
 }
 
-/* Beside a peek column, a row stacks its label over its hint instead of
-   setting them side by side.
-
-   Side-by-side is right when the list is the whole panel and there is room for
-   both. In 400px it was not: "SaaS · PropTech · Product Design · 2026 · 10 min
-   read" became "SaaS · PropTech · Produ…", and every label wrapped to two
-   lines to make room for a hint that had been cut to nothing. Stacked, the
-   label gets the full width and the hint is legible under it. */
-.body .row {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
-}
-
-.body .hint {
-  max-width: 100%;
-  text-align: left;
-}
-
 .results {
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 8px;
+  /* No top padding, deliberately: the group headings are sticky, and a sticky
+     element parks at the top of the *padding* box — eight pixels of padding
+     would leave an eight-pixel sliver above every parked heading with rows
+     sliding through it. The first heading carries the top space itself. */
+  padding: 0 8px 8px;
   border-right: 1px solid var(--ink-20);
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-20) transparent;
+}
+
+/* --- A row ---------------------------------------------------------------- */
+
+/* Three tracks: the mark, the words, the key.
+
+   It was two lines of text and nothing else, and a list of a dozen sentences
+   with no shape in front of them is *read* rather than scanned — you find the
+   third case study by parsing three labels. With a glyph the eye finds it by
+   shape, which is why every palette worth copying has one. See `Glyph.tsx` for
+   why these are drawn rather than loaded. */
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 11px;
+  cursor: pointer;
+  scroll-margin: 10px;
+}
+
+/* The rail, growing out of the middle of the row it marks.
+
+   A flat wash alone said "the pointer is somewhere near here". This row is not
+   hovered, it is *armed* — it is the one Enter runs — and that deserves a mark
+   that arrives rather than one that is simply present. Height rather than
+   opacity or scale, so it grows from its own centre and reads as extending.
+
+   Drawn as a positioned pseudo-element and not an inset box-shadow: an inset
+   shadow is clipped by the row's 11px radius, so a 2px rail comes out as a
+   crescent that is thin at both ends. */
+.row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 2.5px;
+  height: 0;
+  border-radius: 2px;
+  background-color: var(--accent);
+  transform: translateY(-50%);
+  transition: height 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Driven by `data-active` rather than `:hover`, so the pointer and the arrow
+   keys cannot disagree about which row is the one Enter will run. Moving the
+   mouse sets `active`; that is the only thing hover does. */
+.row[data-active="true"] {
+  background-color: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.row[data-active="true"]::before {
+  height: 20px;
+}
+
+/* The mark, in a ground rather than loose.
+
+   A 16px stroke floating beside a 14px label is a speck. Centred in a 26px
+   tile it is an anchor — and the tile gives the active state somewhere to put
+   the accent that is not the text, which would have made the label shout. */
+.rowIcon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  color: var(--ink-40);
+  background-color: color-mix(in srgb, var(--ink) 5%, transparent);
+  transition:
+    color 140ms ease,
+    background-color 140ms ease;
+}
+
+.row[data-active="true"] .rowIcon {
+  color: var(--accent);
+  background-color: var(--accent-wash);
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+/* Beside a peek column the label takes one line and stops.
+
+   Stacked over its hint the label already has the full width, and the two rows
+   either side of a wrapped one are pushed apart — a list whose rows are 34px,
+   54px and 34px reads as ragged rather than as a list. Truncating is only
+   honest because the column to the right is showing the whole thing: the
+   narrow layout below, which has no peek, gets its second line back. */
+.label {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--ink-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hint {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--ink-40);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Drawn on every row, revealed on the active one — see the note in Results.
+   Mounting it per-row would resize the text column under the cursor. */
+.rowEnter {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 6px;
+  border: 1px solid var(--ink-20);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--ink-50);
+  opacity: 0;
+  transform: translateX(-3px);
+  transition:
+    opacity 140ms ease,
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.row[data-active="true"] .rowEnter {
+  opacity: 1;
+  transform: none;
+}
+
+/* The opening cascade. Applied only before anything is typed — Results.tsx
+   carries the reasoning, and the `backwards` fill is what makes the delay
+   hold the from-state instead of flashing the row at full opacity first. */
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+}
+
+.row[data-cascade] {
+  animation: rowIn 280ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Sticky, and it has to paint over what slides under it — hence the solid
+   ground and the negative side margins, which stretch that ground across the
+   list's own 8px gutters. Without them the rows scroll visibly through two
+   thin channels either side of the heading. */
+.groupLabel {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0 -8px;
+  padding: 14px 20px 6px;
+  background-color: var(--surface-raised);
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.mark {
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* --- Peek ----------------------------------------------------------------- */
 
+/* Two rows: whatever there is to show, then a floor.
+
+   The scroll lives on the inner block rather than here, so the bar stays put
+   against the bottom edge instead of scrolling away with a long preview. */
 .peek {
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 20px;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
   animation: peekIn 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -211,6 +416,117 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  /* Centred, and `safe` is the load-bearing word.
+
+     Previews are wildly different heights — a hero, a paragraph and five facts
+     against a title and one line — and top-aligning all of them left the short
+     ones as a caption stranded at the top of 330px of white, which was the
+     largest single piece of blank surface on the panel. Centred, a short
+     preview is a composition and a full one is unaffected, because it fills
+     the column anyway.
+
+     `safe` because plain `center` on an overflowing flex column pushes the
+     first child above the scroll origin, where it cannot be scrolled back to:
+     the study previews that do overflow would lose their hero image entirely.
+     `safe` falls back to start alignment exactly in that case. */
+  justify-content: safe center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-20) transparent;
+}
+
+/* A row with no picture — an action, a camera move.
+
+   Not a placeholder card: it is the row's own mark at size, which is the one
+   thing about "Copy email" that can be drawn. Before this the column was
+   simply blank beside those rows, and a blank half-panel is indistinguishable
+   from a broken one. */
+.peekBare {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+}
+
+.peekBareIcon {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--r-sm);
+  background-color: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink-40);
+}
+
+.peekBareIcon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.peekBareLabel {
+  max-width: 26ch;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink-strong);
+}
+
+.peekBareHint {
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  color: var(--ink-50);
+}
+
+/* The floor. What Enter does, said once, where the eye lands after reading. */
+.peekBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  border-top: 1px solid var(--ink-20);
+}
+
+.peekBarIcon {
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+.peekBarIcon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.peekBarVerb {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-70);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.peekBarKey {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 6px;
+  border: 1px solid var(--ink-20);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--ink-50);
 }
 
 .peekImage {
@@ -340,65 +656,6 @@
   color: var(--ink-60);
 }
 
-.groupLabel {
-  padding: 12px 12px 6px;
-  font-family: var(--font-ui);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-40);
-}
-
-.row {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  padding: 9px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  scroll-margin: 8px;
-}
-
-/* Driven by `data-active` rather than `:hover`, so the pointer and the arrow
-   keys cannot disagree about which row is the one Enter will run. Moving the
-   mouse sets `active`; that is the only thing hover does. */
-.row[data-active="true"] {
-  background-color: color-mix(in srgb, var(--ink) 7%, transparent);
-}
-
-.label {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-family: var(--font-ui);
-  font-size: 14px;
-  color: var(--ink-strong);
-  /* Two lines, then stop. Some labels are whole sentences — a study's insight
-     heading is one — and a row that grows to four lines stops being a row. */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.hint {
-  flex: 0 1 auto;
-  max-width: 42%;
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--ink-40);
-  text-align: right;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.mark {
-  background: none;
-  color: var(--accent);
-  font-weight: 600;
-}
-
 /* --- Nothing found -------------------------------------------------------- */
 
 .empty {
@@ -519,7 +776,7 @@
   justify-content: space-between;
   gap: 16px;
   flex: 0 0 auto;
-  padding: 10px 18px;
+  padding: 9px 18px;
   border-top: 1px solid var(--ink-20);
 }
 
@@ -534,13 +791,49 @@
   color: var(--ink-60);
 }
 
+/* The verb changes with the highlighted row, so the line changes width as you
+   arrow. Flex with a small gap keeps the keys and their words together while
+   it does; `justify-content: flex-end` pins the whole line to the right edge
+   so it grows leftward instead of shoving the toast around. */
+.hints {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  white-space: nowrap;
+}
+
 .hints kbd {
-  padding: 2px 5px;
-  margin: 0 2px;
+  display: inline-grid;
+  place-items: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  margin-left: 6px;
   border: 1px solid var(--ink-20);
   border-radius: 5px;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 10.5px;
+  line-height: 1;
+  color: var(--ink-50);
+}
+
+.hints kbd:first-child {
+  margin-left: 0;
+}
+
+/* The verb, and only where the peek is not already showing it. See the note in
+   index.tsx. `display: contents` rather than `inline` so the wrapper does not
+   become a flex item of its own — wrapped, the `<kbd>` and its word would sit
+   in one box with no gap between them and the item before it. */
+.hintVerb {
+  display: contents;
+}
+
+@media (min-width: 861px) {
+  .hintVerb {
+    display: none;
+  }
 }
 
 /* --- Narrow --------------------------------------------------------------- */
@@ -570,6 +863,28 @@
   .peek {
     display: none;
   }
+
+  /* The second line comes back. With no peek beside it there is nothing else
+     showing the full label, so truncating here would lose the words rather
+     than repeat them. */
+  .label {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* And the row's tracks stop being centred on it: a two-line label with a
+     26px tile centred against it floats the mark in the middle of the block
+     instead of beside the first line. */
+  .row {
+    align-items: start;
+  }
+
+  .rowIcon,
+  .rowEnter {
+    margin-top: 1px;
+  }
 }
 
 @media (max-width: 600px) {
@@ -580,8 +895,8 @@
 
   .panel {
     width: 100%;
-    max-height: none;
     height: 100dvh;
+    border: none;
     border-radius: 0;
   }
 
@@ -599,6 +914,24 @@
   .panel {
     transition: none;
     opacity: 1;
+    transform: none;
+  }
+
+  /* The rail, the key and the cascade all still *happen* — they are the
+     feedback that says which row is armed — they simply arrive rather than
+     travel. Cutting them entirely would leave a reduced-motion visitor with no
+     signal at all on the one thing this panel has to communicate. */
+  .row[data-cascade] {
+    animation: none;
+  }
+
+  .row::before,
+  .rowIcon,
+  .rowEnter {
+    transition: none;
+  }
+
+  .rowEnter {
     transform: none;
   }
 }
