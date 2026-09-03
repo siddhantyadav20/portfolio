@@ -50,6 +50,7 @@ import {
   store,
   timeline,
 } from "@/content/site";
+import { making } from "@/content/making";
 import { STUDIES, type StudyBlock, heroStill } from "@/content/work";
 import type { PaletteEntry } from "./types";
 
@@ -398,6 +399,25 @@ const cards: PaletteEntry[] = [
     hint: store.eyebrow,
     keywords: `${store.description} side project waitlist extension`,
     to: { kind: "card", card: "store" },
+  },
+  {
+    /* The colophon. Filed under `do` rather than `work`: it is about the page
+       the reader is standing on, not a thing that was shipped for somebody
+       else, and putting it in WORK would list a portfolio's own build
+       alongside three products with users. */
+    id: "card:making",
+    group: "do",
+    label: making.title,
+    hint: making.lede,
+    keywords:
+      "colophon process built how made stack figma claude qwen code agent behind the scenes",
+    to: { kind: "card", card: "making" },
+    preview: {
+      title: making.title,
+      subtitle: making.eyebrow,
+      body: making.lede,
+      facts: making.receipt.map((item) => [item.label, item.value] as const),
+    },
   },
   {
     id: "card:timeline",

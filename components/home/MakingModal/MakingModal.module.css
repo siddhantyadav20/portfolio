@@ -1,0 +1,682 @@
+/* The colophon reader, and the four drawings inside it.
+
+   Everything below the "Scenes" rule is animation held behind one attribute —
+   `[data-play]`, set by an IntersectionObserver in index.tsx. Nothing here
+   runs a frame loop and nothing re-renders: a scene entering the viewport
+   flips an attribute, and the compositor does the rest. */
+
+.reader {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* The shell's control cluster is sticky and reserves the top 120px; the
+     first heading starts under it rather than behind it. */
+  padding: 120px 0 96px;
+}
+
+/* --- The head ------------------------------------------------------------- */
+
+.head {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 32px 88px;
+}
+
+.eyebrow {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.title {
+  margin-top: 14px;
+  font-family: var(--font-display);
+  /* 130% on the display size, matching the case-study reader — see `--lh-read`
+     in globals.css for why what you read is looser than what labels it. */
+  font-size: clamp(34px, 5vw, 52px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink-strong);
+}
+
+.lede {
+  margin-top: 18px;
+  max-width: 46ch;
+  font-family: var(--font-ui);
+  font-size: 17px;
+  line-height: var(--lh-read);
+  color: var(--ink-60);
+}
+
+/* --- A scene -------------------------------------------------------------- */
+
+.scene {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 32px 112px;
+}
+
+.sceneEyebrow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+}
+
+.sceneIndex {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: 0;
+  color: var(--accent);
+}
+
+/* The drawing's ground. One box, one height, four completely different things
+   inside it — so the rhythm down the page is the same even though the scenes
+   are not, and a beat that happens to draw less does not read as a gap. */
+.stage {
+  display: grid;
+  place-items: center;
+  min-height: 300px;
+  margin-top: 22px;
+  padding: 32px;
+  border-radius: var(--r-lg);
+  background-color: color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.sceneLine {
+  margin-top: 22px;
+  max-width: 54ch;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: var(--lh-read);
+  color: var(--ink-70);
+}
+
+/* On its own line rather than trailing the sentence: it is the one thing on
+   this page to click, and a link that ends a paragraph is read as part of the
+   paragraph. */
+.sceneLink {
+  /* `block` with a fitted width, not `inline-block`: a top margin on an inline
+     box does not break the line, so this sat trailing the full stop it was
+     supposed to follow. */
+  display: block;
+  width: fit-content;
+  margin-top: 14px;
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.sceneLink:hover {
+  border-bottom-color: var(--accent);
+}
+
+/* ==========================================================================
+   Scene 1 — the file
+   ========================================================================== */
+
+.tokens {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(420px, 100%);
+}
+
+.tokenRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  opacity: 0;
+}
+
+[data-play] .tokenRow {
+  animation: fadeUp 460ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(var(--i) * 130ms);
+}
+
+.tokenValue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 11px;
+  border-radius: 8px;
+  background-color: var(--surface-raised);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12.5px;
+  color: var(--ink-strong);
+}
+
+.tokenSwatch {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  /* The chip sits on white and two of these are very nearly white themselves
+     in dark mode; the hairline is what keeps them a swatch rather than a hole. */
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+}
+
+/* The rule draws itself left to right, which is the whole gesture of the
+   scene: this measurement, carried across into that declaration. */
+.tokenRule {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    var(--ink-20),
+    var(--ink-20) 50%,
+    transparent 50%
+  );
+  background-size: 6px 1px;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+[data-play] .tokenRule {
+  animation: drawRule 520ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(var(--i) * 130ms + 160ms);
+}
+
+.tokenName {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12.5px;
+  color: var(--accent);
+  /* `--ink` was rendering as an em dash and a word.
+
+     Coding faces ligate `--` on purpose — it is what makes `->` an arrow — and
+     a CSS custom property is the one string where that is actively wrong: the
+     two hyphens ARE the syntax, and a reader who cannot see two hyphens cannot
+     see that this is a custom property at all, which is the whole point of the
+     scene. */
+  font-variant-ligatures: none;
+}
+
+@keyframes drawRule {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ==========================================================================
+   Scene 2 — the loop
+   ========================================================================== */
+
+.term {
+  width: min(460px, 100%);
+  border-radius: var(--r-sm);
+  background-color: var(--surface-raised);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.05),
+    0 12px 28px -12px rgb(0 0 0 / 0.18);
+  overflow: hidden;
+}
+
+.termBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--ink-20);
+}
+
+.termDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--ink-20);
+}
+
+.termTitle {
+  margin-left: 6px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  color: var(--ink-40);
+}
+
+.termBody {
+  padding: 16px 16px 18px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.9;
+}
+
+.termPrompt {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--ink-strong);
+}
+
+.termCaretGlyph {
+  color: var(--accent);
+}
+
+/* Typed by uncovering, not by appending.
+
+   The characters are all in the DOM from the first frame — a screen reader
+   gets the whole line at once — and the box widens over them in `--ch` steps.
+   `ch` is only exact in a monospaced face, which is why this block sets one
+   rather than inheriting `--font-ui`: in a proportional font the caret drifts
+   off the end of the line by the third word. */
+.termTyped {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  width: 0;
+  border-right: 1.5px solid var(--accent);
+}
+
+[data-play] .termTyped {
+  animation:
+    type calc(var(--ch) * 42ms) steps(var(--ch)) 200ms forwards,
+    caret 900ms steps(2, jump-none) infinite;
+}
+
+@keyframes type {
+  to {
+    width: calc(var(--ch) * 1ch);
+  }
+}
+
+@keyframes caret {
+  50% {
+    border-right-color: transparent;
+  }
+}
+
+.termStep,
+.termDone {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  opacity: 0;
+}
+
+/* Each step lands after the prompt has finished typing — 1200ms covers the
+   longest line the content file allows — and then every 260ms. */
+[data-play] .termStep,
+[data-play] .termDone {
+  animation: fadeUp 380ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(1200ms + var(--i) * 260ms);
+}
+
+.termBullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.termTool {
+  color: var(--ink-strong);
+  font-weight: 600;
+}
+
+.termArg {
+  color: var(--ink-50);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.termDone {
+  margin-top: 6px;
+  color: var(--ink-50);
+}
+
+.termTick {
+  color: var(--green);
+}
+
+/* ==========================================================================
+   Scene 3 — the standard
+   ========================================================================== */
+
+.attempts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+  list-style: none;
+  width: 100%;
+}
+
+.attempt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 104px;
+  opacity: 0;
+}
+
+[data-play] .attempt {
+  animation: fadeUp 340ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(var(--i) * 120ms);
+}
+
+.attemptFrame {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--r-sm);
+  background-color: var(--surface-raised);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  /* Everything starts as a candidate. The rejections are what happens next. */
+  transition: opacity 400ms ease;
+}
+
+/* The four that were not kept fade back and take a line through them, in the
+   order they were tried. The delay is measured off the last tile's arrival, so
+   the whole set is on screen before any of it is struck out — a rejection you
+   watch happen to something you have already seen is the point. */
+[data-play] .attempt:not([data-kept]) .attemptFrame {
+  animation: reject 500ms ease forwards;
+  animation-delay: calc(900ms + var(--i) * 220ms);
+}
+
+.attemptStrike {
+  width: 46%;
+  height: 1.5px;
+  border-radius: 1px;
+  background-color: var(--ink-40);
+  transform: rotate(-24deg) scaleX(0);
+  transform-origin: center;
+}
+
+[data-play] .attempt:not([data-kept]) .attemptStrike {
+  animation: strike 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(900ms + var(--i) * 220ms);
+}
+
+@keyframes reject {
+  to {
+    opacity: 0.4;
+  }
+}
+
+@keyframes strike {
+  to {
+    transform: rotate(-24deg) scaleX(1);
+  }
+}
+
+/* The survivor, drawn rather than filled — a short quotation of the real
+   arrival sequence. `pathLength` is not set, so the dash values are in user
+   units and 400 is comfortably longer than any of the three sub-paths; the
+   offset simply has to start beyond it. */
+.attempt[data-kept] .attemptFrame {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 0 0 1.5px var(--accent);
+}
+
+.attemptMark {
+  width: 46%;
+  height: auto;
+}
+
+.attemptMark path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 6;
+  stroke-linejoin: round;
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+}
+
+[data-play] .attempt[data-kept] .attemptMark path {
+  animation: draw 1100ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  /* After the last rejection, and given a beat of its own. The ratio between
+     "four, quickly" and "one, slowly" is the scene. */
+  animation-delay: 1900ms;
+}
+
+/* Then it fills, which is what the boot sequence does at the end of its own
+   trace: the outline closes and the two tones flood in. */
+[data-play] .attempt[data-kept] .attemptMark path {
+  animation:
+    draw 1100ms cubic-bezier(0.4, 0, 0.2, 1) 1900ms forwards,
+    ink 400ms ease 2900ms forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ink {
+  to {
+    fill: var(--accent);
+  }
+}
+
+.attemptLabel {
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--ink-50);
+}
+
+.attempt[data-kept] .attemptLabel {
+  color: var(--ink-strong);
+}
+
+/* ==========================================================================
+   Scene 4 — the receipt
+
+   An odometer with no JavaScript. A registered <integer> can be transitioned,
+   `counter-reset` can read one, and `content: counter(n)` prints it — so the
+   number is animated by the same machinery that animates a colour, one
+   property on one element, with no re-render per frame.
+   ========================================================================== */
+
+@property --n {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.receipt {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 28px 20px;
+  width: 100%;
+}
+
+.receiptItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0;
+}
+
+[data-play] .receiptItem {
+  animation: fadeUp 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(var(--i) * 110ms);
+}
+
+.receiptValue {
+  display: flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-size: 54px;
+  font-weight: 700;
+  line-height: 1;
+  /* Tabular only.
+
+     `lining-nums` was tried here and does nothing: the display face ships no
+     lining set, so the figures stay old-style — the 4 and the 2 drop below the
+     baseline, the 5 sits on it. That is the face behaving correctly rather
+     than a defect, and it is the same face setting every other number on the
+     site, so the row is left in it. The `k` is sized against it by hand
+     instead; see `.receiptSuffix`. */
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-strong);
+}
+
+/* The `k` on "52k", set down.
+
+   In the display face the lowercase ascender is taller than the digits' cap
+   height, so at a matched size the suffix rode visibly above the number it
+   belongs to — "52" and a separate letter rather than one figure. Three
+   quarters brings its ascender to the digits' cap line, which is the
+   conventional treatment and the only reason this rule exists. */
+.receiptSuffix {
+  font-size: 0.72em;
+  margin-left: 0.02em;
+}
+
+.receiptCount {
+  counter-reset: n var(--n);
+}
+
+.receiptCount::after {
+  content: counter(n);
+}
+
+[data-play] .receiptCount {
+  animation: count 1100ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(var(--i) * 110ms + 120ms);
+}
+
+@keyframes count {
+  from {
+    --n: 0;
+  }
+  to {
+    --n: var(--to);
+  }
+}
+
+.receiptLabel {
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--ink-50);
+}
+
+/* --- Shared --------------------------------------------------------------- */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Narrow --------------------------------------------------------------- */
+
+@media (max-width: 700px) {
+  .reader {
+    padding-top: 96px;
+  }
+
+  .head {
+    padding-bottom: 64px;
+  }
+
+  .scene {
+    padding-bottom: 80px;
+  }
+
+  .stage {
+    min-height: 240px;
+    padding: 22px 16px;
+  }
+
+  /* Five tiles do not fit across a phone and a 2/2/1 grid orphans the one that
+     matters. Down here the attempts are a column: the four rejections above
+     the one that shipped, which is the same reading and a better one. */
+  .attempts {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .attempt {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .attemptFrame {
+    width: 46px;
+    flex: 0 0 auto;
+  }
+
+  .attemptLabel {
+    text-align: left;
+    font-size: 13px;
+  }
+}
+
+/* --- Reduced motion -------------------------------------------------------
+
+   Everything is drawn in its finished state. index.tsx sets `data-play` on
+   every scene up front in this mode, so these rules are what that attribute
+   then means: no stagger, no typing, no counting — the four drawings, already
+   done. The information is identical; only the performance is gone. */
+@media (prefers-reduced-motion: reduce) {
+  [data-play] .tokenRow,
+  [data-play] .termStep,
+  [data-play] .termDone,
+  [data-play] .attempt,
+  [data-play] .receiptItem {
+    animation: none;
+    opacity: 1;
+  }
+
+  [data-play] .tokenRule {
+    animation: none;
+    transform: none;
+  }
+
+  [data-play] .termTyped {
+    animation: none;
+    width: auto;
+    border-right-color: transparent;
+  }
+
+  [data-play] .attempt:not([data-kept]) .attemptFrame {
+    animation: none;
+    opacity: 0.4;
+  }
+
+  [data-play] .attempt:not([data-kept]) .attemptStrike {
+    animation: none;
+    transform: rotate(-24deg);
+  }
+
+  [data-play] .attempt[data-kept] .attemptMark path {
+    animation: none;
+    fill: var(--accent);
+    stroke-dashoffset: 0;
+  }
+
+  /* The counter cannot animate, so it has to be printed. `--n` set to the
+     target makes `counter(n)` read the final number without a keyframe. */
+  [data-play] .receiptCount {
+    animation: none;
+    --n: var(--to);
+  }
+}

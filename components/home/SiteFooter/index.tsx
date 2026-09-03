@@ -1,9 +1,17 @@
 import { externalLinkProps } from "@/lib/externalLink";
 import { footer } from "@/content/site";
+import ColophonLink from "./ColophonLink";
 import VisitorCount from "./VisitorCount";
 import styles from "./SiteFooter.module.css";
 
-export default function SiteFooter() {
+/**
+ * `colophon` is passed only by the homepage.
+ *
+ * This footer also draws inside the About reader, where opening a second
+ * full-screen modal would stack two shells — see `ColophonLink`. There it
+ * stays the inert placeholder it has always been.
+ */
+export default function SiteFooter({ colophon = false }: { colophon?: boolean }) {
   return (
     <footer className={styles.footer}>
       <a
@@ -42,15 +50,19 @@ export default function SiteFooter() {
           <span>{footer.credit}</span>
         </p>
 
-        <a
-          className={styles.making}
-          href={footer.makingOf ?? undefined}
-          {...externalLinkProps(footer.makingOf)}
-          data-placeholder={footer.makingOf ? undefined : ""}
-          aria-disabled={footer.makingOf ? undefined : true}
-        >
-          How I made this portfolio?
-        </a>
+        {colophon ? (
+          <ColophonLink />
+        ) : (
+          <a
+            className={styles.making}
+            href={footer.makingOf ?? undefined}
+            {...externalLinkProps(footer.makingOf)}
+            data-placeholder={footer.makingOf ? undefined : ""}
+            aria-disabled={footer.makingOf ? undefined : true}
+          >
+            How I made this portfolio?
+          </a>
+        )}
       </div>
     </footer>
   );

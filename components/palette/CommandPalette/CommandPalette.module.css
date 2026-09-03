@@ -822,18 +822,17 @@
   margin-left: 0;
 }
 
-/* The verb, and only where the peek is not already showing it. See the note in
-   index.tsx. `display: contents` rather than `inline` so the wrapper does not
-   become a flex item of its own — wrapped, the `<kbd>` and its word would sit
-   in one box with no gap between them and the item before it. */
-.hintVerb {
-  display: contents;
-}
+/* The verb, and only where the peek is not already showing it — see the note in
+   index.tsx.
 
-@media (min-width: 861px) {
-  .hintVerb {
-    display: none;
-  }
+   Written as "hidden by default, shown below 860" rather than "shown by
+   default, hidden above 861", which is the same rule and one fewer number:
+   861 would have been a second breakpoint one pixel from an existing one, and
+   `tests/breakpoints.test.ts` is right to refuse it. 860 is already this
+   file's peek breakpoint, so the verb now appears exactly when the peek
+   disappears, by construction rather than by two numbers agreeing. */
+.hintVerb {
+  display: none;
 }
 
 /* --- Narrow --------------------------------------------------------------- */
@@ -862,6 +861,14 @@
 
   .peek {
     display: none;
+  }
+
+  /* And the footer picks the verb back up — see `.hintVerb`. `contents` rather
+     than `inline`, so the wrapper does not become a flex item of its own:
+     wrapped, the `<kbd>` and its word would sit in one box with no gap between
+     them and the item before it. */
+  .hintVerb {
+    display: contents;
   }
 
   /* The second line comes back. With no peek beside it there is nothing else
