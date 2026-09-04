@@ -21,8 +21,11 @@
    hover and immediately asked to resume; browsers refuse that until the page
    has had a real user gesture, and if it is refused the card simply stays
    silent and tries again on the next hover. Reduced-motion callers don't
-   construct it at all.
+   construct it at all, and lib/sound's mute silences it whether or not they
+   did.
    =========================================================================== */
+
+import { acquire } from "@/lib/sound";
 
 export type Jet = {
   /** Where the throttle is (cruise = 1) and how far off the ground it is. */
@@ -49,23 +52,18 @@ const CORE_HI = 104;
  *  updates doesn't zipper, short enough to feel connected to the plane. */
 const FOLLOW = 0.09;
 
-/** Silence held this long, and the context is suspended. */
-const SLEEP_MS = 900;
+/* The context, the sleep timer and the mute are lib/sound's now — see the note
+   there. The tuning below is untouched; only where the master ends up moved. */
 
 export function createJet(): Jet | null {
-  const Ctor =
-    typeof window === "undefined"
-      ? undefined
-      : window.AudioContext ??
-        (window as unknown as { webkitAudioContext?: typeof AudioContext })
-          .webkitAudioContext;
-  if (!Ctor) return null;
+  const voice = acquire();
+  if (!voice) return null;
 
-  const ctx = new Ctor();
+  const { ctx } = voice;
 
   const master = ctx.createGain();
   master.gain.value = 0;
-  master.connect(ctx.destination);
+  master.connect(voice.out);
 
   /* --- The rush ---------------------------------------------------------- */
 
@@ -110,15 +108,12 @@ export function createJet(): Jet | null {
   air.start();
   core.start();
 
-  let sleepTimer = 0;
   let disposed = false;
 
-  /** Bring the hardware back if it is asleep. Rejected before the page has had
-   *  a user gesture, which is fine: nothing is audible and nothing throws. */
-  function wake() {
-    window.clearTimeout(sleepTimer);
-    if (ctx.state !== "running") ctx.resume().catch(() => {});
-  }
+  /** Bring the hardware back if it is asleep, and push the suspend back.
+   *  Rejected before the page has had a user gesture, which is fine: nothing
+   *  is audible and nothing throws. */
+  const wake = voice.wake;
 
   return {
     drive(throttle, alt) {
@@ -167,7 +162,10 @@ export function createJet(): Jet | null {
       env.gain.linearRampToValueAtTime(PEAK * 1.4, now + 0.012);
       env.gain.exponentialRampToValueAtTime(0.0001, now + 0.34);
 
-      scuff.connect(shape).connect(env).connect(ctx.destination);
+      // Through the bus, not `ctx.destination`. Wired past it this one shot
+      // stayed audible with everything else muted — which is precisely the
+      // bug a single mute point exists to make impossible.
+      scuff.connect(shape).connect(env).connect(voice.out);
       scuff.start(now, Math.random() * 1.5);
       scuff.stop(now + 0.36);
     },
@@ -175,25 +173,22 @@ export function createJet(): Jet | null {
     release() {
       if (disposed) return;
       master.gain.setTargetAtTime(0, ctx.currentTime, 0.12);
-      window.clearTimeout(sleepTimer);
-      // Suspended rather than left idling: an oscillator and a looping buffer
-      // running behind a zero gain is a wakelock on the audio hardware for as
-      // long as the page is open.
-      sleepTimer = window.setTimeout(() => {
-        if (!disposed && ctx.state === "running") ctx.suspend().catch(() => {});
-      }, SLEEP_MS);
+      // The suspend is lib/sound's, on a timer shared with every other cue —
+      // so an idling jet no longer pulls the context down while the bell is
+      // still ringing out. `wake` is what pushes it back.
     },
 
     dispose() {
       disposed = true;
-      window.clearTimeout(sleepTimer);
       try {
         air.stop();
         core.stop();
       } catch {
         // Already stopped — nothing to do, and nothing worth reporting.
       }
-      ctx.close().catch(() => {});
+      /* The context is shared, so this lets go of our own nodes rather than
+         closing it out from under the bell. */
+      master.disconnect();
     },
   };
 }

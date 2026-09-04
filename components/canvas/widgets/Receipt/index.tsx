@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
+import { print } from "./printer";
 import { receipt as data } from "@/content/canvas";
 import styles from "./Receipt.module.css";
 
@@ -89,7 +90,11 @@ export default function Receipt() {
     <div
       className={styles.paper}
       data-canvas-interactive=""
-      onClick={() => setStamped((s) => !s)}
+      onClick={() => {
+        // Both directions: the head travels to stamp it and travels to clear it.
+        print();
+        setStamped((s) => !s);
+      }}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {

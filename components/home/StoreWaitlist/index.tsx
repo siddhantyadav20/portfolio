@@ -11,6 +11,7 @@ import CardShell from "@/components/primitives/CardShell";
 import { store } from "@/content/site";
 import { readContact } from "@/lib/waitlist";
 import { joinWaitlist } from "./submit";
+import { celebrate } from "./won";
 import styles from "./StoreWaitlist.module.css";
 
 /* ===========================================================================
@@ -154,6 +155,7 @@ export default function StoreWaitlist() {
       // Measured now, not at mount: this is the one moment the disc is the
       // 28px circle it will fly as, and the card may have been resized since.
       setFlight(liftOff(joinRef.current));
+      celebrate();
       setPhase("success");
     });
   }

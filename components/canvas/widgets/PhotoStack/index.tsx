@@ -5,6 +5,7 @@ import Image, { getImageProps } from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { photoCategories as cats } from "@/content/canvas";
 import { useMediaQuery } from "@/lib/clientValue";
+import { shuffle, slip } from "./slip";
 import styles from "./PhotoStack.module.css";
 
 /** One value, so the rendered photo and the neighbours warmed ahead of it
@@ -189,7 +190,10 @@ export default function PhotoStack() {
 
   const advance = useCallback(() => {
     setDir(1);
+    /* One print within a category, the whole stack when the category turns
+       over — same material, more of it. */
     if (photoIndex >= photoCount - 1) {
+      shuffle();
       const next = (safeCat + 1) % cats.length;
       setCatIndex(next);
       setPositions((p) => {
@@ -198,6 +202,7 @@ export default function PhotoStack() {
         return n;
       });
     } else {
+      slip();
       setPositions((p) => {
         const n = [...p];
         n[safeCat] = (n[safeCat] ?? 0) + 1;
@@ -209,6 +214,7 @@ export default function PhotoStack() {
   const retreat = useCallback(() => {
     setDir(-1);
     if (photoIndex <= 0) {
+      shuffle();
       const prev = (safeCat - 1 + cats.length) % cats.length;
       setCatIndex(prev);
       setPositions((p) => {
@@ -217,6 +223,7 @@ export default function PhotoStack() {
         return n;
       });
     } else {
+      slip();
       setPositions((p) => {
         const n = [...p];
         n[safeCat] = (n[safeCat] ?? 0) - 1;

@@ -676,6 +676,16 @@ const actions: PaletteEntry[] = [
     featured: true,
   },
   {
+    id: "do:sound",
+    group: "do",
+    label: "Switch sound",
+    hint: "The cues the cards make",
+    /* "mute" and "silence" are what someone types when they want it to stop,
+       which is the direction this entry is nearly always searched from. */
+    keywords: "audio mute unmute silence quiet volume noise chime",
+    to: { kind: "action", action: "sound" },
+  },
+  {
     id: "do:canvas",
     group: "do",
     label: canvasCard.cta,

@@ -9,6 +9,7 @@ import Confetti from "@/components/canvas/chrome/Confetti";
 import Dock from "@/components/canvas/chrome/Dock";
 import Minimap from "@/components/canvas/chrome/Minimap";
 import Oneko from "@/components/canvas/chrome/Oneko";
+import { enterRoom } from "./room";
 import { useModalShell } from "@/lib/modalShell";
 import { newsreader } from "@/app/fonts-serif";
 import ThemeToggle from "@/components/home/ThemeToggle";
@@ -202,6 +203,14 @@ export default function CanvasSurface({ onClose }: Props) {
   useEffect(() => {
     document.documentElement.setAttribute("data-canvas", "");
     return () => document.documentElement.removeAttribute("data-canvas");
+  }, []);
+
+  /* The room, once. Deliberately in its own effect and not folded into the one
+     above: that one is a DOM attribute with a cleanup, this is a one-shot with
+     none, and a sound that has to be undone on the way out would be a bug.
+     `enterRoom` is idempotent for the life of the page — see the note there. */
+  useEffect(() => {
+    enterRoom();
   }, []);
 
   useEffect(() => {

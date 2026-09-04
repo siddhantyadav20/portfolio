@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { drop, lift } from "@/lib/needle";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
 import GlassChip from "@/components/primitives/GlassChip";
@@ -107,7 +108,19 @@ export default function MusicPlayer() {
     >
       {/* All four covers are mounted and cross-faded rather than swapped, so a
           skip is a dissolve instead of a blank frame while the next one
-          decodes. Optimised to 254px they are a few tens of KB each. */}
+          decodes.
+
+          `fetchPriority` alongside the eager one, the same pairing and for the
+          same reason as the canvas still — see CanvasWorld/Still.tsx. `eager`
+          is not lazy, and anything not lazy goes into the document head as a
+          preload: this card sits ~185px below the fold, so without the second
+          half the opening cover was fetched at default priority, competing
+          with the hero it cannot be seen next to.
+
+          Not "a few tens of KB", which is the 254px column: the srcset's 2x
+          candidate is 640 wide and 60KB, against 92KB for all three hero
+          images together, so on a retina display this one invisible decoration
+          was 39% of the image preload budget. */}
       {tracks.map((t, i) => (
         <Image
           key={t.title}
@@ -116,6 +129,7 @@ export default function MusicPlayer() {
           width={254}
           height={280}
           loading={i === 0 ? "eager" : "lazy"}
+          fetchPriority="low"
           className={`${styles.cover} squircle`}
           data-active={i === index ? "" : undefined}
         />
@@ -147,7 +161,17 @@ export default function MusicPlayer() {
         <button
           type="button"
           className={styles.play}
-          onClick={() => setPlaying((p) => !p)}
+          onClick={() =>
+            setPlaying((p) => {
+              /* The record going on and coming off. Same mechanism as the
+                 canvas turntables, so deliberately the same sound — this card
+                 and those widgets are the same object in two places, and the
+                 one thing that would give that away is them disagreeing. */
+              if (p) lift();
+              else drop();
+              return !p;
+            })
+          }
           aria-label={playing ? `Pause ${track.title}` : `Play ${track.title}`}
         >
           {/* Glyph only — the disc it sits on is drawn in CSS, because Figma

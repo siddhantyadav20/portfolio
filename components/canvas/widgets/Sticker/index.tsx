@@ -5,6 +5,7 @@ import Image from "next/image";
 import { AnimatePresence, motion, useAnimationControls } from "motion/react";
 import { useMediaQuery } from "@/lib/clientValue";
 import { buildFlight, FLIGHT_DURATION, TRACKS, type Track } from "./effects";
+import { playSticker } from "./sounds";
 import styles from "./Sticker.module.css";
 
 /* ===========================================================================
@@ -49,6 +50,9 @@ export default function Sticker({
     if (reduced || running.current) return;
     running.current = true;
     setBusy(true);
+    // On the same frame the animation starts — the offsets in `sounds` are
+    // measured into these tracks, so the two have to leave together.
+    playSticker(effect);
 
     if (effect === "flight") {
       const f = buildFlight({ shadowOpacity: SHADOW_OPACITY });

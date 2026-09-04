@@ -44,6 +44,10 @@ export type ActionId =
   | "resume"
   | "linkedin"
   | "theme"
+  /* The synthesised cues, on or off. A palette entry rather than a control in
+     the frame: the composition has one toggle in it and Figma drew that one,
+     and a setting almost nobody changes does not earn a second. */
+  | "sound"
   | "copy-link"
   /* Opens the colophon. An action rather than a `card`, because there is no
      longer a card to scroll to — the reader is owned by the footer's link and

@@ -8,6 +8,7 @@ import {
   writeTheme,
   type Theme,
 } from "@/lib/theme";
+import { switched } from "./switched";
 import styles from "./ThemeToggle.module.css";
 
 /**
@@ -72,7 +73,10 @@ function Option({ theme, active }: { theme: Theme; active: boolean }) {
       type="button"
       className={styles.option}
       aria-pressed={active}
-      onClick={() => writeTheme(theme)}
+      onClick={() => {
+        switched(theme);
+        writeTheme(theme);
+      }}
     >
       {/* Both cuts of the glyph, stacked and cross-faded, rather than one
           element whose mask is swapped. A mask change is instant and cannot be

@@ -39,6 +39,7 @@ type GlyphKey =
   | "mail"
   | "link"
   | "theme"
+  | "sound"
   | "download"
   | "external"
   | "arrow"
@@ -68,6 +69,8 @@ export function glyphFor(entry: PaletteEntry): GlyphKey {
             return "link";
           case "theme":
             return "theme";
+          case "sound":
+            return "sound";
           case "resume":
             return "download";
           // A colophon is a page about how the thing was made, and that is
@@ -222,6 +225,19 @@ function shape(name: GlyphKey) {
               toggle drawn in outline alone is a circle with a line through it,
               which is a "no". */}
           <path d="M8 2.1a5.9 5.9 0 0 1 0 11.8Z" fill="currentColor" stroke="none" />
+        </>
+      );
+
+    case "sound":
+      return (
+        <>
+          {/* A cone and one arc. Two arcs is the volume icon in every settings
+              panel ever drawn and reads as "loud"; one is a thing making a
+              sound, which is what these cues are. Drawn on rather than off —
+              the struck-through version would say the sound is already muted,
+              and this row is the same row in both states. */}
+          <path d="M3.1 6.3h2.2l3.1-2.5v8.4L5.3 9.7H3.1z" />
+          <path d="M10.9 6.1a2.7 2.7 0 0 1 0 3.8" />
         </>
       );
 

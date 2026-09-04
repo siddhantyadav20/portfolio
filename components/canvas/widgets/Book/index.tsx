@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useMediaQuery, useMounted } from "@/lib/clientValue";
 import type { Widget } from "@/content/canvas";
 import Spread from "./Spread";
+import { closeBook, openBook, riffle } from "./leaf";
 import styles from "./Book.module.css";
 
 /* ===========================================================================
@@ -61,6 +62,34 @@ export default function Book({ book }: { book: BookWidget }) {
     return () => window.removeEventListener(OPEN_EVENT, onOther);
   }, [id]);
 
+  /**
+   * Open or shut it, with the cover's own sound.
+   *
+   * Every way a reader can work this book goes through here — the click, the
+   * keyboard, Escape, the spread's own close — so the sound lives at the one
+   * place instead of at each of the four, and no route can grow a silent
+   * twin later.
+   *
+   * The exception is deliberate and is above: a book closing because a
+   * *different* book was opened keeps `setOpen` and stays silent. That close
+   * is not something this reader did, and sounding it would land a cover
+   * shutting on top of another one opening, half a widget apart.
+   *
+   * Declared before the Escape effect below, not after it. The effect names
+   * `show` in its dependency array, and a dependency array is built during
+   * render — so a `const` declared further down is still in its temporal dead
+   * zone when the array is evaluated, and the component throws on first paint.
+   */
+  const show = useCallback(
+    (next: boolean) => {
+      if (open === next) return;
+      if (next) openBook();
+      else closeBook();
+      setOpen(next);
+    },
+    [open],
+  );
+
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
@@ -68,19 +97,21 @@ export default function Book({ book }: { book: BookWidget }) {
       // Claim Escape before the canvas does, or reading a book and pressing
       // Escape closes the whole board.
       e.stopPropagation();
-      setOpen(false);
+      // `open` is true for as long as this listener is bound, so the guard in
+      // `show` cannot be reading a stale value here.
+      show(false);
     }
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [open]);
+  }, [open, show]);
 
   function toggle() {
     if (open) {
-      setOpen(false);
+      show(false);
       return;
     }
     window.dispatchEvent(new CustomEvent(OPEN_EVENT, { detail: id }));
-    setOpen(true);
+    show(true);
   }
 
   /** The cover's hinge angle. Hovering cracks it open; the page is beneath. */
@@ -116,7 +147,13 @@ export default function Book({ book }: { book: BookWidget }) {
           toggle();
         }
       }}
-      onMouseEnter={() => canHover && setHovered(true)}
+      onMouseEnter={() => {
+        if (!canHover) return;
+        // Only when the board is actually going to crack — see `coverAngle`
+        // below, which is gated on exactly these three.
+        if (!open && !reduced) riffle();
+        setHovered(true);
+      }}
       onMouseLeave={() => {
         setHovered(false);
         setTilt({ x: 0, y: 0 });
@@ -195,12 +232,12 @@ export default function Book({ book }: { book: BookWidget }) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: reduced ? 0 : 0.25 }}
-                onClick={() => setOpen(false)}
+                onClick={() => show(false)}
               >
                 <Spread
                   book={book}
                   reduced={reduced}
-                  onClose={() => setOpen(false)}
+                  onClose={() => show(false)}
                 />
               </motion.div>
             )}

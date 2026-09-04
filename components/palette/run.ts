@@ -5,6 +5,7 @@ import { intro, linkedin } from "@/content/site";
 import { copyToClipboard } from "@/lib/clipboard";
 import { openMaking } from "@/lib/making";
 import { canvasJump } from "@/lib/palette";
+import { setSoundOn, soundOn } from "@/lib/sound";
 import { readTheme, writeTheme } from "@/lib/theme";
 import { studyHref } from "@/content/work";
 
@@ -243,6 +244,16 @@ async function runAction(action: string): Promise<RunResult> {
       writeTheme(readTheme() === "dark" ? "light" : "dark");
       return { keepOpen: true };
 
+    case "sound": {
+      const next = !soundOn();
+      setSoundOn(next);
+      /* Toasted, where the theme is not: switching the theme repaints the
+         whole page and needs no telling, and switching this changes nothing
+         you can see. Without the toast the row is a button that appears to do
+         nothing — the failure `copy-email` above exists to avoid. */
+      return { toast: next ? "Sound on" : "Sound off", keepOpen: true };
+    }
+
     default:
       return { keepOpen: true };
   }
@@ -288,6 +299,10 @@ export function verbFor(to: PaletteDestination): string {
           return "Copy this link";
         case "theme":
           return "Switch theme";
+        case "sound":
+          /* Reads the live preference, so Enter always promises the thing it
+             is about to do rather than naming the setting. */
+          return soundOn() ? "Turn sound off" : "Turn sound on";
         case "resume":
           return "Open résumé";
         case "linkedin":

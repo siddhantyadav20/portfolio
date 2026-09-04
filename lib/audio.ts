@@ -10,6 +10,8 @@
    CanvasWorld would make it a client component for the sake of one <audio>.
    =========================================================================== */
 
+import { drop, lift } from "@/lib/needle";
+
 type Listener = (playingId: string | null) => void;
 
 let el: HTMLAudioElement | null = null;
@@ -48,6 +50,7 @@ export const noneServerSide = () => null;
 export function toggleTrack(id: string, src: string) {
   const audio = element();
   if (playingId === id) {
+    lift();
     audio.pause();
     playingId = null;
     emit();
@@ -57,6 +60,11 @@ export function toggleTrack(id: string, src: string) {
     audio.src = src;
   }
   audio.currentTime = 0;
+  /* Before the file, not with it: the mechanism reaches the record first and
+     the track arrives out of the surface noise. Switching straight from one
+     record to another lands a drop on top of a still-fading one, which is why
+     `drop` stops any surface already running. */
+  drop();
   // Autoplay can still be refused; failing quietly leaves the sleeve closed,
   // which is the honest representation of "it isn't playing".
   void audio.play().then(
@@ -74,6 +82,10 @@ export function toggleTrack(id: string, src: string) {
 }
 
 export function stopAll() {
+  // Only when there was something to stop — the now-playing card calls this,
+  // and so does the canvas closing, and a needle lifting off a turntable that
+  // was not running is a sound with nothing behind it.
+  if (playingId !== null) lift();
   if (el) el.pause();
   playingId = null;
   emit();

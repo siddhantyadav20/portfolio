@@ -6,6 +6,7 @@ import { useMediaQuery } from "@/lib/clientValue";
 import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
 import { useSyncExternalStore } from "react";
 import { useVisible } from "@/lib/visible";
+import { graphite } from "./graphite";
 import styles from "./DrawingCanvas.module.css";
 
 /* ===========================================================================
@@ -147,6 +148,10 @@ export default function DrawingCanvas() {
   const drawing = useRef(false);
   const cleared = useRef(false);
   const last = useRef<Pt>({ x: 0, y: 0 });
+  /* Its own tracker in client coordinates, not `last`: that one is in canvas
+     space and is reset per stroke, and a speed taken from it would spike on
+     the first move after every pen-down. */
+  const lastGraphite = useRef<{ x: number; y: number; t: number } | null>(null);
   const lastMid = useRef<Pt>({ x: 0, y: 0 });
   const catStrokes = useRef<Pt[][] | null>(null);
   const intro = useRef({ strokeIdx: 0, pointIdx: 0, done: false });
@@ -451,6 +456,21 @@ export default function DrawingCanvas() {
     if (!drawing.current || !current.current) return;
     e.stopPropagation();
     e.preventDefault();
+
+    /* px/ms since the last move. Guarded against a zero delta — two pointer
+       events can carry the same timestamp, and dividing by it puts Infinity
+       into a filter frequency, which is a NaN the node never recovers from. */
+    {
+      const t = performance.now();
+      const was = lastGraphite.current;
+      lastGraphite.current = { x: e.clientX, y: e.clientY, t };
+      if (was) {
+        const dt = t - was.t;
+        if (dt > 0) {
+          graphite(Math.hypot(e.clientX - was.x, e.clientY - was.y) / dt);
+        }
+      }
+    }
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
 
@@ -482,6 +502,7 @@ export default function DrawingCanvas() {
   }
 
   function endStroke(e: React.PointerEvent) {
+    lastGraphite.current = null;
     e.stopPropagation();
     if (current.current) {
       history.current.push(current.current);

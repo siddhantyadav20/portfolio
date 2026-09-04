@@ -11,6 +11,7 @@ import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
 import { externalLinkProps } from "@/lib/externalLink";
 import { levenshtein } from "@/lib/match";
 import { terminal as data } from "@/content/canvas";
+import { enter, key } from "./keys";
 import styles from "./Terminal.module.css";
 
 /* ===========================================================================
@@ -155,6 +156,16 @@ const WELCOME: Line[] = [
 /** How long to wait after printing a line before printing the next. The whole
  *  illusion is here: a uniform delay reads as a progress bar, while boot lines
  *  pausing longer than list items reads as a machine doing work. */
+/** Held modifiers and the keys that are not a press so much as a state. */
+const MUTE_KEYS = new Set([
+  "Shift",
+  "Control",
+  "Alt",
+  "Meta",
+  "CapsLock",
+  "Escape",
+]);
+
 function gapFor(l: Line) {
   if (l.delay != null) return l.delay;
   switch (l.kind) {
@@ -370,6 +381,13 @@ export default function Terminal() {
     // behind it — the camera's own handler already defers to a focused input,
     // and this stops Enter or the arrows escaping upward as well.
     e.stopPropagation();
+
+    /* Struck here rather than in `onChange`, so the keys that do not produce a
+       character still sound — backspace, tab-completion, the history arrows.
+       Modifier presses on their own are not keystrokes anyone is making a
+       noise with, and `key.length === 1` would miss every one of the above. */
+    if (e.key === "Enter") enter();
+    else if (!MUTE_KEYS.has(e.key)) key();
 
     if (e.key === "Enter") {
       run(input);

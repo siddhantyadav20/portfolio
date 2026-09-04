@@ -6,6 +6,7 @@ import { externalLinkProps } from "@/lib/externalLink";
 import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
 import { Coin, Wizard } from "./art";
 import { useVisible } from "@/lib/visible";
+import { rasp, reveal } from "./rasp";
 import styles from "./ScratchCard.module.css";
 
 /* ===========================================================================
@@ -103,6 +104,10 @@ export default function ScratchCard() {
   const idle = useRef(true);
   const raf = useRef(0);
   const lastDust = useRef(0);
+  /* Its own tracker rather than reading `lastPos`: that one is the drawing
+     path and gets nulled on every up and cancel, and a speed derived from it
+     would spike to infinity on the first move of each new stroke. */
+  const lastRasp = useRef<{ x: number; y: number; t: number } | null>(null);
   const particleId = useRef(0);
 
   const [started, setStarted] = useState(false);
@@ -211,6 +216,7 @@ export default function ScratchCard() {
      state synchronously inside an effect, which React 19 refuses. */
 
   const pop = useCallback(() => {
+    reveal();
     setWizardUp(true);
     setBounced(true);
     window.setTimeout(() => setBounced(false), 800);
@@ -425,12 +431,28 @@ export default function ScratchCard() {
               const p = toCard(e);
               scratchAt(p.x, p.y);
               spawnDust(e.clientX - r.left, e.clientY - r.top);
+
+              /* px/ms since the last move, which is what the grain density and
+                 brightness are driven by. Guarded against a zero delta: two
+                 pointer events can share a timestamp, and dividing by it sends
+                 the speed to Infinity and the filter to a NaN it never
+                 recovers from. */
+              const t = performance.now();
+              const was = lastRasp.current;
+              lastRasp.current = { x: e.clientX, y: e.clientY, t };
+              if (was) {
+                const dt = t - was.t;
+                if (dt > 0) {
+                  rasp(Math.hypot(e.clientX - was.x, e.clientY - was.y) / dt);
+                }
+              }
             }}
             onPointerUp={() => {
               downAt.current = null;
               scratching.current = false;
               setActive(false);
               lastPos.current = null;
+              lastRasp.current = null;
             }}
             onPointerCancel={() => {
               downAt.current = null;

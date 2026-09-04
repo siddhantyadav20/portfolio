@@ -1,5 +1,7 @@
 "use client";
 
+import { confirmed } from "@/lib/confirm";
+
 /**
  * Put a string on the clipboard, by whichever route the browser allows.
  *
@@ -17,6 +19,7 @@
 export async function copyToClipboard(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);
+    confirmed();
     return true;
   } catch {
     // Fall through — an exception here is a refusal, not a bug.
@@ -36,7 +39,13 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   try {
     field.select();
     field.setSelectionRange(0, text.length);
-    return document.execCommand("copy");
+    /* Struck on the way out of both routes rather than once at the top: the
+       whole point of this function is that it returns whether anything
+       actually landed, and a confirmation for a copy that did not happen is
+       the silent-broken-button failure it was written to avoid. */
+    const ok = document.execCommand("copy");
+    if (ok) confirmed();
+    return ok;
   } catch {
     return false;
   } finally {
