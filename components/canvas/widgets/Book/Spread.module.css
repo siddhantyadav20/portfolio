@@ -223,6 +223,22 @@
   display: inline-flex;
   gap: 2px;
   flex: 0 0 auto;
+
+  /* The load-bearing line, and it is for `.starsLit`.
+
+     That row lives inside `.starsFill`, whose width IS the rating — it starts
+     at 0 and animates up. An `inline-flex` box inside a narrow container is
+     shrink-to-fit, so the row was sizing itself to the clip rather than being
+     revealed by it: five stars squeezed into 65px instead of four and a bit of
+     a 76px row. Measured at 4.3/5 the lit row came out 65.66px wide against
+     the dim row's 76.36, which is the whole bug — the stars were compressing,
+     not filling.
+
+     `max-content` pins it to its natural five-star width whatever the wrapper
+     is doing, so the clip can only ever cut it off. `white-space: nowrap` on
+     the wrapper was the earlier attempt at this and cannot fix it: nowrap
+     stops wrapping, and these were never wrapping. */
+  width: max-content;
 }
 
 .starsDim path { fill: rgba(255, 255, 255, 0.16); }
