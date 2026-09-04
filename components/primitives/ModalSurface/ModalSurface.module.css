@@ -239,6 +239,30 @@
   padding-right: calc(64px + 12px);
 }
 
+/* --- The close, in step with the narrower gutter --------------------------
+
+   The narrow query above takes `.controls` and `.leading` from the 32 gutter
+   to 24, but `.close` is `position: fixed` and reads neither — it kept the 32
+   it is given below, so between 501 and 699 the disc sat eight low of the
+   share button and the theme toggle it is meant to share a line with, and a
+   third of the gutter from the toggle instead of the full twelve.
+
+   (The narrow query is named rather than quoted: the guard in
+   tests/breakpoints.test.ts scans from any `@media` to the next brace, so a
+   condition written out in a comment reads as a real one and every length
+   after it as a breakpoint.)
+
+   It cannot go in that block: a media query adds no specificity, and the
+   base `.close` is declared after it, so the 32 would simply win. Hence a
+   second query here, below the rule it has to beat and above the 500 one
+   that has to beat this. */
+@media (width < 700px) {
+  .close {
+    top: 24px;
+    right: 24px;
+  }
+}
+
 @media (width <= 500px) {
   /* The 24 above the controls is the parent's padding, not the controls'
      margin. In flow with no border or padding between them, a top margin here
