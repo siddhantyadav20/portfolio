@@ -70,6 +70,11 @@ export function glyphFor(entry: PaletteEntry): GlyphKey {
             return "theme";
           case "resume":
             return "download";
+          // A colophon is a page about how the thing was made, and that is
+          // what it looks like. In `do` the page glyph cannot be confused
+          // with a case study, which is the only other thing wearing it.
+          case "colophon":
+            return "page";
           default:
             return "arrow";
         }

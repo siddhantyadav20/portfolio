@@ -5,7 +5,6 @@ import DesignSystemExperience from "@/components/home/DesignSystemExperience";
 import InspectionExperience from "@/components/home/InspectionExperience";
 import Introduction from "@/components/home/Introduction";
 import LinkedInCard from "@/components/home/LinkedInCard";
-import MakingCard from "@/components/home/MakingCard";
 import MusicPlayer from "@/components/home/MusicPlayer";
 import SearchExperience from "@/components/home/SearchExperience";
 import SiteFooter from "@/components/home/SiteFooter";
@@ -123,18 +122,6 @@ export default function Home() {
                 <MusicPlayer />
                 <LinkedInCard />
               </div>
-            </div>
-
-            {/* The colophon, and the only full-width card on the page.
-
-                It sits under everything else rather than inside the bento
-                because it is about the page rather than a way into the work —
-                and because the three columns above are drawn against a 1440
-                Figma frame with no cell free that would not have pushed
-                something measured off its mark. A row of its own costs the
-                composition nothing and is where a colophon goes anyway. */}
-            <div className={styles.makingWrap}>
-              <MakingCard />
             </div>
 
             <div className={styles.footerWrap}>

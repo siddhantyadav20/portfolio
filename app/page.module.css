@@ -191,12 +191,7 @@
      before. Row 2 is left `auto` deliberately rather than pinned to a measured
      354 — the Introduction is the one block on this page whose copy is still
      being written, and a pinned row would clip it. */
-  /* Row 5 is the colophon and row 6 is the footer. The colophon was added
-     after the frame was transcribed and is not in it — a full-width band under
-     the composition, which is the one place a card can be added without
-     re-measuring a column. Everything above still spans rows 1-4 exactly as
-     it did. */
-  grid-template-rows: var(--row-top) auto auto 1fr auto auto;
+  grid-template-rows: var(--row-top) auto auto 1fr auto;
   column-gap: var(--gap);
   row-gap: var(--gap);
   /* No `width: 100%`. The insets are this element's margin from 1001 up, and a
@@ -344,23 +339,9 @@
 /* Figma insets the footer a further 32px inside the band (1312 wide, at x=64)
    and drops it 48px below the tallest column — 32 of which is the grid's own
    row gap, so only the remainder is a margin here. */
-/* The colophon band. 48 below the tallest column, the same drop the footer
-   takes, so the page ends on two evenly spaced full-width blocks rather than
-   on one gap and one gutter. */
-.makingWrap {
-  grid-column: 1 / -1;
-  grid-row: 5;
-  /* The colophon card lays itself out against THIS width rather than the
-     viewport's — see the note in MakingCard.module.css. Named, so the card
-     says which box it is asking about instead of finding the nearest one. */
-  container: making / inline-size;
-  margin-top: calc(48 * var(--u) - var(--gap));
-  margin-inline: var(--gap);
-}
-
 .footerWrap {
   grid-column: 1 / -1;
-  grid-row: 6;
+  grid-row: 5;
   /* `48 * --u`, not a literal `48px`. The rest of that sum (`--gap`) scales,
      so a fixed 48 made the drop shrink as the page grew: correct at 1440,
      16px short at 1920, and further out from there. Below 1001 `--u` is its
@@ -456,7 +437,6 @@
   .store,
   .search,
   .closing,
-  .makingWrap,
   .footerWrap,
   .chips,
   .canvasSlot,

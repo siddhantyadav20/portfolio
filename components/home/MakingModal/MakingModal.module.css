@@ -5,13 +5,21 @@
    runs a frame loop and nothing re-renders: a scene entering the viewport
    flips an attribute, and the compositor does the rest. */
 
+/* NOT A SCROLLER, and not padded by 120 either. Both of those were wrong and
+   they were wrong together.
+
+   `.overlay` in ModalSurface is already `overflow-y: auto` — it is the thing
+   that scrolls, on every reader on this site. Making this one `height: 100%`
+   with its own `overflow-y` put a second scroller inside the first: the
+   overlay held a 120px control row plus a full-viewport box, so it scrolled
+   too, and the control row read as a bar the content vanished under.
+
+   The control row is also in the flow above this, not sticky over it — 32
+   down, 64 of button, 24 under — so it has already spent 120 before this
+   element begins. Written as the remainder, the way `AboutModal`'s `.page`
+   writes its own, so it is obvious what to change if that row ever moves. */
 .reader {
-  height: 100%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  /* The shell's control cluster is sticky and reserves the top 120px; the
-     first heading starts under it rather than behind it. */
-  padding: 120px 0 96px;
+  padding: 40px 0 96px;
 }
 
 /* --- The head ------------------------------------------------------------- */
@@ -586,8 +594,11 @@
 /* --- Narrow --------------------------------------------------------------- */
 
 @media (max-width: 700px) {
+  /* The control row loses 8 of its margin below 700 (24/24/32 rather than
+     32/32/24), so the remainder here is the same 40 measured off a row that
+     now ends at 120 - 8. */
   .reader {
-    padding-top: 96px;
+    padding-top: 48px;
   }
 
   .head {

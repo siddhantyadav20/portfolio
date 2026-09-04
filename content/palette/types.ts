@@ -44,7 +44,11 @@ export type ActionId =
   | "resume"
   | "linkedin"
   | "theme"
-  | "copy-link";
+  | "copy-link"
+  /* Opens the colophon. An action rather than a `card`, because there is no
+     longer a card to scroll to — the reader is owned by the footer's link and
+     the palette asks for it over `lib/making`. */
+  | "colophon";
 
 /**
  * The groups, in the order the empty state offers them.

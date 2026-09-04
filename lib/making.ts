@@ -1,17 +1,18 @@
 "use client";
 
 /**
- * How the footer asks for the colophon.
+ * How anything on the site asks for the colophon.
  *
- * An event rather than context or a prop, for the reason `lib/palette` gives
- * for the same choice: `SiteFooter` is a server component rendered in two
- * places, `MakingCard` is a client island at the bottom of the homepage, and
- * they share no provider. A context would mean wrapping the page to let one
- * link talk to one card.
+ * The reader is owned by the footer's link — see `ColophonLink` — and there is
+ * exactly one other caller: ⌘K. An event rather than context or a prop, for
+ * the reason `lib/palette` gives for the same choice: the palette is mounted
+ * once in the root layout, the link is at the bottom of the homepage, and they
+ * share no provider. A context would mean wrapping the app to let one row talk
+ * to one button.
  *
- * It also keeps the reader lazily reachable without the footer importing any
- * of it — the footer's link is nine lines and knows nothing about what it
- * opens.
+ * It also keeps the reader lazily loadable. The palette fires this without
+ * importing a line of the colophon; nothing is fetched until somebody actually
+ * asks for it, which is what keeps the homepage's budget intact.
  */
 export const MAKING_OPEN = "sy-making-open";
 

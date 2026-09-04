@@ -411,7 +411,7 @@ const cards: PaletteEntry[] = [
     hint: making.lede,
     keywords:
       "colophon process built how made stack figma claude qwen code agent behind the scenes",
-    to: { kind: "card", card: "making" },
+    to: { kind: "action", action: "colophon" },
     preview: {
       title: making.title,
       subtitle: making.eyebrow,

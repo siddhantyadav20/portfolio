@@ -8,11 +8,6 @@ import { externalLinkProps } from "@/lib/externalLink";
 import { AttemptsScene, ReceiptScene, TerminalScene, TokensScene } from "./Scenes";
 import styles from "./MakingModal.module.css";
 
-/* `MAKING_MORPH` lives in `./morph` — see that file for why it is not declared
-   here. Re-exported so anything already reaching for it through this module
-   keeps working. */
-export { MAKING_MORPH } from "./morph";
-
 type Props = {
   open: boolean;
   /** Playing the exit animation — only ever true on the no-morph path. */

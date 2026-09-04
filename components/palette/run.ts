@@ -3,6 +3,7 @@
 import type { PaletteDestination } from "@/content/palette";
 import { intro, linkedin } from "@/content/site";
 import { copyToClipboard } from "@/lib/clipboard";
+import { openMaking } from "@/lib/making";
 import { canvasJump } from "@/lib/palette";
 import { readTheme, writeTheme } from "@/lib/theme";
 import { studyHref } from "@/content/work";
@@ -225,6 +226,19 @@ async function runAction(action: string): Promise<RunResult> {
       window.open(linkedin.href, "_blank", "noopener,noreferrer");
       return {};
 
+    case "colophon":
+      /* Announced rather than performed, like everything else in this file
+         that another surface owns. The reader belongs to the footer's link —
+         see `ColophonLink` — and it is loaded on demand, so the palette cannot
+         hold a reference to it without pulling it into the homepage bundle.
+
+         Deferred past the focus restore for the same reason the canvas case
+         above is: closing this panel hands focus back to whatever opened it,
+         and a second modal mounting on the same frame as that restore fights
+         it for the focus it is trying to place. */
+      window.setTimeout(openMaking, AFTER_FOCUS_RESTORE);
+      return {};
+
     case "theme":
       writeTheme(readTheme() === "dark" ? "light" : "dark");
       return { keepOpen: true };
@@ -278,6 +292,8 @@ export function verbFor(to: PaletteDestination): string {
           return "Open résumé";
         case "linkedin":
           return "Open LinkedIn";
+        case "colophon":
+          return "Show me";
       }
   }
 }
