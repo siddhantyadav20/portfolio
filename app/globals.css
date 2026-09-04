@@ -466,66 +466,47 @@ html[data-canvas-cursor] [data-cursor="native"] * {
 
 /* ==========================================================================
    Focus
-   Visible for keyboard users, absent for mouse users.
+   No ring, anywhere, by request.
+
+   WHAT WAS HERE. A `:focus-visible` outline on everything, an inner hairline
+   variant for the glass controls, and a third for the case-study cards. All
+   three are gone.
+
+   WHY THE INTERMEDIATE VERSION WAS WORSE THAN EITHER END. The step before this
+   kept the ring but gated it on `[data-input="keyboard"]`, so pointing at
+   things never rang them. That looked right and quietly broke nine components:
+   the descendant selector took the rule from specificity (0,1,0) to (0,2,0),
+   which is higher than the plain `.class` every one of those components uses
+   to say `outline: none` — so the Terminal's input, the palette's rows, the
+   waitlist field, the timeline grip and the rest all grew a border they had
+   each explicitly opted out of. A global rule that outranks every local
+   override is a global rule nobody can decline.
+
+   WHAT THIS COSTS, STATED PLAINLY. Keyboard focus is now invisible site-wide.
+   That is WCAG 2.4.7 and it is a real regression for anyone who navigates by
+   Tab — including the recruiter using a keyboard because their trackpad is
+   broken. It is a deliberate choice, made twice, and it is one commit to undo.
+
+   IF IT COMES BACK, it should not come back as an outline on `*`. The shape
+   that works here is a per-material treatment the components opt *into* —
+   which is what `.liquid`'s inner hairline already was — so that nothing has
+   to fight a global rule to say no.
    ========================================================================== */
 
+/* DELETING THE RULE WAS NOT ENOUGH, and this is the part that is easy to get
+   wrong twice. Removing a custom `outline` does not leave an element with no
+   focus ring — it leaves it with the *browser's*, which is a heavy double ring
+   Chrome paints on `:focus-visible` by default. So the books grew a border
+   again the moment focus came back to them, which is precisely when a modal
+   closes and hands focus to whatever opened it.
+
+   `:focus` as well as `:focus-visible`: Firefox and Safari differ on which one
+   they paint for a programmatic focus, and a restore is programmatic.
+
+   The skip link is the one deliberate exception in this file and it does not
+   rely on an outline — it moves into view on `:focus` — so it is unaffected. */
+:focus,
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
-
-/* The outer ring is suppressed on the glass controls and the case-study cards
-   by request — an orange rectangle floating off the edge of a liquid pill was
-   the objection, and it is a fair one. What replaced it for a long time was
-   nothing, which left the site's *entire* control set with no keyboard focus
-   state at all: both CTAs, the theme toggle, the modal's close and share
-   buttons, the About pills, the canvas dock, and two of the three case-study
-   cards. That is WCAG 2.4.7, and it is also just hard to use.
-
-   So the ring moves inside instead of going away. `outline-offset` takes a
-   negative value, which draws the outline *within* the element's own border
-   box and follows its radius — no extra element, no box-shadow to coordinate
-   with `--liquid-cast`, and nothing added outside the control's footprint, so
-   no layout or spacing changes anywhere.
-
-   Two treatments, because these are two materials:
-
-     glass    A hairline in `--ink` plus the lift the same plate already wears
-              on hover. Both halves are the control's own vocabulary, and
-              `--ink` inverts with the theme, so it is dark on the white plate
-              and light on the dark one without a second rule.
-
-     cards    `--accent`, because a case-study card is a photograph and ink
-              has nothing to guarantee contrast against. Set further in, where
-              the artwork is already dimmed by the card's own scrim. */
-.liquid:focus-visible,
-/* The theme toggle wears `.liquid` on its wrapper, but focus lands on the two
-   buttons inside it — so descendants have to be covered too, and the ring
-   belongs on the button that actually has focus rather than on the pair. */
-.liquid :focus-visible {
-  outline: 2px solid var(--ink-70);
-  outline-offset: -4px;
-
-  --liquid-body: var(--liquid-body-hi);
-  --liquid-shade: var(--liquid-shade-hi);
-  --liquid-gloss: var(--liquid-gloss-hi);
-  --liquid-spec: var(--liquid-spec-hi);
-}
-
-[data-cursor="view-project"]:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -8px;
-}
-
-/* A closing modal handing focus back to the card that opened it. Escape counts
-   as keyboard input, so without this the card is ringed the moment the modal
-   goes — see `restoreFocus` in ModalSurface, which sets this only for as long
-   as focus stays where it was put. Tabbing to the card still rings it.
-
-   Last, so it wins over both blocks above at equal specificity. */
-[data-focus-restore]:focus-visible,
-.liquid[data-focus-restore]:focus-visible {
   outline: none;
 }
 

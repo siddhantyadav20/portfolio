@@ -30,13 +30,13 @@
   }
 }
 
-/* Focused by Tab. The ring is on the slot rather than the widget so it traces
-   the object's real box, whatever the widget draws inside it. */
-.slot:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 8px;
-  border-radius: 8px;
-}
+/* No focus ring on a slot. This was the orange border parked around a book
+   after clicking it, and then — briefly — an ink one that appeared on Tab.
+   Both are gone by request; see the note in globals.css, which carries the
+   accessibility cost of that decision so it is written down once.
+
+   Tab still walks the widgets in reading order and Enter still activates
+   them. What is missing is any indication of where you are while doing it. */
 
 /* The card's preview is a picture of the board, not an arrival at it — it
    should be there the moment the homepage paints, not assemble itself in the

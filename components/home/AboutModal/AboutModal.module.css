@@ -201,8 +201,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* No ring. See the Focus note in globals.css — rings are off site-wide by
+   request, and a component keeping its own is the version of that decision
+   nobody can find later. */
 .greetingButton:focus-visible {
-  outline: 2px solid rgb(from var(--live) r g b / 0.6);
+  outline: none;
   outline-offset: 6px;
   border-radius: 4px;
 }
@@ -724,7 +727,7 @@
 }
 
 .reel:focus-visible {
-  outline: 2px solid var(--ink-70);
+  outline: none;
   outline-offset: 4px;
 }
 

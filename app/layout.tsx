@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import BootSequence from "@/components/boot/BootSequence";
 import CanvasCursor from "@/components/interaction/CanvasCursor";
+import NoTabFocus from "@/components/interaction/NoTabFocus";
 import PaletteHost from "@/components/palette/PaletteHost";
 import { intro, linkedin } from "@/content/site";
 import { BOOT_SCRIPT } from "@/lib/boot";
@@ -164,6 +165,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <PaletteHost />
         {/* Site-wide, so the canvas cursor survives navigation. */}
         <CanvasCursor />
+        {/* Renders nothing. Refuses Tab site-wide — see the note in that file,
+            which carries what that costs. */}
+        <NoTabFocus />
         {/* Renders nothing; reports nothing unless configured. */}
         <WebVitals />
       </body>

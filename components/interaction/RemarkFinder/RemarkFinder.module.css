@@ -316,8 +316,9 @@
 
 /* The real checkbox is `srOnly`, so the ring has to be drawn here or focus is
    invisible for anyone driving this with a keyboard. */
+/* No ring — see globals.css. */
 .source:has(:focus-visible) {
-  outline: 2px solid var(--blue-bright);
+  outline: none;
   outline-offset: -2px;
 }
 
