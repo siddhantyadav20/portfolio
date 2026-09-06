@@ -71,9 +71,18 @@
      the SVG as a stencil over `currentColor` — rather than as an <img> with
      Figma's fill baked in, so all four theme from one pair of tokens.
 
-     NO LITERAL COLOURS. All three are the site's own tokens, so the transport
-     follows the theme in both states rather than being white-and-#222 with a
-     dark-mode patch bolted on.
+     TWO TOKENS, NOT THREE. There was a `--player-glyph` here, `--ink`, and it
+     is gone because nothing was left for it to paint: the glyphs are the
+     record's accent everywhere except the play button while it is playing,
+     and that one has `--player-on`. A transport drawn in the same colour as
+     the paragraph beside it read as type rather than as controls, and the
+     accent is already on this card in the rail and the filled thumb — so the
+     marks wearing it is the card agreeing with itself rather than a new
+     colour arriving.
+
+     The skips keep it while playing too. They are never on an accent disc, so
+     nothing forces them off it, and having them flip to ink the instant the
+     play button filled was a change with no cause behind it.
 
      `--player-on` is the glyph that sits ON the accent disc, and `--surface-solid`
      is exactly right for it in both themes rather than by coincidence: the
@@ -83,7 +92,6 @@
      A fixed white would be a coin toss — a pale gold sleeve gives a pale gold
      disc. It needs no dark override for the same reason. */
   --player-disc: var(--surface-solid);
-  --player-glyph: var(--ink);
   --player-on: var(--surface-solid);
 }
 
@@ -437,7 +445,7 @@ a.title:focus-visible {
   border: 0;
   border-radius: 100%;
   background-color: var(--player-disc);
-  color: var(--player-glyph);
+  color: var(--track-accent);
   cursor: pointer;
   transition:
     transform 240ms var(--spring-soft),
@@ -459,23 +467,6 @@ a.title:focus-visible {
   width: calc(36 * var(--u));
   height: calc(36 * var(--u));
   flex: none;
-}
-
-/* AT REST, THE GLYPHS ARE THE RECORD'S COLOUR, not ink.
-
-   Only the glyphs — every disc keeps the surface it already had. The three
-   marks were `--ink`, which is black on the light card and near-white on the
-   dark one, and a transport drawn in the same colour as the paragraph next to
-   it reads as type rather than as controls. The accent is already on the card
-   (the rail, the filled thumb), so this is the card agreeing with itself
-   rather than a new colour.
-
-   Paused only. The moment it plays, the play disc fills with that same accent
-   and its glyph has to go back to the card's ground to stay legible on it —
-   which is `--player-on`, and is the rule below. */
-.card:not([data-playing]) .step,
-.card:not([data-playing]) .play {
-  color: var(--track-accent);
 }
 
 .step:hover:not(:disabled),
