@@ -385,3 +385,25 @@
   background: rgba(34, 34, 34, 0.7);
   box-shadow: inset 0 0 0 1px rgba(243, 243, 243, 0.12);
 }
+
+/* --- A record ---------------------------------------------------------------
+   The live widget's sleeve is fetched (lib/discArt.ts) and this page is static,
+   so there is nothing to paint an image with — and at the board's 0.13 there is
+   nothing an album cover would say that the right shape in the right colour
+   does not. The colours are the ones `Disc.module.css` prints its own plate in,
+   so the still and the widget's own no-artwork state are the same object.
+   -------------------------------------------------------------------------- */
+
+.disc {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 48px;
+  background: linear-gradient(160deg, #ffffff, #e7e4de);
+  box-shadow: inset 0 0 0 1px rgba(34, 34, 34, 0.08);
+}
+
+:global(html[data-theme="dark"]) .disc {
+  background: linear-gradient(160deg, #262626, #1b1b1b);
+  box-shadow: inset 0 0 0 1px rgba(243, 243, 243, 0.08);
+}

@@ -156,6 +156,10 @@
 .excerpt {
   max-height: 220px;
   overflow-y: auto;
+  /* The passage keeps its own gesture: at either end the scroll stops here
+     instead of chaining out to the board, and a sideways swipe over it cannot
+     reach the browser's back-navigation. See CanvasSurface.module.css. */
+  overscroll-behavior: contain;
   padding-bottom: 12px;
   font-family: var(--font-serif);
   font-size: 16px;

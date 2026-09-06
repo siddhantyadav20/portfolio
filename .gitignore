@@ -71,3 +71,20 @@ next-env.d.ts
 # find the work, not the notes about what the work is still missing. Kept on
 # disk, kept out of the repo.
 /CONTENT-INTAKE.md
+
+# Recordings as they arrive from the sound libraries, before they are cut.
+#
+# Hundreds of megabytes of someone else's sessions — a page-turn file is thirty
+# seconds with eight turns in it, and twenty cues' worth of candidates is far
+# more than the site will ever ship. The licence covers using them in this
+# work; it does not cover republishing the libraries in a public repository.
+#
+# What ships is the cut: `scripts/build-samples.mjs` reads this folder and
+# writes a few kilobytes per cue into public/sfx. Keep the originals in a
+# backup the way the /references folder above is kept.
+/samples-src
+
+# Claude Code's per-machine permission allowlist. Local by design — it carries
+# absolute paths from whichever machine granted them. `.claude/launch.json` is
+# the shared one and stays tracked.
+.claude/settings.local.json

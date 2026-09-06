@@ -60,9 +60,23 @@ export type Widget = Placed &
         kind: "disc";
         title: string;
         artist: string;
-        cover: string;
-        /** null = the MP3 isn't in the repo yet. */
-        src: string | null;
+        /**
+         * The record on Apple's storefront, and the only thing written down
+         * about it. The sleeve and the thirty-second preview are fetched from
+         * that id at runtime (`/api/music/discs`), so neither is committed —
+         * six album PNGs and four MP3s used to be, which was 3MB of other
+         * people's records in this repository for a widget that renders them
+         * at 320px.
+         *
+         * An id rather than a name because these six are curated: looking a
+         * title up at runtime is a matching problem with real failure modes
+         * (see the header of `lib/itunes.ts`), and writing the answer down
+         * removes it entirely for the set where it can be written down.
+         *
+         * Found with `lookup?id=<this>` — the spelling of the title here is
+         * ours and does not have to agree with Apple's.
+         */
+        itunesId: number;
       }
     | {
         kind: "book";
@@ -164,12 +178,12 @@ export const widgets: readonly Widget[] = [
   { id: "sticker-rocket", kind: "sticker", cluster: "play", x: 2460, y: 300, w: 200, h: 178, rotate: 0, label: "Off to build something", art: "/media/workspace/sticker-rocket.png" , effect: "flight" },
 
   /* --- Listening. Six records, ringing the centre. ------------------------- */
-  { id: "disc-safe", kind: "disc", cluster: "listen", x: 980, y: 180, w: 320, h: 320, rotate: 10, title: "Safe and Sound", artist: "Capital Cities", cover: "/media/workspace/album-safe-and-sound.png", src: "/audio/safe-and-sound.mp3" },
-  { id: "disc-feel", kind: "disc", cluster: "listen", x: 620, y: 700, w: 320, h: 320, rotate: -7, title: "I Feel it Coming", artist: "The Weeknd", cover: "/media/workspace/album-i-feel-it-coming.png", src: "/audio/i-feel-it-coming.mp3" },
-  { id: "disc-somewhere", kind: "disc", cluster: "listen", x: 860, y: 2400, w: 320, h: 320, rotate: -6, title: "Somewhere Only We Know", artist: "Keane", cover: "/media/workspace/album-somewhere-only-we-know.png", src: "/audio/somewhere-only-we-know.mp3" },
-  { id: "disc-cantstop", kind: "disc", cluster: "listen", x: 2420, y: 1230, w: 320, h: 320, rotate: -4, title: "Can’t Stop", artist: "Red Hot Chili Peppers", cover: "/media/workspace/album-cant-stop.png", src: "/audio/cant-stop.mp3" },
-  { id: "disc-chala", kind: "disc", cluster: "listen", x: 1580, y: 690, w: 320, h: 320, rotate: -1, title: "Chala Jaata Hoon", artist: "Kishore Kumar", cover: "/media/workspace/album-chala-jaata-hoon.png", src: "/audio/chala-jaata-hoon.mp3" },
-  { id: "disc-mets", kind: "disc", cluster: "listen", x: 1860, y: 1900, w: 320, h: 320, rotate: -5, title: "Ode to the Mets", artist: "The Strokes", cover: "/media/workspace/album-ode-to-the-mets.png", src: "/audio/ode-to-the-mets.mp3" },
+  { id: "disc-safe", kind: "disc", cluster: "listen", x: 980, y: 180, w: 320, h: 320, rotate: 10, title: "Safe and Sound", artist: "Capital Cities", itunesId: 1766005715 },
+  { id: "disc-feel", kind: "disc", cluster: "listen", x: 620, y: 700, w: 320, h: 320, rotate: -7, title: "I Feel it Coming", artist: "The Weeknd", itunesId: 1440872309 },
+  { id: "disc-somewhere", kind: "disc", cluster: "listen", x: 860, y: 2400, w: 320, h: 320, rotate: -6, title: "Somewhere Only We Know", artist: "Keane", itunesId: 1440737356 },
+  { id: "disc-cantstop", kind: "disc", cluster: "listen", x: 2420, y: 1230, w: 320, h: 320, rotate: -4, title: "Can’t Stop", artist: "Red Hot Chili Peppers", itunesId: 945578427 },
+  { id: "disc-chala", kind: "disc", cluster: "listen", x: 1580, y: 690, w: 320, h: 320, rotate: -1, title: "Chala Jaata Hoon", artist: "Kishore Kumar", itunesId: 1338704397 },
+  { id: "disc-mets", kind: "disc", cluster: "listen", x: 1860, y: 1900, w: 320, h: 320, rotate: -5, title: "Ode to the Mets", artist: "The Strokes", itunesId: 1498121956 },
 
   /* --- Reading. Five books, each opening to a spread. ---------------------- */
   {

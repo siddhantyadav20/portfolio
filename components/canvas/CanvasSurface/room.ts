@@ -55,7 +55,75 @@ const SHIMMER_LEVEL = 0.22;
 const RISE = 0.42;
 const FALL = 1.25;
 
-let played = false;
+/**
+ * ONCE PER ARRIVAL, NOT ONCE PER PAGE — and that is a change of mind.
+ *
+ * This used to be a `played` boolean that was set on the first play and never
+ * reset, on the reasoning that "leaving and coming back within one page life is
+ * the same visit, and hearing the room open twice would say otherwise". That
+ * argument is defensible and it is not what it feels like: the canvas is a
+ * place you step into, and stepping into it a second time with the door opening
+ * in silence reads as the sound being broken rather than as restraint. Reported
+ * as exactly that — "it only plays once, and then refreshing it works".
+ *
+ * A timestamp instead of a flag, which is the same idiom `StoreWaitlist/won.ts`
+ * uses for the same reason. It still absorbs everything the boolean existed to
+ * absorb — the surface mounting for the route *and* the overlay, and React
+ * mounting an effect twice in development — because all of those happen inside
+ * a few milliseconds, and none of them is a second arrival.
+ */
+const RETRIGGER_MS = 1500;
+
+let lastAt = -Infinity;
+/** A resume is in flight. See `enterRoom`. */
+let opening = false;
+
+/**
+ * How long the room waits before it opens.
+ *
+ * THE SOUND HAS NOT CHANGED; WHEN IT ARRIVES HAS. Until the resume race in
+ * `enterRoom` was fixed, this cue almost never played on entry — it fell
+ * through to a listener and opened on whatever you clicked *next*, which was
+ * always well after the canvas had settled. So it was heard in a still room,
+ * and that is what made it read as arriving somewhere.
+ *
+ * Played at mount it is correct and worse: the 420ms swell runs underneath the
+ * card's 680ms morph, competing with the board flying in rather than following
+ * it. Held for this long, the rise begins as the morph lands and peaks just
+ * after — the room opening *because* you arrived, which is the thing the sound
+ * is for.
+ *
+ * Direct navigation to `/canvas` has no morph to wait for, and a third of a
+ * second of silence on a fresh page load is indistinguishable from the page
+ * settling. One number covers both.
+ */
+const SETTLE_MS = 340;
+
+/**
+ * Wait for the next real gesture, then try again.
+ *
+ * Arriving at `/canvas` directly — a shared link, a bookmark, a reload — has
+ * had no user gesture at all, and the browser is right to refuse to start an
+ * AudioContext there. This is the honest answer to that: the next pan, widget
+ * click or keypress is the first moment the room *can* be heard, and it opens
+ * then.
+ *
+ * Deliberately not "give up and mark it played": every later cue on the board
+ * would then happen in a room that never opened, which is the one thing this
+ * sound exists to prevent.
+ *
+ * `{ once: true }` on both, and each removes the other, so a page that is
+ * clicked *and* typed on cannot open the room twice.
+ */
+function openOnNextGesture() {
+  const open = () => {
+    document.removeEventListener("pointerdown", open, true);
+    document.removeEventListener("keydown", open, true);
+    enterRoom();
+  };
+  document.addEventListener("pointerdown", open, { capture: true, once: true });
+  document.addEventListener("keydown", open, { capture: true, once: true });
+}
 
 /**
  * Once per arrival.
@@ -65,9 +133,36 @@ let played = false;
  * development, and none of those are a second arrival. It is not reset on the
  * way out — leaving and coming back within one page life is the same visit,
  * and hearing the room open twice would say otherwise.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY THIS DID NOT PLAY MOST OF THE TIME, AND WHAT CHANGED.
+ *
+ * `wake()` is fire-and-forget by design: it calls `ctx.resume()` and does not
+ * await it, because every other cue on the site schedules its sound
+ * immediately afterwards and trusts the resume to land well before the
+ * scheduled `currentTime` arrives. That works, and `needle`, `chime`, `jet` and
+ * `won` all rely on it.
+ *
+ * This function alone then asked `ctx.state !== "running"` on the very next
+ * line — and a freshly created context starts suspended, so that question was
+ * being asked *while the resume it depends on was still a pending promise*. It
+ * lost that race essentially every time. Clicking the canvas card is a real
+ * gesture and would have been honoured, but the check ran several ticks later
+ * (an awaited `loadSurface()`, `flushSync` inside `startViewTransition`, then
+ * React's effect flush), saw "suspended", and quietly deferred to the
+ * next-gesture path below. So the room only opened if you happened to click or
+ * type *again* once you were inside it — and if you only looked around with
+ * the pointer, it never opened at all, for the rest of the page's life.
+ *
+ * The fix is to wait for the answer instead of guessing it. `resume()` settles
+ * either way: it resolves once the context is running, and rejects when the
+ * browser genuinely has no gesture to work with — which is the direct-navigation
+ * case the gesture listener was written for, and the only case that should now
+ * reach it.
  */
 export function enterRoom() {
-  if (played || prefersQuiet()) return;
+  if (opening || prefersQuiet()) return;
+  if (Date.now() - lastAt < RETRIGGER_MS) return;
 
   const voice = acquire();
   if (!voice) return;
@@ -76,39 +171,43 @@ export function enterRoom() {
 
   const { ctx } = voice;
 
-  /* Not yet, and not never.
-   *
-   * Arriving by clicking the card carries that click's permission through the
-   * route change and this plays immediately. Arriving at `/canvas` directly —
-   * a shared link, a bookmark, a reload — has had no gesture at all, and the
-   * browser refuses to start the context.
-   *
-   * The first version treated that as a miss and set `played` anyway, on the
-   * argument that a room opening late is worse than one that never opened. It
-   * is worse than that: every later cue on the board then happens in a room
-   * that never opened, which is the one thing this sound exists to prevent.
-   *
-   * So it waits instead. The next real gesture — a pan, a click on any widget,
-   * a key — is the moment the room can be heard, and it opens then. Bound once
-   * on `pointerdown` and `keydown`, `{ once: true }` on both, and each removes
-   * the other so a page that is clicked *and* typed on cannot open twice. */
-  if (ctx.state !== "running") {
-    const open = () => {
-      document.removeEventListener("pointerdown", open, true);
-      document.removeEventListener("keydown", open, true);
-      // Re-entered rather than continued: the context has to be resumed by the
-      // gesture before any of the scheduling below is worth doing, and `wake`
-      // is what does that.
-      enterRoom();
-    };
-    document.addEventListener("pointerdown", open, { capture: true, once: true });
-    document.addEventListener("keydown", open, { capture: true, once: true });
+  if (ctx.state === "running") {
+    play(voice);
     return;
   }
 
-  played = true;
+  /* `opening` holds the door: this is the one path that awaits, and without it
+     two mounts in the same tick would both get past the retrigger guard (which
+     is only stamped when the sound is actually scheduled) and open the room
+     twice. */
+  opening = true;
+  ctx.resume().then(
+    () => {
+      opening = false;
+      if (ctx.state === "running") play(voice);
+      else openOnNextGesture();
+    },
+    () => {
+      opening = false;
+      openOnNextGesture();
+    },
+  );
+}
 
-  const t = ctx.currentTime + 0.02;
+/** The room itself. Only ever reached with a running context. */
+function play(voice: NonNullable<ReturnType<typeof acquire>>) {
+  const { ctx } = voice;
+  lastAt = Date.now();
+
+  /* Re-armed, because the wait below is long enough to matter. `wake()` sets a
+     timer to suspend the shared context after a couple of seconds of silence,
+     and it was armed when `enterRoom` ran — so a 340ms hold plus a 1.7s swell
+     would finish with almost nothing to spare, and a slow resume would have the
+     context suspended out from under the tail. This pushes that timer out past
+     the whole cue. */
+  voice.wake();
+
+  const t = ctx.currentTime + 0.02 + SETTLE_MS / 1000;
   const life = RISE + FALL;
 
   const master = ctx.createGain();

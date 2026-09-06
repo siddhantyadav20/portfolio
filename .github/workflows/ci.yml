@@ -57,7 +57,7 @@ jobs:
       # deploy, and it is the one thing nobody runs locally before pushing.
       - run: npm run build
         env:
-          NEXT_PUBLIC_SITE_URL: https://siddhantyadav.com
+          NEXT_PUBLIC_SITE_URL: https://sidbuilds.in
 
       # Real-user vitals (app/vitals.tsx) report a regression after strangers
       # have paid for it. This is the half that stops one: the homepage's JS

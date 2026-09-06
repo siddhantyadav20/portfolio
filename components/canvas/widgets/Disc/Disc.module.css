@@ -71,6 +71,10 @@
 
 .centreLabel {
   z-index: 1;
+  /* Sits under the sleeve until the vinyl slides out, and carries the artwork
+     when there is any. Its own fill shows through when there is not, which is
+     a blank label on a record — which is what a record with no sleeve art is. */
+  background-color: var(--disc-spindle);
   display: grid;
   place-items: center;
   width: 38%;
@@ -89,14 +93,85 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
+/* --- The sleeve ------------------------------------------------------------
+   Two layers. The artwork is fetched rather than committed (lib/discArt.ts),
+   so there is a moment — and, with no network, forever — when there is none.
+   What sits underneath is not a placeholder: it is the record's name printed
+   on card stock, which is a thing rather than an absence. `Still.tsx` was
+   written because grey rectangles made the board read as half-loaded; the same
+   argument applies to the board itself.
+   -------------------------------------------------------------------------- */
+
 .sleeve {
   position: absolute;
   inset: 0;
   z-index: 2;
   border-radius: 48px;
   background-color: var(--disc-sleeve);
+  overflow: hidden;
+}
+
+.plate {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 18%;
+  text-align: center;
+  /* The board's own printed-label pair, already used by the tooltip and the
+     stop button — so a sleeve with no artwork is the same material as the rest
+     of the record's chrome rather than a new colour invented for the gap. */
+  color: var(--disc-on-plate);
+  background:
+    linear-gradient(
+      160deg,
+      rgb(from var(--disc-on-plate) r g b / 0.06),
+      transparent 60%
+    ),
+    var(--disc-plate);
+}
+
+.plateSong {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1.2;
+  /* The board is panned and zoomed; a long title has to wrap rather than
+     spill out of a 320px square. */
+  overflow-wrap: anywhere;
+}
+
+.plateArtist {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: var(--lh);
+  opacity: 0.6;
+}
+
+.sleeveArt {
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center;
+  /* Mounted only once the URL exists, so this runs on arrival. Slow enough to
+     read as the sleeve being placed on the plate rather than as a repaint. */
+  animation: sleeve-in 320ms ease forwards;
+}
+
+@keyframes sleeve-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sleeveArt {
+    animation: none;
+  }
 }
 
 /* --- Tooltip --------------------------------------------------------------
@@ -161,6 +236,7 @@
 
 .npCover {
   flex: none;
+  background-color: var(--disc-sleeve);
   width: 44px;
   height: 44px;
   border-radius: 10px;

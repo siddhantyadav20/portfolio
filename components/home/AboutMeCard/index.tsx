@@ -440,7 +440,7 @@ export default function AboutMeCard() {
       ...MODAL_ASSETS.map(warm),
       new Promise((r) => window.setTimeout(r, GATHER_LEAD)),
     ]);
-    morph(() => setOpen(true));
+    morph(() => setOpen(true), undefined, PORTRAIT_MORPH);
   }, []);
 
   const close = useCallback(() => {
@@ -449,7 +449,7 @@ export default function AboutMeCard() {
     const release = () => orbitRef.current?.lock(false);
 
     if (canMorph()) {
-      morph(() => setOpen(false), release);
+      morph(() => setOpen(false), release, PORTRAIT_MORPH);
       return;
     }
     // No morph to play, so the modal has to animate itself out — otherwise
@@ -472,6 +472,17 @@ export default function AboutMeCard() {
           data-card="about"
           static
           className={styles.card}
+          /* The whole card, handed over to the modal's plate — see
+             ModalSurface's `morphName`. Released while the modal owns it: two
+             live elements sharing one name aborts the transition for both.
+
+             Safe despite the orbiting tool pills, which are siblings of this
+             shell and would be left behind by a snapshot of it: `openAbout`
+             gathers them first and waits `GATHER_LEAD` before starting the
+             morph, so by the time the browser captures anything they are back
+             inside the portrait. That gather was already there for its own
+             reasons; it is what makes naming the card free. */
+          style={open ? undefined : { viewTransitionName: PORTRAIT_MORPH }}
           onPointerEnter={() => {
             orbitRef.current?.set(true);
             // The moment before a click: decode the modal's portrait now so the
@@ -483,12 +494,12 @@ export default function AboutMeCard() {
           aria-label="About me — read more"
         >
           <span ref={photoRef} className={styles.photo}>
-            {/* Released the moment the modal owns the name: two live elements
-                sharing one abort the transition. */}
-            <span
-              className={styles.portrait}
-              style={open ? undefined : { viewTransitionName: PORTRAIT_MORPH }}
-            >
+            {/* No longer named. This is a 32px portrait, and morphing it into
+                a full-screen reader was the smallest shared element on the
+                site and the one that read worst — an icon inflating while the
+                page changed behind it. The card itself carries the name now
+                (on the CardShell above), so what travels is the card. */}
+            <span className={styles.portrait}>
               <Image src="/media/portrait.png" alt="" width={32} height={32} />
             </span>
           </span>

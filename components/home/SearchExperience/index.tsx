@@ -91,6 +91,17 @@ export default function SearchExperience() {
         radius={48}
         className={styles.card}
         data-card="search"
+        /* The whole card, not the instrument inside it. See the long note on
+           the Design System card, which this file's own comment used to argue
+           the other way: a named *child* escapes the card's clip, but the card
+           carries its own and snapshots itself already clipped. Naming the
+           stage is what made the transition read as a panel being swapped
+           while the title and chip cross-faded on a separate clock. */
+        style={
+          open || !live || !study.hero
+            ? undefined
+            : { viewTransitionName: study.hero.morphName }
+        }
         /* The glass "View Project" disc, the same one the other two study cards
            wear. `CanvasCursor` drops back to the plain arrow over anything
            inside here that is its own click target — the field, the library
@@ -149,14 +160,7 @@ export default function SearchExperience() {
 
             Released while the modal owns the name: two live elements sharing
             one aborts the transition for both. */}
-        <div
-          className={styles.stage}
-          style={
-            open || !live || !study.hero
-              ? undefined
-              : { viewTransitionName: study.hero.morphName }
-          }
-        >
+        <div className={styles.stage}>
           <RemarkFinder cue="hover" track={cardRef} />
         </div>
 

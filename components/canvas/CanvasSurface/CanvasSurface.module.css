@@ -33,6 +33,33 @@
      only pans sideways. */
   touch-action: none;
 
+  /* THE BACK-SWIPE, AND WHY THE RULE ON `html` WAS NOT ENOUGH.
+
+     Two fingers travelling right is how you pan a canvas left, and on macOS it
+     is also how you go back a page. There are already two defences against
+     that and this is the one that was missing:
+
+       1. `onWheel` in index.tsx calls preventDefault on everything it sees.
+          It runs too late — Chrome's compositor decides a swipe is a
+          navigation before the first event reaches JS.
+       2. `html[data-canvas] { overscroll-behavior: none }` in globals.css.
+          It is on the wrong element. Overscroll chaining starts at the
+          innermost scroll container under the pointer and walks *outward*,
+          and `overflow: hidden` above makes THIS element a scroll container —
+          one that can never scroll, so every gesture on the board overscrolls
+          it immediately. At `auto` it handed the gesture straight up the
+          chain, and the rule on the root never got the chance the comment in
+          index.tsx assumed it would.
+
+     So the chain has to be stopped where it starts. Declared here, on the
+     scroller the gesture actually begins in, and independently of JS timing,
+     which is what makes it hold when the compositor moves first.
+
+     The two nested scrollers on the board — the terminal's log and the book's
+     spread — carry their own for the same reason, and `tests/overscroll.test.ts`
+     fails the build if a new one arrives without one. */
+  overscroll-behavior: none;
+
   /* The pointer is a custom element (see CanvasCursor) and `cursor: none` is
      global, so grab / grabbing states cannot be expressed here — they are a
      CanvasCursor variant, and are wired up with the rest of the chrome. */

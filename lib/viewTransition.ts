@@ -80,17 +80,47 @@ export function canMorph() {
 }
 
 /**
+ * A skipped transition rejects rather than resolving, and the browser skips for
+ * reasons that are none of our business and not worth an error: the tab being
+ * hidden at the moment of the click, a second transition starting on top of
+ * this one. The DOM update runs either way — `startViewTransition` always
+ * invokes the callback — so a skip costs the animation and nothing else.
+ */
+/**
+ * Marks which morph is in flight, on `<html>`, for the whole transition.
+ *
+ * WHY THIS EXISTS. A `view-transition-name` makes an element a group in the
+ * transition tree, and groups at the same `z-index` paint in *tree* order —
+ * which is the order they were captured, which is DOM order. The homepage has
+ * five named cards and they all stay named while a modal is open, because the
+ * page underneath stays mounted. So every card that happens to sit later in
+ * the DOM than the one you clicked was painting **on top of the modal** for the
+ * length of the transition: open the Inspection card (first in the band) and
+ * all four others covered it; open About (last) and none did. That is the
+ * reported "sometimes other elements show up on top of it", and it is exactly
+ * the kind of bug that looks intermittent and is not.
+ *
+ * Ordering by hand is the only fix — a card that is not participating must not
+ * be able to outrank the surface that is. CSS cannot tell which of the five
+ * names is the live one, so this says so: `globals.css` gives every card name a
+ * low z-index and lifts only the one named here. See "View transitions" there.
+ */
+const MORPH_ATTR = "data-morph";
+
+/**
  * Runs `update` as a view transition, and swallows the transition's own
  * rejections.
  *
- * A skipped transition rejects rather than resolving, and the browser skips
- * for reasons that are none of our business and not worth an error: the tab
- * being hidden at the moment of the click, a second transition starting on top
- * of this one. The DOM update runs either way — `startViewTransition` always
- * invokes the callback — so a skip costs the animation and nothing else, which
- * is exactly what it should cost.
+ * `name` is the `view-transition-name` this transition is *about* — the card
+ * that is opening, or the surface that is closing back into one. Optional: a
+ * modal with no card behind it (the colophon) passes nothing and is ordered by
+ * `modal-plate` as it always was.
  */
-export function morph(update: () => void, settled?: () => void) {
+export function morph(
+  update: () => void,
+  settled?: () => void,
+  name?: string,
+) {
   /* The homepage smooths its own scrolling, and a rAF loop writing `scrollTo`
      under a snapshot is writing to a document nobody is looking at — the
      position it lands on is the one the new view inherits, so a glide still in
@@ -100,6 +130,12 @@ export function morph(update: () => void, settled?: () => void) {
      card on the site and has no business knowing whether a scroll library is
      mounted. Nothing listening is the normal case — every route but one. */
   window.dispatchEvent(new Event(SCROLL_PAUSE));
+
+  /* Set before `startViewTransition`, so it is already in place when the
+     browser builds the pseudo tree and reads its styles. Cleared in the same
+     `finally` as everything else below, which covers a skipped transition —
+     leaving it set would leave one card permanently outranking the others. */
+  if (name) document.documentElement.setAttribute(MORPH_ATTR, name);
 
   // flushSync so the DOM is already updated when the browser takes its "after"
   // snapshot — startViewTransition captures synchronously.
@@ -113,6 +149,14 @@ export function morph(update: () => void, settled?: () => void) {
   transition.finished
     .catch(() => {})
     .finally(() => {
+      /* Only if it is still ours. Opening and closing quickly enough to overlap
+         means the second transition has already written its own name here, and
+         a bare `removeAttribute` would clear the live one and drop that card
+         back under its bystanders — the very bug this attribute exists to
+         stop, reintroduced on a double-click. */
+      if (name && document.documentElement.getAttribute(MORPH_ATTR) === name) {
+        document.documentElement.removeAttribute(MORPH_ATTR);
+      }
       window.dispatchEvent(new Event(SCROLL_RESUME));
       settled?.();
     });

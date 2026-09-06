@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { STUDIES } from "@/content/work";
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://siddhantyadav.com";
+import { siteOrigin } from "@/lib/origin";
 
 /**
  * Every page worth indexing, generated from the same registry the routes are.
@@ -12,6 +11,8 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://siddhantyadav.com";
  * one page that is hardest to describe in words is also the one nobody can
  * find.
  */
+const SITE = siteOrigin();
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 

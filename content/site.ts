@@ -187,12 +187,24 @@ export const about = {
    * element too, which is what lets a browser pick the right face and a screen
    * reader the right voice.
    *
-   * English first, and that is load-bearing: it is what the page renders
-   * before the cycle starts and what a reduced-motion visitor keeps.
+   * HINDI FIRST, AND THAT POSITION IS LOAD-BEARING. The first entry is what
+   * the page renders before the cycle starts, what a reduced-motion visitor
+   * keeps permanently, and what the button's `aria-label` announces — so it is
+   * the greeting for everyone who never sees the animation. It was English;
+   * it is Siddhant's own language now, by request.
+   *
+   * The order runs outward from there: the languages of the country he is in,
+   * then the two he'd use anywhere else. Every script but Latin needs a face of
+   * its own — see `app/fonts-indic.ts` — and a matching `:lang()` rule in
+   * AboutModal.module.css, or the word falls through to whatever the platform
+   * keeps for that script. Adding a language means all three.
    */
   greetings: [
-    { lang: "en", word: "Hello" },
     { lang: "hi", word: "नमस्ते" },
+    { lang: "bn", word: "নমস্কার" },
+    { lang: "ta", word: "வணக்கம்" },
+    { lang: "te", word: "నమస్కారం" },
+    { lang: "en", word: "Hello" },
     { lang: "es", word: "Hola" },
   ],
 
@@ -605,14 +617,6 @@ export const store = {
     title: "Thanks for enrolling",
     subtitle: "You just gave me motivation to ship it faster :)",
 
-    /**
-     * The celebration, exported from Figma as-is (node 302:10059). 2.1MB, so it
-     * is never part of the page load: nothing requests it until the visitor
-     * opens the pill, and nothing renders it until they have actually joined.
-     */
-    art: "/media/waitlist-success.gif",
-    artWidth: 146,
-    artHeight: 109,
   },
 
   /**
@@ -629,52 +633,36 @@ export const store = {
 } as const;
 
 /**
- * Music player. Figma's component set (node 80:7658) is eight variants — four
- * tracks, each paused and playing — so the four tracks live here and the two
- * states are the component's own.
+ * Music card. Figma nodes 1011:10190 (paused) and 1011:10336 (playing).
  *
- * The files come from `references/music player/`. They are streamed, never
- * preloaded, so nothing is fetched until someone presses play.
+ * There is almost nothing here any more, and that is the point. The card used
+ * to carry four hard-coded songs with a 25-second excerpt and a sleeve
+ * committed for each — 4.8MB of other people's records in this repository, and
+ * a card that claimed to be "listening to" the same four things it had been
+ * listening to since August.
  *
- * What ships is a 25-second excerpt of each, not the record. Eight complete
- * commercial recordings in `public/` was 35MB and a licensing posture nobody
- * would defend; the card only ever needed enough of a track to say what it is.
- * See `scripts/trim-audio.mjs`, which cuts them losslessly at frame boundaries
- * and can be re-run to move where a preview opens.
- *
- * `duration` is the fallback clock only — the length of the excerpt, but the
- * player prefers the decoded `duration` once the browser reports one, so these
- * never have to be exact. A track with `src: null` still works: the transport
- * runs on this number instead.
+ * It now reads Last.fm for what was actually played and Apple's iTunes Search
+ * API for the artwork and the thirty-second preview, neither of which is
+ * stored. See `lib/nowPlaying.ts`. What is left in this file is the copy: the
+ * label, and what the card says on the days when neither of those answers.
  */
 export const music = {
   label: "Listening to",
-  tracks: [
-    {
-      title: "Ode to the Mets",
-      cover: "/media/track-ode-to-the-mets.jpg",
-      src: "/audio/ode-to-the-mets.mp3" as MaybeHref,
-      duration: 25,
-    },
-    {
-      title: "I Feel it Coming",
-      cover: "/media/track-i-feel-it-coming.png",
-      src: "/audio/i-feel-it-coming.mp3" as MaybeHref,
-      duration: 25,
-    },
-    {
-      title: "Read my Mind",
-      cover: "/media/track-read-my-mind.jpg",
-      src: "/audio/read-my-mind.mp3" as MaybeHref,
-      duration: 25,
-    },
-    {
-      title: "Wavin’ Flag",
-      cover: "/media/track-wavin-flag.jpg",
-      src: "/audio/wavin-flag.mp3" as MaybeHref,
-      duration: 25,
-    },
-  ],
+
+  /**
+   * With no Last.fm key, no network, or nothing scrobbled yet.
+   *
+   * Deliberately not a plausible-looking song. A fallback that names a real
+   * track is a fourth place this site disagrees with itself, and the reader
+   * has no way to tell it apart from the truth — the same reasoning that keeps
+   * a study's like count at an em dash rather than a zero when the store is
+   * unreachable. An obvious gap beats a convincing fake.
+   */
+  unavailable: {
+    title: "Nothing playing",
+    artist: "The turntable is between records",
+    cover: "/media/track-unavailable.png",
+  },
 } as const;
 
 export const linkedin = {
@@ -692,6 +680,63 @@ export const linkedin = {
   ] as const,
   cta: "Let’s Connect",
   href: "https://www.linkedin.com/in/siddhant-yadav-9942021b2/",
+} as const;
+
+/**
+ * The Fantasy card — Figma 952:8828.
+ *
+ * THIS IS THE FALLBACK, NOT THE CARD. `lib/fantasy.ts` reads the fixture list
+ * and Siddhant's gameweek history off the public FPL API and only lands here
+ * when it cannot — the API is down, the build is offline, or `FPL_ENTRY_ID` is
+ * unset. So these are the values the card shipped with, kept as the thing it
+ * degrades to rather than as the thing it shows.
+ *
+ * Clubs are named by the FPL API's own `short_name`, which is what makes this
+ * object the same shape as a live one: `lib/clubs.ts` turns that key into both
+ * the crest path and the pair of club colours, so a fallback card and a live
+ * card cannot drift apart. The two hand-written hexes that used to sit here
+ * are gone for exactly that reason.
+ *
+ * WHAT THE CARD DERIVES RATHER THAN STORES: the first entry in `points` is the
+ * current gameweek — the one that gets the "GW" prefix and the full ink. A
+ * live feed only has to keep the list newest-first.
+ */
+export const fantasy = {
+  fixture: {
+    home: { short: "MUN", name: "Man Utd" },
+    away: { short: "MCI", name: "Man City" },
+    /** The fixture as drawn. Null would render a card with no kickoff line. */
+    kickoff: "2026-09-13T15:30:00Z",
+  },
+
+  /** Oldest first — the order the season chart draws them in. */
+  points: [
+    { gw: 1, score: 73 },
+    { gw: 2, score: 86 },
+    { gw: 3, score: 64 },
+  ],
+} as const;
+
+/** The card's fixed copy — the two eyebrows, and what each fixture state says
+ *  in place of "Watching next". Drawn in caps where the design draws caps; the
+ *  strings stay sentence case so the copy file reads as copy. */
+export const fantasyCopy = {
+  upcoming: "Watching next",
+  live: "Live",
+  finished: "Full time",
+  points: "Fantasy points",
+  /** Suffix on the overall rank, e.g. "1.2m OR". */
+  rank: "OR",
+  /**
+   * Why this match and not one of the other nine.
+   *
+   * `{n}` is how many of his own players are on the pitch — the card fills it
+   * in and drops the line entirely when the answer is none, rather than
+   * printing a zero. Singular exists because "1 of your players" would be the
+   * kind of detail that makes a real number look generated.
+   */
+  players: "{n} of your players",
+  playersOne: "1 of your players",
 } as const;
 
 export const footer = {

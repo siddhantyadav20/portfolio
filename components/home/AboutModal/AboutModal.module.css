@@ -196,7 +196,14 @@
   font: inherit;
   letter-spacing: inherit;
   color: inherit;
+  /* One line box, so the caret and the comma stay glued to the word on a shared
+     baseline. The cost is that a long word cannot reflow — and the list is no
+     longer three short Latin words but six, four of them in scripts whose
+     glyphs are wider. `min-width: 0` lets this shrink inside the grid column
+     rather than pushing past it, which is what a non-wrapping box in a
+     `minmax(0, 1fr)` track would otherwise do. */
   white-space: nowrap;
+  min-width: 0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -258,6 +265,37 @@
    added. */
 .greetingWord:lang(hi) {
   font-family: var(--font-devanagari), var(--font-display), serif;
+  font-size: 0.92em;
+  letter-spacing: 0;
+}
+
+/* The other three Indian scripts, each with its own face — see
+   `app/fonts-indic.ts`. There is no shared "Indic" font: Bengali, Tamil and
+   Telugu are unrelated writing systems, so this is three rules rather than one
+   selector list with one family in it.
+
+   They share Devanagari's two adjustments for the same reasons. The optical
+   step down, because all four faces run larger on the body than Canela does at
+   a given size and a 48px greeting is exactly where that shows; and
+   `letter-spacing: 0`, because the display line carries negative tracking that
+   is drawn for Latin — applied to a script whose letters *join*, it pulls
+   conjuncts apart. Tamil sits a touch larger than the rest: its letterforms
+   are rounder and more open, so at 0.92 it reads a size smaller than its
+   neighbours rather than the same size. */
+.greetingWord:lang(bn) {
+  font-family: var(--font-bengali), var(--font-display), serif;
+  font-size: 0.92em;
+  letter-spacing: 0;
+}
+
+.greetingWord:lang(ta) {
+  font-family: var(--font-tamil), var(--font-display), serif;
+  font-size: 0.95em;
+  letter-spacing: 0;
+}
+
+.greetingWord:lang(te) {
+  font-family: var(--font-telugu), var(--font-display), serif;
   font-size: 0.92em;
   letter-spacing: 0;
 }

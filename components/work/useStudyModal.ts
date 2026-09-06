@@ -49,12 +49,12 @@ export function useStudyModal(study: CaseStudy, live = true) {
     if (study.hero && study.hero.kind !== "live") {
       await warm(heroStill(study.hero).src);
     }
-    morph(update);
+    morph(update, undefined, study.hero?.morphName);
   }, [study.hero, load, setModal]);
 
   const close = useCallback(() => {
     if (canMorph()) {
-      morph(() => setOpen(false));
+      morph(() => setOpen(false), undefined, study.hero?.morphName);
       return;
     }
     // No morph to play, so the modal animates itself out — otherwise closing

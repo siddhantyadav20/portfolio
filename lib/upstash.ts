@@ -139,6 +139,48 @@ export async function redis(
   });
 }
 
+export type Limit = { over: boolean; retryAfter: number };
+
+/**
+ * A fixed-window counter: has `key` been hit more than `max` times in the last
+ * `windowSeconds`?
+ *
+ * `EXPIRE ... NX` rather than a plain `EXPIRE`, so the window starts at the
+ * first hit and actually ends, instead of sliding forward with every request
+ * and never resetting.
+ *
+ * The `TTL` check afterwards looks like belt and braces and is not. `redis()`
+ * turns a failed command into a `null` rather than throwing the batch away, so
+ * an `EXPIRE` that did not land would leave a counter with no expiry — and a
+ * visitor locked out permanently, with no way to notice from outside. Repair
+ * it rather than trust it.
+ *
+ * `lib/engagementStore.ts` has an older private copy of this, keyed to a study
+ * slug. This one is the general form; that one is left where it is rather than
+ * rewritten under a feature that has nothing to do with comments.
+ */
+export async function overLimit(
+  key: string,
+  max: number,
+  windowSeconds: number,
+): Promise<Limit> {
+  const [hits, , ttl] = await redis(
+    ["INCR", key],
+    ["EXPIRE", key, windowSeconds, "NX"],
+    ["TTL", key],
+  );
+
+  const over = asCount(hits) > max;
+  const left = Number(ttl);
+
+  if (Number.isFinite(left) && left < 0) {
+    await redis(["EXPIRE", key, windowSeconds]);
+    return { over, retryAfter: windowSeconds };
+  }
+
+  return { over, retryAfter: over ? Math.max(1, left) : 0 };
+}
+
 /** Upstash returns integers as numbers or as strings depending on the command. */
 export function asCount(value: unknown): number {
   const n = typeof value === "string" ? Number.parseInt(value, 10) : Number(value);

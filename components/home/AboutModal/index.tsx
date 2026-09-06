@@ -98,6 +98,9 @@ export default function AboutModal({ open, closing = false, onClose }: Props) {
       label="About Siddhant"
       selectionTint="green"
       actions={<ThemeToggle />}
+      /* The About card's own name. It used to be the 32px portrait at both
+         ends — the smallest morph on the site, and the one that read worst. */
+      morphName={PORTRAIT_MORPH}
     >
       <article className={styles.page}>
         {/* --- The opening ------------------------------------------------- */}
@@ -290,7 +293,9 @@ function Dissect({
         type="button"
         ref={ref}
         className={styles.portrait}
-        style={{ viewTransitionName: PORTRAIT_MORPH }}
+        /* No longer named: the whole plate carries the card's name now, and
+           this portrait is inside that snapshot. Two live elements sharing one
+           name aborts the transition for both. */
         data-open={open ? "" : undefined}
         aria-pressed={open}
         onClick={onToggle}

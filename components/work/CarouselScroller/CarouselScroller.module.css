@@ -12,11 +12,23 @@
 
 /* With arrows the scroller is the whole width of its column and everything in
    it is centred: an arrow, 24px, the counter and its dots, 24px, an arrow.
-   Figma 798:884. */
+   Figma 798:884.
+
+   THE HEIGHT IS THE COUNTER'S, NOT THE ARROWS'.
+
+   It was 33 — the arrow discs' own size — and that is what put the "1/2" seven
+   pixels lower than it looks like it should be. Whatever this row sits under
+   measures its 16px gap to the row's *box*, and a 20px counter centred in a
+   33px box then starts 6.5px further down again; the space reads as 23. (See
+   `.next` in StudyEnd.module.css, which is the caller that showed it.)
+
+   At 20 the row is exactly the counter, so the gap above it is the gap to the
+   glyph, and the discs overhang it by 6.5 either side — see `.arrow`, which
+   keeps its full 33px target. */
 .scroller[data-arrows] {
   gap: 24px;
   width: 100%;
-  height: 33px;
+  height: 20px;
   padding: 0 64px;
 }
 
@@ -35,6 +47,15 @@
   flex: none;
   width: 33px;
   height: 33px;
+  /* The row is the counter's 20px (see above), so these overhang it by 6.5
+     top and bottom. Stated as a negative margin rather than left to overflow
+     so the row's own box is what it says it is: without it a flex item taller
+     than an explicit height still contributes to the line box in some engines,
+     and the 20 would quietly become 33 again.
+
+     The disc keeps its full 33px, which is the point — this moves the row's
+     measured edge, not the target you have to hit. */
+  margin-block: -6.5px;
   padding: 0;
   border: none;
   border-radius: var(--r-pill);

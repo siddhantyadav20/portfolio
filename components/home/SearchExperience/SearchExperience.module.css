@@ -10,6 +10,26 @@
   flex: none;
 }
 
+/* On the bento, the drawn 626 becomes a floor and the track decides the rest.
+
+   `.search` is stretched across the grid's `1fr` row so that column 3 ends
+   level with the other two (see app/page.module.css); this is what passes that
+   height through to the card instead of leaving it standing at 626 with the
+   slack underneath it. The instrument inside runs `top: 169` to `bottom: 24`,
+   so every pixel gained lands in the results scroller.
+
+   Guarded by the query rather than written into the rule above, because below
+   700 `.search` is a plain block in a single column: there is no stretched
+   parent for a percentage to resolve against, and `height: 100%` there would
+   compute to `auto` and collapse a card whose contents are all absolutely
+   positioned. */
+@media (width >= 700px) {
+  .card {
+    height: 100%;
+    min-height: calc(626 * var(--u));
+  }
+}
+
 /* Figma 869:5895 — 346 wide now rather than 241. The redesign gave the card a
    third line ("Search library without digging through categories") and it is
    the widest thing in the block; at the old width it wrapped to two and pushed

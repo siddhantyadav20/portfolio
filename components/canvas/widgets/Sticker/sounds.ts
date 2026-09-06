@@ -28,7 +28,7 @@
    jump is a failure however well synthesised.
    =========================================================================== */
 
-import { acquire, burst, prefersQuiet, stage } from "@/lib/sound";
+import { acquire, burst, prefersQuiet, resonator, stage } from "@/lib/sound";
 import { shaped } from "@/lib/voices";
 
 export type StickerEffect = "flight" | "bicycle" | "recoil" | "hadouken";
@@ -91,7 +91,14 @@ function swell(
  *  jump is a failure. True, but it went too far: at 0.075, filtered on every
  *  layer, there was never a moment of full-spectrum energy, and full-spectrum
  *  energy is the entire signature of a gunshot. What was left was a pop. */
-const RIFLE_PEAK = 0.11;
+/* RAISED, and the note it replaces argued the other way: the rifle was made the
+   quietest of the four on the reasoning that "a sharp attack reads far louder
+   than its amplitude and a gunshot that makes someone jump is a failure". The
+   attack was then 1.5ms, so it was not actually sharp — the cue was quiet *and*
+   soft, which is why it read as a pop rather than a shot. With a genuine
+   transient on it (see `rifle`), it can carry the level a gunshot needs and
+   still sit under every other cue's peak on the board. */
+const RIFLE_PEAK = 0.16;
 
 /**
  * A rifle, third attempt.
@@ -113,44 +120,64 @@ const RIFLE_PEAK = 0.11;
  *          nowhere; with it there is a building around the sticker.
  */
 function rifle(ctx: AudioContext, out: AudioNode, t: number) {
-  // 0. The blast. No filter — this is the part that was always missing.
+  /* 1. THE REPORT. Instant — `shaped` ramps to level over 1.5ms, which is
+        66Hz of rise time and rounds a crack into a "shh". A gunshot's peak is
+        its first sample; everything after it is the room. `attack: 0` is the
+        single most important number in this function.
+
+        White, because the crack itself is a shock front and has no tilt. The
+        tilt arrives in the body below. */
   shaped(ctx, out, t, {
-    seconds: 0.002,
+    seconds: 0.004,
     level: 1,
     type: "allpass",
-    hz: 1000,
-    drive: 12,
+    hz: 1200,
+    drive: 16,
+    attack: 0,
   });
 
-  // 1. The crack over the top.
+  /* 2. THE BODY, and it is brown rather than white. A muzzle blast is weighted
+        low — most of its energy is under a kilohertz — and white noise through
+        a lowpass is a filtered hiss rather than a blast, which is what this
+        layer used to be. The colour puts the weight in the source. */
   shaped(ctx, out, t + 0.001, {
-    seconds: 0.014,
-    level: 0.8,
-    type: "highpass",
-    hz: 3200,
-    drive: 8,
-  });
-
-  // 2. The body, falling off a cliff.
-  shaped(ctx, out, t + 0.002, {
-    seconds: 0.075,
-    level: 0.75,
+    seconds: 0.055,
+    level: 0.7,
     type: "lowpass",
-    hz: [6000, 180],
-    drive: 4,
+    hz: [2600, 380],
+    drive: 6,
+    colour: "brown",
+    attack: 0.0004,
   });
 
-  // The action working. This is what says "rifle" rather than "bang".
-  swell(ctx, out, { at: t + 0.006, seconds: 0.07, level: 0.55, from: 92, to: 48 });
+  /* 3. The thump you feel rather than hear. */
+  swell(ctx, out, { at: t + 0.002, seconds: 0.085, level: 0.55, from: 118, to: 46 });
 
-  // 3. The room answering, a beat late and dark.
+  /* 4. THE MECHANISM, which is what makes it a rifle and not a firework. A gun
+        is a machine: the bolt carrier slams a fraction of a beat behind the
+        report, and that metallic knock is most of what a listener identifies
+        as "gun". Nothing here had one — the cue was a blast in open air.
+        A short high crack through a resonator, so it rings like a part rather
+        than clicking like a UI. */
+  shaped(ctx, resonator(ctx, out, { hz: 2400, q: 12, level: 0.5 }), t + 0.026, {
+    seconds: 0.03,
+    level: 0.5,
+    type: "highpass",
+    hz: 1400,
+    drive: 5,
+    attack: 0,
+  });
+
+  /* 5. The room answering. Brown for the same reason as the body: a tail is
+        the low half of the blast coming back, not a hiss dying away. */
   burst(ctx, out, {
     at: t + 0.035,
-    seconds: 0.3,
-    level: 0.2,
+    seconds: 0.32,
+    level: 0.22,
     type: "lowpass",
-    hz: [1300, 320],
+    hz: [1100, 300],
     attack: 0.025,
+    colour: "brown",
   });
 }
 

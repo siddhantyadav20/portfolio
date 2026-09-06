@@ -1,4 +1,4 @@
-# siddhantyadav.com
+# sidbuilds.in
 
 Personal portfolio for Siddhant Yadav, Product Designer. A single interactive
 homepage rather than a Home/Work/About/Contact site, plus three case-study
@@ -37,13 +37,8 @@ ones.
 
 All five checks run on push — see `.github/workflows/ci.yml`.
 
-There are two one-off scripts as well, neither wired into CI:
-`scripts/trim-audio.mjs` re-cuts the music previews from the full-length
-originals, and `scripts/check-budget.mjs` is what `npm run budget` calls. The
-originals used to live in `references/`, which is no longer on disk — that
-script now falls back to what is already in `public/`, so it runs, but it
-cannot re-cut a longer preview until the folder is restored from Siddhant's
-backup.
+There is one one-off script as well, not wired into CI:
+`scripts/check-budget.mjs`, which is what `npm run budget` calls.
 
 ## Environment
 
@@ -77,10 +72,12 @@ public/       fonts excepted, every asset the browser fetches
   rule stays so that restoring the folder cannot re-track 110MB by accident.
   It is still in git *history*; taking it out of there is a rewrite and is not
   something to do casually.
-- **The tracks in `public/audio/` are 25-second previews**, cut losslessly at
-  MPEG frame boundaries from those originals. Shipping eight complete
-  commercial recordings was 35MB and a licensing posture nobody would defend.
-  Re-cut them, or move where a preview opens, with `scripts/trim-audio.mjs`.
+- **No music ships with this repository.** The homepage card reads Last.fm for
+  what was actually played and Apple's iTunes Search API for the artwork and a
+  thirty-second preview; the six records on the canvas carry an Apple track id
+  and nothing else. That replaced 4.8MB of committed MP3s and album covers —
+  and a card that had been "listening to" the same four songs since August.
+  See `lib/nowPlaying.ts`, and `.env.example` for the two variables it wants.
 - **The desktop composition is one uniform scale of the 1440 frame.** From
   1001px up, `--u` in `app/page.module.css` is one design pixel expressed as a
   fraction of the viewport, and every geometric value on the page — tracks,

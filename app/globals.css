@@ -117,8 +117,8 @@
   --surface-glass: rgba(255, 255, 255, 0.4); /* theme toggle, footer, modal */
   --glass-blur: 8px; /* Figma GLASS effect, radius 8 */
 
-  /* A control sitting *on* a card — the waitlist pill, the search surface, the
-     plane's badge. In light it is the white the card is already made of; in
+  /* A control sitting *on* a card — the waitlist pill, the search surface, a
+     modal's panel. In light it is the white the card is already made of; in
      dark a card is a solid #222 and a control drawn in the same value would
      disappear into it, so it lifts one step instead. One token rather than a
      literal #fff at each call site, which is what made these vanish. */
@@ -159,6 +159,21 @@
      a rose case study drew an orange insight panel and a rose everything else.
      See "Accent themes" below. */
   --accent-wash: rgb(from var(--accent) r g b / 0.1);
+
+  /* The celebration surface — the waitlist's success plate, and on a phone the
+     whole section band it turns into.
+
+     ONE VALUE IN BOTH THEMES, deliberately: this is a moment rather than a
+     surface, and a moment that changes colour with the theme is a surface. It
+     lives here rather than in StoreWaitlist because two stylesheets need it —
+     the card paints the plate, `app/page.module.css` paints the full-bleed
+     band behind it on a phone, and a literal in each is how the two drift.
+
+     Deep green-black so the mark, the white type and the confetti all carry:
+     white lands at 14.7:1 on it and the success disc at 4.85:1. It replaced a
+     pale mint that was never a colour decision — it existed to match a GIF's
+     baked-in background, which no longer exists. */
+  --celebrate: #0b2e20;
 
   /* The ground under a study's closing band — see `.band` in
      StudyReader.module.css. Not a colour: how much of the surface's accent is
@@ -255,8 +270,16 @@
 
   /* How far up from the bottom edge the blur ramp reaches. Figma draws it as a
      44px bar; it is built here as a gradient with no edge of its own, so it
-     needs more room to arrive at nothing. See BottomBlur. */
-  --blur-bar-h: 72px;
+     needs more room to arrive at nothing. See BottomBlur.
+
+     RAISED FROM 72 BY REQUEST — the softening should start further up the
+     page. Every stop in the ramp's masks is a percentage of this, so the one
+     number stretches the whole gradient rather than moving a hard edge: the
+     blur still arrives at exactly nothing at the top, just over more distance.
+     The cost is that a larger slice of the viewport is behind a
+     `backdrop-filter`, which is the most expensive thing on this page — see
+     the note in BottomBlur. */
+  --blur-bar-h: 96px;
 }
 
 /* --- Phone -----------------------------------------------------------------
@@ -801,6 +824,23 @@ html[data-canvas] body {
   --sq-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http:%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width=%22130%22 height=%22130%22 viewBox=%220 0 130 130%22%3E%3Cpath d=%22M 64 0 L 66 0 L 66 0 L 79 0 L 84 0.1 L 87.7 0.1 L 90.8 0.3 L 93.5 0.4 L 95.9 0.6 L 98.1 0.8 L 100.1 1 L 102 1.3 L 103.8 1.6 L 105.4 1.9 L 106.9 2.3 L 108.4 2.7 L 109.8 3.2 L 111.1 3.6 L 112.4 4.1 L 113.6 4.7 L 114.7 5.3 L 115.8 5.9 L 116.8 6.5 L 117.8 7.2 L 118.7 8 L 119.6 8.7 L 120.5 9.5 L 121.3 10.4 L 122 11.3 L 122.8 12.2 L 123.5 13.2 L 124.1 14.2 L 124.7 15.3 L 125.3 16.4 L 125.9 17.6 L 126.4 18.9 L 126.8 20.2 L 127.3 21.6 L 127.7 23.1 L 128.1 24.6 L 128.4 26.2 L 128.7 28 L 129 29.9 L 129.2 31.9 L 129.4 34.1 L 129.6 36.5 L 129.7 39.2 L 129.9 42.3 L 129.9 46 L 130 51 L 130 64 L 130 66 L 130 66 L 130 79 L 129.9 84 L 129.9 87.7 L 129.7 90.8 L 129.6 93.5 L 129.4 95.9 L 129.2 98.1 L 129 100.1 L 128.7 102 L 128.4 103.8 L 128.1 105.4 L 127.7 106.9 L 127.3 108.4 L 126.8 109.8 L 126.4 111.1 L 125.9 112.4 L 125.3 113.6 L 124.7 114.7 L 124.1 115.8 L 123.5 116.8 L 122.8 117.8 L 122 118.7 L 121.3 119.6 L 120.5 120.5 L 119.6 121.3 L 118.7 122 L 117.8 122.8 L 116.8 123.5 L 115.8 124.1 L 114.7 124.7 L 113.6 125.3 L 112.4 125.9 L 111.1 126.4 L 109.8 126.8 L 108.4 127.3 L 106.9 127.7 L 105.4 128.1 L 103.8 128.4 L 102 128.7 L 100.1 129 L 98.1 129.2 L 95.9 129.4 L 93.5 129.6 L 90.8 129.7 L 87.7 129.9 L 84 129.9 L 79 130 L 66 130 L 64 130 L 64 130 L 51 130 L 46 129.9 L 42.3 129.9 L 39.2 129.7 L 36.5 129.6 L 34.1 129.4 L 31.9 129.2 L 29.9 129 L 28 128.7 L 26.2 128.4 L 24.6 128.1 L 23.1 127.7 L 21.6 127.3 L 20.2 126.8 L 18.9 126.4 L 17.6 125.9 L 16.4 125.3 L 15.3 124.7 L 14.2 124.1 L 13.2 123.5 L 12.2 122.8 L 11.3 122 L 10.4 121.3 L 9.5 120.5 L 8.7 119.6 L 8 118.7 L 7.2 117.8 L 6.5 116.8 L 5.9 115.8 L 5.3 114.7 L 4.7 113.6 L 4.1 112.4 L 3.6 111.1 L 3.2 109.8 L 2.7 108.4 L 2.3 106.9 L 1.9 105.4 L 1.6 103.8 L 1.3 102 L 1 100.1 L 0.8 98.1 L 0.6 95.9 L 0.4 93.5 L 0.3 90.8 L 0.1 87.7 L 0.1 84 L 0 79 L 0 66 L 0 64 L 0 64 L 0 51 L 0.1 46 L 0.1 42.3 L 0.3 39.2 L 0.4 36.5 L 0.6 34.1 L 0.8 31.9 L 1 29.9 L 1.3 28 L 1.6 26.2 L 1.9 24.6 L 2.3 23.1 L 2.7 21.6 L 3.2 20.2 L 3.6 18.9 L 4.1 17.6 L 4.7 16.4 L 5.3 15.3 L 5.9 14.2 L 6.5 13.2 L 7.2 12.2 L 8 11.3 L 8.7 10.4 L 9.5 9.5 L 10.4 8.7 L 11.3 8 L 12.2 7.2 L 13.2 6.5 L 14.2 5.9 L 15.3 5.3 L 16.4 4.7 L 17.6 4.1 L 18.9 3.6 L 20.2 3.2 L 21.6 2.7 L 23.1 2.3 L 24.6 1.9 L 26.2 1.6 L 28 1.3 L 29.9 1 L 31.9 0.8 L 34.1 0.6 L 36.5 0.4 L 39.2 0.3 L 42.3 0.1 L 46 0.1 L 51 0 L 64 0 Z%22 fill=%22%23fff%22%2F%3E%3C%2Fsvg%3E");
 }
 
+/* The music card's accent, which belongs to whatever record is playing rather
+   than to the site.
+
+   Registered as a colour so it can be TRANSITIONED. An unregistered custom
+   property has no type, so the browser can only swap it at the halfway point
+   of any transition that names it — the play button would jump from one
+   record's red to the next one's gold. Registered, it interpolates, and
+   skipping a track becomes a cross-fade of every accented thing at once.
+
+   The initial value is the site's own orange, which is also the value the card
+   keeps when a sleeve will not decode — see lib/artColor.ts. */
+@property --track-accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ea580b;
+}
+
 @property --sq-r {
   syntax: "<length>";
   inherits: false;
@@ -1085,32 +1125,76 @@ html[data-canvas] body {
 
    That asymmetry is not something to work around one direction at a time. Name
    the layers and the order stops depending on the direction of travel. */
-/* The card expanding into its hero sits under the modal's plate — the plate is
-   the page it lands on.
+/* THE FOUR CARD MORPHS — a card becoming a whole reader.
 
-   Two cards do this: Inspection hands over the phone's screen, About hands over
-   the portrait. Both are shapes whose aspect ratio is identical at either end,
-   which is what keeps the group animation a pure scale and translate. */
+   These used to name an *inner* element at both ends: the Design System card
+   handed over its dashboard frame, Search its instrument, About a 32px
+   portrait, and all of them landed on `StudyHero`'s frame or the modal's own
+   portrait. So the thing that travelled was a picture, while the card's title,
+   eyebrow and chip cross-faded away with the rest of the page on the root's
+   separate clock. Two events again, and the reported reading was exactly
+   right: the content morphed and the card did not, which looks cheap.
+
+   Each name is now on the whole `CardShell` at one end and on the modal's
+   whole plate at the other (see `morphName` in ModalSurface). The browser
+   interpolates a card-sized box into a screen-sized one and blends the two
+   snapshots inside it — a container transform, which is the move the Canvas
+   card has always made and the one nobody has ever complained about.
+
+   THE Z-INDEX IS LOW ON PURPOSE, AND THE ACTIVE ONE IS LIFTED BELOW. Read the
+   next block before changing either number — this is where a real bug lived.
+
+   No corner animation. The card's radius resolves into the plate's square edge
+   inside the cross-fade below, which is what the Canvas card does going from a
+   48px corner to a full-bleed surface — and that transition is the reference
+   here, not the thing to improve on. */
 ::view-transition-group(inspection-frame),
 ::view-transition-group(design-system-frame),
 ::view-transition-group(search-frame),
 ::view-transition-group(about-portrait) {
   z-index: 1;
-  animation-duration: 560ms;
+  /* A shade quicker than the 560 the inner-frame morph used. The box is doing
+     more of the work now and travels further, and a container that is still
+     moving after half a second reads as slow rather than as considered. */
+  animation-duration: 520ms;
 }
 
-/* A 362x560 card and a 1120x700 mockup are very different shapes, and left
-   alone Chrome stretches each snapshot to fill the animating box, which pulls
-   the phone out of proportion mid-flight. Filling proportionally and cropping
-   instead makes the aspect change read as a card opening out.
+/* THE ACTIVE MORPH, LIFTED OVER EVERY OTHER CARD.
 
-   The device is deliberately *not* a hero of its own any more. A hero is lifted
-   out of its container and so is not clipped by the card's `overflow: hidden`;
-   in flight it was a free-floating rectangle that appeared to break out of the
-   card on the way back. With only the container named, its snapshot carries its
-   own clip and nothing can escape — and because both surfaces now render the
-   same screen image at two sizes, the cross-fade between them has nothing left
-   to reveal. */
+   The homepage has five named cards and they all *stay* named while a modal is
+   open, because the page underneath stays mounted. Groups sharing a z-index
+   paint in tree order — capture order, which is DOM order — so every card
+   sitting later in the band than the one you clicked was painting on top of
+   the modal for the length of the transition. Open Inspection, first in the
+   DOM, and all four others covered the reader; open About, last, and none did.
+   Reported as "sometimes other elements from the homepage show up on top", and
+   the "sometimes" was which card you pressed.
+
+   These four names cannot be told apart in CSS — the same rule serves a card
+   that is morphing and a card that is merely sitting there — so `morph()`
+   writes the live one onto `<html>` and this reads it back. Everything not
+   named there stays at 1, under the plate, where a bystander belongs.
+
+   3 rather than 2 so it also clears `modal-plate`, which is still the fallback
+   for a modal opened with no card behind it. */
+:root[data-morph="inspection-frame"]::view-transition-group(inspection-frame),
+:root[data-morph="design-system-frame"]::view-transition-group(design-system-frame),
+:root[data-morph="search-frame"]::view-transition-group(search-frame),
+:root[data-morph="about-portrait"]::view-transition-group(about-portrait) {
+  z-index: 3;
+}
+
+/* A card and a full-bleed reader are very different shapes, and left alone
+   Chrome stretches each snapshot to fill the animating box — which shears the
+   card mid-flight. Filling proportionally and cropping instead is what makes
+   the aspect change read as a card opening out.
+
+   THE CROSS-FADE IS DELIBERATELY FASTER THAN THE BOX. That is the whole of the
+   container-transform trick: the contents settle early, in the first third,
+   while the container is still visibly travelling — so the eye follows the box
+   and never watches two pictures dissolve. Run at the same length as the group
+   and it is a cross-fade with a moving frame around it, which is what this was
+   before. */
 ::view-transition-old(inspection-frame),
 ::view-transition-new(inspection-frame),
 ::view-transition-old(design-system-frame),
@@ -1122,6 +1206,35 @@ html[data-canvas] body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+::view-transition-old(inspection-frame),
+::view-transition-old(design-system-frame),
+::view-transition-old(search-frame),
+::view-transition-old(about-portrait) {
+  /* `forwards`, for the reason spelled out at `modal-plate` below: an `old`
+     pseudo lives for the whole transition, so without it this plays out and
+     then snaps back to opaque for the rest of the 520. */
+  animation: card-contents-out 180ms ease-out forwards;
+}
+
+::view-transition-new(inspection-frame),
+::view-transition-new(design-system-frame),
+::view-transition-new(search-frame),
+::view-transition-new(about-portrait) {
+  animation: card-contents-in 240ms ease-out 40ms backwards;
+}
+
+@keyframes card-contents-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes card-contents-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* --- The canvas card, opening into the canvas -------------------------
@@ -1141,8 +1254,16 @@ html[data-canvas] body {
    stretches each snapshot to fill the animating box, which shears the board
    mid-flight. Filling proportionally and cropping reads as opening out. */
 ::view-transition-group(canvas-frame) {
-  z-index: 2;
+  /* Low at rest and lifted while it is the live one, exactly as the four study
+     names above — the canvas card is one of the five that stays named on the
+     homepage behind an open modal, so it is equally capable of painting over
+     someone else's reader. */
+  z-index: 1;
   animation-duration: 680ms;
+}
+
+:root[data-morph="canvas-frame"]::view-transition-group(canvas-frame) {
+  z-index: 3;
 }
 
 ::view-transition-old(canvas-frame),
@@ -1159,14 +1280,21 @@ html[data-canvas] body {
   animation-delay: 60ms;
 }
 
+/* The fallback plate, for a modal opened by something that hands over no card
+   name of its own. Every modal on the site now hands one over — see
+   ModalSurface's `morphName` — so in practice this is the path taken by a
+   modal opened from the command palette or a deep link, where there is no card
+   on screen to have come from and a plate arriving on its own is correct. */
 ::view-transition-group(modal-plate) {
   z-index: 2;
 }
 
+/* Above the plate, whichever plate it turned out to be — 4 rather than 3 now
+   that an active card morph takes 3. */
 ::view-transition-group(modal-title),
 ::view-transition-group(modal-body),
 ::view-transition-group(modal-meta) {
-  z-index: 3;
+  z-index: 4;
 }
 
 /* The control cluster is deliberately *not* named, and that is a fix rather
@@ -1211,16 +1339,21 @@ html[data-canvas] body {
   animation: modal-content-rise 460ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
+/* Later than they were, by about a third of the container's travel. The reader's
+   text used to start rising at 90ms against a plate that simply faded in; it now
+   arrives while a card-sized box is still visibly growing into a screen, and
+   text sliding up through a container that has not landed reads as two things
+   happening at once. These start as the box settles. */
 ::view-transition-new(modal-title) {
-  animation-delay: 90ms;
+  animation-delay: 140ms;
 }
 
 ::view-transition-new(modal-body) {
-  animation-delay: 160ms;
+  animation-delay: 200ms;
 }
 
 ::view-transition-new(modal-meta) {
-  animation-delay: 210ms;
+  animation-delay: 250ms;
 }
 
 /* Leaving is one movement, not a reverse reading. */

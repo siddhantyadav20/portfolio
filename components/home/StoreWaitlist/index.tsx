@@ -12,6 +12,7 @@ import { store } from "@/content/site";
 import { readContact } from "@/lib/waitlist";
 import { joinWaitlist } from "./submit";
 import { celebrate } from "./won";
+import Success from "./Success";
 import styles from "./StoreWaitlist.module.css";
 
 /* ===========================================================================
@@ -63,20 +64,6 @@ const ART = {
   centreY: 78.5,
 } as const;
 
-/**
- * The GIF's own loop, ms — 35 frames, read straight out of the file's graphic
- * control blocks rather than guessed at.
- *
- * It matters because the loop does not begin where the animation does. Frame 0
- * is the confetti already out and starting to disperse; the check only starts
- * drawing about 560ms in. So the artwork is mounted when the disc sets off and
- * revealed when it lands — by which point playback has reached the bare disc,
- * which is exactly what the flying disc has just become. It then draws its own
- * check, bursts, and is frozen after one full loop on the frame the burst
- * peaks at, which is the frame Figma's Success state shows.
- */
-const LOOP = 2800;
-
 /** How long the finished state is held before the card offers itself again. */
 const HOLD = 5000;
 
@@ -84,20 +71,13 @@ const HOLD = 5000;
  *  the form to be standing underneath it when it does. */
 const EXIT = 640;
 
-const calm = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 export default function StoreWaitlist() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [value, setValue] = useState("");
   const [trouble, setTrouble] = useState<Trouble>(null);
-  const [frozen, setFrozen] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const joinRef = useRef<HTMLButtonElement>(null);
-  const gifRef = useRef<HTMLImageElement>(null);
-  const stillRef = useRef<HTMLCanvasElement>(null);
 
   /** Where the disc starts its flight, relative to where it lands. */
   const [flight, setFlight] = useState({ x: 0, y: 0 });
@@ -110,9 +90,11 @@ export default function StoreWaitlist() {
   function expand() {
     setPhase("input");
 
-    // 2.1MB, and the celebration cannot wait on a download. Asking for it the
-    // moment the pill opens buys the whole time the visitor spends typing.
-    new Image().src = store.success.art;
+    /* The celebration's art used to be preloaded here — 2.1MB of GIF that
+       could not wait on a download once the form was submitted. It is a 2.5KB
+       Lottie now, split into its own chunk and fetched when the success state
+       mounts, so there is nothing worth warming: see Success.tsx, which draws
+       a CSS mark on the first paint while that chunk is in flight. */
 
     // The pill is still 138 wide this frame; focusing now would scroll the
     // input's caret into view against a box that is about to be a different
@@ -160,55 +142,23 @@ export default function StoreWaitlist() {
     });
   }
 
-  /**
-   * Stop the GIF on the frame it has reached, by painting that frame onto a
-   * canvas and swapping to it.
-   *
-   * The alternative was a second exported still, and this is better than one:
-   * a canvas capture is the displayed frame by construction, so it cannot drift
-   * out of sync with the asset the way a hand-picked PNG would, and it costs no
-   * extra bytes over the wire. Left to loop, the burst would simply replay
-   * every 2.8s for as long as the card sat there.
-   */
-  function freeze() {
-    const gif = gifRef.current;
-    const still = stillRef.current;
-    if (!gif || !still || !gif.naturalWidth) return;
-
-    still.width = gif.naturalWidth;
-    still.height = gif.naturalHeight;
-    still.getContext("2d")?.drawImage(gif, 0, 0);
-    setFrozen(true);
-  }
-
   /* --- The finished state's own clock ------------------------------------ */
 
   useEffect(() => {
     if (phase !== "success") return;
 
-    // A GIF plays whatever the visitor has asked for, which is the one thing
-    // globals.css cannot switch off for us — it can collapse a duration, not a
-    // decoded frame. Freezing on arrival gives that visitor the composition
-    // without the loop, and frame 0 of this export is the finished picture.
-    const stop = window.setTimeout(freeze, calm() ? 0 : LOOP);
     const close = window.setTimeout(() => {
       setValue("");
       setPhase("closing");
     }, HOLD);
 
-    return () => {
-      window.clearTimeout(stop);
-      window.clearTimeout(close);
-    };
+    return () => window.clearTimeout(close);
   }, [phase]);
 
   useEffect(() => {
     if (phase !== "closing") return;
 
-    const done = window.setTimeout(() => {
-      setPhase("idle");
-      setFrozen(false);
-    }, EXIT);
+    const done = window.setTimeout(() => setPhase("idle"), EXIT);
 
     return () => window.clearTimeout(done);
   }, [phase]);
@@ -217,6 +167,11 @@ export default function StoreWaitlist() {
     <CardShell
       radius={32}
       data-card="store"
+      /* Readable from OUTSIDE this component's stylesheet, which the module
+         class is not — `app/page.module.css` owns the orange band that bleeds
+         to both screen edges on a phone, and it has to know when the card is
+         celebrating so the band can get out of the way. See `.store` there. */
+      data-won={won ? "" : undefined}
       className={[styles.card, won ? styles.won : "", phase === "closing" ? styles.closing : ""]
         .filter(Boolean)
         .join(" ")}
@@ -359,33 +314,10 @@ export default function StoreWaitlist() {
               </span>
             </span>
 
-            {/* Opaque, and the same mint as the card, so it needs no fade of
-                its own to hide the disc underneath — it simply covers it.
-
-                A plain `img`, not `next/image`: the optimiser would re-encode
-                the GIF, and `freeze` needs the raw element to read the current
-                frame off. It is requested by `expand` and rendered only here,
-                so nothing about the page load goes through it. */}
-            <img
-              ref={gifRef}
-              className={styles.gif}
-              src={store.success.art}
-              alt=""
-              width={store.success.artWidth}
-              height={store.success.artHeight}
-              data-frozen={frozen ? "" : undefined}
-              /* Backstop for the reduced-motion freeze above: the timer fires
-                 on the same tick the element mounts, which is a tick too early
-                 if the bytes have not arrived. */
-              onLoad={() => {
-                if (calm()) freeze();
-              }}
-            />
-            <canvas
-              ref={stillRef}
-              className={styles.still}
-              data-frozen={frozen ? "" : undefined}
-            />
+            {/* The mark. Strokes only and no background of its own — see
+                Success.tsx for why that replaced a 2.1MB GIF that carried its
+                own mint rectangle the card had to be colour-matched to. */}
+            <Success />
           </div>
 
           <p className={styles.winTitle}>{store.success.title}</p>

@@ -330,6 +330,8 @@ export default function DesignEngineerCard() {
     let elapsed = 0;
     let touchedAt = -1;
     let wheelsDown = false;
+    /** Has this leg actually got off the ground yet — see the wheels below. */
+    let airborne = false;
 
     /** Where to keep painting from once a leg is over but the gear is still
      *  settling. Null once the plane is properly at rest. */
@@ -362,6 +364,7 @@ export default function DesignEngineerCard() {
     const startOut = () => {
       mode = "out";
       wheelsDown = false;
+      airborne = false;
       // No trim: the Engineer end is free to define its own resting angle, and
       // the Designer end is already within a tenth of a degree of the CSS one.
       // warm 0 — this leg always begins from a standstill in the slot, so it
@@ -388,6 +391,7 @@ export default function DesignEngineerCard() {
     const startHome = (from: Pt, heading: number, warm: number) => {
       mode = "home";
       wheelsDown = false;
+      airborne = false;
       const t = track(spline(homeWaypoints(from, heading, home), 0.4));
       if (!homeRef) homeRef = t.len;
       const dur = (HOME_MS / 1000) * clamp((t.len / homeRef) ** 0.7, 0.45, 1.1);
@@ -428,7 +432,16 @@ export default function DesignEngineerCard() {
         // Wheels. Altitude reaches zero a little before the end of the leg, so
         // this fires during the rollout rather than at the stop — which is the
         // difference between landing and arriving.
-        if (!wheelsDown && f.alt <= WHEELS_DOWN) {
+        //
+        // `airborne` is the guard that makes any of that true. Altitude is zero
+        // at the *start* of a standing leg as well as at the end of one, so
+        // without it every takeoff met this test on its first frame: the dust
+        // puff, the scuff and the whole 800ms of gear compression all fired as
+        // the plane left, `wheelsDown` latched, and the landing they were
+        // written for then arrived in silence with nothing moving. You cannot
+        // land before you have flown.
+        if (f.alt > 0.5) airborne = true;
+        if (airborne && !wheelsDown && f.alt <= WHEELS_DOWN) {
           wheelsDown = true;
           touchedAt = elapsed;
           puff(f.x, f.y, f.heading);

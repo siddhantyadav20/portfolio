@@ -19,7 +19,7 @@
    spacing is a machine, and a rate that changes across the gesture is a thumb.
    =========================================================================== */
 
-import { acquire, burst, prefersQuiet, stage } from "@/lib/sound";
+import { acquire, burst, prefersQuiet, resonator, stage } from "@/lib/sound";
 
 /** Master ceiling. */
 const PEAK = 0.095;
@@ -78,28 +78,45 @@ function paper(
   o: { contacts: number; ms: number; level: number; curve: number; from: number; to: number },
 ) {
   const seconds = o.ms / 1000;
+
+  /* PAPER HAS A FORMANT, and none of the cues on this board had one.
+     Every sound here was white noise through a biquad, which is why a page, a
+     coin and a rifle arrived as relatives however differently they were built:
+     a filter shapes what you hear *of* a source, it cannot change what the
+     source is. A sheet of paper buckling rings around 2.6kHz — that is the
+     "crinkle", and it is what separates paper from cloth or from air.
+
+     One resonator for every contact in the gesture, in parallel with the dry
+     bursts, so the run keeps its own shape and gains a material. */
+  const ring = resonator(ctx, out, { hz: 2600, q: 9, level: 0.32 });
+
   for (let i = 0; i < o.contacts; i += 1) {
     const at = Math.pow(i / o.contacts, o.curve);
-    // Each contact is its own short band, scattered off the beat. The scatter
-    // is what stops a run of forty becoming a buzz at a single pitch.
     const jitter = (Math.random() * 2 - 1) * (0.6 / o.contacts);
     const centre = o.from + (o.to - o.from) * (i / o.contacts);
+    const when = t + Math.max(0, at + jitter) * seconds;
+    const level =
+      o.level * (0.4 + 0.6 * Math.sin(Math.PI * (i / o.contacts))) * (0.6 + Math.random() * 0.4);
 
-    burst(ctx, out, {
-      at: t + Math.max(0, at + jitter) * seconds,
-      seconds: 0.02 + Math.random() * 0.012,
-      // Loudest through the middle, where the block is moving fastest.
-      level: o.level * (0.4 + 0.6 * Math.sin(Math.PI * (i / o.contacts))) * (0.6 + Math.random() * 0.4),
-      type: "bandpass",
-      hz: centre * (0.75 + Math.random() * 0.5),
-      // Wide. Paper has no pitch, and a narrow Q here whistles.
-      q: 0.85,
-      attack: 0.002,
-    });
+    /* Pink, not white. Paper is a soft material and its friction tilts down
+       about 3dB an octave; white made every contact a tick at the top of the
+       spectrum, which is the "patchwork" reading — forty ticks in a row is a
+       ratchet, forty *rustles* is a riffle. */
+    for (const target of [out, ring]) {
+      burst(ctx, target, {
+        at: when,
+        seconds: 0.02 + Math.random() * 0.012,
+        level: target === ring ? level * 0.7 : level,
+        type: "bandpass",
+        hz: centre * (0.75 + Math.random() * 0.5),
+        q: 0.85,
+        attack: 0.002,
+        colour: "pink",
+      });
+    }
   }
 
-  // Air under the run, holding it together as one gesture rather than a
-  // handful of ticks.
+  /* The air the block moves, under the contacts. */
   burst(ctx, out, {
     at: t,
     seconds,
@@ -107,6 +124,7 @@ function paper(
     type: "lowpass",
     hz: [o.from, o.to],
     attack: 0.02,
+    colour: "pink",
   });
 }
 

@@ -6,6 +6,7 @@ import CtaPill from "@/components/primitives/CtaPill";
 import CanvasWorld from "@/components/canvas/CanvasWorld";
 import { CANVAS_MORPH, HOME, PREVIEW_SCALE } from "@/content/canvas";
 import { canvas } from "@/content/site";
+import { prefetchDiscArt } from "@/lib/discArt";
 import { canMorph, morph } from "@/lib/viewTransition";
 import styles from "./CanvasCard.module.css";
 
@@ -147,7 +148,7 @@ export default function CanvasCard() {
       update();
       return;
     }
-    morph(update);
+    morph(update, undefined, CANVAS_MORPH);
   }, []);
 
   const close = useCallback(() => {
@@ -155,7 +156,7 @@ export default function CanvasCard() {
       setOpen(false);
       return;
     }
-    morph(() => setOpen(false));
+    morph(() => setOpen(false), undefined, CANVAS_MORPH);
   }, []);
 
   /**
@@ -269,8 +270,21 @@ export default function CanvasCard() {
              `pointerdown` fires at finger-down, which buys the length of the tap
              before `click` lands — usually enough for the chunk, and it costs a
              mouse visitor nothing since hover has already warmed by then. */
-          onPointerDown={() => void loadSurface()}
-          onMouseEnter={() => void loadSurface()}
+          /* The board's six sleeves come off Apple's storefront rather than
+             out of this repository (lib/discArt.ts), so they are warmed
+             alongside the chunk and for the same reason: the morph into the
+             canvas takes about six hundred milliseconds, which is long enough
+             for them to arrive, and artwork gained *during* a zoom reads as
+             focus pulling rather than as a pop. `prefetchDiscArt` is
+             idempotent, so both handlers can call it. */
+          onPointerDown={() => {
+            void loadSurface();
+            prefetchDiscArt();
+          }}
+          onMouseEnter={() => {
+            void loadSurface();
+            prefetchDiscArt();
+          }}
           onClick={(e: React.MouseEvent) => {
             // Let modified clicks do what they always do — new tab, new window.
             if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;

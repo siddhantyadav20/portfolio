@@ -26,7 +26,7 @@
    only cue here that could be called a "note".
    =========================================================================== */
 
-import { acquire, prefersQuiet, stage } from "@/lib/sound";
+import { acquire, prefersQuiet, resonator, stage } from "@/lib/sound";
 import { shaped } from "@/lib/voices";
 
 /** Master ceiling for the rub. Under a pointer the visitor is already looking
@@ -120,18 +120,42 @@ export function rasp(speed: number) {
   const t = ctx.currentTime + 0.004;
   const corner = CORNER_SLOW + (CORNER_FAST - CORNER_SLOW) * drive;
 
+  /* THE COIN, which this cue never had.
+
+     Everything above is right about friction — broadband, distorted, no pitch
+     — and it was still the same white noise every other cue on the board is
+     made of, so a coin on foil arrived sounding like a page turning quickly.
+     Friction says how it is being touched; it cannot say what is touching.
+
+     What identifies metal is that it *rings*: struck or scraped, it holds a
+     couple of high, narrow modes long after the contact. Two of them, in
+     parallel with the dry grains — the grains keep their roughness and gain a
+     coin. High Q on purpose: this is a ring, not a tone control, and at a low
+     one it would only sound like a brighter hiss.
+
+     Two peaks rather than one because a single resonance is a whistle; the
+     interval between two is what the ear reads as an object. */
+  const metal = resonator(ctx, out, { hz: 5200, q: 22, level: 0.55 });
+  const metal2 = resonator(ctx, out, { hz: 7700, q: 18, level: 0.4 });
+
   for (let i = 0; i < count; i += 1) {
-    shaped(ctx, out, t + (Math.random() * GRAIN_MS) / 1000, {
-      seconds: GRAIN_SECONDS * (0.7 + Math.random() * 0.6),
-      /* Never silent even at a crawl — a coin moving slowly still makes
-         contact. The per-grain random factor is what stops a constant drag
-         sounding like one held sound at one level. */
-      level: (0.3 + 0.7 * drive) * (0.5 + Math.random() * 0.5),
-      // Highpass, not bandpass. Nothing here has a pitch.
-      type: "highpass",
-      hz: corner * (0.85 + Math.random() * 0.3),
-      drive: DRIVE_SLOW + (DRIVE_FAST - DRIVE_SLOW) * drive,
-    });
+    const when = t + (Math.random() * GRAIN_MS) / 1000;
+    const seconds = GRAIN_SECONDS * (0.7 + Math.random() * 0.6);
+    /* Never silent even at a crawl — a coin moving slowly still makes contact.
+       The per-grain random factor is what stops a constant drag sounding like
+       one held sound at one level. */
+    const level = (0.3 + 0.7 * drive) * (0.5 + Math.random() * 0.5);
+
+    for (const target of [out, metal, metal2]) {
+      shaped(ctx, target, when, {
+        seconds,
+        level: target === out ? level : level * 0.6,
+        // Highpass, not bandpass. The grain itself has no pitch.
+        type: "highpass",
+        hz: corner * (0.85 + Math.random() * 0.3),
+        drive: DRIVE_SLOW + (DRIVE_FAST - DRIVE_SLOW) * drive,
+      });
+    }
   }
 }
 

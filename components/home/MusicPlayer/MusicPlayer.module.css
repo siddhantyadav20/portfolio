@@ -1,384 +1,621 @@
-/* Figma "Music Player", node 80:7658 — 254x280.
+/* Figma "Music Player" — 1011:10190 paused, 1011:10336 playing. 254x315.
 
-   RADIUS IS NOT FIGMA'S HERE. Figma draws it 24; a note that stood here
-   said 48 "by request"; the corner guide now sets 32 on the wide grid and
-   24 on the phone, and supersedes both. The file's 100% corner smoothing
-   is carried over either way — CardShell adds `.squircle`, so the card is
-   an iOS-smoothed corner rather than a circular one, and the surfaces
-   painted over it take `border-radius: inherit` so they follow.
+   A different card from the one that used to be here. That one was a
+   full-bleed sleeve with a chip floating over it and four songs written into
+   the repository; this is a contained cover over a panel, and what it shows
+   arrives from Last.fm and Apple at request time (lib/nowPlaying.ts).
 
-   One card, two states. Everything below that differs between paused and
-   playing hangs off `.playing` on the card, so the transition between the two
-   Figma variants is CSS and there is no second component. */
+   ONE ACCENT, TAKEN OFF THE RECORD. `--art` and `--art-dark` are set inline on
+   the card by Player.tsx, sampled from the sleeve and clamped for legibility
+   (lib/artColor.ts). They land on `--accent`, which means the play disc, the
+   filled thumb and the ring that bursts out of it all re-tint together without
+   any of them naming a colour — and, because `--track-accent` is a registered
+   `<color>` (app/globals.css), the change is a cross-fade rather than a jump.
+
+   The states are CSS. `[disabled]`, `[data-mine]` and the arc's `[data-state]`
+   carry every difference between the two Figma variants, so there is no second
+   component and no class being toggled from JavaScript. */
 
 .card {
   width: calc(254 * var(--u));
-  height: calc(280 * var(--u));
-  /* Shares the middle column's flexibility with LinkedIn. */
+
+  /* A FLOOR, NOT A HEIGHT. Figma draws 315 and the Fantasy card beside it the
+     same, but the row is `align-items: stretch` (app/page.module.css) and the
+     taller column wins. The cover below is `flex: 1`, so any extra height goes
+     into the artwork and every fixed number in the panel stays where Figma
+     put it. */
+  min-height: calc(315 * var(--u));
+
+  /* Shares the middle column's flexibility with the Fantasy card. */
   flex: 0 1 auto;
   min-width: 0;
 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(16 * var(--u));
+  padding: calc(20 * var(--u));
+
+  /* The chip is positioned against this, and the cover's corner is cut by it. */
+  position: relative;
+  overflow: hidden;
+
+  /* --- The record's colour ------------------------------------------------
+     Two values so the theme picks, rather than one recomputed per theme: the
+     server sends both and the browser chooses. A sleeve that would not decode
+     sends neither, and the card falls back to the site's own accent rather
+     than to no colour at all.
+
+     EVERYTHING BELOW READS `--track-accent`, NEVER `--accent`, and that is
+     load-bearing rather than a naming preference. Aliasing them here —
+     `--accent: var(--track-accent)` — reads as the tidier version and is a
+     custom-property CYCLE: `--track-accent` falls back to `--accent`, which on
+     this same element resolves back to `--track-accent`. CSS resolves a cycle
+     to the guaranteed-invalid value, so on every track whose artwork yielded
+     no colour the play disc and the rail fill both computed to `transparent`
+     and disappeared. It survives casual testing because it only fires on
+     monochrome sleeves. Read the inherited `--accent`; do not redefine it. */
+  --track-accent: var(--art, var(--accent));
+  transition: --track-accent 420ms ease;
+
   /* --- Transport ink ------------------------------------------------------
-     Every glyph in the card is drawn the way the rest of the site draws its
-     icons — `.inkIcon`, the SVG as a stencil over `currentColor` — instead of
-     as an <img> carrying the fill Figma baked in (white, #D9D9D9, white @0.8).
-     Nothing about the geometry moves: the spans keep the exported 88 and 112
-     canvases and the same offsets, so each glyph lands on the pixels it did
-     before. Only where its colour comes from changed, and now one pair of
-     tokens themes all four.
+     Every glyph is drawn the way the rest of the site draws icons — `.inkIcon`,
+     the SVG as a stencil over `currentColor` — rather than as an <img> with
+     Figma's fill baked in, so all four theme from one pair of tokens.
 
-     The light values below are Figma's, unchanged. */
-  --player-glyph: #ffffff;
-  --player-disc: rgba(255, 255, 255, 0.15); /* paused: a white film */
-  --player-disc-on: rgba(34, 34, 34, 0.6); /* playing, and the skip buttons */
+     `--player-on` is the glyph that sits ON the accent disc, and it is the
+     card's own ground on purpose: the accent was clamped to clear 3:1 against
+     exactly that colour (lib/artColor.ts), so pairing them back up is the one
+     choice guaranteed to be legible whatever record is playing. White here
+     would be a coin toss — a pale gold sleeve gives a pale gold disc. */
+  --player-disc: #ffffff;
+  --player-glyph: var(--ink);
+  --player-on: #ffffff;
 }
 
-/* This card is a photograph in both themes, so dark is not the usual invert:
-   white is still the only ink that reads on artwork. What changes is how far
-   it is pushed — #ededed rather than pure white, the same step back from
-   white the dark theme takes with `--ink`, because a 112px glyph at #fff over
-   a dark cover halates — and what it sits on. The paused disc stops being a
-   white film and becomes the dark glass every other control wears in this
-   theme (#1c1c1e, `--liquid-fill`), and the discs that were already dark go
-   deeper still, toward the #111 page. */
 :global(html[data-theme="dark"]) .card {
-  --player-glyph: #ededed;
-  --player-disc: rgba(28, 28, 30, 0.5);
-  --player-disc-on: rgba(17, 17, 17, 0.65);
+  --track-accent: var(--art-dark, var(--accent));
+  /* Not `--surface-raised`: at this size a solid panel reads as a hole in the
+     card. A film of white lifts off whatever the card is sitting on. */
+  --player-disc: rgba(255, 255, 255, 0.14);
+  --player-on: #222222;
 }
 
-/* --- Cover ---------------------------------------------------------------- */
+/* --- The sleeve ------------------------------------------------------------- */
 
-/* All four are stacked; only the current one is opaque.
-
-   They carry the card's own corner as well, and that is not belt-and-braces:
-   the card is `overflow: hidden` under a `will-change: transform` (CardShell,
-   for the proximity field), so a child that gets promoted to its own
-   composited layer — which is exactly what happens on the frame a cross-fade
-   starts — is painted outside the parent's rounded clip and flashes square.
-   Clipping each cover to the same shape means there is nothing to escape. */
 .cover {
+  position: relative;
+  width: 100%;
+  /* Takes the slack, so the card can be taller than 315 without the panel
+     moving. `min-height` is Figma's 135 and the floor for the artwork. */
+  flex: 1 0 auto;
+  min-height: calc(135 * var(--u));
+  --sq-r: calc(16 * var(--u));
+  border-radius: var(--sq-r);
+  overflow: hidden;
+  background-color: var(--ink-20);
+}
+
+.art {
+  object-fit: cover;
+}
+
+/* Figma's flat 24% black, in both variants. Not a paused/playing signal — it
+   is what stops the chip disappearing into a bright sleeve. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.24);
+  pointer-events: none;
+}
+
+.chip {
+  position: absolute;
+  /* 28 from the card's edge, which is 8 inside the cover — the cover starts at
+     the card's 20 of padding. Written against the cover because that is what
+     it is pinned to. */
+  top: calc(8 * var(--u));
+  right: calc(8 * var(--u));
+  width: calc(28 * var(--u));
+  height: calc(28 * var(--u));
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+}
+
+.chipGlyph {
+  width: calc(12 * var(--u));
+  height: calc(12 * var(--u));
+}
+
+/* --- The panel -------------------------------------------------------------- */
+
+.panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: calc(12 * var(--u));
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(8 * var(--u));
+}
+
+.names {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--u));
+  /* The title is long more often than not — "Somewhere Only We Know" against
+     20px of thumbs. It shrinks; the thumbs do not. */
+  min-width: 0;
+}
+
+.title,
+.artist {
+  margin: 0;
+  line-height: var(--lh);
+  /* One line each. A three-line title would push the transport off the card,
+     and the whole name is in the status line either way. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: calc(15 * var(--u));
+  letter-spacing: calc(0.15 * var(--u));
+  color: var(--ink);
+  text-decoration: none;
+  display: block;
+  transition: color 200ms var(--spring-soft);
+}
+
+/* The title is a link to the record on Apple Music where there is one — which
+   is also what makes playing thirty seconds of it legitimate. Underlined only
+   on approach, so the card is not a page of blue text at rest. */
+a.title:hover,
+a.title:focus-visible {
+  color: var(--track-accent);
+  text-decoration: underline;
+  text-underline-offset: calc(2 * var(--u));
+}
+
+.artist {
+  font-family: var(--font-ui);
+  font-size: calc(12 * var(--u));
+  color: var(--ink-60);
+}
+
+/* --- The thumbs -------------------------------------------------------------- */
+
+.thumbs {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  flex: none;
+}
+
+.thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-60);
+  cursor: pointer;
+  transition: color 220ms var(--spring-soft);
+}
+
+.thumb:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.thumb[data-mine] {
+  color: var(--track-accent);
+}
+
+.thumbGlyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  transition: transform 340ms var(--spring-soft);
+}
+
+/* The thumb cocks back before it is pressed and gives when it is. Figma has no
+   hover state for these; this is the site's own, and it is the same gesture
+   `StudyEnd.module.css` gives the study like — the two controls should not
+   feel like different objects. */
+.thumb:hover:not(:disabled) .thumbGlyph,
+.thumb:focus-visible .thumbGlyph {
+  transform: rotate(-14deg) scale(1.16);
+}
+
+.thumb:active:not(:disabled) .thumbGlyph {
+  transform: rotate(-6deg) scale(0.94);
+}
+
+/* Figma's dislike is the like turned over — `-scale-y-100` on the same
+   instance, not a second drawing. Doing it the same way here means the two can
+   never drift apart, and adds no file. */
+.flip {
+  display: grid;
+  place-items: center;
+}
+
+.thumb[data-kind="down"] .flip {
+  transform: scaleY(-1);
+}
+
+.glyph {
+  width: calc(20 * var(--u));
+  height: calc(20 * var(--u));
+}
+
+/* Struck, not wobbled: a three-stop overshoot rather than a bounce. Lifted
+   from `StudyEnd.module.css` unchanged, because it is the same press. */
+.thumb[data-mine] .glyph {
+  animation: like-pop 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes like-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.38) rotate(-8deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* The ring. Mounted only while it is expanding and keyed on the counts in
+   Player.tsx, so a second press starts a second ring instead of re-using one
+   that has already finished. `forwards` holds it at zero opacity, so nothing
+   has to come along afterwards and remove it. */
+.burst {
+  position: absolute;
+  inset: calc(-4 * var(--u));
+  border-radius: 100%;
+  border: calc(2 * var(--u)) solid var(--track-accent);
+  pointer-events: none;
+  animation: like-burst 520ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes like-burst {
+  from {
+    opacity: 0.55;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+/* The count, for a moment.
+   ABSOLUTELY POSITIONED, AND THAT IS THE REQUIREMENT RATHER THAN THE STYLE: a
+   number that appears and disappears in the flow would move the title every
+   time somebody pressed a thumb. Out of flow it cannot, by construction —
+   which is a stronger guarantee than reserving the width would be, because
+   there is no width to get wrong when the count reaches three digits.
+
+   Above the thumb rather than over it, so it never covers the control it is
+   reporting on — and so that leaving it up permanently under reduced motion
+   is harmless. */
+.tally {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-bottom: calc(2 * var(--u));
+  padding: calc(1 * var(--u)) calc(6 * var(--u));
+  border-radius: var(--r-pill);
+  background-color: var(--surface-solid);
+  box-shadow: 0 calc(2 * var(--u)) calc(8 * var(--u)) rgb(from var(--ink) r g b / 0.16);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: calc(10 * var(--u));
+  line-height: var(--lh);
+  color: var(--ink);
+  /* 9 to 10 must not shift the bubble under itself. */
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0;
+  animation: tally-flash 1800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes tally-flash {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, calc(4 * var(--u))) scale(0.9);
+  }
+  8% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, calc(-3 * var(--u))) scale(1);
+  }
+}
+
+/* --- Transport ---------------------------------------------------------------- */
+
+.transport {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--u));
+  width: 100%;
+}
+
+.rail {
+  display: block;
+  width: 100%;
+  height: calc(4 * var(--u));
+  border-radius: var(--r-pill);
+  background-color: rgb(from var(--ink) r g b / 0.12);
+  overflow: hidden;
+}
+
+/* The only element whose geometry is ever written from JavaScript, and it is
+   written directly rather than through state — see Player.tsx. */
+.fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background-color: var(--track-accent);
+}
+
+.clock {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: calc(10 * var(--u));
+  line-height: var(--lh);
+  color: var(--ink-40);
+  font-variant-numeric: tabular-nums;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(12 * var(--u));
+  width: 100%;
+}
+
+.step,
+.play {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 100%;
+  background-color: var(--player-disc);
+  color: var(--player-glyph);
+  cursor: pointer;
+  transition:
+    transform 240ms var(--spring-soft),
+    background-color 300ms ease,
+    opacity 240ms ease;
+}
+
+.step {
+  width: calc(32 * var(--u));
+  height: calc(32 * var(--u));
+  flex: none;
+}
+
+.play {
+  position: relative;
+  width: calc(40 * var(--u));
+  height: calc(40 * var(--u));
+  flex: none;
+}
+
+.step:hover:not(:disabled),
+.play:hover:not(:disabled) {
+  transform: scale(1.06);
+}
+
+.step:active:not(:disabled),
+.play:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+/* Figma draws the paused mock's skip-back at 40%, because it is showing the
+   first track. The ends of the queue disable rather than wrap — see the header
+   of Player.tsx — and the button keeps its place so the row cannot reflow when
+   you reach one. */
+.step:disabled,
+.play:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Figma draws the play glyph at 24 in a 40 disc (node 1011:10218) and the skip
+   glyph as a 9x10 mark in a 32 one. These are `mask-size: contain`, so the span IS the
+   glyph — which is only true because the three exports were re-cropped to
+   their own bounding boxes.
+
+   They shipped as Figma exports on 112x112 and 88x88 canvases with the glyph
+   occupying about a sixth of each, and the card that used to be here worked
+   around it by sizing the spans 112u and 88u — numbers that describe the
+   export rather than the drawing. Reused here at a sane size they rendered as
+   two-pixel dots. Tightening the viewBox was the fix; nothing else in the repo
+   references these three files. */
+.stepGlyph {
+  /* The glyph's own size in Figma — a 9x10 mark in a 32 disc. */
+  width: calc(10 * var(--u));
+  height: calc(10 * var(--u));
+}
+
+/* One drawing for both skips, mirrored for the forward one — which is how the
+   file itself does it (the next button is the same instance under
+   `-scale-y-100 rotate-180`). Two exports could drift; a reflection cannot. */
+.controls .step:last-child .stepGlyph {
+  transform: scaleX(-1);
+}
+
+.playGlyph {
+  width: calc(24 * var(--u));
+  height: calc(24 * var(--u));
+}
+
+/* --- Playing ------------------------------------------------------------------ */
+
+.card[data-playing] .play {
+  background-color: var(--track-accent);
+  color: var(--player-on);
+}
+
+.card[data-playing] .playGlyph {
+  display: none;
+}
+
+.pauseGlyph {
+  display: none;
+  gap: calc(4 * var(--u));
+}
+
+.card[data-playing] .pauseGlyph {
+  display: flex;
+}
+
+/* Drawn rather than exported: two rounded bars is not worth a file, and as
+   `currentColor` it follows the disc's own ink. Figma 1011:10364 — 3x14, 4
+   apart. */
+.pauseGlyph i {
+  display: block;
+  width: calc(3 * var(--u));
+  height: calc(14 * var(--u));
+  border-radius: calc(1.5 * var(--u));
+  background-color: currentColor;
+}
+
+/* Figma's "Ellipse 85", the ring over the pause bars.
+
+   One element, two jobs. While the audio is still arriving it is a quarter of
+   a circle going round, which is the honest reading of a wait that used to be
+   invisible; once it is playing it becomes the playhead a second time and
+   sweeps once over the preview. A spinner that spun for the whole track would
+   be saying nothing.
+
+   `pathLength: 100` normalises the circumference, so the dash values are
+   percentages and neither the CSS nor Player.tsx has to know 2*pi*17.
+
+   INSET, WHERE FIGMA HAS IT ON THE RIM. The file draws the ellipse at r19 in
+   an r20 disc, so a 2-wide stroke lands exactly on the silhouette. Built that
+   way it does not read as a ring: the stroke is the on-accent ink, which in
+   dark mode is the same near-black as the page behind the button, and a
+   near-black arc eating the edge of a coloured circle looks like a bite taken
+   out of it rather than like progress. At r17 there is always a ring of accent
+   outside the arc, the circle stays a circle, and the mark reads as what it
+   is. */
+.arc {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  border-radius: inherit;
-  corner-shape: inherit;
-  opacity: 0;
-  transition: opacity 420ms ease;
-}
-
-.cover[data-active] {
-  opacity: 1;
-}
-
-/* Figma dims the artwork 40% while paused and takes the scrim to zero while
-   playing — the cover is the thing you are looking at once it is running. */
-.scrim {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  corner-shape: inherit;
-  background-color: rgba(0, 0, 0, 0.4);
   pointer-events: none;
-  transition: background-color 420ms ease;
-}
-
-.playing .scrim {
-  background-color: rgba(0, 0, 0, 0);
-}
-
-/* --- Playhead ------------------------------------------------------------- */
-
-/* Width is written per frame by the component. Playing only: there is no
-   track behind it in Figma, just the elapsed part. */
-.duration {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: calc(4 * var(--u));
-  background-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
   opacity: 0;
-  transition: opacity 240ms ease;
+  transition: opacity 200ms ease;
 }
 
-.playing .duration {
+.arc circle {
+  fill: none;
+  stroke: var(--player-on);
+  /* Never wider than the margin left outside it — see the note above. */
+  stroke-width: calc(2 * var(--u));
+  stroke-linecap: round;
+  /* From twelve o'clock, clockwise, rather than from three. */
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+.arc[data-state] {
   opacity: 1;
 }
 
-/* --- Transport ------------------------------------------------------------ */
-
-/* One row in both states, and it does not move between them. The skip buttons
-   keep their 40px of layout while hidden, so the play disc stays on the
-   card's centreline and at the same height whether it is playing or not —
-   the button you just pressed should still be under your cursor.
-
-   (Figma drops the row 17px on the playing variant. Deliberately not carried
-   over: the disc sliding out from under the pointer on click reads as a
-   misfire.) */
-.controls {
-  position: absolute;
-  top: calc(65 * var(--u));
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: calc(16 * var(--u));
+.arc[data-state="buffering"] circle {
+  stroke-dasharray: 25 75;
+  stroke-dashoffset: 0;
+  animation: arc-spin 900ms linear infinite;
 }
 
-/* The discs are built here rather than taken from the export, because the one
-   thing that makes them read as controls sitting *on* a painting is a
-   background blur, and an SVG cannot carry one. The exported files are the
-   glyphs alone. 12px is sampled off the Figma render — the artwork inside a
-   64px disc is smeared past recognition there, which Figma's flat GLASS token
-   (8) doesn't reach. */
-.play {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: calc(6 * var(--u));
-  width: calc(64 * var(--u));
-  height: calc(64 * var(--u));
-  border-radius: calc(60 * var(--u));
-  background-color: var(--player-disc);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
-  transition: background-color 300ms ease,
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+.arc[data-state="playing"] circle {
+  stroke-dasharray: 100;
+  /* The offset itself is written per frame by Player.tsx. */
 }
 
-.playing .play {
-  background-color: var(--player-disc-on);
+@keyframes arc-spin {
+  to {
+    transform: rotate(270deg);
+  }
 }
 
-.play:hover {
-  transform: scale(1.04);
+/* --- Reduced motion ------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .thumbGlyph,
+  .step,
+  .play {
+    transition: none;
+    transform: none;
+  }
+
+  .thumb[data-mine] .glyph {
+    animation: none;
+  }
+
+  /* Removed outright rather than stilled: a ring frozen at 55% opacity and
+     0.6 scale is a permanent grey halo around the thumb. */
+  .burst {
+    display: none;
+  }
+
+  /* The count stops being a flash and simply stays. A thing that appears and
+     then vanishes on its own is the specific behaviour this preference is
+     asking not to happen — so it arrives, and it waits to be read. */
+  .tally {
+    animation: none;
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .arc[data-state="buffering"] circle {
+    animation: none;
+    /* Three quarters of a ring, still. It still says "waiting"; it just does
+       not move to say it. */
+    stroke-dasharray: 75 25;
+  }
 }
 
-/* Exported on Figma's own 112 canvas and left there, so the glyph lands where
-   the file puts it without a second set of coordinates to keep in sync. */
-.playGlyph {
-  position: absolute;
-  inset: calc(-24 * var(--u));
-  width: calc(112 * var(--u));
-  height: calc(112 * var(--u));
-  color: var(--player-glyph);
-  transition: opacity 220ms ease;
-}
-
-.playing .playGlyph {
-  opacity: 0;
-}
-
-/* Two bars, exactly as Figma builds them — 4x20, radius 12, 6px apart. */
-.pauseGlyph {
-  display: flex;
-  gap: calc(6 * var(--u));
-  opacity: 0;
-  transition: opacity 220ms ease;
-}
-
-.playing .pauseGlyph {
-  opacity: 1;
-}
-
-.pauseGlyph i {
-  display: block;
-  width: calc(4 * var(--u));
-  height: calc(20 * var(--u));
-  border-radius: calc(12 * var(--u));
-  background-color: var(--player-glyph);
-}
-
-.step {
-  position: relative;
-  width: calc(40 * var(--u));
-  height: calc(40 * var(--u));
-  border-radius: calc(20 * var(--u));
-  background-color: var(--player-disc-on);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
-  opacity: 0;
-  transform: scale(0.6);
-  pointer-events: none;
-  transition: opacity 260ms ease,
-    transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.playing .step {
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-
-/* Left on Figma's 88 canvas for the same reason as the play glyph: the
-   offsets are the export's, not a second set of coordinates. */
-.stepGlyph {
-  position: absolute;
-  inset: calc(-24 * var(--u));
-  width: calc(88 * var(--u));
-  height: calc(88 * var(--u));
-  color: var(--player-glyph);
-}
-
-/* --- Listening To --------------------------------------------------------- */
-
-/* The one place GlassChip's white plate is wrong: everywhere else the chip
-   sits on the grey page, and here it sits on a photograph, so Figma darkens
-   it instead — #222 @ 0.2 ramping into #7CD899 @ 0.2 across a 108deg
-   diagonal. That exact fill goes on the chip's own box, which paints above
-   the plate, and the plate's body drops out from under it. The blur, the
-   hairline and the radius are still GlassChip's. */
-.chip {
-  --liquid-body: 0;
-  --liquid-sat: 100%;
-  /* And the plate's own shading comes down with it. At the site-wide values
-     the bottom gloss is a white bar across a chip Figma keeps dark. */
-  --liquid-gloss: 0.22;
-  --liquid-shade: 0.04;
-
-  background-image: linear-gradient(
-    108.83deg,
-    rgba(34, 34, 34, 0.2) 4.95%,
-    rgba(124, 216, 153, 0.2) 368.67%
-  );
-
-  position: absolute;
-  bottom: calc(28 * var(--u));
-  left: calc(24 * var(--u));
-  display: flex;
-  flex-direction: column;
-  gap: calc(6 * var(--u));
-  width: calc(206 * var(--u));
-  padding: calc(10 * var(--u)) calc(12 * var(--u));
-}
-
-.helper {
-  display: flex;
-  align-items: center;
-  gap: calc(6 * var(--u));
-}
-
-/* music.svg was exported at fill-opacity 0.8, and as a stencil that opacity
-   survives in the mask — so the glyph paints `--player-glyph` at 80%, which is
-   exactly the alpha the label text beside it carries. Its colour is set here
-   rather than inherited for that reason: inheriting `.label`'s own 0.8 would
-   multiply the two and leave the note dimmer than the words. */
-.labelIcon {
-  color: var(--player-glyph);
-}
-
-.label {
-  display: inline-flex;
-  align-items: center;
-  gap: calc(4 * var(--u));
-  font-size: calc(15 * var(--u));
-  font-weight: 500;
-  line-height: var(--lh);
-  color: rgba(255, 255, 255, 0.8);
-  white-space: nowrap;
-}
-
-.dot {
-  width: calc(4 * var(--u));
-  height: calc(4 * var(--u));
-  border-radius: var(--r-pill);
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.count {
-  font-size: calc(13 * var(--u));
-  font-weight: 500;
-  line-height: var(--lh);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.track {
-  font-family: var(--font-display), Georgia, serif;
-  font-weight: 500;
-  font-size: calc(15 * var(--u));
-  line-height: var(--lh);
-  color: #ffffff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* --- Track dots ----------------------------------------------------------- */
-
-/* One per track, the current one stretched to a 12px pill. Same elements
-   across a skip (keyed by title), so the stretch animates. */
-.bars {
-  position: absolute;
-  bottom: calc(12 * var(--u));
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: calc(5 * var(--u));
-}
-
-.bar,
-.barActive {
-  height: calc(4 * var(--u));
-  border-radius: var(--r-pill);
-  background-color: rgba(255, 255, 255, 0.6);
-  transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 320ms ease;
-}
-
-.bar {
-  width: calc(4 * var(--u));
-}
-
-.barActive {
-  width: calc(12 * var(--u));
-  background-color: #ffffff;
-}
-
-/* Figma lifts the inactive dots to 0.8 while playing — the scrim is gone by
-   then and 0.6 disappears into a bright cover. */
-.playing .bar {
-  background-color: rgba(255, 255, 255, 0.8);
-}
-
-/* --- One column ------------------------------------------------------------
-   Paired with the LinkedIn card rather than stacked, so the two share a row
-   the way they do on the wide grid. `.personality` is a two-track grid there,
-   so the halves are equal and this card only has to stop insisting on the 254
-   it is drawn with. */
+/* --- One column ----------------------------------------------------------------
+   Paired with the LinkedIn card rather than stacked, so the two share a row the
+   way they do on the wide grid. `.personality` is a two-track grid there, so
+   this card only has to stop insisting on the 254 it is drawn with. */
 @media (width < 700px) {
-  /* The 252 the phone frame draws, not a half of the row. `.personality` is a
-     scroller here (see app/page.module.css): the frame's own row does not fit
-     and clips the LinkedIn card, so the pair keeps its size and the row moves
-     instead. */
   .card {
     flex: none;
-    width: calc(252 * var(--u));
-  }
-
-  /* The now-playing chip was `left: 24u` with a fixed 206u width — an inset of
-     24 on each side of a 254 card, written as one inset and a length. At half
-     a phone column the length is wider than the card it sits in, so it becomes
-     what it always meant: inset from both edges. */
-  .chip {
-    right: calc(24 * var(--u));
-    width: auto;
-  }
-}
-
-/* The frame's corner, Figma 61:3234. `.card.card` because CardShell's own radius
-   class has the same specificity as this one and would otherwise win or lose on
-   source order across two modules — doubling the class settles it. Inner
-   surfaces take `border-radius: inherit`, so they follow. */
-@media (width < 700px) {
-  .card.card {
-    --sq-r: calc(24 * var(--u));
+    width: 100%;
   }
 }

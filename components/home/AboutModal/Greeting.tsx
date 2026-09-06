@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { notoSerifDevanagari } from "@/app/fonts-devanagari";
+import { indicVariables } from "@/app/fonts-indic";
 import type { about } from "@/content/site";
 import styles from "./AboutModal.module.css";
 
@@ -161,7 +162,9 @@ export default function Greeting({ items }: { items: Items }) {
   const settled = reduced || phase === "held" || phase === "glitch";
 
   return (
-    <p className={`${styles.greeting} ${notoSerifDevanagari.variable}`}>
+    <p
+      className={`${styles.greeting} ${notoSerifDevanagari.variable} ${indicVariables}`}
+    >
       <button
         type="button"
         className={styles.greetingButton}

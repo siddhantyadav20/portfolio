@@ -152,6 +152,11 @@
 .output {
   flex: 1;
   overflow-y: auto;
+  /* Reaching the top or the bottom of the log stops here rather than handing
+     the rest of the gesture to the board behind it — and, on a horizontal
+     swipe, to the browser's back-navigation. This scroller is one of the three
+     the canvas's back-swipe defence names; see CanvasSurface.module.css. */
+  overscroll-behavior: contain;
   padding: 14px 0 4px;
   scrollbar-width: thin;
   scrollbar-color: var(--term-edge) transparent;

@@ -64,6 +64,27 @@ export default function DesignSystemExperience() {
         radius={48}
         data-card="design-system"
         className={styles.card}
+        /* THE WHOLE CARD, not the frame inside it — and the note this replaces
+           argued the opposite, so it is worth saying why it was wrong.
+
+           It said a named element is lifted out of its ancestors and so escapes
+           their clip, and that naming the card would let the dashboard artwork
+           fly out of it. That is true of naming a *child*: the child escapes
+           the card's `overflow: hidden`. It is not true of the card, which
+           carries its own clip (`overflow: hidden` + `clip-path: border-box`,
+           CardShell.module.css) and therefore snapshots itself already
+           clipped. The Canvas card has named its whole shell all along and is
+           the one transition nobody complained about.
+
+           Naming the frame is what made this read as a picture being swapped:
+           a thumbnail flew while the card's own title, eyebrow and presets
+           cross-faded with the rest of the page on a different clock. Named
+           here, the card itself travels. */
+        style={
+          open || !live || !study.hero
+            ? undefined
+            : { viewTransitionName: study.hero.morphName }
+        }
         aria-label={`${designSystemCopy.eyebrow} ${designSystemCopy.title} ${designSystemCopy.subtitle} — open case study`}
         data-cursor="view-project"
         /* `pointerdown` as well as hover, and this is the phone fix.
@@ -98,14 +119,7 @@ export default function DesignSystemExperience() {
 
             Released while the modal owns the name: two live elements sharing
             one aborts the transition for both. */}
-        <span
-          className={styles.shotFrame}
-          style={
-            open || !live || !study.hero
-              ? undefined
-              : { viewTransitionName: study.hero.morphName }
-          }
-        >
+        <span className={styles.shotFrame}>
           <ThemingInstrument
             track={cardRef}
             readouts={{ label: labelRef, dots: dotsRef, mode: modeRef }}

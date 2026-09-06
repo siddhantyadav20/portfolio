@@ -30,9 +30,43 @@
   display: grid;
   place-items: start center;
   padding: clamp(16px, 12vh, 140px) 20px 20px;
-  background-color: color-mix(in srgb, var(--ink) 44%, transparent);
+
+  /* A SCRIM IS NOT INK, and writing it in `--ink` is what broke the dark theme.
+
+     This was `color-mix(in srgb, var(--ink) 44%, transparent)`, chosen against
+     the light theme where `--ink` is #222 — a charcoal veil that darkens a
+     near-white page so the white panel lifts off it. Correct there, and there
+     was never a dark override in this file.
+
+     `--ink` flips to #ededed in the dark theme, so the same declaration
+     resolved to rgba(237,237,237,0.44): a *white* haze poured over a #111 page,
+     behind a #2c2c2e panel. The scrim was lightening the thing it exists to
+     push back, and the panel had to fight it to stay in front.
+
+     A scrim's job — recede everything that is not the panel — points one way in
+     both themes, so the colour is stated rather than derived. Dark goes deeper
+     rather than matching: over #111 there is far less light to take away, so
+     44% reads weaker than the same number does over white. */
+  background-color: rgba(17, 17, 17, 0.44);
   backdrop-filter: blur(6px);
   animation: fade 160ms ease;
+}
+
+/* Deeper, and the measurement is the argument.
+
+   The panel is #2c2c2e, L* 18.1. Against the unscrimmed #111 page it sits 13.0
+   L* above its surround. The old inherited scrim resolved to a near-#727272
+   haze — L* 48.0 — which put the panel **29.9 below** its own backdrop: not a
+   weak separation, an inverted one. That is the whole bug in one number, and it
+   is why the panel read as a hole rather than as a sheet in front.
+
+   Black at 0.62 takes the page to L* 1.8 and restores the sign: +16.3, better
+   separated than with no scrim at all. Past about 0.5 this curve is flat
+   (15.7 / 16.3 / 16.7 at 0.5 / 0.62 / 0.7), so the value is chosen for how far
+   the page recedes rather than for the panel's edge — the panel's own hairline
+   does that. */
+:global(html[data-theme="dark"]) .backdrop {
+  background-color: rgba(0, 0, 0, 0.62);
 }
 
 @keyframes fade {

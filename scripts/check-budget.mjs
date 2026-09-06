@@ -68,14 +68,19 @@ const BUDGET = {
   /** The largest single file allowed in `public/`, in KB. */
   asset: 1200,
   /**
-   * Everything in `public/` together, in MB. 22.1MB today.
+   * Everything in `public/` together, in MB. 17.3MB today.
    *
-   * This should come down rather than up: 8.7MB of it is the prototype
+   * It came down 4.8 when the music left: eight MP3s and ten album covers,
+   * replaced by two API calls (lib/nowPlaying.ts). Lowered in the same commit
+   * deliberately — a ceiling that is not moved when the floor drops stops
+   * being a ceiling and becomes 6MB of unwatched headroom.
+   *
+   * It should keep coming down: 8.7MB of what is left is the prototype
    * recording and 2.1MB the waitlist GIF, both of which want re-encoding and
-   * are only waiting on a machine with ffmpeg. Lower this to about 12 once
-   * they are done.
+   * are only waiting on a machine with ffmpeg. Lower this to about 7 once they
+   * are done.
    */
-  publicTotal: 24,
+  publicTotal: 19,
 };
 
 /** Files that are allowed to be over `asset`, and why. Anything not on this
@@ -85,9 +90,6 @@ const ALLOWED_LARGE = {
     "The prototype recording, 8.7MB. Loads on hover-intent only, never on " +
     "page load. Needs re-encoding — see the note in CONTENT-INTAKE.md; it " +
     "wants ffmpeg, which this machine does not have.",
-  "media/waitlist-success.gif":
-    "2.1MB, and only ever requested after somebody has actually joined the " +
-    "waitlist. Wants to become a looping muted <video>, same blocker.",
 };
 
 const KB = 1024;

@@ -125,7 +125,8 @@ components/
     TimelineExperience/
     StoreWaitlist/
     MusicPlayer/
-    LinkedInCard/
+    FantasyCard/                # the personality row's second half
+    LinkedInCard/               # off the homepage for now; still on /canvas
     Footer/
   case-study/
     CaseStudyShell/             # shared chrome only

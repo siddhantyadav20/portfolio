@@ -265,22 +265,46 @@ export function spline(way: Pt[], step = 0.4): Pt[] {
    west has to pivot on the spot at the end, which no aircraft does and no
    amount of easing hides.
 
-   These are plane-centre positions in card space. The badge is 32px across, so
-   each one is placed to keep it clear of the two text blocks (DES/Design ends
-   at x=62.5, ENG/Engineer starts at x=174) and inside the 116px card. */
+   These are plane-centre positions in card space, placed to keep the badge
+   clear of the two text blocks (DES/Design ends at x=62.5, ENG/Engineer starts
+   at x=174) and inside the 116px card.
+
+   THE SWEPT RADIUS IS 16.96, NOT 16, and every number below was once wrong by
+   that difference. The badge is drawn 32px across, so the arithmetic here used
+   to be done with a radius of 16 — but `ALT_LIFT` scales it by 1.06 at cruise,
+   which is exactly where this leg is flown, and centripetal Catmull-Rom bows
+   a little past the waypoints it is routed through on top of that. Measured
+   rather than assumed, the old placement put the badge 0.4px *below* the card's
+   bottom edge and 0.1px *inside* the "Design" label. Neither was visible as a
+   collision; what was visible was the disc's rim clipped flat against the card
+   and, at cruise altitude, the whole of its shadow sliced off — the shadow
+   being the one thing that says the plane is off the ground.
+
+   So the clearances below are stated as measurements, and there is a probe in
+   the commit that produced them: worst case over the canonical circuit and six
+   mid-route peel-offs, disc bottom 112.5 against a 116 card, left edge 65.4
+   against a label ending at 62.5, right edge 173.3 against one starting at
+   174. */
 const HOME_TAIL: Pt[] = [
-  /* the cruise: a long, shallow descent west across the empty band */
-  { x: 124, y: 98 },
-  { x: 98, y: 98.5 },
-  { x: 86, y: 95 },
-  /* the climb and the flare, up the corridor between "Design" and the slot.
+  /* The cruise: a long, shallow descent west across the empty band. Raised
+     from 98 — that put the disc's bottom edge at 116.4 on a 116px card. */
+  { x: 124, y: 94 },
+  { x: 98, y: 94.5 },
+  { x: 86, y: 90.5 },
+  /* The climb and the flare, up the corridor between "Design" and the slot.
      Everything from here is always flown, however early the pointer left — it
-     is what lines the plane up. x=80 is as far left as the corridor goes: the
-     badge's left edge lands at 64, a pixel and a half clear of the label. */
-  { x: 80, y: 86 },
-  { x: 80, y: 74 },
-  { x: 80.5, y: 62 },
-  { x: 83, y: 53 },
+     is what lines the plane up. x=83 is as far left as the corridor goes, and
+     it puts the badge's left edge at 65.4: 2.9px clear of the label, where the
+     old x=80 was 0.1px inside it. */
+  { x: 83, y: 86 },
+  { x: 83, y: 74 },
+  { x: 83.5, y: 62 },
+  /* The flare's first point moved with the corridor and its last did not, and
+     that pairing is load-bearing. The last point sets the arrival tangent into
+     the slot, so pushing it right tightens the final turn and the nose starts
+     falling behind again — 86.5 measures 61deg of worst-case lag, 87.5 measures
+     71 and 88.5 measures 89. It stays where it was. */
+  { x: 85, y: 53 },
   { x: 86.5, y: 48 },
 ];
 const HOME_CLIMB = 3;
@@ -362,9 +386,35 @@ const CURVE_FLOOR = 0.2;
  *  back. */
 const CURVE_TAPER = 0.82;
 
-const curveFactor = (k: number) =>
+/**
+ * The fastest this corner may be taken, in units of cruise. `Infinity` below
+ * the knee, where the bend is gentle enough to impose nothing at all.
+ *
+ * A ceiling and not a discount, and the difference is the whole of why the way
+ * home used to arrive sideways.
+ *
+ * This was `envelope(u) * curveFactor(k)` — the corner's allowance multiplied
+ * by whatever the envelope had asked for. That reads as the same thing and is
+ * not, because the envelope goes to 1.68 in the climb-out: a corner rated for
+ * 0.73 of cruise was being flown at 1.23 of it whenever the two overlapped.
+ *
+ * On the outbound they never overlap, which is why it was invisible for so
+ * long. That leg is the Figma route, its straight comes first and its hairpin
+ * sits at u≈0.55 where the envelope is flat at 1 — and `1 * c` is `min(1, c)`.
+ * The way home is the leg that exposes it: the peel is the tightest turn on the
+ * card *and* it is the first thing the leg does, so the whole 1.68 lands inside
+ * a 16px radius. Measured, that asked the nose for 698deg/s against a 400
+ * ceiling and left it 61deg behind the direction of travel — the aircraft
+ * visibly crabbing through the one turn it is supposed to bank through.
+ *
+ * `min` rather than a replacement because the flare has to keep its authority:
+ * on the approach the envelope is down at 0.16 and the corner would happily
+ * allow 0.78, and a landing is not the place to let the geometry overrule the
+ * profile. Whichever of the two wants to go slower, wins.
+ */
+const ceiling = (k: number) =>
   k <= CURVE_KNEE
-    ? 1
+    ? Infinity
     : Math.max(CURVE_FLOOR, (CURVE_KNEE / k) ** CURVE_TAPER);
 
 /* --- The profile -----------------------------------------------------------
@@ -496,7 +546,7 @@ export type Flight = {
 };
 
 const speed = (u: number, k: number, warm: number) =>
-  envelope(u, warm) * curveFactor(k);
+  Math.min(envelope(u, warm), ceiling(k));
 
 export function makeFlight(
   t: Track,

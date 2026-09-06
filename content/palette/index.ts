@@ -524,7 +524,11 @@ function fromCanvas(): PaletteEntry[] {
           preview: {
             title: widget.title,
             subtitle: widget.artist,
-            image: { src: widget.cover, alt: `${widget.title} sleeve` },
+            /* No image. A disc's sleeve is fetched from Apple at request time
+               now (lib/discArt.ts) and this file is pure data compiled into
+               the bundle — it cannot do I/O, and it has nothing written down
+               to point at. The facts carry the row instead. */
+            facts: [["Artist", widget.artist]],
           },
         });
         break;
@@ -615,21 +619,30 @@ function fromCraft(): PaletteEntry[] {
   ];
 }
 
-/** The four tracks on the homepage player. */
+/**
+ * The homepage player — one row, not one per song.
+ *
+ * It used to index all four tracks, which worked because there were four
+ * tracks and they were written into this repository. What the card plays now
+ * comes from Last.fm and changes by the hour, and this file is pure data
+ * compiled into the bundle: indexing a list that moves would bake whatever was
+ * playing at build time into the palette and leave it there. The header of
+ * this file already forbids it from stating anything of its own.
+ *
+ * The `listen` group does not thin out for it — the six canvas records are
+ * still indexed individually above.
+ */
 function fromMusic(): PaletteEntry[] {
-  return music.tracks.map((track, i) => ({
-    id: `track:${i}`,
-    group: "listen" as const,
-    label: track.title,
-    hint: music.label,
-    keywords: "music song play track listening",
-    to: { kind: "card" as const, card: "music" },
-    preview: {
-      title: track.title,
-      subtitle: music.label,
-      image: { src: track.cover, alt: `${track.title} cover` },
+  return [
+    {
+      id: "card:music",
+      group: "listen",
+      label: music.label,
+      hint: "What I have had on lately",
+      keywords: "music song track player listening spotify lastfm now playing",
+      to: { kind: "card", card: "music" },
     },
-  }));
+  ];
 }
 
 /**

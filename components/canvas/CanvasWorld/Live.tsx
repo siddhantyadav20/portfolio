@@ -21,8 +21,16 @@ import Terminal from "../widgets/Terminal";
  *
  * Two constraints hold for everything below:
  *
- *   1. It is a server component and stays one. Widget behaviour lands as
- *      client islands *inside* these frames.
+ *   1. No hooks and no state in this file. Widget behaviour lands as client
+ *      islands *inside* these frames.
+ *
+ *      This used to read "it is a server component and stays one", which was
+ *      not true and had not been for a while: `CanvasSurface` is "use client"
+ *      and imports this module directly, so the whole board is already in the
+ *      client graph. The rule is still worth keeping — it is what stops the
+ *      board itself re-rendering when one record starts playing — but it is a
+ *      rule about hooks, not about where the module runs. Anything here that
+ *      needs to fetch has to do it the way `lib/discArt.ts` does.
  *
  *   2. No `backdrop-filter`, ever. `.liquid` is the house reflex and it must
  *      not come near a widget: twenty-five backdrop-filtered nodes inside a
@@ -55,13 +63,7 @@ function Render({ widget }: { widget: Widget }) {
   switch (widget.kind) {
     case "disc":
       return (
-        <Disc
-          id={widget.id}
-          title={widget.title}
-          artist={widget.artist}
-          cover={widget.cover}
-          src={widget.src}
-        />
+        <Disc id={widget.id} title={widget.title} artist={widget.artist} />
       );
     case "book":
       return <Book book={widget} />;

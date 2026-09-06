@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useMounted } from "@/lib/clientValue";
+import { prefetchDiscArt } from "@/lib/discArt";
 import CanvasWorldLive from "@/components/canvas/CanvasWorld/Live";
 import Confetti from "@/components/canvas/chrome/Confetti";
 import Dock from "@/components/canvas/chrome/Dock";
@@ -195,10 +196,21 @@ export default function CanvasSurface({ onClose }: Props) {
    * log, the drawing pad, the book's spread.
    *
    * `overscroll-behavior` is the declarative answer and it is not subject to
-   * that race: it tells the viewport there is no overscroll affordance here,
-   * horizontally or vertically. Scoped to the canvas being mounted — the
-   * overlay and the route both — because the rest of the site should keep the
-   * gesture, and dropped on the way out.
+   * that race. Scoped to the canvas being mounted — the overlay and the route
+   * both — because the rest of the site should keep the gesture, and dropped
+   * on the way out.
+   *
+   * THIS ATTRIBUTE IS THE OUTER HALF AND IT IS NOT THE ONE THAT FIXED IT. The
+   * note that used to stand here said the rule on the viewport was enough, and
+   * the bug came back because it is not: overscroll chaining begins at the
+   * innermost scroll container under the pointer and walks *outward*, so
+   * anything scrollable between the pointer and the root decides first.
+   * `.surface` is one — `overflow: hidden` makes an element a scroll container
+   * even though it can never scroll — and at the default `auto` it passed
+   * every swipe on the board straight up to the browser without the root rule
+   * ever being consulted. The fix lives in CanvasSurface.module.css, on the
+   * surface itself; this stays as the backstop for anything outside it.
+   * `tests/overscroll.test.ts` holds both halves in place.
    */
   useEffect(() => {
     document.documentElement.setAttribute("data-canvas", "");
@@ -211,6 +223,9 @@ export default function CanvasSurface({ onClose }: Props) {
      `enterRoom` is idempotent for the life of the page — see the note there. */
   useEffect(() => {
     enterRoom();
+    /* Usually already done — the homepage card warms these on hover. This is
+       for a cold arrival straight at /canvas, where nothing has. */
+    prefetchDiscArt();
   }, []);
 
   useEffect(() => {

@@ -29,7 +29,13 @@ export default function StudyHero({ hero }: Props) {
       <div
         className={`${styles.frame} squircle`}
         data-stage="hero"
-        style={{ viewTransitionName: hero.morphName }}
+        /* NOT NAMED ANY MORE. The card used to morph into this frame while
+           everything around it cross-faded, which is what made the transition
+           read as a picture being swapped rather than a card arriving. The
+           modal's whole plate carries the card's name now (see
+           ModalSurface's `morphName`), and this frame rides inside that
+           snapshot. On the `/work/<slug>` route there is no morph at all and
+           there never was. */
       >
         {hero.kind === "prototype" && (
           <PrototypeHero plate={hero.plate} plateAlt={hero.plateAlt} />

@@ -20,13 +20,15 @@
    stays legible in one place instead of scattered through media queries.
    ========================================================================== */
 
-/* 32px from the top and the sides, everywhere. The bottom is deeper because
-   the sticky blur bar parks over the last 44px of the page and the footer has
-   to clear it — Figma leaves exactly 96px under the footer's last line. */
+/* 32px from the top and the sides, everywhere, and 64 at the bottom.
+
+   Both branches below zero this out and restate it on `.band` as a margin, so
+   what is left here is the fallback for a viewport that matches neither — and
+   the value is kept in step with them rather than left at the 96 it was. */
 .page {
   position: relative; /* the theme toggle is pinned to this box */
   width: 100%;
-  padding: var(--page-pad) var(--page-pad) 96px;
+  padding: var(--page-pad) var(--page-pad) 64px;
 
   /* The measuring stick for the whole desktop composition.
 
@@ -111,8 +113,15 @@
   }
 
   .band {
-    /* 32 top and sides, 96 bottom — the page's old padding, now scaling. The
-       deeper bottom is the sticky blur bar's clearance.
+    /* 32 top and sides, 64 bottom — the page's old padding, now scaling.
+
+       The bottom was 96, which was the blur bar's clearance: the footer's last
+       line sat clear of it. It is 64 by request, and the consequence is worth
+       writing down rather than discovering — at 64 the footer is inside the
+       ramp's reach (now 96, see `--blur-bar-h`), so its last line picks up a
+       pixel or two of blur once the page is scrolled to the very bottom. That
+       is the softening the ramp exists for, applied to the thing nearest the
+       edge, and it is a trade rather than an oversight.
 
        The sides take the notch into account, which they did not have to when
        this block started at 1001: a phone in landscape is 844 to 932 wide and
@@ -121,7 +130,7 @@
        leave this out. */
     margin: calc(32 * var(--u))
       max(calc(32 * var(--u)), env(safe-area-inset-right, 0px))
-      calc(96 * var(--u))
+      calc(64 * var(--u))
       max(calc(32 * var(--u)), env(safe-area-inset-left, 0px));
     --gap: calc(32 * var(--u));
     --col-1: calc(386 * var(--u));
@@ -292,14 +301,42 @@
 .personality {
   display: flex;
   gap: var(--gap);
+  /* Stated rather than left to the default, because it is now load-bearing.
+     The Fantasy card is 315 tall and the music player is drawn at 280; this is
+     what makes the shorter one take the taller one's height so the row has one
+     bottom edge instead of two. The music player carries the other half —
+     `height: auto` and a 280 floor — in its own stylesheet, because a flex
+     item only stretches if it has not already been given a height. */
+  align-items: stretch;
   grid-column: 2;
   grid-row: 4;
   /* 48 below the Store card, which is also the drop from the tallest column to
-     the footer. The row gap pays 32 of it. */
+     the footer. The row gap pays 32 of it. A minimum now rather than the
+     measured gap, since `end` below is what places this row. */
   margin-top: calc(var(--gap-personality) - var(--gap));
-  /* Row 4 is the `1fr` track and is taller than this content — that surplus is
-     col 1's, and it belongs under these cards rather than above them. */
-  align-self: start;
+
+  /* `end`, and this is column 2's half of "every column ends on the same line".
+
+     Row 4 is the `1fr` track, so its bottom is column 1's bottom — the same
+     line `.search` is stretched to. Pinning this row to it is what makes the
+     three columns end level by construction rather than by their contents
+     happening to sum to the same number.
+
+     THIS USED TO BE `start`, and the note under it read: row 4 is taller than
+     this content, that surplus is column 1's, and it belongs under these cards
+     rather than above them. That was true and worth keeping when the surplus
+     was 35px — the LinkedIn card was 280 tall and left column 2 that far short
+     of column 1, and moving 35px above the pair would have opened a visible
+     hole under the Store card.
+
+     The Fantasy card is 315 and closes almost exactly that gap, so the surplus
+     this now lifts is half a design pixel — measured at 0.5 from 700 through
+     2560, which is under a CSS pixel at every one of them. Half a pixel is not
+     worth a rule on its own; what it buys is that the alignment survives a
+     copy edit. The Introduction sets row 2 and is the one block on this page
+     still being written, and when it moves, this row follows column 1 instead
+     of drifting off the line again. */
+  align-self: end;
 }
 
 /* 64px clear of Inspection — a double gutter, and the widest single piece of
@@ -326,12 +363,28 @@
   align-self: start;
 }
 
+/* `stretch`, not `start`, and this is the third column's half of "every column
+   ends on the same line".
+
+   Row 4 is the `1fr` track, and what it resolves to is whatever column 1 —
+   the tallest thing on the page, spanning rows 1-4 — leaves over. So the
+   bottom of row 4 *is* column 1's bottom, and a card stretched to fill rows
+   3-4 ends exactly level with it without anyone measuring column 1 or writing
+   its height down. Column 2 reaches the same line under its own steam now
+   that the personality row is 315 tall.
+
+   The Search card is the one card on the page built to be given a height
+   rather than to declare one: its heading is anchored top-left, its outcome
+   chip bottom-right, and the instrument between them runs `top: 169` to
+   `bottom: 24` — a scroller that has always wanted every pixel there is. The
+   42 it gains here go to the results list. See SearchExperience.module.css,
+   which keeps the drawn 626 as a floor. */
 .search {
   grid-column: 3;
   grid-row: 3 / 5;
   display: flex;
   justify-content: flex-end;
-  align-self: start;
+  align-self: stretch;
 }
 
 /* --- Footer --------------------------------------------------------------- */
@@ -342,11 +395,18 @@
 .footerWrap {
   grid-column: 1 / -1;
   grid-row: 5;
-  /* `48 * --u`, not a literal `48px`. The rest of that sum (`--gap`) scales,
-     so a fixed 48 made the drop shrink as the page grew: correct at 1440,
-     16px short at 1920, and further out from there. Below 1001 `--u` is its
-     registered 1px and this resolves to the same 48 - 32 it always did. */
-  margin-top: calc(48 * var(--u) - var(--gap));
+  /* 120 BELOW WHERE THE CONTENT ENDS, by request — up from 48.
+
+     The columns all finish on one line now (see `.search` and `.personality`),
+     so "where the content ends" is a single edge for the first time and a drop
+     measured off it means something. The grid's own row gap pays the first 32
+     of it and this is the remainder.
+
+     `120 * --u`, not a literal `120px`. The rest of the sum (`--gap`) scales,
+     so a fixed number would make the drop shrink as the page grew — correct at
+     1440 and 40px short at 1920. Below 700 `--u` is the phone frame's and this
+     resolves against that instead. */
+  margin-top: calc(120 * var(--u) - var(--gap));
   margin-inline: var(--gap);
 }
 
@@ -488,6 +548,33 @@
     background: rgb(from var(--accent) r g b / 0.15);
     box-shadow: 0 0 0 100vw rgb(from var(--accent) r g b / 0.15);
     clip-path: inset(0 -100vw);
+    transition: background-color 420ms ease, box-shadow 420ms ease;
+  }
+
+  /* THE BAND BECOMES THE CELEBRATION.
+
+     This wash is the section's own, not the card's — it runs to both screen
+     edges behind it — so it did not follow the card into its success state,
+     and the card's plate stopped at the card. On a phone that put a deep green
+     rectangle inside an orange band with a hard seam down each side of it,
+     which is what a pass over every state turned up.
+
+     Standing the band *down* was the first fix and it was wrong: on a phone
+     this card has no surface of its own (see the `width < 700px` block in
+     StoreWaitlist — `background: none`, and `--sq-r: 0` because "no surface,
+     so no corner"). The band IS the surface here. Removing it left the
+     celebration as a square-cornered slab floating on the page ground.
+
+     So the band changes colour instead. Edge to edge, orange to the
+     celebration, no corner and no seam — the section turning green rather than
+     a card appearing inside it.
+
+     `:has()` on the attribute rather than the module class: the class is
+     scoped to StoreWaitlist's own stylesheet and unreachable from here, and
+     the card sets `data-won` for exactly this. */
+  .store:has([data-won]) {
+    background: var(--celebrate);
+    box-shadow: 0 0 0 100vw var(--celebrate);
   }
 
   .search,
@@ -527,44 +614,43 @@
     align-items: flex-start;
   }
 
-  /* --- The personality pair, as a scroller ------------------------------
+  /* --- The personality pair, stacked ------------------------------------
 
-     The frame has these two at 252 each inside a 294-wide box: 528 of cards
-     in 294 of room, with the LinkedIn card clipped off the right edge. That
-     is the frame being unfinished, not a design, so rather than reproduce a
-     clipped card or shrink both below the width they are drawn at, the row
-     keeps their size and scrolls.
+     THIS USED TO BE A HORIZONTAL SCROLLER AND THE SCROLLER WAS THE BUG.
 
-     The negative margin and matching padding let it scroll edge to edge
-     through the section's padding while the first card still starts on the
-     content inset — so the second card peeks in from the border rather than
-     from nowhere, which is what says "this moves" before anyone touches it. */
+     The frame has these two at 252 each inside a 294-wide box — 528 of cards
+     in 294 of room, with the second one running off the right edge. Reading
+     that as "the frame is unfinished", the row kept both cards at their drawn
+     width and scrolled instead, edge to edge through the section's padding, so
+     that the second card peeked in from the border and said "this moves"
+     before anyone touched it.
+
+     What it actually said was "this card is broken". A scrollport has a hard
+     edge, so the peeking card is sliced flat down its side: at 390 the second
+     card starts at x=325 in a box that ends at x=365, and forty pixels of card
+     are shown with a straight cut where its rounded corner should be. Reported
+     as exactly that — the radius looking cut off at the edges — which is the
+     right reading. A peek is only an affordance when it reads as *more of the
+     same thing*; at 40px it reads as damage.
+
+     Stacked, both cards are whole. They take the column's full width rather
+     than the frame's 252, so nothing is hidden, every corner is drawn, and the
+     artwork on the music card gets 40 more pixels to be seen at. The vertical
+     rhythm is the closing section's own 24. */
   .personality {
     display: flex;
+    flex-direction: column;
     gap: calc(24 * var(--u));
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-    margin-inline: calc(-24 * var(--u));
-    padding-inline: calc(24 * var(--u));
-    /* Snapping happens against the *snapport*, which is the scrollport inset by
-       `scroll-padding` — not by `padding`. Without this the first card snapped
-       its left edge to the container's edge, scrolling the 24 of padding out
-       from under itself and parking the music player flush against the
-       section's border. */
-    scroll-padding-inline: calc(24 * var(--u));
-    /* The cards carry their own shadows and the scroll port would clip them
-       against a hard edge; a little room under them keeps that off. */
-    padding-bottom: calc(4 * var(--u));
-    scrollbar-width: none;
   }
 
-  .personality::-webkit-scrollbar {
-    display: none;
-  }
-
+  /* Both cards give up their drawn width and take the column. They are 252 and
+     254 in the frame — a two-pixel difference that only existed because they
+     were drawn as separate components, and which would be visible now that one
+     sits directly above the other. */
   .personality > * {
-    scroll-snap-align: start;
+    width: 100%;
   }
+
 }
 
 /* --- The phone's corner ----------------------------------------------------

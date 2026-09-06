@@ -12,6 +12,11 @@ import {
   subscribePlaying,
   toggleTrack,
 } from "@/lib/audio";
+import {
+  discArt,
+  noDiscArtServerSide,
+  subscribeDiscArt,
+} from "@/lib/discArt";
 import styles from "./Disc.module.css";
 
 /* ===========================================================================
@@ -39,14 +44,10 @@ export default function Disc({
   id,
   title,
   artist,
-  cover,
-  src,
 }: {
   id: string;
   title: string;
   artist: string;
-  cover: string;
-  src: string | null;
 }) {
   const playingId = useSyncExternalStore(
     subscribePlaying,
@@ -54,6 +55,16 @@ export default function Disc({
     noneServerSide,
   );
   const playing = playingId === id;
+
+  /* The sleeve and the preview, when they have arrived. Neither is in the
+     repository any more — six album PNGs and four MP3s used to be, painted at
+     320px and streamed thirty seconds at a time. See lib/discArt.ts. */
+  const resolved = useSyncExternalStore(
+    subscribeDiscArt,
+    discArt,
+    noDiscArtServerSide,
+  )[id];
+  const src = resolved?.preview ?? null;
 
   const [hovered, setHovered] = useState(false);
   const down = useRef<{ x: number; y: number } | null>(null);
@@ -63,15 +74,19 @@ export default function Disc({
   // appear on tap and stay there, which is worse than not having it.
   const canHover = useMediaQuery("(hover: hover) and (pointer: fine)");
 
-  /* The sleeve, the label and the tooltip are all CSS backgrounds, which the
-     <Image> pipeline cannot reach — so these were the last raw originals on
-     the board, six album covers at 130-165KB apiece painted at 320px and
-     smaller. `getImageProps` resolves the same optimised URL an <Image> would
-     have requested, and a background can use that just as well. */
+  /* The sleeve, the label and the now-playing thumbnail are all CSS
+     backgrounds, which the <Image> pipeline cannot reach. `getImageProps`
+     resolves the same optimised URL an <Image> would have requested, and a
+     background can use that just as well — so Apple's 400px sleeve still
+     arrives through /_next/image as AVIF at the size it is painted, rather
+     than as the original JPEG. */
   const art = useMemo(
     () =>
-      getImageProps({ src: cover, alt: "", width: 480, height: 480 }).props.src,
-    [cover],
+      resolved
+        ? getImageProps({ src: resolved.cover, alt: "", width: 480, height: 480 })
+            .props.src
+        : null,
+    [resolved],
   );
 
   return (
@@ -117,18 +132,33 @@ export default function Disc({
           <span className={styles.grooves} />
           <span
             className={styles.centreLabel}
-            style={{ backgroundImage: `url(${art})` }}
+            style={art ? { backgroundImage: `url(${art})` } : undefined}
           >
             <span className={styles.spindle} />
           </span>
         </div>
       </motion.div>
 
-      {/* The sleeve. */}
-      <div
-        className={`${styles.sleeve} squircle`}
-        style={{ backgroundImage: `url(${art})` }}
-      />
+      {/* The sleeve.
+
+          Drawn, then covered. The plate underneath is the record's name set on
+          card stock, and it is the resting state rather than a placeholder: it
+          is what the board looks like with no network, and it is what every
+          disc looks like for the moment before Apple answers. A grey box would
+          have made the canvas read as half-loaded, which is the same complaint
+          `Still.tsx` was written to fix. The artwork fades in over the top. */}
+      <div className={`${styles.sleeve} squircle`}>
+        <span className={styles.plate} aria-hidden="true">
+          <span className={styles.plateSong}>{title}</span>
+          <span className={styles.plateArtist}>{artist}</span>
+        </span>
+        {art ? (
+          <span
+            className={styles.sleeveArt}
+            style={{ backgroundImage: `url(${art})` }}
+          />
+        ) : null}
+      </div>
 
       <AnimatePresence>
         {hovered && !playing && canHover && (
@@ -162,7 +192,7 @@ export default function Disc({
               >
                 <span
                   className={styles.npCover}
-                  style={{ backgroundImage: `url(${art})` }}
+                  style={art ? { backgroundImage: `url(${art})` } : undefined}
                 />
                 <span className={styles.npText}>
                   <span className={styles.npLabel}>

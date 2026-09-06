@@ -37,20 +37,35 @@
   flex: none;
 
   /* Success palette. Local rather than global tokens: nothing else on the site
-     is mint, and the check green is brighter than `--green`, which is the ink
-     for positive deltas and reads too olive at 43px.
+     is this, and the check green is brighter than `--green`, which is the ink
+     for positive deltas and reads too olive at this size.
 
-     The mint is Figma's, and it has to be exactly Figma's, because the artwork
-     is an opaque 146x109 rectangle with its own background baked into it and
-     any mismatch draws that rectangle onto the card. Worth knowing rather than
-     rediscovering: sampling the GIF gives #CEFFDE or #D6FFE6 depending on which
-     pixel you land on — the export dithers a flat fill across two palette
-     entries in a checkerboard. Neither is the colour. The mean of the two is
-     #D2FFE2, which is Figma's #D1FFE2 to within half a unit, and building the
-     card on a sampled leg instead of the mean is what put a visible pale
-     rectangle behind the check. */
-  --mint: #d1ffe2;
-  --check: #31ce73;
+     THE PLATE IS NO LONGER MINT, and the mint was never a colour decision.
+     The old artwork was an opaque GIF with its own background baked in, so the
+     card had to be painted the exact value the export happened to dither to —
+     this comment used to derive `#D2FFE2` as the mean of the two palette
+     entries it alternated between, because sampling either one left a visible
+     rectangle. The mark is drawn now and carries no background, so the plate
+     is free to be chosen instead of matched.
+
+     Chosen: a deep green-black. A celebration reads as a moment when the
+     ground goes *quiet* and the colour on it gets loud — a pale mint plate had
+     the colour and the mark competing at the same value, which is why the
+     confetti had to be dropped for it to read at all. Against this the disc,
+     the white check and the confetti all carry: white lands at 14.7:1, the
+     disc at 4.85:1.
+
+     Still one value in both themes, which the old note argued for and got
+     right: the celebration is a moment, not a surface. What changes for dark
+     now is nothing — the plate is dark in both, so the type on it is too.
+     `--celebrate` itself lives in globals.css: the phone's full-bleed band is
+     painted by app/page.module.css and has to be the same colour.
+
+     The disc is `#25a95d` rather than the GIF's `#31ce73` for one reason: the
+     check inside it is white, and white on #31ce73 is 2.06:1 — under the 3:1
+     that a graphical object needs to be made out. At #25a95d it is 3.04:1 and
+     still 4.85:1 against the plate. */
+  --check: #25a95d;
 
   /* Two curves do all of the work. `--out` decelerates hard — things arriving.
      `--in` accelerates — things leaving, and the vertical half of the arc. */
@@ -428,7 +443,7 @@
 .wash {
   position: absolute;
   inset: 0;
-  background-color: var(--mint);
+  background-color: var(--celebrate);
   clip-path: circle(0% at 50% 78.5px);
   /* Not `--out`: a radius on a hard decelerating curve covers the card in the
      first third of its duration, because area goes as the square of it — the
@@ -459,38 +474,104 @@
   flex: none;
 }
 
-.gif,
-.still {
+/* --- The success stamp -------------------------------------------------------------
+
+   A filled disc, a white check drawn into it, two rings pushed out and a burst
+   of confetti — the choreography of the 2.1MB GIF this replaced, rebuilt as a
+   25KB Lottie. See Success.tsx.
+
+   The first attempt at replacing that GIF kept only a stroked ring and a green
+   check and dropped the fill, the white check and every scrap of confetti. It
+   was honest about theming and it was, correctly, called plain: what made the
+   original land was the burst, and a ring outline has no burst in it.
+
+   Centred rather than stretched: the drawing is square and the box is 146x109.
+
+   `.stamp`, NOT `.mark`. This was `.mark` and that class already belongs to the
+   "+" glyph in the Join pill, two hundred lines above — so these rules were
+   also landing on it, turning a `position: relative` 20px chip into an
+   absolutely positioned, `inset: 0`, `opacity: 0` box with an entry animation
+   on it. That is the pill's plus arriving broken in the card's *resting*
+   state, which is exactly how it was reported. Same mistake as `.track` in the
+   music player: one file, one word, two meanings. */
+.stamp {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+  display: grid;
+  place-items: center;
 
-/* Held back until the disc has landed. The GIF is opaque and the same mint as
-   the card, so it needs nothing to hide the disc under it — it just covers it,
-   and the frame it covers it with is a bare green disc the same size and in
-   the same place. */
-.gif {
+  /* Held back until the flying disc has landed — the disc *becomes* the mark's
+     disc, so it must not exist before it arrives. */
   opacity: 0;
   animation: appear 200ms ease calc(var(--flight) + 80ms) forwards;
 }
 
-.still {
-  opacity: 0;
+/* THE TWO ARE NOT THE SAME SIZE, and that is the fix rather than an oversight.
+
+   `.stampAnim` is the whole 240x240 artboard — the disc is 124 of it and the
+   confetti is thrown to about half its radius, so at 120 the disc reads at 62
+   and the burst spreads ~118 wide. It comfortably covers the 43 the flying
+   disc lands at.
+
+   `.stampFallback` is the *disc*, not the artboard. Sized to the artboard it was
+   a 126px circle in a 109-tall box — twice the drawn disc, overflowing the art
+   and colliding with the title underneath. Both are centred by the grid, so
+   they land concentric at their own sizes. */
+.stampAnim {
+  grid-area: 1 / 1;
+  width: calc(120 * var(--u));
+  height: calc(120 * var(--u));
 }
 
-/* The swap at the end of the first loop. No transition on either side: the
-   canvas holds the exact frame the GIF is showing, so a cut is invisible and a
-   crossfade would only blend the frame with itself. */
-.gif[data-frozen] {
-  opacity: 0;
-  animation: none;
+.stampFallback {
+  grid-area: 1 / 1;
+  width: calc(62 * var(--u));
+  height: calc(62 * var(--u));
 }
 
-.still[data-frozen] {
-  opacity: 1;
+/* The confetti is thrown past the artboard's own bounds by design. */
+.stampAnim :global(svg) {
+  overflow: visible;
+}
+
+/* Drawn on the first paint so the arrival always has a mark in it, and hidden
+   once lottie has mounted. Not unmounted — swapping opacity costs no layout,
+   and this is the frame a slow chunk would otherwise leave empty.
+
+   It is also what a reduced-motion visitor keeps permanently, which is why it
+   is the animation's *last* frame rather than a spinner: a filled disc with a
+   white check, still. The GIF could not do that at all — a GIF plays whatever
+   the visitor asked for, which is why the code this replaced had to paint a
+   frame onto a <canvas> and swap the two to stop it. */
+.stampFallback {
+  position: relative;
+  border-radius: 50%;
+  background-color: var(--check);
+  transition: opacity 160ms ease;
+}
+
+/* The check, as two borders of a box turned 45 degrees. White on the disc,
+   matching the drawn one. */
+.stampFallback::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  /* 43% of the disc across and a tenth of it in stroke, which is the drawn
+     check's own proportion — so the still frame and the last frame of the
+     animation are the same picture. */
+  width: calc(24 * var(--u));
+  height: calc(12 * var(--u));
+  border: 0 solid #ffffff;
+  border-left-width: calc(6 * var(--u));
+  border-bottom-width: calc(6 * var(--u));
+  border-bottom-left-radius: calc(1 * var(--u));
+  rotate: -45deg;
+  translate: 0 calc(-2 * var(--u));
+}
+
+.stamp[data-ready] .stampFallback {
+  opacity: 0;
 }
 
 /* --- The flight ------------------------------------------------------------ */
@@ -556,37 +637,27 @@
   font-weight: 700;
   font-size: calc(20 * var(--u));
   line-height: var(--lh);
-  color: var(--ink);
+  color: #ffffff;
   animation: rise 520ms var(--out) calc(var(--flight) + 140ms) backwards;
 }
 
 .winSub {
   font-size: calc(14 * var(--u));
   line-height: var(--lh);
-  color: var(--ink-60);
+  color: rgba(255, 255, 255, 0.74);
   text-align: center;
   animation: rise 520ms var(--out) calc(var(--flight) + 220ms) backwards;
 }
 
-/* --- Success, in dark ------------------------------------------------------
+/* --- The type on the plate -------------------------------------------------
 
-   The mint does not move, and that is deliberate rather than an omission. The
-   artwork is an opaque 146x109 GIF with `--mint` baked into it as its own
-   background, so the card's fill and the file's fill have to be the same value
-   to the unit — darkening one without re-exporting the other draws a pale
-   rectangle behind the check, which the note at the top of this file is about.
+   The plate is a deep green-black in BOTH themes (see `--celebrate`), so the
+   type on it is light in both — and these are pinned literals rather than
+   `--ink` for the same reason they always were: the ground they sit on does
+   not follow the theme, so the ink on it must not either.
 
-   So the celebration stays a mint plate in both themes — it is a moment, not a
-   surface, and it reads as one. What has to change is the type on it: `--ink`
-   is near-white in dark, and near-white on mint is unreadable. These are the
-   light theme's ink values, pinned, because the ground they sit on is pinned. */
-:global(html[data-theme="dark"]) .winTitle {
-  color: #17301f;
-}
-
-:global(html[data-theme="dark"]) .winSub {
-  color: rgba(23, 48, 31, 0.72);
-}
+   This block used to do the opposite, pinning *dark* ink because the plate was
+   pale mint in both themes. Same principle, other end. */
 
 /* ===========================================================================
    Standing down

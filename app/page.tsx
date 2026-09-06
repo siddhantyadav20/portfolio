@@ -1,10 +1,10 @@
 import AboutMeCard from "@/components/home/AboutMeCard";
-import BottomBlur from "@/components/home/BottomBlur";
+import BottomBlur from "@/components/primitives/BottomBlur";
 import DesignEngineerCard from "@/components/home/DesignEngineerCard";
 import DesignSystemExperience from "@/components/home/DesignSystemExperience";
+import FantasyCard from "@/components/home/FantasyCard";
 import InspectionExperience from "@/components/home/InspectionExperience";
 import Introduction from "@/components/home/Introduction";
-import LinkedInCard from "@/components/home/LinkedInCard";
 import MusicPlayer from "@/components/home/MusicPlayer";
 import SearchExperience from "@/components/home/SearchExperience";
 import SiteFooter from "@/components/home/SiteFooter";
@@ -118,9 +118,19 @@ export default function Home() {
                 <DesignEngineerCard />
               </div>
 
+              {/* The LinkedIn card used to be the second half of this row and
+                  is out of the picture for now, by request — the Fantasy card
+                  (Figma 952:8828) takes its place. The component and its
+                  stylesheet are untouched in components/home/LinkedInCard, so
+                  putting it back is an import and a line; nothing else on the
+                  page has been rearranged around its absence.
+
+                  Its one other reference on the site is the footer's LinkedIn
+                  icon, which reads `linkedin.href` straight out of the copy
+                  file and so still works. */}
               <div className={styles.personality}>
                 <MusicPlayer />
-                <LinkedInCard />
+                <FantasyCard />
               </div>
             </div>
 

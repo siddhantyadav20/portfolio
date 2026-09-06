@@ -5,48 +5,13 @@ import NoTabFocus from "@/components/interaction/NoTabFocus";
 import PaletteHost from "@/components/palette/PaletteHost";
 import { intro, linkedin } from "@/content/site";
 import { BOOT_SCRIPT } from "@/lib/boot";
+import { siteUrl } from "@/lib/origin";
 import { CHROME, THEME_SCRIPT } from "@/lib/theme";
 import { canela, outfit } from "./fonts";
 import WebVitals from "./vitals";
 import "./globals.css";
 
-/**
- * The canonical origin.
- *
- * `metadataBase` is what turns every relative `openGraph.url` and image path
- * below into the absolute URL the crawlers require — without it Next warns and
- * falls back to localhost, which is how a shared link ends up previewing
- * nothing.
- *
- * The production domain used to be a silent fallback, and silence was the
- * problem: a preview deploy with the variable unset built happily and shipped
- * canonicals, `og:url`s and a sitemap all pointing at the live site. Every
- * preview quietly told crawlers it was production. Now an unset variable is
- * only tolerated where it is genuinely harmless — `next dev`, and the
- * `next build` a developer runs locally to check something compiles.
- *
- * Vercel, Netlify and GitHub Actions all set CI=true, which is the tell.
- */
-const FALLBACK = "https://siddhantyadav.com";
-
-function resolveSite() {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL;
-  if (configured) return configured;
-
-  if (process.env.CI) {
-    throw new Error(
-      "NEXT_PUBLIC_SITE_URL is unset. Set it to this deployment's own origin " +
-        "— falling back to " +
-        FALLBACK +
-        " would publish production canonicals, og:url and sitemap entries " +
-        "from a build that is not production. See .env.example.",
-    );
-  }
-
-  return FALLBACK;
-}
-
-const SITE = new URL(resolveSite());
+const SITE = siteUrl();
 
 export const metadata: Metadata = {
   metadataBase: SITE,

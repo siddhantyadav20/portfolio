@@ -165,6 +165,110 @@ export function noiseBuffer(ctx: AudioContext): AudioBuffer {
   return buffer;
 }
 
+/* ===========================================================================
+   Noise colours
+
+   WHY THIS EXISTS, AND IT IS THE ANSWER TO "EVERYTHING SOUNDS THE SAME".
+
+   Every cue on this site was built out of the one white buffer above, put
+   through a biquad and an envelope. The designs differ a great deal — the
+   riffle is forty-two accelerating contacts, the scratch is granular with a
+   waveshaper, the rifle is a four-layer report — and they still arrive as
+   relatives, because a filter changes what you hear *of* a source and cannot
+   change what the source is. White noise through a biquad is the "shh"
+   family, at every centre frequency and every envelope. That is a timbre, and
+   all of them were wearing it.
+
+   Real materials are not white. Their spectra tilt, and the tilt is most of
+   what identifies them:
+
+     white   flat. Air, hiss, the top of a snare. What everything used to be.
+     pink    -3dB an octave. Paper, cloth, rain, most friction between soft
+             things. The colour the book and the photographs want.
+     brown   -6dB an octave. Weight and body — thunder, blast, anything with a
+             chest in it. The colour under a gunshot.
+
+   Generated rather than filtered so the tilt is in the source and survives
+   whatever a cue does downstream. Cached per rate like the white one; the cost
+   is one two-second pass per colour per page.
+   =========================================================================== */
+
+export type NoiseColour = "white" | "pink" | "brown";
+
+let pink: AudioBuffer | null = null;
+let brown: AudioBuffer | null = null;
+
+/** Paul Kellet's economical pink filter — the standard approximation, flat to
+ *  within a fraction of a dB across the audible band. */
+function fillPink(data: Float32Array) {
+  let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+  for (let i = 0; i < data.length; i += 1) {
+    const w = Math.random() * 2 - 1;
+    b0 = 0.99886 * b0 + w * 0.0555179;
+    b1 = 0.99332 * b1 + w * 0.0750759;
+    b2 = 0.969 * b2 + w * 0.153852;
+    b3 = 0.8665 * b3 + w * 0.3104856;
+    b4 = 0.55 * b4 + w * 0.5329522;
+    b5 = -0.7616 * b5 - w * 0.016898;
+    data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11;
+    b6 = w * 0.115926;
+  }
+}
+
+/** A leaky integrator, which is what brown noise is. The leak stops it walking
+ *  off into DC over two seconds of samples. */
+function fillBrown(data: Float32Array) {
+  let last = 0;
+  for (let i = 0; i < data.length; i += 1) {
+    const w = Math.random() * 2 - 1;
+    last = (last + 0.02 * w) / 1.02;
+    data[i] = last * 3.5;
+  }
+}
+
+export function colouredNoise(ctx: AudioContext, colour: NoiseColour): AudioBuffer {
+  if (colour === "white") return noiseBuffer(ctx);
+
+  const cached = colour === "pink" ? pink : brown;
+  if (cached && cached.sampleRate === ctx.sampleRate) return cached;
+
+  const frames = Math.floor(ctx.sampleRate * NOISE_SECONDS);
+  const buffer = ctx.createBuffer(1, frames, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  if (colour === "pink") { fillPink(data); pink = buffer; }
+  else { fillBrown(data); brown = buffer; }
+  return buffer;
+}
+
+/**
+ * A material's ring, as a parallel resonant peak.
+ *
+ * The second half of the same problem. A biquad shapes a spectrum; it does not
+ * give a sound a *body*. Real objects ring at a few frequencies when they are
+ * struck or scraped — that is why a coin on card is metallic and a page is not,
+ * even though both are broadband friction — and none of the cues here had any.
+ *
+ * Returns a node to feed in parallel with the dry signal, so a cue keeps its
+ * own character and gains a resonance rather than being replaced by one. Q is
+ * deliberately high: this is a ring, not a tone control.
+ */
+export function resonator(
+  ctx: AudioContext,
+  out: AudioNode,
+  opts: { hz: number; q?: number; level?: number },
+): AudioNode {
+  const peak = ctx.createBiquadFilter();
+  peak.type = "bandpass";
+  peak.frequency.value = opts.hz;
+  peak.Q.value = opts.q ?? 14;
+
+  const trim = ctx.createGain();
+  trim.gain.value = opts.level ?? 0.5;
+
+  peak.connect(trim).connect(out);
+  return peak;
+}
+
 /**
  * A shaped burst of noise — the one shape most of these cues are made of.
  *
@@ -192,10 +296,13 @@ export function burst(
     /** Seconds to reach full level. Longer than a millisecond or two turns a
      *  click into a swell, which is how the scratch and the pencil are made. */
     attack?: number;
+    /** The source's own spectral tilt — see `colouredNoise`. Defaults to
+     *  white, which is what every caller got before it existed. */
+    colour?: NoiseColour;
   },
 ) {
   const source = ctx.createBufferSource();
-  source.buffer = noiseBuffer(ctx);
+  source.buffer = colouredNoise(ctx, opts.colour ?? "white");
 
   const filter = ctx.createBiquadFilter();
   filter.type = opts.type;

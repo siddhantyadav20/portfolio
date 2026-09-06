@@ -38,6 +38,29 @@ const buildConfig = (phase: string): NextConfig => ({
        preference; Next serves whichever the request's Accept header allows. */
     formats: ["image/avif", "image/webp"],
 
+    /* Album artwork is fetched from Apple's storefront rather than committed —
+       see content/site.ts. Without this, every one of those covers fails to
+       render with "hostname is not configured", which is a build-time error
+       for a static page and therefore a broken deploy rather than a broken
+       image.
+
+       Narrow on purpose: one host pattern, one path prefix. `/image/thumb/` is
+       where mzstatic serves renditions, and the size is a segment of the path,
+       which is what makes a 16x16 PNG and a 400x400 JPEG the same URL with one
+       word changed (lib/itunes.ts).
+
+       `minimumCacheTTL` below is a year, and it is safe here for the same
+       reason it is safe for everything else: an mzstatic path is content
+       addressed per release, so a re-release is a different URL rather than
+       the same one with new bytes. */
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.mzstatic.com",
+        pathname: "/image/thumb/**",
+      },
+    ],
+
     /* Deliberately spelled out rather than omitted, and worth knowing that it
        changes nothing: this array is byte-for-byte the Next default. An
        earlier comment here claimed it "adds the rungs the ladder was missing"

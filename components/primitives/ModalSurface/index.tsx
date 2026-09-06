@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import BottomBlur from "@/components/primitives/BottomBlur";
 import GlassAction, { CloseGlyph } from "@/components/primitives/GlassAction";
 import { escapeFromField, useModalShell } from "@/lib/modalShell";
 import styles from "./ModalSurface.module.css";
@@ -40,6 +41,28 @@ type Props = {
    * one of them is blue.
    */
   accent?: "blue" | "rose";
+  /**
+   * The `view-transition-name` the card that opened this modal is handing over.
+   *
+   * WHY THE PLATE TAKES THE CARD'S NAME. A shared-element transition
+   * interpolates one named box into another, so the two ends decide what the
+   * eye reads as travelling. Every card here used to name an *inner* element —
+   * a picture frame, a 32px portrait — and the modal named its own inner frame
+   * back, so what flew was a thumbnail while the whole page cross-faded
+   * underneath it on a separate clock. That is the "only the content morphs,
+   * and it looks cheap" reading, and it is exactly right: the card never moved.
+   *
+   * The Canvas card was the one that felt correct, and it is the one where
+   * both ends name the whole surface. This makes every modal work that way:
+   * the card names its whole `CardShell`, the plate names the same thing, and
+   * the browser animates a card-sized box into a screen-sized one with the two
+   * snapshots blending inside it — a container transform rather than a picture
+   * being swapped.
+   *
+   * Falls back to `modal-plate` for any caller that hands over nothing, which
+   * is the behaviour every modal had before.
+   */
+  morphName?: string;
   children: ReactNode;
 };
 
@@ -64,6 +87,7 @@ export default function ModalSurface({
   leading,
   selectionTint,
   accent,
+  morphName,
   children,
 }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -123,7 +147,7 @@ export default function ModalSurface({
       role="dialog"
       aria-modal="true"
       aria-label={label}
-      style={{ viewTransitionName: "modal-plate" }}
+      style={{ viewTransitionName: morphName ?? "modal-plate" }}
       {...(closing ? { "data-exit": "" } : {})}
       {...(selectionTint ? { "data-selection": selectionTint } : {})}
       {...(accent ? { "data-accent": accent } : {})}
@@ -151,6 +175,22 @@ export default function ModalSurface({
       </div>
 
       {children}
+
+      {/* The same softening the homepage has at its bottom edge, by request —
+          every modal is a document that scrolls, so every modal has content
+          passing under that edge for it to soften. It is rendered inside the
+          overlay rather than beside it so it is torn down with the modal and
+          sits in the modal's own stacking context, above the content and below
+          the control cluster.
+
+          IT COSTS FOUR MORE `backdrop-filter` LAYERS while a modal is open.
+          That is the most expensive thing this site paints, and the homepage's
+          four are already a measurable part of why scrolling it feels heavy —
+          but a modal is a fixed overlay that only exists while it is open, so
+          the cost is paid on the surface being looked at and nowhere else, and
+          it is never paid at the same time as the homepage's own (the modal
+          covers it). */}
+      <BottomBlur />
     </div>,
     document.body,
   );

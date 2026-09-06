@@ -46,7 +46,13 @@ import styles from "./Still.module.css";
 export default function Still({ widget }: { widget: Widget }) {
   switch (widget.kind) {
     case "disc":
-      return <Art src={widget.cover} radius={48} box={widget.w} />;
+      /* No image. A disc's sleeve is fetched from Apple at request time now
+         (lib/discArt.ts), and the homepage still must not wait on a network
+         call to draw a 42px square — nor make one, for six sleeves nobody can
+         read at this scale. It gets the same printed plate the live widget
+         falls back to, which greys out like a record sleeve because it is
+         one. */
+      return <DiscStill />;
     case "book":
       return <Art src={widget.cover} radius={4} box={widget.w} />;
     case "sticker":
@@ -129,6 +135,20 @@ function Art({
  * The live widget's chevrons and category bar only appear on hover, so the
  * resting state is exactly this: one photo, the scrim, and the label.
  */
+/**
+ * A record at homepage scale.
+ *
+ * Deliberately not an <Image> of anything. The live widget's sleeve comes off
+ * Apple's storefront at request time and this component renders on a static
+ * page, so there is no URL to give it — and at 0.13 there is nothing an
+ * album cover would say that a shape of the right colour does not. The plate
+ * is the same one the live disc draws underneath its artwork, so the two
+ * agree about what a sleeve without art looks like.
+ */
+function DiscStill() {
+  return <span className={styles.disc} aria-hidden="true" />;
+}
+
 function PhotosStill() {
   const category = photoCategories[0];
   const photo = category?.photos[0];

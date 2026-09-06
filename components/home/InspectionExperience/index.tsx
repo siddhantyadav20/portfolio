@@ -81,7 +81,7 @@ export default function InspectionExperience() {
     // Hovering will normally have finished this long ago; awaiting is the
     // guarantee, not the mechanism. See MODAL_ASSETS.
     await Promise.all(MODAL_ASSETS.map(warm));
-    morph(update);
+    morph(update, undefined, inspectionPhotos.hero?.morphName);
   }, [load, setModal]);
 
   /**
@@ -117,7 +117,7 @@ export default function InspectionExperience() {
       // two beats. Releasing `hovered` once the transition resolves hands the
       // last beat to the card's own 820ms ease (`--shift`).
       setHovered(true);
-      morph(() => setOpen(false), () => setHovered(false));
+      morph(() => setOpen(false), () => setHovered(false), inspectionPhotos.hero?.morphName);
       return;
     }
     // No morph to play, so the modal has to animate itself out — otherwise

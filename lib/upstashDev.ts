@@ -160,6 +160,28 @@ export function devRedis(
         const entry = live(key);
         return entry?.kind === "string" ? entry.value : null;
       }
+
+      /* --- Strings: the music card's caches ---
+         `sy:m:it:<track>` holds a resolved iTunes match and `sy:m:q:last` the
+         last queue that worked (lib/nowPlaying.ts). Without SET here both were
+         silently dead in development — every render re-resolved six tracks
+         against Apple, and the reactions route had no allowlist to check a key
+         against, so the thumbs never had a count to show. The write threw,
+         `redis()` handed the throw to a caller that treats a failed cache
+         write as "slower next time", and nothing said a word. */
+      case "SET": {
+        const entry: Entry = { kind: "string", value: String(args[1] ?? "") };
+        // Redis spells the TTL as trailing `EX <seconds>`.
+        const ex = args.findIndex((a) => String(a).toUpperCase() === "EX");
+        if (ex > 0) entry.expires = Date.now() + Number(args[ex + 1]) * 1000;
+        store.set(key, entry);
+        return "OK";
+      }
+      case "DEL": {
+        let removed = 0;
+        for (const k of args) if (store.delete(String(k))) removed++;
+        return removed;
+      }
       case "TTL": {
         const entry = live(key);
         // Redis's own answers: -2 for a key that is not there, -1 for one with

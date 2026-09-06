@@ -10,6 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "budget": "node scripts/check-budget.mjs",
+    "sfx": "node scripts/build-samples.mjs",
+    "sfx:measure": "node scripts/measure-sfx.mjs",
     "icon": "node scripts/build-icon.mjs",
     "purge-engagement": "node scripts/purge-engagement.mjs"
   },

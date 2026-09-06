@@ -55,6 +55,10 @@ export default function CaseStudyModal({
          theme toggle and the close. */
       leading={<StudyShare />}
       actions={<ThemeToggle />}
+      /* The card's own name, so the plate is the far end of the card's morph —
+         the whole card becoming the whole reader. See the note on the prop.
+         `StudyHero` no longer names its frame: it is inside this snapshot. */
+      morphName={study.hero?.morphName}
     >
       <StudyReader study={study} />
     </ModalSurface>

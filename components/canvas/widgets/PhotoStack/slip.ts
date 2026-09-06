@@ -17,7 +17,7 @@
    foley ones is more conspicuous than any of them.
    =========================================================================== */
 
-import { acquire, burst, prefersQuiet, stage } from "@/lib/sound";
+import { acquire, burst, prefersQuiet, resonator, stage } from "@/lib/sound";
 import { shaped } from "@/lib/voices";
 
 const PEAK = 0.08;
@@ -40,15 +40,15 @@ const PEAK = 0.08;
    for the mass of a whole stack moving. */
 
 /** One print. Brief and dry. */
-const ONE_HZ = 2400;
+const ONE_HZ = 4200;
 const ONE_MS = 62;
-const ONE_DRIVE = 4;
+const ONE_DRIVE = 2.2;
 
 /** The whole category: longer and lower, with a body beneath it. Not much
  *  louder — the extra mass is felt as weight rather than volume. */
-const MANY_HZ = 1700;
+const MANY_HZ = 3200;
 const MANY_MS = 105;
-const MANY_DRIVE = 5;
+const MANY_DRIVE = 2.8;
 const MANY_LEVEL = 1.1;
 
 /** Two slides closer than this are one slide. */
@@ -74,17 +74,48 @@ function paper(hz: number, ms: number, level: number, drive: number, heavy: bool
 
   /* The friction. Highpass rather than a falling lowpass: the grit is the
      event, and a sweep would put a gesture where there is only contact. */
-  shaped(ctx, out, at, {
-    seconds,
-    level,
-    type: "highpass",
-    hz,
-    drive,
-  });
+  /* PINK, AND WITH A PRINT'S OWN RING.
+
+     This was white noise through a highpass, which is the same ingredient the
+     rifle and the page were made of — different envelope, one timbre, and that
+     sameness is what reads as patchwork across the board however carefully
+     each cue is shaped. Photographic paper is stiffer and glossier than a
+     book's page, so it sits between them: pink like paper, but resonating
+     higher and tighter than a leaf does — 3.4kHz against the book's 2.6, at a
+     sharper Q, which is the difference between a print and a page. */
+  const ring = resonator(ctx, out, { hz: 3400, q: 10, level: 0.5 });
+
+  /* BANDPASS AND BARELY DRIVEN, and both of those are the fix.
+
+     It was a highpass at 2400 with a drive of 4, and measured against the
+     other cues that put its spectral centre at ~12kHz — within a few hundred
+     hertz of the coin scraping the scratch panel. Two different objects
+     arriving at the same brightness is precisely the "everything sounds the
+     same" this pass is about, and the colour alone could not fix it: a
+     waveshaper generates its own harmonics, so hard drive flattens whatever
+     tilt the source had and hands back the same bright hiss.
+
+     A print is stiff but soft. Bandpassed it has a top *and* a bottom, and at
+     a drive of 2.2 the pink survives the shaper. It measures at ~7.7kHz now
+     against the coin's ~13kHz — brighter than a book page, dimmer than metal,
+     which is where a photograph belongs. */
+  for (const target of [out, ring]) {
+    shaped(ctx, target, at, {
+      seconds,
+      level: target === ring ? level * 0.8 : level,
+      type: "bandpass",
+      hz,
+      q: 0.7,
+      drive,
+      colour: "pink",
+    });
+  }
 
   /* A stack has a body one print does not — the block shifting together,
      under everything, and it is the only part of this that moves in pitch. */
   if (heavy) {
+    /* Brown under the whole stack — this is mass moving, and mass is the one
+       thing white noise cannot suggest. */
     burst(ctx, out, {
       at: at + 0.012,
       seconds: seconds * 0.9,
@@ -92,6 +123,7 @@ function paper(hz: number, ms: number, level: number, drive: number, heavy: bool
       type: "lowpass",
       hz: [800, 240],
       attack: 0.018,
+      colour: "brown",
     });
   }
 }

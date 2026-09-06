@@ -18,7 +18,7 @@
    instead of pop.
    =========================================================================== */
 
-import { noiseBuffer } from "@/lib/sound";
+import { colouredNoise, type NoiseColour } from "@/lib/sound";
 
 /* ===========================================================================
    shaped — bite
@@ -61,12 +61,26 @@ export function shaped(
     type?: BiquadFilterType;
     q?: number;
     drive?: number;
+    /** The source's own spectral tilt. See `colouredNoise` — this is what
+     *  stops every cue on the board sharing one timbre. Defaults to white,
+     *  which is what every caller was getting before it existed. */
+    colour?: NoiseColour;
+    /**
+     * Seconds to full level. Defaults to the 1.5ms this always used.
+     *
+     * IT HAS TO BE REACHABLE, and that it was not is why the rifle never read
+     * as a gunshot. 1.5ms of rise is 66Hz — enough to round the front off a
+     * transient, which is exactly the part of a shot that identifies it. Pass
+     * 0 for an instantaneous edge: the gain is set rather than ramped, so the
+     * first sample is already at level.
+     */
+    attack?: number;
   },
 ) {
   const level = opts.level ?? 1;
 
   const src = ctx.createBufferSource();
-  src.buffer = noiseBuffer(ctx);
+  src.buffer = colouredNoise(ctx, opts.colour ?? "white");
 
   const pre = ctx.createGain();
   pre.gain.value = opts.drive ?? 4;
@@ -86,8 +100,16 @@ export function shaped(
   }
 
   const env = ctx.createGain();
-  env.gain.setValueAtTime(0.0001, at);
-  env.gain.exponentialRampToValueAtTime(level, at + 0.0015);
+  const attack = opts.attack ?? 0.0015;
+  if (attack <= 0) {
+    // No ramp at all. `exponentialRampToValueAtTime` cannot start from zero
+    // and cannot reach it, which is why every envelope here begins at 0.0001;
+    // for an instant edge there is nothing to ramp from, so it is simply set.
+    env.gain.setValueAtTime(level, at);
+  } else {
+    env.gain.setValueAtTime(0.0001, at);
+    env.gain.exponentialRampToValueAtTime(level, at + attack);
+  }
   env.gain.exponentialRampToValueAtTime(0.0001, at + opts.seconds);
 
   src.connect(pre).connect(dist).connect(filter).connect(env).connect(out);
