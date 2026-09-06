@@ -216,6 +216,13 @@
   --r-md: 20px;
   --r-lg: 24px;
   --r-xl: 32px;
+  /* Between xl and 2xl, and it exists because the two homepage cards were
+     each asked for eight more than they had: the music card 24 -> 32, and the
+     Fantasy card 32 -> this. The ladder had nowhere for the second one to go.
+     Named for the rung it sits on rather than invented as a literal, so it
+     stays reachable through CardShell's `radius` prop and picks up the
+     squircle mask like every other radius here. */
+  --r-xl-plus: 40px;
   --r-2xl: 48px;
   --r-3xl: 64px;
   --r-pill: 100px;

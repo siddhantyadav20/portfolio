@@ -2,13 +2,14 @@ import type { ElementType, ComponentPropsWithRef, ReactNode } from "react";
 import styles from "./CardShell.module.css";
 
 type Surface = "translucent" | "solid" | "glass" | "none";
-type Radius = 16 | 20 | 24 | 32 | 48 | 64;
+type Radius = 16 | 20 | 24 | 32 | 40 | 48 | 64;
 
 const radiusClass: Record<Radius, string> = {
   16: styles.r16,
   20: styles.r20,
   24: styles.r24,
   32: styles.r32,
+  40: styles.r40,
   48: styles.r48,
   64: styles.r64,
 };

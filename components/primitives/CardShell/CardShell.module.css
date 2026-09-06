@@ -111,6 +111,9 @@
 .r32 {
   --sq-r: var(--r-xl);
 }
+.r40 {
+  --sq-r: var(--r-xl-plus);
+}
 .r48 {
   --sq-r: var(--r-2xl);
 }

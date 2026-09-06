@@ -224,7 +224,7 @@ export default async function FantasyCard() {
 
   return (
     <CardShell
-      radius={32}
+      radius={40}
       /* `none`, then the fill is set in the stylesheet. Figma draws this card
          at rgba(255,255,255,0.4) — `--surface-glass` — which CardShell only
          offers as `glass`, and `glass` also carries `backdrop-filter`. The

@@ -275,7 +275,7 @@ export default function Player({
 
   return (
     <CardShell
-      radius={24}
+      radius={32}
       surface="glass"
       data-card="music"
       /* The one state the stylesheet branches on. Everything the playing
@@ -465,7 +465,7 @@ export default function Player({
                 data-state={playing ? (buffering ? "buffering" : "playing") : undefined}
                 aria-hidden="true"
               >
-                <circle ref={arcRef} cx="20" cy="20" r="17" pathLength="100" />
+                <circle ref={arcRef} cx="20" cy="20" r="19" pathLength="100" />
               </svg>
             </button>
 

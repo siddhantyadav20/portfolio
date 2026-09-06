@@ -108,13 +108,25 @@
   object-fit: cover;
 }
 
-/* Figma's flat 24% black, in both variants. Not a paused/playing signal — it
-   is what stops the chip disappearing into a bright sleeve. */
+/* Paused only, which is a change from Figma — the file draws this 24% black in
+   both variants and it is dropped on play by request. It reads better as a
+   state than as a constant: the sleeve lifts as the record starts, which is
+   the one moment the artwork is worth looking at, and the card gains a
+   difference between its two states that costs nothing.
+
+   What it was there for still holds while paused — it is what stops the chip
+   disappearing into a bright sleeve — and the chip sits over artwork at full
+   strength while playing. That is the trade, taken deliberately. */
 .scrim {
   position: absolute;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.24);
   pointer-events: none;
+  transition: background-color 320ms ease;
+}
+
+.card[data-playing] .scrim {
+  background-color: rgba(0, 0, 0, 0);
 }
 
 .chip {
@@ -174,9 +186,12 @@
 
 .title {
   font-family: var(--font-display);
-  font-weight: 500;
+  /* Bold, and no tracking. Figma sets Canela Medium with 1% letter-spacing;
+     both are overridden by request. The 0.15u of tracking was the 1% — at
+     15px it is a sixth of a pixel of air per letter, which does nothing at
+     this size except stop the name reading as one word. */
+  font-weight: 700;
   font-size: calc(15 * var(--u));
-  letter-spacing: calc(0.15 * var(--u));
   color: var(--ink);
   text-decoration: none;
   display: block;
@@ -428,10 +443,13 @@ a.title:focus-visible {
   flex: none;
 }
 
+/* 36, not the 40 Figma draws — by request, it read as oversized next to the
+   32 skips. The gap to those is now 4 rather than 8, which is still enough
+   hierarchy for the primary control and stops it dominating the row. */
 .play {
   position: relative;
-  width: calc(40 * var(--u));
-  height: calc(40 * var(--u));
+  width: calc(36 * var(--u));
+  height: calc(36 * var(--u));
   flex: none;
 }
 
@@ -480,8 +498,14 @@ a.title:focus-visible {
 }
 
 .playGlyph {
-  width: calc(24 * var(--u));
-  height: calc(24 * var(--u));
+  width: calc(20 * var(--u));
+  height: calc(20 * var(--u));
+  /* A right-pointing triangle centred on its bounding box looks left-heavy —
+     its mass is at the flat edge and its point contributes almost none. The
+     eye centres on the mass, so the geometric centre reads as too far left.
+     Nudged right by its own optical offset; the pause bars are symmetrical and
+     get none of this. */
+  transform: translateX(calc(1 * var(--u)));
 }
 
 /* --- Playing ------------------------------------------------------------------ */
@@ -524,16 +548,17 @@ a.title:focus-visible {
    be saying nothing.
 
    `pathLength: 100` normalises the circumference, so the dash values are
-   percentages and neither the CSS nor Player.tsx has to know 2*pi*17.
+   percentages and neither the CSS nor Player.tsx has to know 2*pi*19.
 
-   INSET, WHERE FIGMA HAS IT ON THE RIM. The file draws the ellipse at r19 in
-   an r20 disc, so a 2-wide stroke lands exactly on the silhouette. Built that
-   way it does not read as a ring: the stroke is the on-accent ink, which in
-   dark mode is the same near-black as the page behind the button, and a
-   near-black arc eating the edge of a coloured circle looks like a bite taken
-   out of it rather than like progress. At r17 there is always a ring of accent
-   outside the arc, the circle stays a circle, and the mark reads as what it
-   is. */
+   ON THE RIM, WHERE FIGMA HAS IT. r19 with a 2-wide stroke puts the stroke's
+   outer edge at exactly r20 — the disc's own edge — so the track sits flush
+   against the border with no gap.
+
+   This was briefly inset to r17, on the reasoning that a near-black arc eating
+   the edge of a coloured circle reads as a bite taken out of it rather than as
+   progress. Reverted by request: the inset left a visible half-pixel of accent
+   outside the arc, which is worse, and the seam it was avoiding is what the
+   file actually draws. */
 .arc {
   position: absolute;
   inset: 0;
@@ -547,7 +572,6 @@ a.title:focus-visible {
 .arc circle {
   fill: none;
   stroke: var(--player-on);
-  /* Never wider than the margin left outside it — see the note above. */
   stroke-width: calc(2 * var(--u));
   stroke-linecap: round;
   /* From twelve o'clock, clockwise, rather than from three. */
