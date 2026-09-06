@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import BootSequence from "@/components/boot/BootSequence";
 import CanvasCursor from "@/components/interaction/CanvasCursor";
 import NoTabFocus from "@/components/interaction/NoTabFocus";
@@ -135,6 +136,25 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <NoTabFocus />
         {/* Renders nothing; reports nothing unless configured. */}
         <WebVitals />
+        {/* Page views, from Vercel. The one vendor on the site, and the note
+            at the top of `lib/telemetry.ts` argues against exactly this — so
+            what changed: that file is the error and vitals path, it sends
+            nowhere unless NEXT_PUBLIC_TELEMETRY_URL is set, and it has never
+            been set. It answers "is it broken", which nothing else could.
+            This answers "did anyone come", which the footer's visitor count
+            can only answer as one number with no dimension to it — not which
+            page, not from where, not whether the case studies are read at all.
+
+            It stays because it costs almost nothing to keep honest: no
+            dependencies of its own, a wrapper of about a kilobyte, and the
+            script itself fetched from this origin under /_vercel/insights. No
+            cookie and no cross-site identifier, which is the part that had to
+            be true for it to sit above a footer that makes a point of storing
+            one random id and nothing else.
+
+            It is inert off Vercel — `next build` and `next start` on any other
+            host render it and send nothing. */}
+        <Analytics />
       </body>
     </html>
   );
