@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
 import GlassChip from "@/components/primitives/GlassChip";
+import Spinner, { preloadSpinner } from "@/components/interaction/RemarkFinder/Spinner";
 import { drop, lift } from "@/lib/needle";
 import {
   PREVIEW_SECONDS,
@@ -284,6 +285,9 @@ export default function Player({
          own attribute, which coupled the card's whole appearance to one SVG
          keeping a data attribute it happens to need for itself. */
       data-playing={playing ? "" : undefined}
+      /* Separate from `data-playing`: pressed, but no audio yet. The glyphs
+         come off and the loader goes on — see MusicPlayer.module.css. */
+      data-buffering={playing && buffering ? "" : undefined}
       className={styles.card}
       role="group"
       aria-label="Music player"
@@ -443,6 +447,12 @@ export default function Player({
               type="button"
               className={styles.play}
               onClick={toggle}
+              /* The loader is a Lottie behind a dynamic import — 47KB of
+                 player that the homepage must not carry until somebody looks
+                 like they are going to need it. Hovering the one button that
+                 can start a download is that moment, and it buys the hundred
+                 milliseconds the chunk takes. Idempotent. */
+              onPointerEnter={preloadSpinner}
               disabled={empty}
               aria-label={playing ? `Pause ${title}` : `Play ${title}`}
             >
@@ -454,15 +464,27 @@ export default function Player({
                 <i />
                 <i />
               </span>
-              {/* Figma's "Ellipse 85" — a ring drawn over the pause bars. It
-                  spins while the audio is still arriving and then becomes the
-                  playhead a second time, sweeping once as the preview runs.
-                  `pathLength` normalises the circumference to 100 so the dash
-                  numbers are percentages. */}
+              {/* The site's own loader, the one the search card uses. 28 and
+                  not smaller on purpose: below 24 that component never loads
+                  the Lottie at all and falls back to its conic ring, because
+                  a swept trim path under a couple of pixels reads as a
+                  flickering dot. 28 inside a 36 disc is the smallest size that
+                  still gets the real thing. */}
+              {playing && buffering ? (
+                <span className={styles.loader}>
+                  <Spinner size={28} />
+                </span>
+              ) : null}
+              {/* Figma's "Ellipse 85" — a ring drawn over the pause bars,
+                  sweeping once as the preview runs. It used to double as the
+                  buffering spinner; the Lottie above does that now, so this is
+                  only ever the playhead and is hidden until there is progress
+                  to report. `pathLength` normalises the circumference to 100
+                  so the dash numbers are percentages. */}
               <svg
                 className={styles.arc}
                 viewBox="0 0 40 40"
-                data-state={playing ? (buffering ? "buffering" : "playing") : undefined}
+                data-state={playing && !buffering ? "playing" : undefined}
                 aria-hidden="true"
               >
                 <circle ref={arcRef} cx="20" cy="20" r="19" pathLength="100" />
