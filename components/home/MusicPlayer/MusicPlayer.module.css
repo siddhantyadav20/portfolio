@@ -84,15 +84,19 @@
      nothing forces them off it, and having them flip to ink the instant the
      play button filled was a change with no cause behind it.
 
-     `--player-on` is the glyph that sits ON the accent disc, and `--surface-solid`
-     is exactly right for it in both themes rather than by coincidence: the
-     accent is clamped to clear 3:1 against the card's own ground
-     (lib/artColor.ts), and that ground IS `--surface-solid`. Pairing them back
-     up is the one choice guaranteed to be legible whatever record is playing.
-     A fixed white would be a coin toss — a pale gold sleeve gives a pale gold
-     disc. It needs no dark override for the same reason. */
+     `--player-on` is the mark that sits ON the accent disc — the pause bars and
+     the progress ring — and it is white in both themes. It was
+     `--surface-solid`, which is white on the light card and #222222 on the
+     dark one, so in dark mode the ring read as a black notch cut into a
+     coloured circle.
+
+     White is safe here rather than a coin toss, but only because
+     `lib/artColor.ts` was changed to make it so: the dark accent is now
+     clamped against this mark instead of against the card. See the note there
+     — legibility under a white ring implies visibility on the card, so one
+     target does both jobs, and the reverse is what produced the black. */
   --player-disc: var(--surface-solid);
-  --player-on: var(--surface-solid);
+  --player-on: #ffffff;
 }
 
 :global(html[data-theme="dark"]) .card {

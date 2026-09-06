@@ -33,12 +33,33 @@ const TIMEOUT_MS = 4000;
 /** A week. A sleeve's colours do not change. */
 const REVALIDATE = 604_800;
 
-/** Both cards are `surface="solid"`. Deliberately not `LIGHT_GROUND` /
- *  `DARK_GROUND` from `lib/clubColor.ts` — those are the *glass* grounds, and
- *  clamping against the wrong one gives an accent that passes on paper and
- *  sits illegibly on the card it is actually drawn on. */
+/**
+ * What the accent has to be legible against.
+ *
+ * White in both, and the dark one is not a mistake. The accent's job on this
+ * card is to be a disc with a white mark on it — the pause bars and the
+ * progress ring, `--player-on`, which is white in both themes. So the binding
+ * constraint in dark mode is the MARK, not the card.
+ *
+ * Clamping to the mark covers the card for free, and the arithmetic is worth
+ * writing down because it is the whole reason one target does both jobs. A
+ * colour that clears 3:1 against white has a relative luminance of at most
+ * 0.3; the dark card is #222222 at 0.0156; and (0.3 + 0.05) / (0.0156 + 0.05)
+ * is 5.3:1. Any accent legible under a white ring is therefore comfortably
+ * visible on the card it sits on, with room to spare.
+ *
+ * Doing it the other way round does not work, which is what this replaces:
+ * clamped against the dark card, the accents came out light — and white on a
+ * light accent is invisible. Measured on real sleeves, white against the dark
+ * accent ran 2.1:1 for a sand-coloured cover and 2.6:1 for a pale blue one,
+ * both under the 3:1 a graphical element is held to.
+ *
+ * Deliberately not `LIGHT_GROUND` / `DARK_GROUND` from `lib/clubColor.ts` —
+ * those are the *glass* grounds, and this card is `surface="glass"` over a
+ * solid one.
+ */
 const LIGHT_CARD = "#ffffff";
-const DARK_CARD = "#222222";
+const MARK = "#ffffff";
 
 export type Accent = { accent: string; accentDark: string };
 
@@ -347,7 +368,7 @@ export function clampAccent(dominant: string): Accent {
   const base = vivid(dominant);
   return {
     accent: toneFor(base, LIGHT_CARD, GRAPHIC_TARGET),
-    accentDark: toneFor(base, DARK_CARD, GRAPHIC_TARGET),
+    accentDark: toneFor(base, MARK, GRAPHIC_TARGET),
   };
 }
 

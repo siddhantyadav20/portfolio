@@ -179,14 +179,30 @@ describe("vivid", () => {
 });
 
 describe("clampAccent", () => {
+  const SEEDS = ["#912c1a", "#c80b3a", "#8e7947", "#0b3d91", "#ffe600", "#04170a"];
+
   it("is legible on both cards", () => {
-    for (const seed of ["#912c1a", "#c80b3a", "#8e7947", "#0b3d91", "#ffe600", "#04170a"]) {
+    for (const seed of SEEDS) {
       const { accent, accentDark } = clampAccent(seed);
       /* Three, not four and a half: nothing tinted with this is text. It is a
          40px disc, a 20px thumb and a ring that expands and vanishes, and
          WCAG asks 3:1 of a graphical element. See lib/artColor.ts. */
       expect(contrast(accent, "#ffffff"), `${seed} on the light card`).toBeGreaterThanOrEqual(3);
       expect(contrast(accentDark, "#222222"), `${seed} on the dark card`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("carries a white mark in both themes", () => {
+    /* The pause bars and the progress ring are white on the accent disc in
+       both themes (`--player-on`). Before the dark accent was clamped against
+       that mark rather than against the card, this failed on real sleeves —
+       white came out 2.1:1 on a sand-coloured cover and 2.6:1 on a pale blue
+       one, because clamping against a DARK card pushes the colour light and
+       white on a light accent is invisible. */
+    for (const seed of SEEDS) {
+      const { accent, accentDark } = clampAccent(seed);
+      expect(contrast(accent, "#ffffff"), `white mark on ${seed}, light`).toBeGreaterThanOrEqual(3);
+      expect(contrast(accentDark, "#ffffff"), `white mark on ${seed}, dark`).toBeGreaterThanOrEqual(3);
     }
   });
 });
