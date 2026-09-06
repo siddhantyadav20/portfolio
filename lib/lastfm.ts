@@ -55,6 +55,37 @@ export function lastfmReady(): boolean {
   return Boolean(process.env.LASTFM_API_KEY && process.env.LASTFM_USER);
 }
 
+/** Which half is missing, for the log and for `/api/music`. Names only —
+ *  never the values. */
+export function unsetVars(): string[] {
+  return ["LASTFM_API_KEY", "LASTFM_USER"].filter((k) => !process.env[k]?.trim());
+}
+
+let announced = false;
+
+/**
+ * Say so, once, when the card falls back because it was never configured.
+ *
+ * WRITTEN AFTER A SILENT PRODUCTION FALLBACK. Setting `LASTFM_API_KEY` and
+ * forgetting `LASTFM_USER` is the obvious mistake to make — one of them is
+ * called a key and reads like the whole credential — and it produced exactly
+ * nothing: no log, no error, no difference from a Last.fm outage. The card sat
+ * in its unavailable state and the only way to tell why was to go and look at
+ * the dashboard.
+ *
+ * Once rather than per request, and the same shape `lib/upstash.ts` uses for
+ * the same purpose: a serverless function that logs this on every render is a
+ * bill rather than a diagnostic.
+ */
+function announce(): void {
+  if (announced) return;
+  announced = true;
+  console.warn(
+    `[lastfm] not configured — ${unsetVars().join(" and ")} unset. The music ` +
+      "card will render its unavailable state. See .env.example.",
+  );
+}
+
 /* --- Parsing ---------------------------------------------------------------- */
 
 /**
@@ -128,7 +159,10 @@ function text(value: unknown): string {
  * fall back to the last queue that worked.
  */
 export async function readRecent(limit: number): Promise<Scrobble[] | null> {
-  if (!lastfmReady()) return null;
+  if (!lastfmReady()) {
+    announce();
+    return null;
+  }
 
   const url = new URL(API);
   url.searchParams.set("method", "user.getrecenttracks");

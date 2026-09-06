@@ -62,6 +62,21 @@ export type Queue = {
   readonly source: QueueSource;
 };
 
+/**
+ * `/api/music`'s answer: the queue, plus whether the site was ever told where
+ * to look.
+ *
+ * The extra field exists so a fallback is diagnosable from outside without
+ * reading a dashboard. `source: "fallback"` alone cannot tell "the variables
+ * are unset" apart from "Last.fm did not answer", and those want completely
+ * different responses. Names of unset variables only — never values, and the
+ * list is empty once it is configured.
+ */
+export type QueueReport = Queue & {
+  readonly configured: boolean;
+  readonly missing: readonly string[];
+};
+
 /** How many of the recent scrobbles survive into the card. */
 export const QUEUE_MAX = 6;
 

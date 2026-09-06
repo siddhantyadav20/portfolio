@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { parseRecent } from "@/lib/lastfm";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { lastfmReady, parseRecent, unsetVars } from "@/lib/lastfm";
 
 /* ===========================================================================
    Last.fm's JSON is XML with the corners knocked off.
@@ -77,5 +77,62 @@ describe("parseRecent", () => {
   ])("returns [] rather than throwing for %s", (_what, input) => {
     expect(() => parseRecent(input)).not.toThrow();
     expect(parseRecent(input)).toEqual([]);
+  });
+});
+
+describe("configuration", () => {
+  /* Both halves or nothing. Setting the key and forgetting the user is the
+     obvious mistake — one of them is called a key and reads like the whole
+     credential — and it put a production deploy into the fallback state with
+     no log, no error, and nothing to tell it apart from Last.fm being down.
+     `unsetVars` is what `/api/music` reports so that is answerable from
+     outside; it returns NAMES, never values. */
+  const KEYS = ["LASTFM_API_KEY", "LASTFM_USER"] as const;
+  const saved: Record<string, string | undefined> = {};
+
+  beforeEach(() => {
+    for (const k of KEYS) {
+      saved[k] = process.env[k];
+      delete process.env[k];
+    }
+  });
+  afterEach(() => {
+    for (const k of KEYS) {
+      if (saved[k] === undefined) delete process.env[k];
+      else process.env[k] = saved[k];
+    }
+  });
+
+  it("is not ready with neither", () => {
+    expect(lastfmReady()).toBe(false);
+    expect(unsetVars()).toEqual(["LASTFM_API_KEY", "LASTFM_USER"]);
+  });
+
+  it("is not ready with only the key, and says which half is missing", () => {
+    process.env.LASTFM_API_KEY = "abc";
+    expect(lastfmReady()).toBe(false);
+    expect(unsetVars()).toEqual(["LASTFM_USER"]);
+  });
+
+  it("is not ready with only the user", () => {
+    process.env.LASTFM_USER = "someone";
+    expect(lastfmReady()).toBe(false);
+    expect(unsetVars()).toEqual(["LASTFM_API_KEY"]);
+  });
+
+  it("treats an empty value as unset", () => {
+    /* Importing this repo into Vercel offers every key in .env.example, so a
+       project very easily ends up with a variable defined and empty — the trap
+       lib/upstash.ts documents at length. */
+    process.env.LASTFM_API_KEY = "abc";
+    process.env.LASTFM_USER = "   ";
+    expect(unsetVars()).toEqual(["LASTFM_USER"]);
+  });
+
+  it("is ready with both, and reports nothing missing", () => {
+    process.env.LASTFM_API_KEY = "abc";
+    process.env.LASTFM_USER = "someone";
+    expect(lastfmReady()).toBe(true);
+    expect(unsetVars()).toEqual([]);
   });
 });
