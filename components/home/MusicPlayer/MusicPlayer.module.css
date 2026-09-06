@@ -36,9 +36,17 @@
   gap: calc(16 * var(--u));
   padding: calc(20 * var(--u));
 
-  /* The chip is positioned against this, and the cover's corner is cut by it. */
-  position: relative;
-  overflow: hidden;
+  /* No `position` and no `overflow` here. CardShell sets both on this same
+     element (`relative` and `hidden`), and a second single-class rule saying
+     the same thing is a (0,1,0) tie that only source order breaks — which is
+     per-module <style> tags in dev and one concatenated file in a production
+     build, and those orders are not the same. They agree today, so it is
+     invisible; the day one of them changes it is a bug that only appears once
+     deployed. See tests/cssLayering.test.ts, and app/page.module.css, where
+     exactly that happened to the theme toggle.
+
+     Nothing here needs its own positioning context anyway: the chip is
+     absolute against `.cover`, not against the card. */
 
   /* --- The record's colour ------------------------------------------------
      Two values so the theme picks, rather than one recomputed per theme: the

@@ -156,8 +156,27 @@
 
 /* Pinned rather than flowed: 32px off the top and right at any width, exactly
    like the Inspection card is off the top and left. Left in the top row's DOM
-   position so reading and tab order are unchanged. */
-.themeToggle {
+   position so reading and tab order are unchanged.
+
+   `.themeToggle.themeToggle`, AND THE DOUBLING IS LOAD-BEARING. Both this rule
+   and `.toggle` in ThemeToggle.module.css set `position` on the same element —
+   this one pins the control to the page, that one gives its sliding thumb
+   something to be absolute against — and both are a single class, so the two
+   are exactly tied. Nothing in the cascade breaks that tie except the order
+   the stylesheets happen to land in, which is per-module `<style>` tags in
+   `next dev` and one concatenated file in a production build, and those two
+   orders are not the same.
+
+   So it worked locally and shipped broken: in production `position: relative`
+   won, the control fell back into the flow of the top row, and it rendered
+   17px off the LEFT edge of the viewport instead of pinned 32 from the right.
+   Nothing failed and no build complained.
+
+   Doubling the class takes this rule to (0,2,0) and settles it wherever the
+   bundler puts either file. The same fix, for the same reason, as `.card.card`
+   in MusicPlayer.module.css against CardShell's radius — which is the second
+   time this has bitten, hence tests/cssLayering.test.ts. */
+.themeToggle.themeToggle {
   position: absolute;
   /* `max(...)` rather than the bare inset: with `viewport-fit=cover` set the
      page draws into the notch, and this is the one control pinned close
