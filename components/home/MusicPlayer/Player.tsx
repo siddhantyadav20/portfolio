@@ -275,7 +275,7 @@ export default function Player({
 
   return (
     <CardShell
-      radius={32}
+      radius={40}
       surface="glass"
       data-card="music"
       /* The one state the stylesheet branches on. Everything the playing

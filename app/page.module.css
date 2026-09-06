@@ -320,12 +320,13 @@
 .personality {
   display: flex;
   gap: var(--gap);
-  /* Stated rather than left to the default, because it is now load-bearing.
-     The Fantasy card is 315 tall and the music player is drawn at 280; this is
-     what makes the shorter one take the taller one's height so the row has one
-     bottom edge instead of two. The music player carries the other half —
-     `height: auto` and a 280 floor — in its own stylesheet, because a flex
-     item only stretches if it has not already been given a height. */
+  /* Stated rather than left to the default, because it is load-bearing. Both
+     cards are drawn at 315 now, but neither is pinned to it — each carries
+     that number as a FLOOR in its own stylesheet, so whichever ends up taller
+     sets the row and the other stretches to meet it. The row keeps one bottom
+     edge instead of two. A flex item only stretches if it has not already been
+     given a height, which is why both sides say `min-height` and not
+     `height`. */
   align-items: stretch;
   grid-column: 2;
   grid-row: 4;

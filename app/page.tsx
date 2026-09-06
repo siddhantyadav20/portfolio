@@ -128,9 +128,13 @@ export default function Home() {
                   Its one other reference on the site is the footer's LinkedIn
                   icon, which reads `linkedin.href` straight out of the copy
                   file and so still works. */}
+              {/* Fantasy first, music second — swapped by request. Swapped in
+                  the DOM rather than with `order`, so reading order and tab
+                  order still match what is on the screen; `order` moves the
+                  paint and leaves both of those pointing the other way. */}
               <div className={styles.personality}>
-                <MusicPlayer />
                 <FantasyCard />
+                <MusicPlayer />
               </div>
             </div>
 

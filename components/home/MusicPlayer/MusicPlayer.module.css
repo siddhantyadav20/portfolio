@@ -71,22 +71,30 @@
      the SVG as a stencil over `currentColor` — rather than as an <img> with
      Figma's fill baked in, so all four theme from one pair of tokens.
 
-     `--player-on` is the glyph that sits ON the accent disc, and it is the
-     card's own ground on purpose: the accent was clamped to clear 3:1 against
-     exactly that colour (lib/artColor.ts), so pairing them back up is the one
-     choice guaranteed to be legible whatever record is playing. White here
-     would be a coin toss — a pale gold sleeve gives a pale gold disc. */
-  --player-disc: #ffffff;
+     NO LITERAL COLOURS. All three are the site's own tokens, so the transport
+     follows the theme in both states rather than being white-and-#222 with a
+     dark-mode patch bolted on.
+
+     `--player-on` is the glyph that sits ON the accent disc, and `--surface-solid`
+     is exactly right for it in both themes rather than by coincidence: the
+     accent is clamped to clear 3:1 against the card's own ground
+     (lib/artColor.ts), and that ground IS `--surface-solid`. Pairing them back
+     up is the one choice guaranteed to be legible whatever record is playing.
+     A fixed white would be a coin toss — a pale gold sleeve gives a pale gold
+     disc. It needs no dark override for the same reason. */
+  --player-disc: var(--surface-solid);
   --player-glyph: var(--ink);
-  --player-on: #ffffff;
+  --player-on: var(--surface-solid);
 }
 
 :global(html[data-theme="dark"]) .card {
   --track-accent: var(--art-dark, var(--accent));
-  /* Not `--surface-raised`: at this size a solid panel reads as a hole in the
-     card. A film of white lifts off whatever the card is sitting on. */
-  --player-disc: rgba(255, 255, 255, 0.14);
-  --player-on: #222222;
+  /* The one token that does need a dark value. `--surface-solid` is #222222
+     here, and the card it would sit on is within a few points of that — a
+     resting disc the reader cannot find is worse than one that is slightly
+     too bright. `--surface-raised` is what the rest of the site uses for a
+     control lifted off its own surface. */
+  --player-disc: var(--surface-raised);
 }
 
 /* --- The sleeve ------------------------------------------------------------- */
