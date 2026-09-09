@@ -39,14 +39,14 @@ export default function StudyMockup({
             alt={image.alt}
             width={image.width}
             height={image.height}
-            className={styles.screen}
+            className={`${styles.screen} squircle`}
             loading="lazy"
             sizes={
               shape === "screen" ? "(width < 700px) 100vw, 832px" : "236px"
             }
           />
         ) : (
-          <div className={styles.slot} data-placeholder="">
+          <div className={`${styles.slot} squircle`} data-placeholder="">
             <span className="srOnly">
               The screen that shipped, not yet exported
             </span>

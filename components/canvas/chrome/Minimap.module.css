@@ -7,7 +7,7 @@
   z-index: 4;
   padding: 0;
   border: 1px solid var(--ink-20);
-  border-radius: var(--r-sm);
+  --sq-r: var(--r-sm);
   background-color: color-mix(in srgb, var(--page-base) 70%, transparent);
   backdrop-filter: blur(8px);
   opacity: 0.62;

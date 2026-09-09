@@ -46,7 +46,7 @@ export function Peek({ entry }: { entry?: PaletteEntry }) {
       {preview ? (
         <div className={styles.peekInner}>
           {preview.figure && (
-            <div className={styles.figure}>
+            <div className={`${styles.figure} squircle`}>
               <span className={styles.figureValue}>{preview.figure.value}</span>
               <span className={styles.figureLabel}>{preview.figure.label}</span>
               {preview.figure.note && (
@@ -63,7 +63,7 @@ export function Peek({ entry }: { entry?: PaletteEntry }) {
                already sized for the page. */
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              className={styles.peekImage}
+              className={`${styles.peekImage} squircle`}
               src={preview.image.src}
               alt=""
               /* Eager, not lazy. The browser only lazy-loads what is off-screen,
@@ -99,7 +99,7 @@ export function Peek({ entry }: { entry?: PaletteEntry }) {
         </div>
       ) : (
         <div className={styles.peekBare}>
-          <span className={styles.peekBareIcon}>
+          <span className={`${styles.peekBareIcon} squircle`}>
             <Glyph name={glyphFor(entry)} />
           </span>
           <p className={styles.peekBareLabel}>{entry.label}</p>

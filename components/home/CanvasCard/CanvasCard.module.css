@@ -1,11 +1,13 @@
 /* Figma node 25:2684 — 322x246, solid white.
    Deliberately wider than col 3: it straddles the col 2/3 boundary.
 
-   RADIUS IS NOT FIGMA'S HERE. It comes from the corner guide, which sets
-   48px on the wide grid and 32 on the phone. Both carry `corner-shape:
-   squircle` via CardShell. The phone value lives in the `width < 700px`
-   block at the foot of this file; the desktop one is the `radius` prop in
-   index.tsx. */
+   RADIUS IS NOT FIGMA'S HERE. It comes from the corner guide, and it is a
+   curve rather than a value: 32 at 390 climbing to 40 at 1440, and
+   on past both ends. Stated once as the `radius` prop in index.tsx, which
+   names the 1440 end; `--r-card-*` in globals.css draws the line. There is
+   no phone override in this file any more — the curve spans both frames.
+   `corner-shape: squircle` and its fallback mask come from `.squircle`,
+   which CardShell adds. */
 
 .card {
   width: calc(322 * var(--u));
@@ -112,13 +114,3 @@
   }
 }
 
-/* 32 on a phone. The frame draws this corner 24 like most of the others, and
-   the whole set is a step rounder here by choice — see the note in
-   app/page.module.css. `.card.card` because CardShell's own radius class has
-   the same specificity as this one and would otherwise be settled by source
-   order across two modules. */
-@media (width < 700px) {
-  .card.card {
-    --sq-r: calc(32 * var(--u));
-  }
-}

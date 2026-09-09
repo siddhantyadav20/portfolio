@@ -19,7 +19,7 @@ export default function TokenAnatomy() {
   return (
     <div className={styles.anatomy}>
       <figure className={styles.cell}>
-        <div className={styles.stage}>
+        <div className={`${styles.stage} squircle`}>
           <span className={styles.paper} />
         </div>
         <figcaption className={styles.recipe}>
@@ -42,7 +42,7 @@ export default function TokenAnatomy() {
       </figure>
 
       <figure className={styles.cell}>
-        <div className={styles.stage}>
+        <div className={`${styles.stage} squircle`}>
           <span className={styles.specimen} aria-hidden="true">
             Aa
           </span>

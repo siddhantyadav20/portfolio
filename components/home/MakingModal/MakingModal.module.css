@@ -95,7 +95,7 @@
   min-height: 300px;
   margin-top: 22px;
   padding: 32px;
-  border-radius: var(--r-lg);
+  --sq-r: var(--r-lg);
   background-color: color-mix(in srgb, var(--ink) 4%, transparent);
 }
 

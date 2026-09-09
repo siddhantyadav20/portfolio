@@ -63,7 +63,7 @@ export default function StudyCarousel({ slides, caption }: Props) {
             which edge to come in from. */}
         <div
           key={index}
-          className={styles.card}
+          className={`${styles.card} squircle`}
           data-dir={dir}
           id={`${id}-slide`}
           aria-live="polite"
@@ -74,12 +74,12 @@ export default function StudyCarousel({ slides, caption }: Props) {
               alt={slide.image.alt}
               width={slide.image.width}
               height={slide.image.height}
-              className={styles.screen}
+              className={`${styles.screen} squircle`}
               loading="lazy"
               sizes="236px"
             />
           ) : (
-            <div className={styles.slot} data-placeholder="">
+            <div className={`${styles.slot} squircle`} data-placeholder="">
               <span className="srOnly">
                 The screen for this exploration, not yet exported
               </span>

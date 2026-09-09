@@ -292,7 +292,7 @@ function Dissect({
       <button
         type="button"
         ref={ref}
-        className={styles.portrait}
+        className={`${styles.portrait} squircle`}
         /* No longer named: the whole plate carries the card's name now, and
            this portrait is inside that snapshot. Two live elements sharing one
            name aborts the transition for both. */

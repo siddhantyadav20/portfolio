@@ -119,7 +119,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             music transport — ahead of its own prose, and until this existed a
             keyboard or switch user had to walk all of them on every visit.
             Off-screen until focused; see `.skipLink` in globals.css. */}
-        <a href="#main" className="skipLink">
+        <a href="#main" className="skipLink squircle">
           Skip to content
         </a>
         {children}

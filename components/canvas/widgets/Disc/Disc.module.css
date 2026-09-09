@@ -106,7 +106,7 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  border-radius: 48px;
+  --sq-r: var(--r-card-40);
   background-color: var(--disc-sleeve);
   overflow: hidden;
 }

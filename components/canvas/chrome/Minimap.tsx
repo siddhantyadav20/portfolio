@@ -49,7 +49,7 @@ export default function Minimap({
     <button
       ref={ref}
       type="button"
-      className={styles.map}
+      className={`${styles.map} squircle`}
       style={{ width: mapW, height: mapH }}
       aria-label="Canvas overview — press to move there"
       onClick={(e) => {

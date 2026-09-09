@@ -61,10 +61,9 @@
      acceptable trade here and would not be on a surface with a real shadow. */
   clip-path: border-box;
 
-  /* The radius, from `--sq-r`, which the `.rNN` classes below set and each
-     card's own stylesheet re-sets at the phone breakpoint. One property, so
-     the fallback further down has exactly one thing to take away. */
-  border-radius: var(--sq-r);
+  /* No `border-radius` here. Every CardShell carries `.squircle`, which sets it
+     from `--sq-r` and owns the fallback — see globals.css. The `.rNN` classes
+     below are the only thing this file says about the corner. */
 
   /* Written by the cursor-proximity controller; inert until then. */
   --prox-x: 0px;
@@ -99,48 +98,31 @@
 
 /* --- Radii --------------------------------------------------------------- */
 
-.r16 {
-  --sq-r: var(--r-sm);
-}
-.r20 {
-  --sq-r: var(--r-md);
-}
-.r24 {
-  --sq-r: var(--r-lg);
+/* Each rung is a curve through the two design frames rather than a fixed
+   length — `--r-card-*` in globals.css says what it does at every width. The
+   number names the 1440 value, which is what the `radius` prop says.
+
+   These used to be the `--r-*` ladder plus a `@media (width < 700px)` override
+   in each of the nine card stylesheets, every one of them doubling `.card.card`
+   to outrank the class below. The curve spans both frames, so all nine
+   overrides and the specificity fight they needed are gone.
+
+   `.card` is `border-radius: var(--sq-r)` by way of `.squircle` in globals.css,
+   which every CardShell carries — the same channel now serves every squircled
+   surface on the site, so the fallback mask lives there too rather than being
+   copied here. */
+.r28 {
+  --sq-r: var(--r-card-28);
 }
 .r32 {
-  --sq-r: var(--r-xl);
+  --sq-r: var(--r-card-32);
 }
 .r40 {
-  --sq-r: var(--r-xl-plus);
+  --sq-r: var(--r-card-40);
 }
 .r48 {
-  --sq-r: var(--r-2xl);
+  --sq-r: var(--r-card-48);
 }
 .r64 {
-  --sq-r: var(--r-3xl);
-}
-
-/* --- The squircle, where `corner-shape` does not exist ---------------------
-
-   The mask in globals.css does the shaping here, and `border-radius` has to
-   get out of its way: a squircle is *fuller* than the circle of the same
-   radius, so a rounded box masked by a squircle is still the rounded box —
-   the intersection is the circle. Zeroing the radius is what lets the mask be
-   the shape rather than a no-op over the top of one.
-
-   `.card` rather than the `.rNN` classes, because the phone overrides in each
-   card's own stylesheet raise their specificity to reach past CardShell and
-   this needs to sit above all of them. It only has to win against `.card`
-   above, which it does by coming later in the same file.
-
-   `clip-path: border-box` follows the zeroed radius and stops clipping the
-   corners, which is fine: the mask clips the whole subtree, transformed
-   descendants included, which is the job the clip-path was doing. */
-@supports not (corner-shape: squircle) {
-  .card {
-    border-radius: 0;
-    -webkit-mask-box-image: var(--sq-mask) 64 fill / var(--sq-r) / 0 stretch;
-    mask-border: var(--sq-mask) 64 fill / var(--sq-r) / 0 stretch;
-  }
+  --sq-r: var(--r-card-64);
 }

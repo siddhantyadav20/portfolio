@@ -2,12 +2,13 @@ import type { ElementType, ComponentPropsWithRef, ReactNode } from "react";
 import styles from "./CardShell.module.css";
 
 type Surface = "translucent" | "solid" | "glass" | "none";
-type Radius = 16 | 20 | 24 | 32 | 40 | 48 | 64;
+/** The card's corner at the 1440 frame. Each one is a curve, not a step — see
+ *  `--r-card-*` in globals.css for what it does at every other width. 28 and 32
+ *  are flat across the range. */
+type Radius = 28 | 32 | 40 | 48 | 64;
 
 const radiusClass: Record<Radius, string> = {
-  16: styles.r16,
-  20: styles.r20,
-  24: styles.r24,
+  28: styles.r28,
   32: styles.r32,
   40: styles.r40,
   48: styles.r48,
@@ -39,7 +40,10 @@ type CardShellProps<T extends ElementType> = {
 export default function CardShell<T extends ElementType = "div">({
   as,
   surface = "translucent",
-  radius = 24,
+  /* The flat rung. Every call site states its own, so this is only what an
+     unstated card would get — and a corner that does not move is the safer
+     thing to be wrong about than one that grows with the viewport. */
+  radius = 32,
   static: isStatic = false,
   className,
   children,

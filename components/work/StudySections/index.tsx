@@ -204,7 +204,7 @@ function Block({ block }: { block: StudyBlock }) {
             alt={block.alt}
             width={block.width}
             height={block.height}
-            className={styles.image}
+            className={`${styles.image} squircle`}
             // Every figure is below the fold on both surfaces — the modal
             // opens at the title and the route starts at the hero.
             loading="lazy"

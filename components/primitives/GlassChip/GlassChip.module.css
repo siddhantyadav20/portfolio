@@ -12,5 +12,5 @@
      lime tile. */
   --liquid-sat: 100%;
 
-  border-radius: var(--r-sm);
+  --sq-r: var(--r-sm);
 }

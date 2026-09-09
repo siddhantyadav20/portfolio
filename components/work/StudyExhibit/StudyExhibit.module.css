@@ -18,7 +18,7 @@
   align-items: center;
   gap: 64px;
   padding: 32px 64px;
-  border-radius: var(--r-xl);
+  --sq-r: var(--r-xl);
   background-color: var(--surface-glass);
   overflow: hidden;
 }
@@ -31,7 +31,7 @@
   flex: 0 1 236px;
   min-width: 0;
   aspect-ratio: 236 / 502;
-  border-radius: var(--r-lg);
+  --sq-r: var(--r-lg);
   background-color: var(--surface-raised);
   /* Marked as unwritten rather than dressed up: an empty frame that looks
      finished reads as a broken image. */
@@ -47,7 +47,7 @@
   flex-direction: column;
   gap: 24px;
   padding: 24px;
-  border-radius: var(--r-lg);
+  --sq-r: var(--r-lg);
   /* A second, denser film on the panel's own — Figma's rgba(255,255,255,0.6)
      over rgba(255,255,255,0.4). */
   background-color: color-mix(in srgb, var(--surface-solid) 60%, transparent);
@@ -71,7 +71,7 @@
     align-items: stretch;
     gap: 24px;
     padding: 20px;
-    border-radius: var(--r-lg);
+    --sq-r: var(--r-lg);
   }
 
   /* `flex: 1 1 0` is a *row* instruction. Turned into a column it starts
@@ -105,7 +105,7 @@
     align-items: stretch;
     gap: 32px;
     padding: 16px;
-    border-radius: var(--r-xl);
+    --sq-r: var(--r-xl);
   }
 
   .slot {

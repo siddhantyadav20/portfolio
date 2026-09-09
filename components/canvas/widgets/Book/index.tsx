@@ -181,13 +181,13 @@ export default function Book({ book }: { book: BookWidget }) {
       >
         {/* The first page — sits at the front board's depth, revealed as the
             board hinges away from it. */}
-        <div className={`${styles.page} squircle`}>
+        <div className={styles.page}>
           <FirstPage book={book} />
         </div>
 
         {/* Front board, hinged on the spine. */}
         <div
-          className={`${styles.front} squircle`}
+          className={styles.front}
           style={{ transform: `translateZ(${D}px) rotateY(${coverAngle}deg)` }}
         >
           {/* Through the optimiser. `book-japanese-design.png` is 611KB for a

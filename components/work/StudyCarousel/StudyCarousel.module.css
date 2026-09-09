@@ -45,7 +45,7 @@
      not collapse the card to nothing. */
   min-height: 566px;
   padding: 32px;
-  border-radius: var(--r-xl);
+  --sq-r: var(--r-xl);
   background-color: var(--surface-glass);
   overflow: hidden;
 
@@ -86,7 +86,7 @@
   flex: 0 0 236px;
   width: 236px;
   aspect-ratio: 236 / 502;
-  border-radius: var(--r-lg);
+  --sq-r: var(--r-lg);
 }
 
 .screen {
@@ -305,7 +305,7 @@
        the screen is 180 tall and the floor is just empty card under it. */
     min-height: 0;
     padding: 20px;
-    border-radius: var(--r-lg);
+    --sq-r: var(--r-lg);
   }
 
   .screen,

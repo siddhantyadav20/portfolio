@@ -184,7 +184,7 @@ export default function Disc({
             {playing && (
               <motion.div
                 key={id}
-                className={styles.nowPlaying}
+                className={`${styles.nowPlaying} squircle`}
                 initial={{ opacity: 0, x: 24, y: 8 }}
                 animate={{ opacity: 1, x: 0, y: 0 }}
                 exit={{ opacity: 0, x: 24, y: 8 }}

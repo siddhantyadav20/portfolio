@@ -38,10 +38,16 @@ import styles from "./AboutMeCard.module.css";
 const START_BEARING = -140;
 const SPACING = 360 / 3;
 
-/** The card's own corner radius (--r-xl). Where `corner-shape: squircle` is
- *  supported the real outline is smoothed and this is a circular-arc
- *  approximation of it — under a pixel out at the corners, on a 28px pill that
- *  is straddling the border anyway. */
+/** The corner the orbiting pills are laid out against. NOT the card's radius
+ *  token, despite what this used to say: `onOutline` is given the *wrapper's*
+ *  half-extents, and the wrapper is larger than the shell inside it, so this is
+ *  a hand-tuned figure for that outline rather than a value read off the card.
+ *
+ *  Left at 32 when the card moved to 28 (`--r-card-28`), which brings the two
+ *  closer than they were — it was 32 against a 24 card before. Where
+ *  `corner-shape: squircle` is supported the real outline is smoothed and this
+ *  is a circular-arc approximation of it — under a pixel out at the corners, on
+ *  a 28px pill that is straddling the border anyway. */
 const CARD_RADIUS = 32;
 
 /* --- Throw ---------------------------------------------------------------- */
@@ -468,7 +474,7 @@ export default function AboutMeCard() {
         <CardShell
           as="button"
           type="button"
-          radius={24}
+          radius={28}
           data-card="about"
           static
           className={styles.card}

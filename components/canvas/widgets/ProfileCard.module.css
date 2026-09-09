@@ -9,7 +9,7 @@
   height: auto;
   padding: 26px 28px;
   /* The board's largest card, so the larger of the two corner radii. */
-  border-radius: 48px;
+  --sq-r: var(--r-card-40);
   background-color: var(--surface-solid);
 }
 

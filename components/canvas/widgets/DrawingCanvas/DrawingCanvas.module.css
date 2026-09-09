@@ -32,7 +32,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  border-radius: 48px;
+  --sq-r: var(--r-card-40);
   /* Dotted grid over the paper — the reference's 22px lattice. It reads as
      drawing stock rather than as a blank panel. */
   background:

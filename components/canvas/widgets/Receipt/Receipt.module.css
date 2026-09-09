@@ -4,6 +4,13 @@
    from the two SVG edges rather than from its corners. No cast shadow either,
    with the rest of the board's.
 
+   THE ONE OBJECT ON THE BOARD THAT IS NOT ON THE CORNER LADDER, and that is a
+   decision rather than an oversight — the corner spec asks this for 24 like
+   the book and the terminal. It is skipped because the top and bottom are torn
+   SVG edges: rounding the sides would leave a straight tear meeting a curve,
+   which reads as a bug rather than as paper. If it ever should be rounded, the
+   tears have to be redrawn to meet the curve, not just a radius added here.
+
    The original was fixed at #222 paper with #d9d9d9 ink. Here both are tokens,
    so light mode gets actual receipt paper — warm off-white, dark ink — which
    is what the object is in the world. */

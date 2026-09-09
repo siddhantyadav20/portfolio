@@ -83,7 +83,7 @@ export function TokensScene() {
  */
 export function TerminalScene() {
   return (
-    <div className={styles.term}>
+    <div className={`${styles.term} squircle`}>
       <div className={styles.termBar} aria-hidden="true">
         <span className={styles.termDot} />
         <span className={styles.termDot} />
@@ -155,7 +155,7 @@ export function AttemptsScene() {
             data-kept={kept ? "" : undefined}
             style={{ ["--i" as string]: i }}
           >
-            <span className={styles.attemptFrame} aria-hidden="true">
+            <span className={`${styles.attemptFrame} squircle`} aria-hidden="true">
               {kept ? (
                 <LogoMark className={styles.attemptMark} />
               ) : (

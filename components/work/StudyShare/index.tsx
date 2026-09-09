@@ -69,7 +69,7 @@ export default function StudyShare() {
           clipboard and there is no asking it twice, so the URL itself is the
           fallback and it is selectable. */}
       {failed && (
-        <span className={styles.fallback}>
+        <span className={`${styles.fallback} squircle`}>
           <span className={styles.fallbackLabel}>
             Your browser blocked the copy. Here is the link:
           </span>

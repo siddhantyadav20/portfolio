@@ -215,7 +215,7 @@
   gap: 12px;
   padding: 24px;
   border: 1px solid var(--ink-20);
-  border-radius: var(--r-lg);
+  --sq-r: var(--r-lg);
   background-image: linear-gradient(
     128.3deg,
     var(--wash) 4.71%,
@@ -416,8 +416,7 @@
 
   .outcome {
     padding: 12px;
-    border-radius: 16px;
-    --sq-r: 16px;
+    --sq-r: var(--r-sm);
   }
 
   /* 24/14/15/13 in the frame's desktop; 18/12/13/12 here. */

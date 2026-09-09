@@ -620,8 +620,12 @@
     gap: calc(64 * var(--u));
     padding: calc(24 * var(--u));
     border: 1px solid var(--ink-20);
+    /* `.squircle` on the element turns this into the radius and, where
+       `corner-shape` is missing, the mask. Its 1px border is the cost there: a
+       border is painted to the box and then cut to the mask's silhouette, so it
+       thins slightly at the corners — a fair trade on a hairline at this
+       radius. Raised to 32 below. */
     --sq-r: calc(24 * var(--u));
-    border-radius: var(--sq-r);
     background: var(--surface-glass);
   }
 
@@ -675,35 +679,22 @@
 
 /* --- The phone's corner ----------------------------------------------------
 
-   Every box that the frame draws at 24 is 32 here instead — the case studies,
-   the canvas, the personality pair and this section around them — by choice
-   rather than by transcription. It is one step, applied to the whole set at
-   once, so the page keeps a single corner rather than gaining a second one.
+   32 here rather than the 24 the frame draws, by choice: this box holds the
+   cards, so it wants to sit a step outside their corner rather than level with
+   it. At 390 the cards inside are 32 and 28 and this is 32 on the outside of
+   their padding, which reads as containing them.
 
-   The cards carry their own copy of this in their own stylesheets, because
-   their radius comes from a CardShell class that only they can outrank. The
-   16 of About Me and the 20 of the Design/Engineer card are the frame's and
-   are left alone: they are smaller than the set, not part of it. */
+   Only this section says anything about a corner now. The cards used to carry
+   a copy of this rule each — nine `@media` blocks doubling `.card.card` to
+   outrank CardShell — and they are gone: a card's radius is one curve spanning
+   both frames, so there is nothing to override at the breakpoint. See
+   `--r-card-*` in globals.css.
+
+   This box stays on `--u` because it is not one of them. It is the frame's own
+   box, drawn once at the phone width, and it has no desktop value to travel to
+   — on the wide grid it is `display: contents` and does not exist. */
 @media (width < 700px) {
   .closing {
     --sq-r: calc(32 * var(--u));
-    border-radius: var(--sq-r);
-  }
-}
-
-/* The closing section is the one squircle on the page that is not a CardShell,
-   so it carries its own fallback — see the note in CardShell.module.css for
-   why the radius has to be zeroed for the mask to be the shape.
-
-   Its 1px border is the cost: a border is painted to the box and then cut by
-   the mask, so it thins slightly at the corners. On a hairline at this radius
-   that is a fair trade for the corner being right. */
-@supports not (corner-shape: squircle) {
-  @media (width < 700px) {
-    .closing {
-      border-radius: 0;
-      -webkit-mask-box-image: var(--sq-mask) 64 fill / var(--sq-r) / 0 stretch;
-      mask-border: var(--sq-mask) 64 fill / var(--sq-r) / 0 stretch;
-    }
   }
 }

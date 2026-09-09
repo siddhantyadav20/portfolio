@@ -126,7 +126,7 @@ export default function MakingModal({ open, closing = false, onClose }: Props) {
                 {scene.eyebrow}
               </p>
 
-              <div className={styles.stage}>
+              <div className={`${styles.stage} squircle`}>
                 <Drawing />
               </div>
 

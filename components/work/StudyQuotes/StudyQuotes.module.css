@@ -18,7 +18,7 @@
   width: 100%;
   padding: 24px;
   border: 1px solid var(--ink-20);
-  border-radius: var(--r-lg);
+  --sq-r: var(--r-lg);
   background-color: var(--surface-glass);
   overflow: hidden;
 }

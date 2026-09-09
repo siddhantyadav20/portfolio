@@ -492,7 +492,7 @@
   place-items: center;
   width: 60px;
   height: 60px;
-  border-radius: var(--r-sm);
+  --sq-r: var(--r-sm);
   background-color: color-mix(in srgb, var(--ink) 5%, transparent);
   color: var(--ink-40);
 }
@@ -565,7 +565,7 @@
 
 .peekImage {
   width: 100%;
-  border-radius: var(--r-sm);
+  --sq-r: var(--r-sm);
   /* Fixed box, because the column must not resize as you arrow between a wide
      screenshot and a tall book cover — the list beside it would jump.
 
@@ -650,7 +650,7 @@
   flex-direction: column;
   gap: 2px;
   padding: 22px 20px 20px;
-  border-radius: var(--r-md);
+  --sq-r: var(--r-md);
   background-color: var(--peek-wash, color-mix(in srgb, var(--ink) 5%, transparent));
 }
 

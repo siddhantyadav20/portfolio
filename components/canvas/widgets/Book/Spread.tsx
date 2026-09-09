@@ -30,7 +30,7 @@ export default function Spread({
       role="dialog"
       aria-modal="true"
       aria-label={`${book.title} by ${book.author}`}
-      className={styles.spread}
+      className={`${styles.spread} squircle`}
       style={{ ["--binding" as string]: book.binding }}
       initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: 14 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -48,7 +48,7 @@ export default function Spread({
       </button>
 
       <motion.div
-        className={`${styles.cover} squircle`}
+        className={styles.cover}
         initial={reduced ? { opacity: 0 } : { rotateY: -55, opacity: 0 }}
         animate={{ rotateY: 0, opacity: 1 }}
         transition={{

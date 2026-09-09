@@ -24,7 +24,7 @@
   display: grid;
   place-items: center;
   height: 200px;
-  border-radius: var(--r-md);
+  --sq-r: var(--r-md);
   background: #f9fafb; /* the library's own _docs content background */
   box-shadow: inset 0 0 0 1px var(--ink-20);
 }

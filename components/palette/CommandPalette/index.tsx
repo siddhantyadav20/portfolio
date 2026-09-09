@@ -326,7 +326,7 @@ export default function CommandPalette({
     >
       <div
         ref={panelRef}
-        className={styles.panel}
+        className={`${styles.panel} squircle`}
         role="dialog"
         aria-modal="true"
         aria-label="Search this site"

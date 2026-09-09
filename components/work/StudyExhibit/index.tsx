@@ -48,14 +48,14 @@ const PANELS: Record<ExhibitName, React.ReactNode> = {
           with `order`, which costs nothing here: the slot is a placeholder
           `div` with no focusable content, so paint order and tab order cannot
           disagree about it. */}
-      <div className={styles.card}>
+      <div className={`${styles.card} squircle`}>
         <p className={styles.cardTitle}>
           The existing workflow split one job into two
         </p>
         <SplitFlow />
       </div>
 
-      <div className={styles.slot} data-placeholder="">
+      <div className={`${styles.slot} squircle`} data-placeholder="">
         <span className="srOnly">
           A recording of the existing camera flow, not yet captured
         </span>
@@ -67,7 +67,7 @@ const PANELS: Record<ExhibitName, React.ReactNode> = {
      it — unlike the split flow above, the diagram is the whole exhibit, so it
      gets the panel's full width rather than half of it. */
   "winconnect-governance-loop": (
-    <div className={styles.card}>
+    <div className={`${styles.card} squircle`}>
       <p className={styles.cardTitle}>
         A request becomes a component, or it doesn&rsquo;t
       </p>

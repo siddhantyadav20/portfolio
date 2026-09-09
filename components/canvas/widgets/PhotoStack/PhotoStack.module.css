@@ -22,7 +22,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border-radius: 48px;
+  --sq-r: var(--r-card-40);
   /* The clip the layers inherit. */
   background: rgb(var(--ps-plate));
   /* box-shadow, not the reference's filter: drop-shadow().

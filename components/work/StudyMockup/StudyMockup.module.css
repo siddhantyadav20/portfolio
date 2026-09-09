@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: center;
   padding: 32px 64px;
-  border-radius: var(--r-xl);
+  --sq-r: var(--r-xl);
   background-color: var(--surface-glass);
   overflow: hidden;
 }
@@ -25,7 +25,7 @@
   width: 236px;
   max-width: 100%;
   aspect-ratio: 236 / 502;
-  border-radius: var(--r-lg);
+  --sq-r: var(--r-lg);
 }
 
 /* A desktop product screen: the panel's whole width, at the ratio a dashboard
@@ -58,7 +58,7 @@
 @media (width < 700px) {
   .panel {
     padding: 20px;
-    border-radius: var(--r-lg);
+    --sq-r: var(--r-lg);
   }
 
   .screen,

@@ -165,7 +165,7 @@ export default function StoreWaitlist() {
 
   return (
     <CardShell
-      radius={32}
+      radius={40}
       data-card="store"
       /* Readable from OUTSIDE this component's stylesheet, which the module
          class is not — `app/page.module.css` owns the orange band that bleeds
@@ -190,7 +190,7 @@ export default function StoreWaitlist() {
         </div>
 
         <form
-          className={`${styles.cta} squircle`}
+          className={styles.cta}
           onSubmit={(e) => {
             e.preventDefault();
             submit();

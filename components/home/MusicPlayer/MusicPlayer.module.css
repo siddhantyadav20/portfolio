@@ -118,8 +118,11 @@
      moving. `min-height` is Figma's 135 and the floor for the artwork. */
   flex: 1 0 auto;
   min-height: calc(135 * var(--u));
+  /* `.squircle` on the element turns this into both the radius and the
+     fallback mask — the sleeve was already on `--sq-r` but was the one surface
+     outside CardShell reading it back itself, and so the one that got the
+     native squircle without the fallback. */
   --sq-r: calc(16 * var(--u));
-  border-radius: var(--sq-r);
   overflow: hidden;
   background-color: var(--ink-20);
 }
@@ -669,9 +672,16 @@ a.title:focus-visible {
 }
 
 /* --- One column ----------------------------------------------------------------
-   Paired with the LinkedIn card rather than stacked, so the two share a row the
-   way they do on the wide grid. `.personality` is a two-track grid there, so
-   this card only has to stop insisting on the 254 it is drawn with. */
+   Stacked under the Fantasy card, not beside it, and not paired with the
+   LinkedIn card — which this used to say and which has not been on the page
+   since Fantasy took its place. `.personality` is a flex column on a phone, so
+   this card only has to stop insisting on the 254 it is drawn with and take
+   the width.
+
+   The two share a corner as well as a column: both are on the 40 rung, which
+   is now one curve rather than a desktop value, so they match at every width.
+   This card used to be the only one with no phone override at all and sat at a
+   hard 40 while Fantasy beside it went to 24 — 19.7 on a 320px screen. */
 @media (width < 700px) {
   .card {
     flex: none;

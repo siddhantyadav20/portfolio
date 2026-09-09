@@ -146,7 +146,7 @@ function Art({
  * agree about what a sleeve without art looks like.
  */
 function DiscStill() {
-  return <span className={styles.disc} aria-hidden="true" />;
+  return <span className={`${styles.disc} squircle`} aria-hidden="true" />;
 }
 
 function PhotosStill() {
@@ -228,7 +228,7 @@ function ReceiptStill() {
 /** The terminal, mid-boot — the banner and the lines under it. */
 function TerminalStill() {
   return (
-    <span className={styles.terminal} aria-hidden="true">
+    <span className={`${styles.terminal} squircle`} aria-hidden="true">
       <span className={styles.tmBar}>
         <i />
         <i />

@@ -195,7 +195,7 @@ export default function PaletteHost() {
  */
 function TourBar({ index, step }: { index: number; step: TourStep }) {
   return (
-    <div className={styles.tour} role="status" aria-live="polite">
+    <div className={`${styles.tour} squircle`} role="status" aria-live="polite">
       <div className={styles.bar} aria-hidden="true">
         <span
           className={styles.fill}

@@ -18,7 +18,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1120 / 700;
-  border-radius: var(--r-2xl);
+  --sq-r: var(--r-2xl);
   overflow: hidden;
   background-color: var(--surface-solid);
 
@@ -110,7 +110,7 @@
 
 @media (width < 700px) {
   .frame {
-    border-radius: var(--r-xl);
+    --sq-r: var(--r-xl);
   }
 }
 

@@ -11,7 +11,7 @@
   width: 100%;
   max-width: 720px;
   padding: 28px;
-  border-radius: 28px;
+  border-radius: var(--r-card-24);
   background: #1b1b1b;
   color: #d9d9d9;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
