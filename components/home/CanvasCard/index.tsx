@@ -73,6 +73,9 @@ export default function CanvasCard() {
   const [open, setOpen] = useState(false);
   /** Held in state rather than rendered through Suspense — see loadSurface. */
   const [Surface, setSurface] = useState<SurfaceModule["default"] | null>(null);
+  /* The card, for `morph()` to measure: the size of the journey is what sets
+     the length of it. See lib/viewTransition. */
+  const cardRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
 
@@ -148,7 +151,7 @@ export default function CanvasCard() {
       update();
       return;
     }
-    morph(update, undefined, CANVAS_MORPH);
+    morph(update, { name: CANVAS_MORPH, from: cardRef.current, dir: "in" });
   }, []);
 
   const close = useCallback(() => {
@@ -156,7 +159,7 @@ export default function CanvasCard() {
       setOpen(false);
       return;
     }
-    morph(() => setOpen(false), undefined, CANVAS_MORPH);
+    morph(() => setOpen(false), { name: CANVAS_MORPH, dir: "out" });
   }, []);
 
   /**
@@ -228,6 +231,7 @@ export default function CanvasCard() {
   return (
     <>
       <CardShell
+        ref={cardRef}
         radius={40}
         surface="solid"
         className={styles.card}

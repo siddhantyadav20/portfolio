@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { EXIT_MS } from "@/components/primitives/ModalSurface";
+import { exitMs } from "@/components/primitives/ModalSurface";
 import { MAKING_OPEN } from "@/lib/making";
 import { canMorph, morph } from "@/lib/viewTransition";
 import styles from "./SiteFooter.module.css";
@@ -55,12 +55,29 @@ type Reader = typeof import("@/components/home/MakingModal").default;
 const loadReader = async (): Promise<Reader> =>
   (await import("@/components/home/MakingModal")).default;
 
+/**
+ * The words you press, named so the reader can grow out of them.
+ *
+ * This surface used to be the one exception on the site: no card to come from,
+ * so it called `morph()` with no name and got the generic `modal-plate` scale
+ * — a different animation from the four cards, on a different clock, for the
+ * same gesture. Naming the button makes it the same move as everything else.
+ * Nothing about the button changes at rest; a `view-transition-name` is inert
+ * until a transition starts.
+ */
+const COLOPHON_MORPH = "colophon-frame";
+
 export default function ColophonLink() {
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const [Reader, setReader] = useState<Reader | null>(null);
+  /* Which door was used. ⌘K opens this with nothing on screen to have come
+     from, and a name that exists on only one side of a transition is a group
+     the browser has to invent an arrival for — so that door stays unnamed and
+     keeps the plate it always had. */
+  const [morphed, setMorphed] = useState(false);
 
-  const openReader = useCallback(async () => {
+  const openReader = useCallback(async (from?: Element | null) => {
     const Loaded = await loadReader();
     const update = () => {
       setReader(() => Loaded);
@@ -78,12 +95,20 @@ export default function ColophonLink() {
       update();
       return;
     }
-    morph(update);
+    setMorphed(Boolean(from));
+    morph(update, {
+      name: from ? COLOPHON_MORPH : undefined,
+      from,
+      dir: "in",
+    });
   }, []);
 
   const close = useCallback(() => {
     if (canMorph()) {
-      morph(() => setOpen(false));
+      morph(() => setOpen(false), {
+        name: morphed ? COLOPHON_MORPH : undefined,
+        dir: "out",
+      });
       return;
     }
     // No transition to play, so the reader animates itself out — otherwise
@@ -92,8 +117,8 @@ export default function ColophonLink() {
     window.setTimeout(() => {
       setOpen(false);
       setClosing(false);
-    }, EXIT_MS);
-  }, []);
+    }, exitMs());
+  }, [morphed]);
 
   // ⌘K's way in — see `lib/making`. The palette and this button are the two
   // doors, and neither knows about the other.
@@ -114,7 +139,8 @@ export default function ColophonLink() {
       <button
         type="button"
         className={styles.making}
-        onClick={() => void openReader()}
+        style={open ? undefined : { viewTransitionName: COLOPHON_MORPH }}
+        onClick={(e) => void openReader(e.currentTarget)}
         onPointerEnter={warm}
         onFocus={warm}
         aria-haspopup="dialog"
@@ -122,7 +148,14 @@ export default function ColophonLink() {
         How I made this portfolio?
       </button>
 
-      {Reader && <Reader open={open} closing={closing} onClose={close} />}
+      {Reader && (
+        <Reader
+          open={open}
+          closing={closing}
+          onClose={close}
+          morphName={morphed ? COLOPHON_MORPH : undefined}
+        />
+      )}
     </>
   );
 }

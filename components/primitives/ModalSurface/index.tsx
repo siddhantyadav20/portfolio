@@ -12,7 +12,7 @@ import styles from "./ModalSurface.module.css";
    `StudyReader` needs the names and also renders on a server route, which
    cannot import them out of a `"use client"` module without dragging the
    whole shell along. Re-exported so the existing callers are unchanged. */
-export { EXIT_MS, MODAL_VT } from "@/lib/viewTransition";
+export { EXIT_MS, exitMs, MODAL_VT } from "@/lib/viewTransition";
 
 type Props = {
   open: boolean;

@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useLazyStudyModal } from "@/components/home/CaseStudyModal/lazy";
-import { EXIT_MS } from "@/components/primitives/ModalSurface";
+import { exitMs } from "@/components/primitives/ModalSurface";
 import { heroStill, type CaseStudy } from "@/content/work";
 import { canMorph, morph, warm } from "@/lib/viewTransition";
 import { useStudyUrl } from "./useStudyUrl";
@@ -27,7 +27,7 @@ export function useStudyModal(study: CaseStudy, live = true) {
   const [closing, setClosing] = useState(false);
   const { Modal, setModal, load, warmModal } = useLazyStudyModal(open);
 
-  const openStudy = useCallback(async () => {
+  const openStudy = useCallback(async (from?: Element | null) => {
     // Resolved before anything else moves — see `useLazyStudyModal`. Hovering
     // has normally done this already; awaiting is the guarantee.
     const Loaded = await load();
@@ -49,12 +49,12 @@ export function useStudyModal(study: CaseStudy, live = true) {
     if (study.hero && study.hero.kind !== "live") {
       await warm(heroStill(study.hero).src);
     }
-    morph(update, undefined, study.hero?.morphName);
+    morph(update, { name: study.hero?.morphName, from, dir: "in" });
   }, [study.hero, load, setModal]);
 
   const close = useCallback(() => {
     if (canMorph()) {
-      morph(() => setOpen(false), undefined, study.hero?.morphName);
+      morph(() => setOpen(false), { name: study.hero?.morphName, dir: "out" });
       return;
     }
     // No morph to play, so the modal animates itself out — otherwise closing
@@ -63,8 +63,8 @@ export function useStudyModal(study: CaseStudy, live = true) {
     window.setTimeout(() => {
       setOpen(false);
       setClosing(false);
-    }, EXIT_MS);
-  }, []);
+    }, exitMs());
+  }, [study.hero]);
 
   // The address bar, in both directions: deep links and Back in, `/work/<slug>`
   // out. See `useStudyUrl` — the morph above is what this hook does not share.
@@ -90,7 +90,10 @@ export function useStudyModal(study: CaseStudy, live = true) {
       if (!live) return;
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
-      void openStudy();
+      /* The card itself, measured at click time — `morph()` sizes the whole
+         transition off it. Read synchronously here because React clears
+         `currentTarget` once the handler returns. */
+      void openStudy(e.currentTarget);
     },
     [openStudy, live],
   );

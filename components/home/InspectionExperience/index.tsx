@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
 import GlassChip from "@/components/primitives/GlassChip";
-import { EXIT_MS } from "@/components/primitives/ModalSurface";
+import { exitMs } from "@/components/primitives/ModalSurface";
 import { useLazyStudyModal } from "@/components/home/CaseStudyModal/lazy";
 import DeviceMockup from "@/components/interaction/DeviceMockup";
 import { inspection } from "@/content/site";
@@ -62,7 +62,7 @@ export default function InspectionExperience() {
   const [closing, setClosing] = useState(false);
   const { Modal, setModal, load, warmModal } = useLazyStudyModal(open);
 
-  const openStudy = useCallback(async () => {
+  const openStudy = useCallback(async (from?: Element | null) => {
     // The modal's own code, resolved before anything moves — same reason as
     // the assets below, and the same guarantee. See `useLazyStudyModal`.
     const Loaded = await load();
@@ -81,7 +81,11 @@ export default function InspectionExperience() {
     // Hovering will normally have finished this long ago; awaiting is the
     // guarantee, not the mechanism. See MODAL_ASSETS.
     await Promise.all(MODAL_ASSETS.map(warm));
-    morph(update, undefined, inspectionPhotos.hero?.morphName);
+    morph(update, {
+      name: inspectionPhotos.hero?.morphName,
+      from,
+      dir: "in",
+    });
   }, [load, setModal]);
 
   /**
@@ -100,7 +104,9 @@ export default function InspectionExperience() {
       if (!live) return;
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
-      void openStudy();
+      // The card, measured at click time. Read synchronously — React clears
+      // `currentTarget` once the handler returns.
+      void openStudy(e.currentTarget);
     },
     [openStudy, live],
   );
@@ -117,7 +123,11 @@ export default function InspectionExperience() {
       // two beats. Releasing `hovered` once the transition resolves hands the
       // last beat to the card's own 820ms ease (`--shift`).
       setHovered(true);
-      morph(() => setOpen(false), () => setHovered(false), inspectionPhotos.hero?.morphName);
+      morph(() => setOpen(false), {
+        name: inspectionPhotos.hero?.morphName,
+        dir: "out",
+        settled: () => setHovered(false),
+      });
       return;
     }
     // No morph to play, so the modal has to animate itself out — otherwise
@@ -126,7 +136,7 @@ export default function InspectionExperience() {
     window.setTimeout(() => {
       setOpen(false);
       setClosing(false);
-    }, EXIT_MS);
+    }, exitMs());
   }, []);
 
   return (

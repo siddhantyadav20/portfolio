@@ -52,6 +52,31 @@
   animation: fade 160ms ease;
 }
 
+/* --- Leaving ---------------------------------------------------------------
+   The palette used to have no exit at all: `open` went false and the portal
+   returned null on the same frame, so the one surface on the site that opens
+   most often was also the only one that vanished. It cannot morph — a
+   `view-transition-name` makes an element a backdrop root, and this panel's
+   whole material is the scrim's `backdrop-filter` — so it leaves the way it
+   arrived, faster and without the spring.
+
+   No origin from the trigger, deliberately. This is a centred sheet, and a
+   centred sheet scaling out of a pill in the corner reads as a different
+   component; origin-aware scaling is for popovers anchored to their control.
+
+   `PALETTE_EXIT_MS` in index.tsx must match the longest of these. */
+.backdrop[data-exit] {
+  /* A transition, not `animation: fade … reverse`. The entry animation is also
+     called `fade`, and re-declaring the shorthand with the same NAME does not
+     restart it — the browser updates the existing, already-finished animation
+     in place, so reversing it pinned the scrim at its end value and the blur
+     vanished on the first frame. A property with no such history does not:
+     `.backdrop` never declares `opacity`, so this transitions from a real 1
+     every time. */
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
 /* Deeper, and the measurement is the argument.
 
    The panel is #2c2c2e, L* 18.1. Against the unscrimmed #111 page it sits 13.0
@@ -116,6 +141,18 @@
 .panel[data-enter] {
   opacity: 1;
   transform: none;
+}
+
+/* AFTER the enter rule on purpose. `data-enter` is set once and never removed,
+   so a leaving panel carries both attributes and these two selectors have the
+   same specificity — source order is the whole tiebreak. Declared above it,
+   this rule was applied and did nothing, which is the worst of both. */
+.panel[data-exit] {
+  opacity: 0;
+  transform: translateY(4px) scale(0.99);
+  transition:
+    opacity 140ms ease,
+    transform 200ms cubic-bezier(0.32, 0, 0.24, 1);
 }
 
 /* --- The field ----------------------------------------------------------- */

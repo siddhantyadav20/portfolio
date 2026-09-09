@@ -1186,277 +1186,308 @@ html[data-canvas] body {
 }
 
 /* ==========================================================================
-   View transitions
-   The case study opens by morphing the device you clicked into the device in
-   the modal — see CaseStudyModal and InspectionExperience, which hand the same
-   `view-transition-name` to whichever of the two screens is currently the one
-   on screen.
+   View transitions — one law for every morph
 
-   The shared element is the phone *screen* rather than the whole card, and
-   that choice is what makes the move clean: 170.855x362.577 in the card and
-   265.29x562.982 in the modal are the same aspect ratio to four decimal
-   places, so the group animation is a pure scale and translate with no squash.
-   The screen box also sits fully inside the card's bounds in both its resting
-   and hovered states, so nothing is clipped at snapshot time.
+   Six surfaces make the same move: a thing you clicked grows into the reader
+   it opens. Inspection, Search, Design System, About and the colophon become a
+   modal; the Canvas card becomes the canvas. Until now only the Canvas one was
+   ever tuned, and it was the only one nobody complained about — which is the
+   whole diagnosis, because all six run the same technique through the same
+   helper. The technique was never the problem. The parameters were.
 
-   The rest of the modal is named too, and choreographed against that morph.
-   That is the whole point: with only the device named, everything else rode a
-   flat root cross-fade on a different clock, so the page had already arrived
-   while the phone was still travelling — two events, which is what read as a
-   glitch. Named, each part is a participant, and they can be given an order.
+   Three things were wrong, and each of them was wrong *per card*, which is why
+   this read as "inconsistent" rather than simply as "slow" or "fast".
 
-   One curve for all of it. The delays are the hierarchy: plate, then hero,
-   then the reading order of the page.
+   1. THE CARDS SHEARED. The rule here used to force `object-fit: cover` on both
+      snapshots, overriding the UA's proportional `block-size: auto`. Inside a
+      box whose width grows 3.4x while its height grows 1.4x, a cover crop
+      recomputes its window every frame: the card's pixels zoom and pan through
+      a rectangle nobody authored. The Canvas card barely noticed — 1.31 into
+      1.60 is a 1.22x change of shape — but a 420/640 portrait card opening into
+      a landscape viewport is a 2.44x change, and every card's number was
+      different. Below, the card scales *uniformly* and the container crops it,
+      which is the same trade made in the opposite order and the one that reads
+      as a card opening out.
+
+   2. THERE WERE SEVEN CLOCKS. Group 520ms, contents out 180, contents in 240
+      after 40, plate 420, title 460 after 140, body after 200, meta after 250 —
+      so the reader's last block was still arriving 190ms after its own
+      container had landed. The note above this block already said the bug being
+      fixed was "two events, which is what read as a glitch". It was still two
+      events. Every duration below is now a fraction of `--morph-ms`, and the
+      last beat ends at exactly 1.0 of it.
+
+   3. THE CORNER DID NOT TRAVEL. 64, 48, 48, 28 and the colophon's pill all
+      dissolved into a square edge with no shape animation at all. Continuity of
+      corner is the strongest single cue that two boxes are one object, and this
+      site draws every corner from one curve — so it had the material and was
+      not spending it.
+
+   `--morph-ms` and `--morph-r-from` are written onto <html> by `morph()` in
+   lib/viewTransition.ts, measured off the element you actually clicked at the
+   width you are actually at. Read that file before changing any fraction here.
    ========================================================================== */
 
-/* Stacking, and it has to be explicit.
+/* The corner, registered so it can interpolate. An unregistered custom property
+   is a string to the animation engine and jumps from one value to the other. */
+@property --morph-r {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
 
-   Groups are appended to the transition tree in capture order — old state
-   first, then anything new — so the painting order flips depending on which
-   way you are going. Opening, the card's device is the only thing in the old
-   state, so its group is created first and the opaque plate, captured second,
-   paints straight over it: the phone morphs *behind* the modal and all you see
-   is the modal appearing. Closing, the modal's DOM order puts the plate before
-   the device, so the phone flies home on top and looks right.
+:root {
+  /* Both replaced inline by `morph()` for the length of a transition. These are
+     the values a morph gets if it was started without a trigger to measure —
+     a deep link, or a caller that hands over no element. */
+  --morph-ms: 560ms;
+  --morph-r-from: 0px;
 
-   That asymmetry is not something to work around one direction at a time. Name
-   the layers and the order stops depending on the direction of travel. */
-/* THE FOUR CARD MORPHS — a card becoming a whole reader.
+  --morph-dur: var(--morph-ms);
+  /* A spring rather than an ease-out, and it is the site's own: `--spring-soft`
+     is what the canvas camera and the timeline's dial already run on. A surface
+     arriving on an ease-out reads as being placed; the same surface on a spring
+     reads as having mass. These morphs were the only motion on the site that
+     ignored the motion tokens. */
+  --morph-ease: var(--spring-soft);
+}
 
-   These used to name an *inner* element at both ends: the Design System card
-   handed over its dashboard frame, Search its instrument, About a 32px
-   portrait, and all of them landed on `StudyHero`'s frame or the modal's own
-   portrait. So the thing that travelled was a picture, while the card's title,
-   eyebrow and chip cross-faded away with the rest of the page on the root's
-   separate clock. Two events again, and the reported reading was exactly
-   right: the content morphed and the card did not, which looks cheap.
+/* LEAVING IS ITS OWN MOVE, NOT THE ARRIVAL PLAYED BACKWARDS.
 
-   Each name is now on the whole `CardShell` at one end and on the modal's
-   whole plate at the other (see `morphName` in ModalSurface). The browser
-   interpolates a card-sized box into a screen-sized one and blends the two
-   snapshots inside it — a container transform, which is the move the Canvas
-   card has always made and the one nobody has ever complained about.
+   Shorter, because the visitor is already done with the surface and is waiting
+   on the page behind it; and on a plain curve rather than the spring, because a
+   thing settling into place has mass and a thing being dismissed does not. */
+:root[data-morph-dir="out"] {
+  --morph-dur: calc(var(--morph-ms) * 0.72);
+  --morph-ease: cubic-bezier(0.32, 0, 0.24, 1);
+}
 
-   THE Z-INDEX IS LOW ON PURPOSE, AND THE ACTIVE ONE IS LIFTED BELOW. Read the
-   next block before changing either number — this is where a real bug lived.
+/* One clock and one curve, for every group in the tree. Anything that wants to
+   be different says so below, as a fraction. */
+::view-transition-group(*) {
+  animation-duration: var(--morph-dur);
+  animation-timing-function: var(--morph-ease);
+}
 
-   No corner animation. The card's radius resolves into the plate's square edge
-   inside the cross-fade below, which is what the Canvas card does going from a
-   48px corner to a full-bleed surface — and that transition is the reference
-   here, not the thing to improve on. */
+/* THE Z-INDEX IS LOW ON PURPOSE, AND THE ACTIVE ONE IS LIFTED BELOW. Read the
+   next block before changing either number — this is where a real bug lived. */
 ::view-transition-group(inspection-frame),
 ::view-transition-group(design-system-frame),
 ::view-transition-group(search-frame),
-::view-transition-group(about-portrait) {
+::view-transition-group(about-portrait),
+::view-transition-group(colophon-frame),
+::view-transition-group(canvas-frame) {
   z-index: 1;
-  /* A shade quicker than the 560 the inner-frame morph used. The box is doing
-     more of the work now and travels further, and a container that is still
-     moving after half a second reads as slow rather than as considered. */
-  animation-duration: 520ms;
 }
 
 /* THE ACTIVE MORPH, LIFTED OVER EVERY OTHER CARD.
 
-   The homepage has five named cards and they all *stay* named while a modal is
-   open, because the page underneath stays mounted. Groups sharing a z-index
+   The homepage has six named surfaces and they all *stay* named while a modal
+   is open, because the page underneath stays mounted. Groups sharing a z-index
    paint in tree order — capture order, which is DOM order — so every card
-   sitting later in the band than the one you clicked was painting on top of
-   the modal for the length of the transition. Open Inspection, first in the
-   DOM, and all four others covered the reader; open About, last, and none did.
+   sitting later in the band than the one you clicked was painting on top of the
+   modal for the length of the transition. Open Inspection, first in the DOM,
+   and all the others covered the reader; open About, last, and none did.
    Reported as "sometimes other elements from the homepage show up on top", and
    the "sometimes" was which card you pressed.
 
-   These four names cannot be told apart in CSS — the same rule serves a card
-   that is morphing and a card that is merely sitting there — so `morph()`
-   writes the live one onto `<html>` and this reads it back. Everything not
-   named there stays at 1, under the plate, where a bystander belongs.
+   These names cannot be told apart in CSS — the same rule serves a card that is
+   morphing and a card that is merely sitting there — so `morph()` writes the
+   live one onto <html> and this reads it back. Everything not named there stays
+   at 1, under the plate, where a bystander belongs.
 
    3 rather than 2 so it also clears `modal-plate`, which is still the fallback
-   for a modal opened with no card behind it. */
+   for a modal opened with no surface behind it. */
 :root[data-morph="inspection-frame"]::view-transition-group(inspection-frame),
 :root[data-morph="design-system-frame"]::view-transition-group(design-system-frame),
 :root[data-morph="search-frame"]::view-transition-group(search-frame),
-:root[data-morph="about-portrait"]::view-transition-group(about-portrait) {
+:root[data-morph="about-portrait"]::view-transition-group(about-portrait),
+:root[data-morph="colophon-frame"]::view-transition-group(colophon-frame),
+:root[data-morph="canvas-frame"]::view-transition-group(canvas-frame) {
   z-index: 3;
 }
 
-/* A card and a full-bleed reader are very different shapes, and left alone
-   Chrome stretches each snapshot to fill the animating box — which shears the
-   card mid-flight. Filling proportionally and cropping instead is what makes
-   the aspect change read as a card opening out.
+/* --- The container, and the corner it carries ---------------------------
 
-   THE CROSS-FADE IS DELIBERATELY FASTER THAN THE BOX. That is the whole of the
-   container-transform trick: the contents settle early, in the first third,
-   while the container is still visibly travelling — so the eye follows the box
-   and never watches two pictures dissolve. Run at the same length as the group
-   and it is a cross-fade with a moving frame around it, which is what this was
-   before. */
+   THE CROP LIVES HERE, NOT ON THE SNAPSHOTS. `overflow: clip` on the pair is
+   what lets the card below scale as one piece: it grows past the container and
+   the container cuts it off, instead of the card being squeezed to fit a box
+   that is changing shape underneath it.
+
+   `border-radius` + `corner-shape` rather than `clip-path: inset(… round …)`,
+   because a squircle is *fuller* than the circle of the same radius — an inset
+   clip would shave the very corners this site draws from one curve. `overflow`
+   clips against the real corner shape, so what travels is the card's own.
+
+   ON THE PAIR RATHER THAN THE GROUP, and that is load-bearing. The group already
+   carries the browser's own `-ua-view-transition-group-anim-<name>`, which is
+   the transform and size interpolation — the morph itself. Declaring `animation`
+   on the group replaces it, and the box stops moving. The image-pair has no UA
+   animation to lose.
+
+   The background is Material's container colour, and it is what makes a
+   fade-through legal: between the old contents leaving and the new arriving
+   there is a sliver where neither is fully opaque, and without a ground behind
+   them the page shows through the middle of a surface that is supposed to be
+   solid. */
+::view-transition-image-pair(inspection-frame),
+::view-transition-image-pair(design-system-frame),
+::view-transition-image-pair(search-frame),
+::view-transition-image-pair(about-portrait),
+::view-transition-image-pair(colophon-frame),
+::view-transition-image-pair(canvas-frame) {
+  overflow: clip;
+  border-radius: var(--morph-r);
+  corner-shape: squircle;
+  background-color: var(--page-base);
+  animation: morph-corner var(--morph-dur) var(--morph-ease) both;
+}
+
+/* Opening resolves the card's corner into the reader's square edge; closing
+   grows it back out of it. One keyframe, played the other way. */
+:root[data-morph-dir="out"]::view-transition-image-pair(inspection-frame),
+:root[data-morph-dir="out"]::view-transition-image-pair(design-system-frame),
+:root[data-morph-dir="out"]::view-transition-image-pair(search-frame),
+:root[data-morph-dir="out"]::view-transition-image-pair(about-portrait),
+:root[data-morph-dir="out"]::view-transition-image-pair(colophon-frame),
+:root[data-morph-dir="out"]::view-transition-image-pair(canvas-frame) {
+  animation-direction: reverse;
+}
+
+@keyframes morph-corner {
+  from {
+    --morph-r: var(--morph-r-from);
+  }
+  to {
+    --morph-r: 0px;
+  }
+}
+
+/* --- The two snapshots ---------------------------------------------------
+
+   The small one scales, the big one covers, and which is which depends on the
+   direction of travel — opening, the card is `old`; closing, it is `new`.
+
+   THE SMALL ONE: `height: auto` on a replaced element keeps its aspect ratio, so
+   as the box grows the card grows with it as one piece and overflows, and the
+   pair above crops it. Measured across a morph: a 220x340 card reaches
+   1296x2003 and holds 0.647 at every step. `object-position: top` because the
+   top edge is where the reader's own header lands, so the two agree about where
+   the surface starts.
+
+   THE BIG ONE has to be exactly right at rest, which is what `cover` gives it:
+   at the end of an opening the box *is* the viewport and there is nothing left
+   to crop. Early on it is the reader seen through a card-sized window, which is
+   the incoming surface being revealed rather than being squeezed. */
 ::view-transition-old(inspection-frame),
-::view-transition-new(inspection-frame),
 ::view-transition-old(design-system-frame),
-::view-transition-new(design-system-frame),
 ::view-transition-old(search-frame),
-::view-transition-new(search-frame),
 ::view-transition-old(about-portrait),
-::view-transition-new(about-portrait) {
+::view-transition-old(colophon-frame),
+::view-transition-old(canvas-frame),
+:root[data-morph-dir="out"]::view-transition-new(inspection-frame),
+:root[data-morph-dir="out"]::view-transition-new(design-system-frame),
+:root[data-morph-dir="out"]::view-transition-new(search-frame),
+:root[data-morph-dir="out"]::view-transition-new(about-portrait),
+:root[data-morph-dir="out"]::view-transition-new(colophon-frame),
+:root[data-morph-dir="out"]::view-transition-new(canvas-frame) {
+  width: 100%;
+  height: auto;
+  object-position: top center;
+}
+
+::view-transition-new(inspection-frame),
+::view-transition-new(design-system-frame),
+::view-transition-new(search-frame),
+::view-transition-new(about-portrait),
+::view-transition-new(colophon-frame),
+::view-transition-new(canvas-frame),
+:root[data-morph-dir="out"]::view-transition-old(inspection-frame),
+:root[data-morph-dir="out"]::view-transition-old(design-system-frame),
+:root[data-morph-dir="out"]::view-transition-old(search-frame),
+:root[data-morph-dir="out"]::view-transition-old(about-portrait),
+:root[data-morph-dir="out"]::view-transition-old(colophon-frame),
+:root[data-morph-dir="out"]::view-transition-old(canvas-frame) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top center;
 }
 
+/* --- Fading through, not cross-fading -----------------------------------
+
+   A cross-fade dissolves two pictures into each other, and it only looks like
+   one object when the two pictures are nearly the same — which on the Canvas
+   card they are, and on a card becoming a reader they are not at all. So the
+   contents leave before the new ones arrive, with the container's own ground
+   showing in the sliver between. That is Material's FADE_THROUGH, and it is the
+   half of a container transform this site had never done.
+
+   BOTH OF THESE ARE FASTER THAN THE BOX ON PURPOSE. The contents settle in the
+   first two thirds while the container is still visibly travelling, so the eye
+   follows the box and never watches two pictures dissolve.
+
+   `mix-blend-mode: normal` is stated rather than assumed. The browser's own
+   cross-fade runs `-ua-mix-blend-mode-plus-lighter` on these pseudos so two
+   simultaneous fades sum to one, and declaring `animation` here removes it.
+   Left implicit, the pair would inherit a blend meant for a cross-fade that no
+   longer happens, and the overlap would go hot.
+
+   `forwards` is not optional. A `::view-transition-old` pseudo lives for the
+   whole transition, not for the length of its own animation — without a
+   forwards fill it plays out, then snaps back to fully opaque and sits there
+   until the longest group finishes. That is the reported bug where the modal
+   flashes back for a third of a second before disappearing. */
 ::view-transition-old(inspection-frame),
 ::view-transition-old(design-system-frame),
 ::view-transition-old(search-frame),
-::view-transition-old(about-portrait) {
-  /* `forwards`, for the reason spelled out at `modal-plate` below: an `old`
-     pseudo lives for the whole transition, so without it this plays out and
-     then snaps back to opaque for the rest of the 520. */
-  animation: card-contents-out 180ms ease-out forwards;
+::view-transition-old(about-portrait),
+::view-transition-old(colophon-frame),
+::view-transition-old(canvas-frame) {
+  animation: morph-contents-out calc(var(--morph-dur) * 0.32) ease-out forwards;
+  mix-blend-mode: normal;
 }
 
 ::view-transition-new(inspection-frame),
 ::view-transition-new(design-system-frame),
 ::view-transition-new(search-frame),
-::view-transition-new(about-portrait) {
-  animation: card-contents-in 240ms ease-out 40ms backwards;
+::view-transition-new(about-portrait),
+::view-transition-new(colophon-frame),
+::view-transition-new(canvas-frame) {
+  animation: morph-contents-in calc(var(--morph-dur) * 0.36) ease-out
+    calc(var(--morph-dur) * 0.26) backwards;
+  mix-blend-mode: normal;
 }
 
-@keyframes card-contents-out {
+@keyframes morph-contents-out {
   to {
     opacity: 0;
   }
 }
 
-@keyframes card-contents-in {
+@keyframes morph-contents-in {
   from {
     opacity: 0;
   }
 }
 
-/* --- The canvas card, opening into the canvas -------------------------
+/* --- The fallback plate -------------------------------------------------
 
-   The card and the canvas render the *same board* — one at a sixth scale
-   behind a 322px window, one full-bleed at the camera's scale — and both
-   carry `canvas-frame`. So this is not a card growing into a panel: it is
-   the same arrangement being approached, and the browser interpolates the box
-   from card-rect to viewport-rect while the two snapshots cross-fade over
-   almost identical pixels.
-
-   Longer than the modal's 560ms because it travels further, and the same
-   easing family as everything else on the site.
-
-   `object-fit: cover` for the reason the inspection frame needs it: a 322x246
-   card and a 1470x900 viewport are different shapes, and left alone Chrome
-   stretches each snapshot to fill the animating box, which shears the board
-   mid-flight. Filling proportionally and cropping reads as opening out. */
-::view-transition-group(canvas-frame) {
-  /* Low at rest and lifted while it is the live one, exactly as the four study
-     names above — the canvas card is one of the five that stays named on the
-     homepage behind an open modal, so it is equally capable of painting over
-     someone else's reader. */
-  z-index: 1;
-  animation-duration: 680ms;
-}
-
-:root[data-morph="canvas-frame"]::view-transition-group(canvas-frame) {
-  z-index: 3;
-}
-
-::view-transition-old(canvas-frame),
-::view-transition-new(canvas-frame) {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* The canvas's chrome — controls, hint — arrives after the board has landed
-   rather than travelling with it, so the frame is the only thing moving for
-   most of the transition. */
-::view-transition-new(canvas-frame) {
-  animation-delay: 60ms;
-}
-
-/* The fallback plate, for a modal opened by something that hands over no card
-   name of its own. Every modal on the site now hands one over — see
-   ModalSurface's `morphName` — so in practice this is the path taken by a
-   modal opened from the command palette or a deep link, where there is no card
-   on screen to have come from and a plate arriving on its own is correct. */
+   For a modal opened by something that hands over no surface name of its own —
+   a deep link, or the command palette, where there is no card on screen to have
+   come from and a plate arriving on its own is correct. */
 ::view-transition-group(modal-plate) {
   z-index: 2;
 }
 
-/* Above the plate, whichever plate it turned out to be — 4 rather than 3 now
-   that an active card morph takes 3. */
-::view-transition-group(modal-title),
-::view-transition-group(modal-body),
-::view-transition-group(modal-meta) {
-  z-index: 4;
-}
-
-/* The control cluster is deliberately *not* named, and that is a fix rather
-   than an omission.
-
-   An element with a `view-transition-name` is a backdrop root. Every control
-   in that cluster is `.liquid`, and `.liquid`'s blur is a `backdrop-filter` —
-   which, inside a backdrop root, has nothing behind it to filter. Named, the
-   cluster had no frost at all: over the case study's hero photograph the
-   theme toggle was a flat 20% white film with the driveway showing through it
-   perfectly sharp. That is the reported bug, and it is why the canvas's
-   identical cluster looked right — there the name is on the surface *around*
-   the controls, so the board is inside the root and does get blurred.
-
-   Unnamed, the cluster is captured inside `modal-plate` and arrives with it.
-   One less beat in the choreography, in exchange for the material working. */
-
-::view-transition-group(*) {
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Naming the plate keeps the homepage out of the root cross-fade: root barely
-   changes, and the modal arrives over a page that stays put. */
 ::view-transition-new(modal-plate) {
-  animation: modal-plate-in 420ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation: modal-plate-in calc(var(--morph-dur) * 0.75) var(--morph-ease)
+    backwards;
 }
 
-/* `forwards` on every leaving animation, and it is not optional.
-   A `::view-transition-old` pseudo lives for the whole transition, not for the
-   length of its own animation. Without a forwards fill it plays out, then snaps
-   back to its base state — fully opaque — and sits there until the longest
-   group (the 560ms device morph) finishes. That is exactly the reported bug:
-   the phone flies home, and then the modal flashes back for a third of a second
-   before disappearing. */
 ::view-transition-old(modal-plate) {
-  animation: modal-plate-in 240ms cubic-bezier(0.4, 0, 1, 1) reverse forwards;
-}
-
-::view-transition-new(modal-title),
-::view-transition-new(modal-body),
-::view-transition-new(modal-meta) {
-  animation: modal-content-rise 460ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
-}
-
-/* Later than they were, by about a third of the container's travel. The reader's
-   text used to start rising at 90ms against a plate that simply faded in; it now
-   arrives while a card-sized box is still visibly growing into a screen, and
-   text sliding up through a container that has not landed reads as two things
-   happening at once. These start as the box settles. */
-::view-transition-new(modal-title) {
-  animation-delay: 140ms;
-}
-
-::view-transition-new(modal-body) {
-  animation-delay: 200ms;
-}
-
-::view-transition-new(modal-meta) {
-  animation-delay: 250ms;
-}
-
-/* Leaving is one movement, not a reverse reading. */
-::view-transition-old(modal-title),
-::view-transition-old(modal-body),
-::view-transition-old(modal-meta) {
-  animation: modal-content-fade 200ms ease reverse forwards;
+  animation: modal-plate-in calc(var(--morph-dur) * 0.45)
+    cubic-bezier(0.4, 0, 1, 1) reverse forwards;
 }
 
 @keyframes modal-plate-in {
@@ -1464,6 +1495,52 @@ html[data-canvas] body {
     opacity: 0;
     transform: scale(0.98);
   }
+}
+
+/* --- The reader's own content -------------------------------------------
+
+   Above the plate, whichever plate it turned out to be — 4 rather than 3 now
+   that an active surface morph takes 3. */
+::view-transition-group(modal-title),
+::view-transition-group(modal-body),
+::view-transition-group(modal-meta) {
+  z-index: 4;
+}
+
+/* THE LAST BEAT ENDS EXACTLY WHEN THE CONTAINER DOES, and that is the whole
+   point of expressing these as fractions: 0.58 + 0.42 = 1.00. They used to be
+   250ms + 460ms against a 520ms group, so the reader was still assembling long
+   after the box it lives in had stopped — which is the two-clock reading this
+   block has now been rewritten twice to remove.
+
+   They start past the half way mark for the same reason they used to start at
+   140ms: text sliding up through a container that has not landed reads as two
+   things happening at once. */
+::view-transition-new(modal-title),
+::view-transition-new(modal-body),
+::view-transition-new(modal-meta) {
+  animation: modal-content-rise calc(var(--morph-dur) * 0.42) var(--morph-ease)
+    backwards;
+}
+
+::view-transition-new(modal-title) {
+  animation-delay: calc(var(--morph-dur) * 0.46);
+}
+
+::view-transition-new(modal-body) {
+  animation-delay: calc(var(--morph-dur) * 0.52);
+}
+
+::view-transition-new(modal-meta) {
+  animation-delay: calc(var(--morph-dur) * 0.58);
+}
+
+/* Leaving is one movement, not a reverse reading. */
+::view-transition-old(modal-title),
+::view-transition-old(modal-body),
+::view-transition-old(modal-meta) {
+  animation: modal-content-fade calc(var(--morph-dur) * 0.36) ease reverse
+    forwards;
 }
 
 @keyframes modal-content-rise {
@@ -1479,10 +1556,26 @@ html[data-canvas] body {
   }
 }
 
+/* The control cluster is deliberately *not* named, and that is a fix rather
+   than an omission.
+
+   An element with a `view-transition-name` is a backdrop root. Every control in
+   that cluster is `.liquid`, and `.liquid`'s blur is a `backdrop-filter` —
+   which, inside a backdrop root, has nothing behind it to filter. Named, the
+   cluster had no frost at all: over the case study's hero photograph the theme
+   toggle was a flat 20% white film with the driveway showing through it
+   perfectly sharp. That is the reported bug, and it is why the canvas's
+   identical cluster looked right — there the name is on the surface *around*
+   the controls, so the board is inside the root and does get blurred.
+
+   Unnamed, the cluster is captured inside the plate and arrives with it. */
+
+/* Naming the plate keeps the homepage out of the root cross-fade: root barely
+   changes, and the modal arrives over a page that stays put. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 420ms;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-duration: calc(var(--morph-dur) * 0.8);
+  animation-timing-function: var(--morph-ease);
 }
 
 /* ==========================================================================

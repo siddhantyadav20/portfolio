@@ -14,6 +14,9 @@ type Props = {
   /** Playing the exit animation — only ever true on the no-morph path. */
   closing?: boolean;
   onClose: () => void;
+  /** The footer link's name, when that is the door that was used. ⌘K opens
+   *  this with nothing on screen to morph from and passes nothing. */
+  morphName?: string;
 };
 
 /* ===========================================================================
@@ -42,7 +45,12 @@ const DRAWINGS = {
   receipt: ReceiptScene,
 } as const;
 
-export default function MakingModal({ open, closing = false, onClose }: Props) {
+export default function MakingModal({
+  open,
+  closing = false,
+  onClose,
+  morphName,
+}: Props) {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   /**
@@ -99,10 +107,11 @@ export default function MakingModal({ open, closing = false, onClose }: Props) {
       onClose={onClose}
       label={making.title}
       actions={<ThemeToggle />}
+      morphName={morphName}
     >
       <div ref={scrollerRef} className={styles.reader}>
         <header className={styles.head}>
-          <p className={styles.eyebrow} data-stage="title" style={MODAL_VT.meta}>
+          <p className={styles.eyebrow} data-stage="title">
             {making.eyebrow}
           </p>
           <h1 className={styles.title} data-stage="title" style={MODAL_VT.title}>

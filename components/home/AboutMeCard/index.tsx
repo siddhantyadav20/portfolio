@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
-import { EXIT_MS } from "@/components/primitives/ModalSurface";
+import { exitMs } from "@/components/primitives/ModalSurface";
 import AboutModal, { PORTRAIT_MORPH } from "@/components/home/AboutModal";
 import { about } from "@/content/site";
 import { canMorph, morph, warm } from "@/lib/viewTransition";
@@ -176,6 +176,9 @@ function offsetIn(el: HTMLElement, root: HTMLElement): Vec {
  *   would lift and the icons orbiting it would stay behind.
  */
 export default function AboutMeCard() {
+  /* The card, for `morph()` to measure — the size of the journey sets the
+     length of it. See lib/viewTransition. */
+  const cardRef = useRef<HTMLButtonElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const photoRef = useRef<HTMLSpanElement>(null);
   const pillRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -446,7 +449,7 @@ export default function AboutMeCard() {
       ...MODAL_ASSETS.map(warm),
       new Promise((r) => window.setTimeout(r, GATHER_LEAD)),
     ]);
-    morph(() => setOpen(true), undefined, PORTRAIT_MORPH);
+    morph(() => setOpen(true), { name: PORTRAIT_MORPH, from: cardRef.current, dir: "in" });
   }, []);
 
   const close = useCallback(() => {
@@ -455,7 +458,7 @@ export default function AboutMeCard() {
     const release = () => orbitRef.current?.lock(false);
 
     if (canMorph()) {
-      morph(() => setOpen(false), release, PORTRAIT_MORPH);
+      morph(() => setOpen(false), { name: PORTRAIT_MORPH, dir: "out", settled: release });
       return;
     }
     // No morph to play, so the modal has to animate itself out — otherwise
@@ -465,13 +468,14 @@ export default function AboutMeCard() {
       setOpen(false);
       setClosing(false);
       release();
-    }, EXIT_MS);
+    }, exitMs());
   }, []);
 
   return (
     <>
       <div ref={wrapRef} className={styles.wrap} data-prox-card>
         <CardShell
+          ref={cardRef}
           as="button"
           type="button"
           radius={28}

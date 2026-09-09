@@ -68,6 +68,9 @@ type Props = {
 /** What the panel is currently showing. */
 type View = { kind: "search" } | { kind: "answer"; answer: Answer };
 
+/** Must match the longest `[data-exit]` transition in CommandPalette.module.css. */
+const PALETTE_EXIT_MS = 200;
+
 export default function CommandPalette({
   open,
   onClose,
@@ -76,6 +79,23 @@ export default function CommandPalette({
   onStartTour,
 }: Props) {
   const router = useRouter();
+  /**
+   * Staying mounted long enough to leave.
+   *
+   * `open` going false used to return null on the same frame, so the palette
+   * was the one surface on the site with no exit animation — it simply stopped
+   * existing. It cannot use `ModalSurface`'s `closing` prop because the host
+   * owns `open`, and the tour needs the host to be able to close this without
+   * waiting on an animation.
+   *
+   * `leaving` is derived rather than stored, and `mounted` is adjusted during
+   * render rather than in an effect — the same thing in one less state and one
+   * less cascading render. Only the unmount is a timer, because only the
+   * unmount has to outlast the transition.
+   */
+  const [mounted, setMounted] = useState(open);
+  const leaving = mounted && !open;
+  if (open && !mounted) setMounted(true);
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -225,6 +245,12 @@ export default function CommandPalette({
   });
 
   useEffect(() => {
+    if (!leaving) return;
+    const t = window.setTimeout(() => setMounted(false), PALETTE_EXIT_MS);
+    return () => window.clearTimeout(t);
+  }, [leaving]);
+
+  useEffect(() => {
     if (!open) return;
     document.documentElement.setAttribute("data-modal-open", "");
     const page = document.getElementById("main");
@@ -311,7 +337,7 @@ export default function CommandPalette({
     }
   }
 
-  if (!open || typeof document === "undefined") return null;
+  if (!mounted || typeof document === "undefined") return null;
 
   const activeEntry = ordered[active]?.entry;
   const activeId = activeEntry ? rowId(activeEntry) : undefined;
@@ -320,6 +346,7 @@ export default function CommandPalette({
   return createPortal(
     <div
       className={styles.backdrop}
+      {...(leaving ? { "data-exit": "" } : {})}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -327,6 +354,7 @@ export default function CommandPalette({
       <div
         ref={panelRef}
         className={`${styles.panel} squircle`}
+        {...(leaving ? { "data-exit": "" } : {})}
         role="dialog"
         aria-modal="true"
         aria-label="Search this site"
