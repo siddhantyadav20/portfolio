@@ -19,7 +19,11 @@
    element begins. Written as the remainder, the way `AboutModal`'s `.page`
    writes its own, so it is obvious what to change if that row ever moves. */
 .reader {
-  padding: 40px 0 96px;
+  /* No bottom padding: the reader now ends in the site's footer, and that
+     frame carries the 64 the page ends on — see `.footerFrame`. The 96 that
+     used to be here was this reader's own way of not stopping dead against the
+     viewport edge, and it is what the footer is for. */
+  padding: 40px 0 0;
 }
 
 /* --- The head ------------------------------------------------------------- */
@@ -66,6 +70,29 @@
   max-width: 720px;
   margin: 0 auto;
   padding: 0 32px 112px;
+}
+
+/* The trailing 112 is the rhythm *between* scenes, so the last one does not
+   get it: what follows that one is the footer, and the drop to a footer is
+   120 everywhere on this site. Left in place it would have read as 232.
+
+   `:last-of-type` rather than a modifier class, and it beats the narrow
+   query's own `.scene` at (0,2,0) wherever the two land in the cascade. */
+.scene:last-of-type {
+  padding-bottom: 0;
+}
+
+/* The footer's frame, and it is the homepage's — the same four numbers as
+   `AboutModal`'s `.footerFrame` and `StudyReader`'s `.footer`: 120 down from
+   where the reading ends, 64 either side (the page's 32 of padding plus the 32
+   the footer is inset inside the band, Figma 244:9343), and 64 under it.
+
+   No max-width, for the reason the other two carry: the homepage's footer
+   spans its band at every width, and one capped at the reader's 720 would be
+   a different footer on this page than on the four it shares. */
+.footerFrame {
+  width: 100%;
+  padding: 120px 64px 64px;
 }
 
 .sceneEyebrow {
@@ -607,6 +634,13 @@
 
   .scene {
     padding-bottom: 80px;
+  }
+
+  /* The footer's frame at the phone's scale, and the homepage's again: 24
+     either side, and the same 120 above / 64 below every other surface takes.
+     The home indicator is added to the 64 rather than folded into it. */
+  .footerFrame {
+    padding: 120px 24px calc(64px + env(safe-area-inset-bottom, 0px));
   }
 
   .stage {

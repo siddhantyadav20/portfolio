@@ -113,15 +113,23 @@
   }
 
   .band {
-    /* 32 top and sides, 64 bottom — the page's old padding, now scaling.
+    /* 32 top and sides, and a flat 64 at the bottom.
 
-       The bottom was 96, which was the blur bar's clearance: the footer's last
-       line sat clear of it. It is 64 by request, and the consequence is worth
-       writing down rather than discovering — at 64 the footer is inside the
-       ramp's reach (now 96, see `--blur-bar-h`), so its last line picks up a
-       pixel or two of blur once the page is scrolled to the very bottom. That
-       is the softening the ramp exists for, applied to the thing nearest the
-       edge, and it is a trade rather than an oversight.
+       THE BOTTOM IS THE ONE INSET ON THIS PAGE THAT DOES NOT SCALE, and that
+       is deliberate — see the note over `.footerWrap` below. It is the space
+       under the footer, and the footer is a fixed-size object: 44px mark, 13px
+       credit, 16px gaps, none of them multiplied by `--u` on any surface. The
+       blur bar it clears is fixed too (`--blur-bar-h`, 96), so `64 * --u` left
+       the footer 64 clear of the ramp at 1440, 85 at 1920 and 31 at 700 — a
+       different ending on every screen, for a component that is the same size
+       on all of them.
+
+       The bottom was 96 before it was 64, which was the blur bar's full
+       clearance: the footer's last line sat clear of it. At 64 the footer is
+       inside the ramp's reach, so its last line picks up a pixel or two of blur
+       once the page is scrolled to the very bottom. That is the softening the
+       ramp exists for, applied to the thing nearest the edge, and it is a trade
+       rather than an oversight.
 
        The sides take the notch into account, which they did not have to when
        this block started at 1001: a phone in landscape is 844 to 932 wide and
@@ -130,7 +138,7 @@
        leave this out. */
     margin: calc(32 * var(--u))
       max(calc(32 * var(--u)), env(safe-area-inset-right, 0px))
-      calc(64 * var(--u))
+      64px
       max(calc(32 * var(--u)), env(safe-area-inset-left, 0px));
     --gap: calc(32 * var(--u));
     --col-1: calc(386 * var(--u));
@@ -419,14 +427,24 @@
 
      The columns all finish on one line now (see `.search` and `.personality`),
      so "where the content ends" is a single edge for the first time and a drop
-     measured off it means something. The grid's own row gap pays the first 32
-     of it and this is the remainder.
+     measured off it means something. The grid's own row gap pays the first
+     `--gap` of it and this is the remainder.
 
-     `120 * --u`, not a literal `120px`. The rest of the sum (`--gap`) scales,
-     so a fixed number would make the drop shrink as the page grew — correct at
-     1440 and 40px short at 1920. Below 700 `--u` is the phone frame's and this
-     resolves against that instead. */
-  margin-top: calc(120 * var(--u) - var(--gap));
+     A LITERAL 120, WHERE EVERY OTHER LENGTH ON THIS PAGE IS `n * --u`, AND THE
+     EXCEPTION IS THE POINT. `--u` scales the bento because the bento is a 1440
+     frame drawn at whatever width there is. The footer is not part of that
+     frame: it is the same 44px mark, 13px credit and 16px gaps on this page, in
+     both readers and on all three case studies, at every width — `SiteFooter`
+     does not multiply a single value by `--u`. Scaling the space around a
+     fixed-size object gave it a different frame on every screen, and put the
+     homepage out of step with the four surfaces that draw the same footer: at
+     699 this was a 161px drop against a study's 120, and at 1920 a 160 against
+     the same 120.
+
+     So the drop is 120 and the space under it is 64 (see `.band`) at every
+     width, on every page. Only the half of the sum that belongs to the grid
+     still scales, which is why `--gap` is subtracted rather than 32. */
+  margin-top: calc(120px - var(--gap));
   margin-inline: var(--gap);
 }
 
@@ -501,9 +519,20 @@
     /* Figma 843:2477 is `px-[24px] py-[120px]`. The 120 above is what clears
        the pinned theme toggle: 32 down, 64 of control, 24 under it. */
     margin-top: calc(120 * var(--u));
-    /* The frame's other 120, plus the home indicator under it. The blur bar
-       parks over the last of the page. */
-    margin-bottom: calc(120 * var(--u) + env(safe-area-inset-bottom, 0px));
+    /* 64 under the footer, plus the home indicator below that.
+
+       The frame's own bottom is 64 now, not the 120 it was drawn with: the
+       redrawn footer (843:2478) ends 64 clear of the frame's edge, which is
+       the desktop's number and makes the page end the same way at every width.
+       The blur bar still parks over the last of it — see `--blur-bar-h` — so
+       the footer's last line picks up a little of the ramp at the very bottom
+       of the scroll, the same trade the wide branch takes.
+
+       Flat, not `64 * --u`, for the same reason the wide branch's is: this is
+       the space under a fixed-size footer. It is the same number either way at
+       390, where `--u` is 1px, and holds at 64 up to the breakpoint instead of
+       drifting to 86 as `--u` climbs to its 1.345 cap. */
+    margin-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
 
     /* 64 between sections, which is the frame's own rhythm and twice what the
        holding pattern used. It is the single change that stops the page
@@ -528,6 +557,22 @@
     margin: 0;
     justify-self: auto;
     align-self: auto;
+  }
+
+  /* 120 BELOW WHERE THE CONTENT ENDS, the same as the wide branch — restated
+     because the reset above zeroes every margin on this list.
+
+     The sum is the wide branch's, with the phone frame's numbers in it: the
+     band's own row gap pays 64 of the drop and this pays the rest, which at 390
+     is exactly the 56 of padding Figma draws inside the footer itself
+     (843:2478 is `pt-[56px]`, sitting 64 under the last card).
+
+     Only the row gap scales — it is the frame's section rhythm — so what is
+     left over shrinks as `--u` climbs and the total stays at the 120 every
+     other surface uses. See the wide branch's note for why the footer's frame
+     is the one thing here that does not scale. */
+  .footerWrap {
+    margin-top: calc(120px - 64 * var(--u));
   }
 
   /* The Introduction is indented past the Inspection card's overhang on the

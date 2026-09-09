@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import ThemeToggle from "@/components/home/ThemeToggle";
 import ModalSurface, { MODAL_VT } from "@/components/primitives/ModalSurface";
+import SiteFooter from "@/components/home/SiteFooter";
 import { making } from "@/content/making";
 import { externalLinkProps } from "@/lib/externalLink";
 import { AttemptsScene, ReceiptScene, TerminalScene, TokensScene } from "./Scenes";
@@ -151,6 +152,21 @@ export default function MakingModal({ open, closing = false, onClose }: Props) {
             </section>
           );
         })}
+
+        {/* The same footer the homepage, the studies and the About reader end
+            in — this reader was the one surface on the site that simply
+            stopped after its last line, which made it the only place a visitor
+            could reach the bottom of and find no way onward.
+
+            `colophon` is not passed, so the "How I made this portfolio?" line
+            is the inert placeholder rather than a live button, exactly as it
+            is in the About reader. Here that is not a compromise but the
+            honest state: it points at the page you are already reading, and a
+            second full-screen shell over this one would leave two of them
+            claiming Escape. See `ColophonLink`. */}
+        <div className={styles.footerFrame}>
+          <SiteFooter />
+        </div>
       </div>
     </ModalSurface>
   );

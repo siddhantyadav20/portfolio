@@ -37,12 +37,14 @@
 /* The footer's frame, and it is the homepage's frame — Figma 244:9343 and the
    About file's own 887:7643 draw the same 1312-wide footer in a 1440 frame,
    which is 64 either side once the page's 32 of padding and the 32 the footer
-   is inset inside the band are added up. 96 under it is the homepage's
-   clearance for the blur bar. `StudyReader`'s `.footer` is the same three
-   numbers, so the three surfaces that end in this footer end the same way.
-
-   96 above it is this reader's own gap from the last thing read, and stays a
-   number of its own: what sits above a footer is the page's business.
+   is inset inside the band are added up. 120 above and 64 under are the
+   homepage's too: the drop from where the content ends, and the page's own
+   bottom padding. `StudyReader`'s `.footer` is the same four numbers, so the
+   three surfaces that end in this footer end the same way — which is the whole
+   point of writing them out here rather than letting each reader pick a gap of
+   its own. The 96 that used to be above and below was this reader's own gap
+   and the blur bar's old clearance, and it made the footer sit higher on the
+   About page than on the homepage while clearing the ramp by more.
 
    No column and no max-width: the homepage's footer spans its band at every
    width, and one capped at 1440 would have pulled 33px narrower than it on the
@@ -51,7 +53,7 @@
    1440 and are within a few pixels either side of it. */
 .footerFrame {
   width: 100%;
-  padding: 96px 64px 96px;
+  padding: 120px 64px 64px;
 }
 
 /* ==========================================================================
@@ -816,10 +818,11 @@
   }
 
   /* The footer's frame at the phone's scale, and the homepage's again: 24
-     either side, and the 120 under it that clears the blur bar and the home
-     indicator. */
+     either side, and the same 120 above / 64 below the wide branch takes —
+     Figma's redrawn phone footer, 843:2478. The home indicator is added to the
+     64 rather than folded into it. */
   .footerFrame {
-    padding: 64px 24px calc(120px + env(safe-area-inset-bottom, 0px));
+    padding: 120px 24px calc(64px + env(safe-area-inset-bottom, 0px));
   }
 
   .intro {

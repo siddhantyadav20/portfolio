@@ -10,9 +10,13 @@
    is also what reserves Figma's 120px between the top of the frame and the
    first line of the study: 32 above, 64 of control, 24 below. */
 
+/* No `padding-bottom: env(safe-area-inset-bottom)` here, and its absence is
+   deliberate: `StudyReader`'s own `.footer` already adds the home indicator to
+   its 64, so a second one on the page box counted the inset twice and left the
+   footer sitting further off the bottom on a notched phone than the 64 the
+   design asks for. The inset belongs with the number it is protecting. */
 .page {
   min-height: 100svh;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
   /* Not sticky.

@@ -65,23 +65,28 @@
 }
 
 /* The footer, at the page's own padding rather than the reader's — it is the
-   width of the page, not of the column. 160 above it is the reader's own block
-   rhythm; the file draws 154, which is a content-driven height rather than a
-   chosen number.
+   width of the page, not of the column.
 
-   THE OTHER THREE NUMBERS ARE THE HOMEPAGE'S, and are the same three in the
-   About reader — every footer on the site now sits in the same frame. 64 either
-   side is the homepage's 32 of page padding plus the 32 its footer is inset
-   inside the band (Figma 244:9343 draws 1312 in a 1440 frame, and the About
-   frame draws the same); 96 below is the clearance the blur bar wants at the
-   bottom of a page. Fixed pixels rather than the homepage's `* --u`, because
-   this surface is a reader at any width rather than a frame being drawn at a
-   fraction of itself — the two agree at 1440, which is where the file is. The
-   1440 cap that used to be here is gone with them: the homepage's footer spans
-   its band at every width, and a capped one pulled visibly narrower than it on
-   the first screen wider than the frame. */
+   ALL FOUR NUMBERS ARE THE HOMEPAGE'S, and are the same four in the About
+   reader — every footer on the site sits in the same frame and ends the page
+   the same way. 120 above is the drop from where the content ends, which on
+   this surface is the last line of the ending block (`.bandInner` above);
+   the reader's own 160 of block rhythm used to win here and made the footer
+   sit lower on a study than on the homepage. 64 either side is the homepage's
+   32 of page padding plus the 32 its footer is inset inside the band (Figma
+   244:9343 draws 1312 in a 1440 frame, and the About frame draws the same).
+   64 below is the homepage's, down from the 96 the blur bar used to be given —
+   the same trade written out in `page.module.css`: at 64 the last line is
+   inside the ramp's reach and picks up a pixel or two of blur at the very
+   bottom of the scroll, which is the softening the ramp is for.
+
+   Fixed pixels rather than the homepage's `* --u`, because this surface is a
+   reader at any width rather than a frame being drawn at a fraction of itself
+   — the two agree at 1440, which is where the file is. No 1440 cap: the
+   homepage's footer spans its band at every width, and a capped one pulled
+   visibly narrower than it on the first screen wider than the frame. */
 .footer {
-  padding: 160px 64px 96px;
+  padding: 120px 64px 64px;
 }
 
 /* Figma's Content frame: 80 between the intro, the rule, and each section. */
@@ -345,9 +350,15 @@
   }
 
   /* The frame at the phone's scale, and the homepage's again: 24 either side,
-     and the 120 under it that clears the blur bar and the home indicator. */
+     and the same 120 above / 64 below the wide branch takes. Figma's redrawn
+     phone footer (843:2478) is 64 under the last card with 56 of its own
+     padding above the mark, and ends 64 clear of the frame — so the two ends
+     of the page are now one pair of numbers at every width, not two.
+
+     The home indicator is added to the 64 rather than folded into it: it is
+     the device intruding on the page, not part of the design's spacing. */
   .footer {
-    padding: 96px 24px calc(120px + env(safe-area-inset-bottom, 0px));
+    padding: 120px 24px calc(64px + env(safe-area-inset-bottom, 0px));
   }
 
   .content,
