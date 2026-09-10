@@ -114,7 +114,9 @@
 
   --surface: rgba(255, 255, 255, 0.7); /* most cards */
   --surface-solid: #ffffff; /* Canvas, Music Player */
-  --surface-glass: rgba(255, 255, 255, 0.4); /* theme toggle, footer, modal */
+  /* Flat frosted cards and study blocks. Not for controls — every glass
+     button wears `.liquid` (see "Liquid glass" below). */
+  --surface-glass: rgba(255, 255, 255, 0.4);
   --glass-blur: 8px; /* Figma GLASS effect, radius 8 */
 
   /* A control sitting *on* a card — the waitlist pill, the search surface, a
@@ -1035,10 +1037,19 @@ html[data-canvas] body {
   --liquid-ring-mid: 0.1;
   --liquid-ring-bottom: 0.6;
 
-  --liquid-body-hi: 0.3;
+  /* Hover lights the plate the way dark's does, so both themes answer the
+     pointer with the same gesture. Dark lifts the spot under the pointer from
+     ~25 to ~62; the old values here took a 243 plate to ~247, which on screen
+     is no change at all. White over a 240 page has ~15 levels of headroom and
+     a specular alone can't spend them, so the plate itself thickens toward
+     white (243 -> ~250) and the specular takes the pointer side the rest of
+     the way. 0.7, not higher: past ~0.85 the blur stops showing through and
+     it stops being glass. The top shade still deepens so the lit face has
+     something to read against. */
+  --liquid-body-hi: 0.7;
   --liquid-shade-hi: 0.13;
-  --liquid-gloss-hi: 0.8;
-  --liquid-spec-hi: 0.28;
+  --liquid-gloss-hi: 1;
+  --liquid-spec-hi: 1;
 
   /* Three shadows, because the reference has three jobs for them: a hard
      contact line right under the edge (it measures 192 against a 240 page —

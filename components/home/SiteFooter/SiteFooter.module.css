@@ -16,13 +16,26 @@
   height: 44px;
   padding: 8px;
   border-radius: 60px;
-  background-color: var(--surface-glass);
-  backdrop-filter: blur(var(--glass-blur));
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.02);
 
   /* The glyph inside is `.inkIcon`, so the plate holds the colour and the
      stencil takes it from here. Ink is the homepage's — Figma 244:9343. */
   color: var(--ink);
+}
+
+/* The plate is `.liquid`, like every other glass button on the site; it used
+   to be the flat Figma GLASS token and was the one control left behind when
+   the rest moved over. So no background, blur or shadow here — a box-shadow
+   in this module would tie with `.liquid`'s and win or lose on stylesheet
+   order. Hover is the same four numbers as CtaPill and GlassAction. A
+   placeholder goes nowhere, so it doesn't answer the pointer. */
+.linkedin:not([data-placeholder]):hover {
+  --liquid-body: var(--liquid-body-hi);
+  --liquid-shade: var(--liquid-shade-hi);
+  --liquid-gloss: var(--liquid-gloss-hi);
+  --liquid-spec: var(--liquid-spec-hi);
+
+  transform: scale(1.015);
+  box-shadow: var(--liquid-cast-hi);
 }
 
 .mark {
