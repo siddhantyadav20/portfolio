@@ -112,12 +112,23 @@
      `CHROME` in lib/theme.ts; that comment carries the arithmetic. */
   --page-edge: #ededed;
 
-  --surface: rgba(255, 255, 255, 0.7); /* most cards */
-  --surface-solid: #ffffff; /* Canvas, Music Player */
+  --surface: rgba(255, 255, 255, 0.7); /* the case-study cards */
+  --surface-solid: #ffffff; /* opaque paper: the canvas's frames, the player's disc, study plates */
   /* Flat frosted cards and study blocks. Not for controls — every glass
      button wears `.liquid` (see "Liquid glass" below). */
   --surface-glass: rgba(255, 255, 255, 0.4);
   --glass-blur: 8px; /* Figma GLASS effect, radius 8 */
+  /* Every card that is NOT a case study — About, DES→ENG, the waitlist,
+     Canvas, Fantasy, LinkedIn. The same 40% white as glass, without the blur:
+     the homepage already pays for four fixed backdrop-blur layers, and a fill
+     this light does not need one to read. The case studies stay on `--surface`
+     so the work sits a step forward of the personality around it.
+
+     The same split holds in dark: the case studies are solid #222 and these
+     take the glass value, 5% white — about #1d1d1d over the #111 page, a step
+     back from the work and see-through to the wash, exactly as 40% is against
+     70% in light. In both themes, soft is glass without the blur. */
+  --surface-soft: rgba(255, 255, 255, 0.4);
 
   /* A control sitting *on* a card — the waitlist pill, the search surface, a
      modal's panel. In light it is the white the card is already made of; in
@@ -1743,6 +1754,7 @@ html[data-theme="dark"] {
   --surface: #222222;
   --surface-solid: #222222;
   --surface-glass: rgba(255, 255, 255, 0.05);
+  --surface-soft: rgba(255, 255, 255, 0.05);
 
   /* One step up from the card, for controls drawn on top of one. */
   --surface-raised: #2c2c2e;

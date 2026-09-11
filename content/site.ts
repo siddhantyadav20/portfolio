@@ -683,60 +683,54 @@ export const linkedin = {
 } as const;
 
 /**
- * The Fantasy card — Figma 952:8828.
+ * The Fantasy card — Figma "Football Card", 1043:470 and 1011:9655.
  *
- * THIS IS THE FALLBACK, NOT THE CARD. `lib/fantasy.ts` reads the fixture list
- * and Siddhant's gameweek history off the public FPL API and only lands here
- * when it cannot — the API is down, the build is offline, or `FPL_ENTRY_ID` is
- * unset. So these are the values the card shipped with, kept as the thing it
- * degrades to rather than as the thing it shows.
+ * `entry` IS THE CARD; `fixture` IS THE FALLBACK. `lib/fantasy.ts` reads the
+ * fixture list and Siddhant's season off the public FPL API and only lands on
+ * the fixture below when it cannot — the API is down or the render is offline.
  *
  * Clubs are named by the FPL API's own `short_name`, which is what makes this
  * object the same shape as a live one: `lib/clubs.ts` turns that key into both
  * the crest path and the pair of club colours, so a fallback card and a live
- * card cannot drift apart. The two hand-written hexes that used to sit here
- * are gone for exactly that reason.
+ * card cannot drift apart.
  *
- * WHAT THE CARD DERIVES RATHER THAN STORES: the first entry in `points` is the
- * current gameweek — the one that gets the "GW" prefix and the full ink. A
- * live feed only has to keep the list newest-first.
+ * There are no fallback numbers any more. The ones that used to sit here
+ * (73 / 86 / 64) are what production showed for a week, because the manager id
+ * only ever existed in `.env.local` — invented figures that look real are how
+ * a broken card goes unnoticed. The written-down card draws dashes instead.
  */
 export const fantasy = {
+  /**
+   * Siddhant's FPL manager number — the one in the URL of his points page.
+   * Public, not a credential, and here rather than only in the environment so
+   * the card cannot silently lose it on a host nobody set `FPL_ENTRY_ID` on.
+   * The environment variable still wins when it is set.
+   */
+  entry: "6069751",
+
   fixture: {
     home: { short: "MUN", name: "Man Utd" },
     away: { short: "MCI", name: "Man City" },
     /** The fixture as drawn. Null would render a card with no kickoff line. */
     kickoff: "2026-09-13T15:30:00Z",
   },
-
-  /** Oldest first — the order the season chart draws them in. */
-  points: [
-    { gw: 1, score: 73 },
-    { gw: 2, score: 86 },
-    { gw: 3, score: 64 },
-  ],
 } as const;
 
-/** The card's fixed copy — the two eyebrows, and what each fixture state says
- *  in place of "Watching next". Drawn in caps where the design draws caps; the
- *  strings stay sentence case so the copy file reads as copy. */
+/** The card's fixed copy — the two eyebrows, what each fixture state says in
+ *  place of "Watching next", and the stat labels. The eyebrows are drawn in
+ *  caps and cased by the stylesheet, so the strings stay sentences; the stat
+ *  labels are written as Figma sets them. */
 export const fantasyCopy = {
   upcoming: "Watching next",
-  live: "Live",
+  live: "Watching now",
+  /** Only at the end of a season — between gameweeks the card looks ahead. */
   finished: "Full time",
-  points: "Fantasy points",
-  /** Suffix on the overall rank, e.g. "1.2m OR". */
-  rank: "OR",
-  /**
-   * Why this match and not one of the other nine.
-   *
-   * `{n}` is how many of his own players are on the pitch — the card fills it
-   * in and drops the line entirely when the answer is none, rather than
-   * printing a zero. Singular exists because "1 of your players" would be the
-   * kind of detail that makes a real number look generated.
-   */
-  players: "{n} of your players",
-  playersOne: "1 of your players",
+  /** The countdown's last word, once kickoff has passed. */
+  kickoff: "Kick-off",
+  stats: "FPL stats",
+  total: "Total Points",
+  rank: "Overall Rank",
+  topScorer: "Most points scored",
 } as const;
 
 export const footer = {

@@ -1,98 +1,71 @@
-/* Figma "Fantasy", node 952:8828 — 254x315, pad 24, space-between.
+/* Figma "Football Card", nodes 1043:470 (upcoming) and 1011:9655 (live) —
+   254x315, pad 20, two blocks 32 apart.
 
-   Same 254 the music player is drawn at, and 35 taller than the LinkedIn card
-   it replaces in the personality row. That 35 is not incidental: it is exactly
-   what column 2 was short of column 1, and closing that gap is what the height
-   is for. See the note over `.personality` in app/page.module.css — the card
-   cannot grow without taking the page's bottom line with it.
-
-   Which is why phase 3's two new facts went sideways rather than down. Both
-   eyebrow rows use about half their width in the frame, so each became a
-   two-column row: the marker keeps its place and a kickoff time and an overall
-   rank take the space that was already empty. Same silhouette, same height,
-   two more things known.
+   Same 254 the music player is drawn at, and 315 tall for the reason it has
+   always been: that is exactly what column 2 was short of column 1. See the
+   note over `.personality` in app/page.module.css — the card cannot grow
+   without taking the page's bottom line with it. The redesign keeps the
+   silhouette; only the inside changed.
 
    RADIUS IS NOT FIGMA'S HERE, for the same reason it is not on either of its
-   neighbours: Figma draws 24, and the corner guide sets 32 on the wide grid
-   and 24 on the phone. The `radius={32}` in index.tsx is the first, the block
-   at the foot of this file is the second. `corner-shape: squircle` comes from
-   CardShell either way.
+   neighbours: Figma draws 24, and the corner guide sets the wide-grid radius
+   in index.tsx. `corner-shape: squircle` comes from CardShell either way.
 
    Every length is a multiple of `--u`, one pixel of the 1440 frame — so the
-   card is the drawing at whatever scale the page is being read at. Nothing
-   here is a bare px.
+   card is the drawing at whatever scale the page is being read at.
    ========================================================================== */
 
 .card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
+  align-items: stretch;
+  gap: calc(32 * var(--u));
   width: calc(254 * var(--u));
   height: calc(315 * var(--u));
-  padding: calc(24 * var(--u));
+  padding: calc(20 * var(--u));
   /* Shares the middle column's flexibility with the music player. */
   flex: 0 1 auto;
   min-width: 0;
 
-  /* Figma's fill, stated rather than taken from CardShell's `glass` surface —
-     that one adds `backdrop-filter`, and this card does not need a blur layer
-     to be this colour. `surface="none"` in index.tsx is what leaves this rule
-     the only thing painting the box. */
-  background-color: var(--surface-glass);
+  /* The fill is CardShell's `soft` surface — see index.tsx. */
 
-  /* EVERY NUMBER ON THIS CARD IS LIVE, so every number is tabular.
-
-     Proportional figures give a 1 about half the advance of an 8, which is
-     invisible in prose and very visible here: the card re-renders every five
-     minutes and a score going 64 -> 71 would shift the two columns beside it,
-     a rank going 913k -> 1.2m would jump the whole right-hand slot, and a live
-     score would twitch on every goal. Tabular figures are the reason those
-     movements are just the digits changing. */
-  font-variant-numeric: tabular-nums;
+  /* NOT `tabular-nums`, though every number here is live. Outfit's tabular
+     figures are a separate, squarer cut — at 11px "1d 1h" read as a different
+     typeface from the "WATCHING NEXT" beside it. Nothing on this card changes
+     while it is being looked at except the countdown, and that ticks once a
+     minute, so proportional figures cost no visible jitter. */
 }
 
-/* Dark is NOT `--surface-glass`. That token is rgba(255,255,255,0.05) here,
-   which over the #111 page lands at about #1a1a1a — a card that has quietly
-   stopped being a card, sitting next to a music player that is solid #222.
+/* --- The two blocks ------------------------------------------------------ */
 
-   globals.css states the rule this follows: in the dark theme the cards are
-   #222222, and only the surfaces where transparency is the material — the
-   liquid-glass controls, the modal, the footer — stay translucent. This is a
-   card, so it takes the card colour. */
-:global(html[data-theme="dark"]) .card {
-  background-color: var(--surface);
-}
-
-/* --- The two blocks ------------------------------------------------------
-
-   24 + the fixture, then air, then the points and 24. The air is what
-   `space-between` on the card resolves to at 315 tall; it is not declared,
-   which is why the card's height is the only number that has to be right for
-   the spacing to be. */
-
-.top,
-.bottom {
+.watching {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: calc(12 * var(--u));
   width: 100%;
 }
 
-.top {
-  gap: calc(16 * var(--u));
+/* Whatever height the fixture leaves, with the stats at its top and the top
+   scorer at its foot — Figma's `space-between`, so the card's height is the
+   only number that has to be right for the spacing to be. */
+.stats {
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-height: 0;
+  width: 100%;
 }
 
-.bottom {
-  gap: calc(12 * var(--u));
+.statsHead {
+  display: flex;
+  flex-direction: column;
+  gap: calc(8 * var(--u));
 }
 
-/* --- The eyebrow rows ------------------------------------------------------
+/* --- The eyebrows -------------------------------------------------------- */
 
-   The frame draws a marker and stops: "Watching next" is 89 of the 206 there
-   is, "FANTASY POINTS" is 108. Live data needed two more facts on a card that
-   is not allowed to get taller, and this is where they went — pushed to the
-   far end of a row that already existed. */
 .eyebrow {
   display: flex;
   align-items: center;
@@ -101,54 +74,45 @@
   width: 100%;
 }
 
+/* "WATCHING NOW", "FPL STATS". Cased here rather than in the copy file so the
+   strings stay sentences, which is what a copy file should hold. */
 .marker {
   display: inline-flex;
   align-items: center;
   gap: calc(6 * var(--u));
   font-size: calc(12 * var(--u));
-  font-weight: 500;
-  /* 1.6 throughout this card, not the site's usual 1.5 — Figma sets every run
-     in it at 160%, and it is what makes 10px * 1.6 land on the 16px row the
-     frame measures. */
+  font-weight: 600;
+  /* 1.6 throughout this card — Figma sets every run in it at 160%. */
   line-height: var(--lh-wide);
+  text-transform: uppercase;
   /* The dot reads `currentColor`, so a tone is one declaration. */
-  color: var(--green);
+  color: var(--accent);
 }
 
-/* Kickoff, the live minute, the overall rank. Deliberately quieter than the
-   marker it shares a row with: these answer a question the reader might have,
-   they do not announce anything. */
+/* The countdown, the live minute, the kickoff. Quieter than the marker it
+   shares a row with: these answer a question, they do not announce anything. */
 .aside {
-  font-size: calc(12 * var(--u));
+  font-size: calc(11 * var(--u));
   font-weight: 400;
   line-height: var(--lh-wide);
   color: var(--ink-50);
   white-space: nowrap;
 }
 
-/* "OR" is a unit, not a number, and sits back a step so the rank reads first. */
-.rankUnit {
-  color: var(--ink-40);
-}
+/* --- The states ------------------------------------------------------------
 
-/* "FANTASY POINTS" in the frame. Cased here rather than in the copy file so
-   the string stays a sentence, which is what a copy file should hold. */
-.caps {
-  text-transform: uppercase;
-}
+   The homepage's orange while there is a match ahead or on — Figma draws both
+   frames in green, and the card takes the page's own accent instead, by
+   request, so it reads as part of the homepage rather than as FPL's widget.
+   The pulse is what tells "next" from "now". Muted ink once the season is
+   done.
 
-/* --- The three states ------------------------------------------------------
+   The rank arrow is deliberately NOT this colour: green-up / red-down is a
+   meaning, not a brand, and an orange "up" next to a red "down" would read as
+   two shades of bad. */
 
-   Green while the match is ahead, the site's own `--live` while it is being
-   played, and muted ink once it is done. The card is a different card in each,
-   and this is the only place that is written down. */
-
-.green {
-  color: var(--green);
-}
-
-.live {
-  color: var(--live);
+.brand {
+  color: var(--accent);
 }
 
 .muted {
@@ -167,11 +131,9 @@
 /* The only motion on the card, and it only exists while a match is actually
    being played: a ring pushed out of the dot and faded, once every two
    seconds. A `box-shadow` spread rather than a scaled pseudo-element, so it
-   costs no layout and cannot escape into a neighbour's box.
-
-   Two seconds is deliberate — a fast pulse reads as a warning and this is not
-   one. It is the same gesture the footer's live-visitor dot makes. */
-.live .dot {
+   costs no layout and cannot escape into a neighbour's box. Same gesture as
+   the footer's live-visitor dot. */
+.pulse .dot {
   animation: pulse 2000ms ease-out infinite;
 }
 
@@ -187,86 +149,31 @@
   }
 }
 
-/* A pulse is exactly the kind of repeating, attention-seeking motion this
-   setting exists to stop. The dot stays, and the word "Live" beside it is
-   what carries the state — which is how it should have read anyway. */
+/* The dot stays, and "Watching now" beside it carries the state. */
 @media (prefers-reduced-motion: reduce) {
-  .live .dot {
+  .pulse .dot {
     animation: none;
   }
 }
 
 /* --- The fixture ---------------------------------------------------------- */
 
-/* Three items across the full 206 of content: two 75-wide sides and whatever
-   the middle needs. Figma leaves 22 either side of "VS", which is what
-   `space-between` produces at those widths — so the gap is a result here
-   rather than a number to keep in step with the card's width. A score is
-   wider than "VS" and simply takes it out of those two gaps. */
 .fixture {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   width: 100%;
 }
 
 .side {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(12 * var(--u));
-  width: calc(75 * var(--u));
-
-  /* ONE SWITCH, TWO CONSUMERS. `--club` and `--club-dark` arrive inline from
-     the component (a different pair of clubs every gameweek); this resolves
-     which of them is in play, and the name below and the wash behind the crest
-     both read the result. Without it the theme rule would have to be repeated
-     for every property that wants the club's colour.
-
-     Figma's club colours are drawn to sit on a near-white card and neither
-     survives the move to dark — United's #cd020d is 2.7:1 on #222 and City's
-     #00285e is 1.1:1, which is not a colour so much as a hole. Both tones are
-     derived to clear 4.5:1 on the ground they actually land on; see
-     lib/clubColor.ts. */
-  --club-now: var(--club);
-  color: var(--club-now);
-}
-
-:global(html[data-theme="dark"]) .side {
-  --club-now: var(--club-dark);
-}
-
-/* The crest gets a stage rather than floating on the card: a wash of the
-   club's own colour, radial, fading out well before the edge so it reads as
-   light coming off the badge and never as a disc behind it. It is what ties
-   the colour in the name to the thing above it — at 13% it is barely a colour
-   at all, which is the point. Lifted slightly on dark, where the same alpha
-   over #222 has far less to work with. */
-.badge {
-  position: relative;
-  display: flex;
   flex: none;
-  align-items: center;
-  justify-content: center;
   width: calc(64 * var(--u));
   height: calc(64 * var(--u));
-}
-
-.badge::before {
-  content: "";
-  position: absolute;
-  inset: calc(-6 * var(--u));
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, var(--club-now) 0%, transparent 68%);
-  opacity: 0.13;
-}
-
-:global(html[data-theme="dark"]) .badge::before {
-  opacity: 0.22;
+  transition: translate 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .crest {
-  position: relative;
   width: 100%;
   height: 100%;
   /* The sources are square with the crest fitted inside, so this only matters
@@ -274,32 +181,20 @@
   object-fit: contain;
 }
 
-/* TWO LINES OF ROOM, ALWAYS, EVEN FOR A ONE-LINE CLUB.
-
-   Figma drew Manchester United against Manchester City, and both of those wrap
-   to two lines, so the frame never showed what happens when they do not. Live
-   data does, immediately: "Ipswich Town" wraps and "Liverpool" does not, and
-   without this the fixture block is 22px shorter that week — which `space-
-   between` then pays out into the gap above the gameweeks, so the whole
-   interior of the card shifts depending on who is playing.
-
-   44.8 is two lines of 14px at 1.6. Reserved rather than measured, so the card
-   has one interior at every fixture of the season. Written as the product it
-   is rather than as `2lh`, which is the same number and not yet safe at this
-   site's floor (Safari 16.4). */
-.club {
-  min-height: calc(2 * 1.6 * 14 * var(--u));
-  font-size: calc(14 * var(--u));
-  font-weight: 500;
-  line-height: var(--lh-wide);
-  text-align: center;
-  color: inherit;
+/* One badge per theme — the dark one without the league's white keyline. See
+   the note in index.tsx for why this is two images and not `<picture>`. */
+.crestDark {
+  display: none;
 }
 
-/* Centred on the crests rather than on the whole column: the frame gives this
-   the crest's own 64 of height, so it sits level with the badges and not with
-   the badge-plus-name block, which would drop it ~22px. Both the word and the
-   score below share that. */
+:global(html[data-theme="dark"]) .crestLight {
+  display: none;
+}
+
+:global(html[data-theme="dark"]) .crestDark {
+  display: block;
+}
+
 .versus,
 .score {
   display: flex;
@@ -313,276 +208,188 @@
   font-size: calc(12 * var(--u));
   font-weight: 400;
   line-height: var(--lh-wide);
-  /* The site's ink, not a club colour — it belongs to neither side. */
-  color: var(--ink-80);
+  color: var(--ink-50);
 }
 
-/* Once there is a score, it is the thing being looked at, so it is set larger
-   and heavier than the word it replaced. The dash sits back and lets the two
-   numbers carry — it is punctuation, not information. */
 .score {
   gap: calc(4 * var(--u));
-  font-size: calc(18 * var(--u));
-  font-weight: 600;
+  font-size: calc(14 * var(--u));
+  font-weight: 500;
   line-height: var(--lh-wide);
-  color: var(--ink);
 }
 
+/* The dash is punctuation, not information — smaller and set back. */
 .score i {
+  font-size: calc(12 * var(--u));
   font-style: normal;
   font-weight: 400;
-  color: var(--ink-40);
-}
-
-/* --- Why this match ---------------------------------------------------------
-
-   One line under the crests, and the only sentence on the card. It is what
-   turns "Watching next" from a caption into a reason: the fixture is chosen
-   because his own players are in it (see `pickFixture` in lib/fantasy.ts), and
-   this says so.
-
-   Quiet at rest — it is a footnote to the fixture, not a third headline — and
-   it is the thing that answers when the card is hovered. See the hover block
-   at the foot of this file. */
-.players {
-  width: 100%;
-  font-size: calc(11 * var(--u));
-  font-weight: 500;
-  line-height: var(--lh-wide);
-  text-align: center;
-  /* `--ink-50`, not 40: at 11px and centred under the fixture, 40 sits close
-     enough to the disabled-control grey that the line reads as switched off
-     rather than as quiet. */
   color: var(--ink-50);
-  transition: color 320ms ease;
 }
 
-/* --- The season -------------------------------------------------------------
-
-   One bar per gameweek, thirty-eight across, in the 206x46 the three figures
-   used to have. Figma draws "GW 3 / 64 / 86 / 73"; three numbers have no shape
-   and say nothing about whether a season is going well, and this is the same
-   box carrying every week he has played *and* every week he has left.
-
-   MARKS, per the house chart rules: one hue (this is a single series, so there
-   is no legend to draw — the "FANTASY POINTS" label under it names it), thin
-   marks anchored to a shared baseline, rounded data-ends, a recessive
-   everything-else, and a hover readout rather than a number on every bar.
-
-   The bars are `<li>`; the height of each is a percentage handed in as `--h`.
-   No SVG, no canvas, no client component. */
-
-/* The headline and the season, on one line: the number reads first and the
-   chart gives it a history. Baseline-aligned rather than centred, so the big
-   figure and the chart's floor sit on the same line. */
-.summary {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: calc(16 * var(--u));
-  width: 100%;
+/* ONE SWITCH, EVERY CONSUMER. `--club` and `--club-dark` arrive inline from
+   the component — on each score digit and on the top scorer's name — and this
+   resolves which of the two is in play. Figma's club colours are drawn for a
+   near-white card and neither survives the move to dark (City's #00285e is
+   1.1:1 on #222), so both tones are derived to clear 4.5:1 on the ground they
+   land on; see lib/clubColor.ts. */
+.tone {
+  --club-now: var(--club);
+  color: var(--club-now);
 }
 
-.headline {
+:global(html[data-theme="dark"]) .tone {
+  --club-now: var(--club-dark);
+}
+
+/* --- The stats ------------------------------------------------------------ */
+
+.figures {
   display: flex;
-  flex: none;
+  align-items: flex-start;
+  gap: calc(32 * var(--u));
+}
+
+.figure {
+  display: flex;
   flex-direction: column;
-  gap: calc(2 * var(--u));
+  gap: calc(4 * var(--u));
 }
 
-.headlineLabel {
-  font-size: calc(10 * var(--u));
+.statLabel {
+  font-size: calc(11 * var(--u));
   font-weight: 400;
   line-height: var(--lh-wide);
   color: var(--ink-50);
+  white-space: nowrap;
 }
 
-/* The one number on the card that is set at headline size. Figma runs all
-   three gameweeks at 16 and gives none of them a hierarchy; this is the week
-   the card is actually about, so it is the week you read first. */
-.headlineScore {
-  font-size: calc(30 * var(--u));
+/* Figma sets the two values at `line-height: normal`, not the card's 1.6 — it
+   is what keeps label-plus-value at the 42 the frame measures. */
+.statValue {
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--u));
+  font-size: calc(16 * var(--u));
   font-weight: 500;
-  /* Tight, because at 30px the site's 1.6 opens a gap under the number that
-     pushes the chart's baseline out of alignment with it. */
-  line-height: 1;
+  line-height: normal;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.arrow {
+  flex: none;
+  width: calc(16 * var(--u));
+  height: calc(16 * var(--u));
+}
+
+/* A better rank is a smaller number, and it is green and pointing up — the
+   drawing points down, so "up" is Figma's own vertical flip. */
+.rankUp {
+  color: var(--green);
+  scale: 1 -1;
+}
+
+.rankDown {
+  color: var(--red);
+}
+
+/* --- The top scorer ------------------------------------------------------- */
+
+.scorer {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+}
+
+/* A 44 disc on the raised surface — white in light, as drawn, and the raised
+   grey in dark, where a white coin would be the brightest thing on the page.
+   The headshots are cut out on transparency, so the disc is their ground. */
+.photo {
+  position: relative;
+  flex: none;
+  width: calc(44 * var(--u));
+  height: calc(44 * var(--u));
+  overflow: hidden;
+  border: calc(1 * var(--u)) solid var(--ink-20);
+  border-radius: 50%;
+  background-color: var(--surface-raised);
+}
+
+/* Head and shoulders. The CDN's portrait is 110x140 with the head in its top
+   third; scaled a little past the disc and hung from the top, it lands where
+   Figma's placeholder sits — face centred, shoulders cut by the rim. */
+.photoImg {
+  position: absolute;
+  top: calc(2 * var(--u));
+  left: 50%;
+  width: 130%;
+  max-width: none;
+  height: auto;
+  translate: -50% 0;
+}
+
+.scorerText {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(4 * var(--u));
+  min-width: 0;
+}
+
+.scorerHead {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+}
+
+.scorerPoints {
+  font-size: calc(16 * var(--u));
+  font-weight: 500;
+  line-height: var(--lh-wide);
   color: var(--ink);
 }
 
-/* The chart takes what the number leaves, so it is a band of context rather
-   than a panel — and it grows as the season gives it more to say. */
-.chart {
-  position: relative;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-/* 26 tall against the headline's 30: the season is beside the number, not
-   over it, and it must not out-measure the thing it is context for. */
-.season {
-  display: flex;
-  align-items: flex-end;
-  /* 2, the surface gap the house chart rules ask for between adjacent fills —
-     enough that two bars of similar height do not read as one wide one, and
-     not so much that a late-season row of 38 becomes a comb. */
-  gap: calc(2 * var(--u));
-  width: 100%;
-  height: calc(26 * var(--u));
-  list-style: none;
-}
-
-/* Each bar divides the width with its neighbours, so three weeks in September
-   fill the box as honestly as thirty-eight in May — the chart is always full
-   and simply gets finer as the season runs on.
-
-   `align-items: flex-end` on the row is the baseline: every bar grows upward
-   from the same line, which is the one thing a reader is comparing. The height
-   is the week's score against a fixed ceiling; `--h` is written per bar by the
-   component. */
-.week {
-  position: relative;
-  flex: 1 1 0;
-  min-width: 0;
-  height: var(--h);
-  /* A floor, so a bad week is still a mark. A bar that vanishes at zero reads
-     as a week that was never played. */
-  min-height: calc(3 * var(--u));
-  /* THE TOP ONLY, AND A FIXED RADIUS RATHER THAN A PILL. `--r-pill` looked
-     right while the bars were four pixels wide and was wrong the moment they
-     were not: three bars sharing 150px are 48px each, and a 48px bar with a
-     pill radius is a lozenge. A small radius on the two top corners is the
-     standard bar treatment — the data-end is softened and the baseline stays
-     flat, which is the edge every bar is compared along. */
-  border-radius: calc(2 * var(--u)) calc(2 * var(--u)) 0 0;
-  background-color: var(--green);
-  transition: background-color 260ms ease, opacity 200ms ease;
-}
-
-/* An open week that has not scored yet: a stub at the floor height, in the ink
-   the headline's dash uses. Not a nought — a week that has not happened. */
-.week[data-empty] {
+/* Figma's 3px separator: ink at 15%. */
+.sep {
+  flex: none;
+  width: calc(3 * var(--u));
   height: calc(3 * var(--u));
-  background-color: var(--ink-20);
+  border-radius: 50%;
+  background-color: var(--ink);
+  opacity: 0.15;
 }
 
-/* The current gameweek, in the accent rather than the series hue — the single
-   direct call-out the chart gets, in place of a label on every bar. */
-.week[data-state="now"] {
-  background-color: var(--accent);
-}
-
-/* The dash standing in for a gameweek that is open and has not scored yet. Set
-   back, so the headline reads "this week, not yet" rather than as a missing
-   number. FPL counts a week up from zero as the matches are played, so the
-   true answer on a Saturday morning really is 0 — and a 0 in the headline slot
-   reads as a card that has broken. */
-.pointsPending {
-  color: var(--ink-40);
-}
-
-/* Each bar carries its own readout, and they all stack over the headline's
-   place. Hidden until that bar is hovered, so which one you see is decided by
-   the pointer — no JavaScript, and no shared state to keep in step. */
-.tip {
-  position: absolute;
-  right: 0;
-  bottom: 100%;
-  margin-bottom: calc(4 * var(--u));
-  font-size: calc(11 * var(--u));
-  font-weight: 400;
+.scorerName {
+  overflow: hidden;
+  font-size: calc(13 * var(--u));
+  font-weight: 500;
   line-height: var(--lh-wide);
   white-space: nowrap;
-  color: var(--ink-50);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 160ms ease;
-}
-
-.tip b {
-  font-weight: 500;
-  color: var(--ink);
-}
-
-.week:hover .tip {
-  opacity: 1;
+  text-overflow: ellipsis;
 }
 
 /* --- Hover ------------------------------------------------------------------
 
-   THE CARD ROOT IS NEVER TRANSFORMED HERE. ProximityField writes
-   `--prox-x/y/s` into every `[data-prox-card]`'s own `transform` on each
-   pointer move, so a hover transform on the card would be overwritten sixty
-   times a second and fight the field. Everything below moves a *child*. */
-
-/* The bar under the pointer comes forward and the rest of the season steps
-   back, so the one being read is the one you can see. */
-.season:hover .week {
-  opacity: 0.4;
-}
-
-.season .week:hover {
-  opacity: 1;
-}
-
-/* The fixture opens up: the two sides drift apart a few pixels and each crest's
-   wash strengthens, so the match answers the pointer without anything moving
-   far enough to be a effect. */
-.card:hover .side:first-of-type {
+   THE CARD ROOT IS NEVER TRANSFORMED HERE. ProximityField writes into every
+   `[data-prox-card]`'s own `transform` on each pointer move, so a hover
+   transform on the card would fight the field. Everything below moves a
+   *child*: the two crests drift a few pixels apart, so the match answers the
+   pointer without anything moving far enough to be an effect. */
+.card:hover .fixture > .side:first-child {
   translate: calc(-3 * var(--u)) 0;
 }
 
-.card:hover .fixture > .side:last-of-type {
+.card:hover .fixture > .side:last-child {
   translate: calc(3 * var(--u)) 0;
 }
 
-.side {
-  transition: translate 420ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.card:hover .badge::before {
-  opacity: 0.22;
-}
-
-:global(html[data-theme="dark"]) .card:hover .badge::before {
-  opacity: 0.34;
-}
-
-.badge::before {
-  transition: opacity 420ms ease;
-}
-
-/* And the sentence brightens into the colour of the side his players are on —
-   the card saying why it cares. `both` keeps the ink: when he owns players on
-   each side, picking one club's colour would be a lie. */
-.card:hover .players {
-  /* `--players` is set inline only when the players are all on one side; the
-     fallback is what a divided allegiance gets, and what the card gets when the
-     manager is not configured at all. */
-  color: var(--players-now, var(--ink-60));
-}
-
-.players {
-  --players-now: var(--players);
-}
-
-:global(html[data-theme="dark"]) .players {
-  --players-now: var(--players-dark);
-}
-
-/* Nothing above is information — every hover state here is a second reading of
-   something already on the card — so under this preference they simply do not
-   happen. The chart's readout is deliberately NOT included: swapping which
-   number is shown is the chart working, not motion. */
 @media (prefers-reduced-motion: reduce) {
-  .side,
-  .badge::before,
-  .players,
-  .week {
+  .side {
     transition: none;
   }
 
-  .card:hover .side:first-of-type,
-  .card:hover .fixture > .side:last-of-type {
+  .card:hover .fixture > .side:first-child,
+  .card:hover .fixture > .side:last-child {
     translate: none;
   }
 }
@@ -597,4 +404,3 @@
     width: 100%;
   }
 }
-

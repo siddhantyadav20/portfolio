@@ -1,19 +1,25 @@
 import type { CSSProperties } from "react";
+import Image from "next/image";
 import CardShell from "@/components/primitives/CardShell";
 import { fantasyCopy } from "@/content/site";
-import { readFantasy, type Fixture, type Side, type Week } from "@/lib/fantasy";
+import {
+  readFantasy,
+  type Fixture,
+  type RankMove,
+  type Side,
+  type TopPlayer,
+} from "@/lib/fantasy";
+import Countdown from "./Countdown";
+import { countdownLabel } from "./countdownLabel";
 import styles from "./FantasyCard.module.css";
 
 /**
  * Kickoff, in the time the fixture is actually quoted in.
  *
  * Premier League kickoffs are published in UK time and that is how anyone
- * following the league reads them, so the card says "Sat 16:30 BST" rather
- * than guessing at the reader's zone — which a statically rendered page cannot
- * know anyway. The abbreviation is not decoration: without it the same string
- * is silently two hours wrong in most of Europe and four and a half in India.
- * The exact instant rides along in the `dateTime` attribute below, which is
- * what a machine reads.
+ * following the league reads them, so this says "Sat 16:30 BST" rather than
+ * guessing at the reader's zone. It is the countdown's tooltip, and the whole
+ * label once a fixture is over.
  */
 function kickoffLabel(iso: string): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -29,11 +35,10 @@ function kickoffLabel(iso: string): string {
 }
 
 /**
- * An overall rank, short enough for the corner of a 254px card.
+ * An overall rank, short enough for its slot — "664k", "1.2m".
  *
- * 912,695 is nine characters and tells nobody anything they could not read off
- * "913k". Above a million it takes a decimal, because the difference between
- * 1.2m and 1.9m is the whole story at that end of the table.
+ * Above a million it takes a decimal, because the difference between 1.2m and
+ * 1.9m is the whole story at that end of the table.
  */
 function rankLabel(rank: number): string {
   if (rank >= 1_000_000) return `${(rank / 1_000_000).toFixed(1)}m`;
@@ -41,60 +46,74 @@ function rankLabel(rank: number): string {
   return String(rank);
 }
 
-/** The green dot and its label. One component; only the tone and the casing
- *  differ between the card's two eyebrows. */
+/** A club's pair of tones, handed to CSS so the theme rule can pick between
+ *  them. Inline because they are data — a different club arrives every week,
+ *  and a stylesheet cannot hold a value that turns up at request time. See
+ *  lib/clubs.ts. */
+function tones({ color, colorDark }: { color: string; colorDark: string }) {
+  return { "--club": color, "--club-dark": colorDark } as CSSProperties;
+}
+
+/** The dot and its label — both of the card's eyebrows. */
 function Marker({
   tone,
-  caps = false,
+  pulse = false,
   children,
 }: {
-  tone: "green" | "live" | "muted";
-  caps?: boolean;
+  tone: "brand" | "muted";
+  pulse?: boolean;
   children: string;
 }) {
   return (
-    <span className={`${styles.marker} ${styles[tone]} ${caps ? styles.caps : ""}`}>
+    <span className={`${styles.marker} ${styles[tone]} ${pulse ? styles.pulse : ""}`}>
       {/* A `border-radius: 50%` span, not the exported SVG — Figma's asset is a
           circle and nothing else, so as a span it takes `currentColor` and
-          themes itself instead of shipping a second hard-coded green. */}
+          themes itself instead of shipping a hard-coded colour. */}
       <span className={styles.dot} aria-hidden="true" />
       {children}
     </span>
   );
 }
 
-/** One side of the fixture: crest over club name, the name in club colour. */
-function Club({ side }: { side: Side }) {
+/** One side of the fixture. The crest alone — the redesign drops the club
+ *  names, so the name moves into the image's alt text rather than vanishing. */
+function Crest({ side }: { side: Side }) {
   return (
-    <div
-      className={styles.side}
-      /* The club's pair of tones, handed to CSS so the theme rule can pick
-         between them. Inline because they are data — a different pair of clubs
-         arrives every gameweek, and a stylesheet cannot hold a value that
-         turns up at request time. See lib/clubs.ts. */
-      style={{ "--club": side.color, "--club-dark": side.colorDark } as CSSProperties}
-    >
-      <span className={styles.badge}>
-        {/* 64 drawn, 192 shipped, so the crest holds up at 2x on a page where
-            `--u` scales it to ~114px by 2560. `alt=""` because the club's name
-            is the next line down and a screen reader should say it once. */}
-        <img className={styles.crest} src={side.crest} alt="" width={64} height={64} />
-      </span>
-      {/* Wrapped by the box rather than by a hard break, which is this file's
-          rule for every title: Figma's 75px column puts "Manchester" on one
-          line and the club on the next, and so does this. */}
-      <p className={styles.club}>{side.name}</p>
-    </div>
+    <span className={styles.side}>
+      {/* 64 drawn, 192 shipped, so the crest holds up at 2x.
+
+          TWO FILES, ONE SHOWN PER THEME. Every league badge carries a white
+          keyline that disappears on the light card and rings the crest in
+          white on the dark one; the dark set has it stripped (see
+          scripts/fetch-crests.mjs). Not `<picture media>`, which follows the
+          OS setting — this site's theme is a toggle on <html>. `lazy` is what
+          keeps the hidden one from downloading: a lazy image that is
+          `display: none` is never fetched, so each visitor pays for one. */}
+      <img
+        className={`${styles.crest} ${styles.crestLight}`}
+        src={side.crest}
+        alt={side.name}
+        width={64}
+        height={64}
+        loading="lazy"
+      />
+      <img
+        className={`${styles.crest} ${styles.crestDark}`}
+        src={side.crestDark}
+        alt={side.name}
+        width={64}
+        height={64}
+        loading="lazy"
+      />
+    </span>
   );
 }
 
 /**
- * What sits between the crests.
- *
- * "VS" until the match kicks off, and the score from then on — the middle of a
- * fixture is where the score belongs, and holding "VS" there through a live
- * match would waste the one slot the reader is looking at. The dash is its own
- * element so it can sit back at `--ink-40` and let the two numbers carry.
+ * What sits between the crests: "VS" until kickoff, then the score, each
+ * number in its own club's colour so the reader never has to work out which
+ * side is which — Figma's live frame draws United's 2 in red and City's 1 in
+ * sky blue, and those are exactly the two tones lib/clubs.ts derives.
  */
 function Middle({ fixture }: { fixture: Fixture }) {
   const { home, away, state } = fixture;
@@ -108,146 +127,140 @@ function Middle({ fixture }: { fixture: Fixture }) {
       className={styles.score}
       aria-label={`${home.name} ${home.score}, ${away.name} ${away.score}`}
     >
-      <span>{home.score}</span>
-      <i aria-hidden="true">–</i>
-      <span>{away.score}</span>
+      <span className={styles.tone} style={tones(home)}>
+        {home.score}
+      </span>
+      <i aria-hidden="true">-</i>
+      <span className={styles.tone} style={tones(away)}>
+        {away.score}
+      </span>
     </span>
   );
 }
 
 /**
- * The season so far, as one bar per gameweek played.
+ * Figma's "Up/Down Indicator" — its exported vector, inlined rather than
+ * shipped as a file, for the same reason the dot is a span: the asset is a
+ * #58A942 disc with a white arrow, and a file cannot take the theme's green or
+ * turn red. As markup the disc reads `currentColor` and the arrow the raised
+ * surface, so it works in both themes and both directions.
  *
- * WHY A CHART AND NOT THE THREE NUMBERS FIGMA DRAWS. Three figures — 64, 86,
- * 73 — have no shape. They are the same three numbers in any order and say
- * nothing about whether the season is going well; the two behind the current
- * one are there to be arithmetic rather than to be read. The same box carries
- * every week he has played, which is a season instead of a sample.
- *
- * WEEKS PLAYED ONLY, AND THAT IS THE SECOND VERSION. The first drew all 38 and
- * showed the weeks still to come as baseline ticks, on the argument that the
- * season's remaining run is information. It is — and it is unusable: at
- * gameweek 3 the chart was 8% data and 92% dotted line, three bars huddled at
- * the left of a box that looked broken rather than early. That is not a
- * September problem either; it reads wrong until about November, which is most
- * of the time anyone would see it. The bars divide the width they have, so the
- * chart is full at every point in the season and simply gets finer as the year
- * runs on — which is its own quiet signal of progress.
- *
- * Built from `<li>` with a height custom property — no canvas, no SVG library,
- * no client component. The card still ships zero JavaScript.
- *
- * The scale is FIXED at `CEILING`, not the data's own maximum. A chart scaled
- * to its best week looks identical every season: the best week is always full
- * height and everything else is a fraction of it. Against a fixed ceiling a
- * good week is *tall*, which is the thing the chart is for.
+ * The drawing points down. Figma flips it for "up" (`-scale-y-100`), and so
+ * does the stylesheet.
  */
-const CEILING = 120;
-
-function Season({ weeks, current }: { weeks: Week[]; current: number }) {
+function RankArrow({ move }: { move: Exclude<RankMove, "same"> }) {
   return (
-    <ol className={styles.season}>
-      {weeks.map((week) => {
-        const now = week.gw === current;
-        /* A pending week that has not scored yet is drawn as a stub rather than
-           as a week worth nothing — the Saturday-morning case the `pending`
-           flag exists for. It fills in through the weekend. */
-        const scored = !(week.pending && week.score === 0);
+    <svg
+      className={`${styles.arrow} ${move === "up" ? styles.rankUp : styles.rankDown}`}
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+    >
+      <rect width="16" height="16" rx="8" fill="currentColor" />
+      <path
+        d="M7.625 4C7.625 3.79289 7.79289 3.625 8 3.625C8.20711 3.625 8.375 3.79289 8.375 4L8 4L7.625 4ZM8 12L5.83494 8.25L10.1651 8.25L8 12ZM8 4L8.375 4L8.375 8.625L8 8.625L7.625 8.625L7.625 4L8 4Z"
+        fill="var(--surface-raised)"
+      />
+    </svg>
+  );
+}
 
-        return (
-          <li
-            key={week.gw}
-            /* The called-out state is `data-state` alone — one source, rather
-               than a class and an attribute that have to agree. */
-            className={styles.week}
-            data-state={now ? "now" : "played"}
-            style={
-              { "--h": `${Math.min(1, week.score / CEILING) * 100}%` } as CSSProperties
-            }
-            data-empty={scored ? undefined : ""}
-          >
-            {/* The hover readout, one per bar, all stacked in the same place.
-                Which one you see is decided by the pointer — no JavaScript and
-                no shared state to keep in step. */}
-            <span className={styles.tip} aria-hidden="true">
-              <b>GW {week.gw}</b> {scored ? week.score : "–"}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
+/** "13 · Most points scored" over the player's name, in their club's colour. */
+function TopScorer({ player }: { player: TopPlayer }) {
+  return (
+    <div className={styles.scorer}>
+      <span className={styles.photo}>
+        {/* The CDN's smallest rendition is 110x140 and ~100KB of PNG; drawn at
+            44 wide, `next/image` serves it as a few KB of AVIF instead. `alt`
+            is empty because the name is the next thing a screen reader says. */}
+        <Image
+          className={styles.photoImg}
+          src={player.photo}
+          alt=""
+          width={44}
+          height={56}
+        />
+      </span>
+
+      <div className={styles.scorerText}>
+        <p className={styles.scorerHead}>
+          <span className={styles.scorerPoints} aria-label={`${player.points} points this season`}>
+            {player.points}
+          </span>
+          <span className={styles.sep} aria-hidden="true" />
+          <span className={styles.statLabel}>{fantasyCopy.topScorer}</span>
+        </p>
+        <p className={`${styles.scorerName} ${styles.tone}`} style={tones(player)}>
+          {player.name}
+        </p>
+      </div>
+    </div>
   );
 }
 
 /**
- * Figma "Fantasy" (node 952:8828) — 254x315, pad 24, space-between.
+ * Figma "Football Card" — nodes 1043:470 (upcoming) and 1011:9655 (live).
+ * 254x315, pad 20, two blocks 32 apart.
  *
- * A server component that reads live data: the fixture list and Siddhant's
- * gameweek history come from the public FPL API through `lib/fantasy.ts`, and
- * the card still ships **no JavaScript**. Everything that moves — the live
- * pulse — is CSS, and the one thing that would have needed a client (a ticking
- * countdown) was deliberately not built: an absolute kickoff time is correct
- * for as long as the page is cached, and a relative one is wrong the moment it
- * is.
+ * A server component that reads live data through `lib/fantasy.ts`. The only
+ * JavaScript it ships is the countdown, and only while there is a kickoff to
+ * count down to — see Countdown.tsx for why that one number cannot be HTML.
  *
- * WHAT PHASE 3 ADDED TO THE DRAWING, AND WHY THE CARD IS STILL 315 TALL
+ * WHAT THE REDESIGN CHANGED. The top half is the same fixture without the club
+ * names. The bottom half stopped being a chart of the season and became three
+ * facts: the season total, the overall rank with which way it moved, and the
+ * player in his team who scored the most this week.
  *
- * The frame has two eyebrow rows that use about half their width — "Watching
- * next" is 89 of 206, "FANTASY POINTS" is 108. Live data needs somewhere to
- * put a kickoff time and an overall rank, and a card whose height is holding
- * three columns level (see app/page.module.css) cannot grow a row to hold
- * them. So both eyebrows became two-column rows and the card gained two facts
- * without gaining a pixel or losing its silhouette.
- *
- * The rest is state. The eyebrow reads "Watching next", "Live" or "Full time";
- * the dot goes from green to a pulsing `--live` and then to muted ink; the
- * middle of the fixture turns from "VS" into the score; and the right-hand
- * slot shows the minute while the match is on and the kickoff either side of
- * it. None of that is decoration — it is the difference between a card that
- * shows a match and a card that follows one.
+ * States: "Watching next" with a countdown; "Watching now" with the minute and
+ * a pulsing dot; and "Full time", muted, only at the end of a season when
+ * there is no next gameweek to look ahead to.
  */
 export default async function FantasyCard() {
-  const { fixture, points, overallRank, source } = await readFantasy();
+  const { fixture, stats, top, source } = await readFantasy();
   const live = fixture.state === "live";
+  const finished = fixture.state === "finished";
 
-  /* The week the card is about. `points` is oldest-first, so this is the last
-     entry rather than the first — and it is the one the chart calls out and the
-     readout names. */
-  const current = points.at(-1);
+  const eyebrow = live
+    ? fantasyCopy.live
+    : finished
+      ? fantasyCopy.finished
+      : fantasyCopy.upcoming;
 
-  const eyebrow =
-    fixture.state === "live"
-      ? fantasyCopy.live
-      : fixture.state === "finished"
-        ? fantasyCopy.finished
-        : fantasyCopy.upcoming;
+  /* The countdown's first paint. An async server component renders once per
+     request and never re-renders, so the purity rule's concern — a value that
+     shifts between renders — has nothing to act on here; the browser's own
+     reading replaces this straight after hydration (Countdown.tsx). */
+  const until = fixture.kickoff
+    ? // eslint-disable-next-line react-hooks/purity
+      countdownLabel(Date.parse(fixture.kickoff) - Date.now())
+    : null;
 
   return (
     <CardShell
       radius={40}
-      /* `none`, then the fill is set in the stylesheet. Figma draws this card
-         at rgba(255,255,255,0.4) — `--surface-glass` — which CardShell only
-         offers as `glass`, and `glass` also carries `backdrop-filter`. The
-         homepage already pays for four fixed backdrop-blur layers and that is
-         most of what makes it feel heavy; a fifth for a fill this card can
-         state directly is not worth it. See the stylesheet for the dark half. */
-      surface="none"
+      /* 40% white, no blur — the fill every non-case-study card shares. */
+      surface="soft"
       className={styles.card}
       data-card="fantasy"
       /* Not rendered anywhere — it is here so that "why is the card showing
-         last week's fixture" is one glance at the element inspector rather
-         than a debugging session. */
+         made-up numbers" is one glance at the element inspector. */
       data-source={source}
     >
-      <div className={styles.top}>
+      <div className={styles.watching}>
         <div className={styles.eyebrow}>
-          <Marker tone={live ? "live" : fixture.state === "finished" ? "muted" : "green"}>
+          <Marker tone={finished ? "muted" : "brand"} pulse={live}>
             {eyebrow}
           </Marker>
 
           {live ? (
-            /* The clock, while there is one to show. */
-            <span className={styles.aside}>{fixture.minutes}&prime;</span>
+            <span className={styles.aside}>{fixture.minutes}&rsquo;</span>
+          ) : fixture.kickoff && !finished ? (
+            <Countdown
+              className={styles.aside}
+              kickoff={fixture.kickoff}
+              initial={until ?? fantasyCopy.kickoff}
+              due={fantasyCopy.kickoff}
+              title={kickoffLabel(fixture.kickoff)}
+            />
           ) : fixture.kickoff ? (
             <time className={styles.aside} dateTime={fixture.kickoff}>
               {kickoffLabel(fixture.kickoff)}
@@ -256,86 +269,37 @@ export default async function FantasyCard() {
         </div>
 
         <div className={styles.fixture}>
-          <Club side={fixture.home} />
+          <Crest side={fixture.home} />
           <Middle fixture={fixture} />
-          <Club side={fixture.away} />
+          <Crest side={fixture.away} />
         </div>
-
-        {/* WHY THIS MATCH. Without it the fixture and the points below are two
-            unrelated facts sharing a card; with it, the match on screen is the
-            one his gameweek is riding on. Absent — no players, or no manager
-            configured — the line is not drawn at all rather than saying zero,
-            and the block closes up. */}
-        {fixture.players ? (
-          <p
-            className={styles.players}
-            /* The colour it warms to on hover, chosen here because only this
-               side knows which club the players are on. Both tones travel, and
-               the stylesheet picks by theme exactly as `.side` does. `both`
-               sends none: when he owns players on each side, naming one club's
-               colour would be a lie. */
-            style={
-              fixture.players.side === "both"
-                ? undefined
-                : ({
-                    "--players": fixture[fixture.players.side].color,
-                    "--players-dark": fixture[fixture.players.side].colorDark,
-                  } as CSSProperties)
-            }
-          >
-            {fixture.players.count === 1
-              ? fantasyCopy.playersOne
-              : fantasyCopy.players.replace("{n}", String(fixture.players.count))}
-          </p>
-        ) : null}
       </div>
 
-      <div className={styles.bottom}>
-        {/* THE SCORE IS THE HEADLINE AND THE SEASON IS ITS CONTEXT.
+      <div className={styles.stats}>
+        <div className={styles.statsHead}>
+          <Marker tone="brand">{fantasyCopy.stats}</Marker>
 
-            The chart alone was the wrong form for most of a season. At
-            gameweek 3 there are three bars, and three bars are not a trend —
-            they read as a segmented progress bar and say less than the three
-            plain figures Figma drew, which at least carried their values. The
-            job this data actually has, early on, is *a single headline*: what
-            did this week score. So the number is the number, at the size a
-            headline is, and the season runs beside it as the shape it makes —
-            thin context at gameweek 3, a real trend line by May, and never the
-            thing competing for the first read. */}
-        <div className={styles.summary}>
-          <p className={styles.headline}>
-            <span className={styles.headlineLabel}>
-              GW {current?.gw ?? "–"}
-            </span>
-            <span className={styles.headlineScore}>
-              {current && !(current.pending && current.score === 0)
-                ? current.score
-                : /* Open and not yet scored. A bare 0 in the headline slot
-                     reads as a broken card rather than as a Saturday morning;
-                     it fills in as the matches are played. */
-                  <span className={styles.pointsPending}>–</span>}
-            </span>
-          </p>
-
-          <div className={styles.chart}>
-            <Season weeks={points} current={current?.gw ?? 0} />
-          </div>
+          <dl className={styles.figures}>
+            <div className={styles.figure}>
+              <dt className={styles.statLabel}>{fantasyCopy.total}</dt>
+              <dd className={styles.statValue}>{stats.total ?? "–"}</dd>
+            </div>
+            <div className={styles.figure}>
+              <dt className={styles.statLabel}>{fantasyCopy.rank}</dt>
+              <dd className={styles.statValue}>
+                {stats.move === "up" || stats.move === "down" ? (
+                  <RankArrow move={stats.move} />
+                ) : null}
+                {stats.rank !== null ? rankLabel(stats.rank) : "–"}
+              </dd>
+            </div>
+          </dl>
         </div>
 
-        <div className={styles.eyebrow}>
-          <Marker tone="green" caps>
-            {fantasyCopy.points}
-          </Marker>
-
-          {/* The one number that gives the three above it a meaning. Only when
-              the API knows it — the written-down card has no rank to show and
-              renders the row exactly as the frame draws it. */}
-          {overallRank !== null ? (
-            <span className={styles.aside}>
-              {rankLabel(overallRank)} <span className={styles.rankUnit}>{fantasyCopy.rank}</span>
-            </span>
-          ) : null}
-        </div>
+        {/* Absent on the written-down card and before the season's first
+            deadline — the block above stays where it is and this simply is
+            not drawn, rather than inventing a player. */}
+        {top ? <TopScorer player={top} /> : null}
       </div>
     </CardShell>
   );

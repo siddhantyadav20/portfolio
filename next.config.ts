@@ -59,6 +59,17 @@ const buildConfig = (phase: string): NextConfig => ({
         hostname: "*.mzstatic.com",
         pathname: "/image/thumb/**",
       },
+      /* The Fantasy card's top scorer. The Premier League's smallest headshot
+         is a 110x140 PNG of ~100KB, drawn in a 44px disc — optimised, it is a
+         few KB. Keyed on the player's permanent `code`, so a year's TTL is
+         safe unless the league re-shoots a player under the same URL, in which
+         case it shows last season's photo, which is not a bug anyone will
+         report. */
+      {
+        protocol: "https",
+        hostname: "resources.premierleague.com",
+        pathname: "/premierleague/photos/players/**",
+      },
     ],
 
     /* Deliberately spelled out rather than omitted, and worth knowing that it

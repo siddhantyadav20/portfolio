@@ -578,6 +578,7 @@ export default function DesignEngineerCard() {
   return (
     <CardShell
       radius={32}
+      surface="soft"
       className={styles.card}
       data-card="design-engineer"
       data-focus={focus}

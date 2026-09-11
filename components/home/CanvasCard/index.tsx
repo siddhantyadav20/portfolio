@@ -257,7 +257,7 @@ export default function CanvasCard() {
       <CardShell
         ref={cardRef}
         radius={40}
-        surface="solid"
+        surface="soft"
         className={styles.card}
         data-card="canvas"
         // Released the moment the canvas owns it: two live elements sharing a

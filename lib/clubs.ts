@@ -94,3 +94,9 @@ export function toneOf(shortName: string): ClubTone {
 export function crestOf(shortName: string): string {
   return `/media/crests/${shortName.toLowerCase()}.png`;
 }
+
+/** The same badge for the dark card — the league's white keyline stripped,
+ *  except where the mark would vanish on #222 without it. See the script. */
+export function crestDarkOf(shortName: string): string {
+  return `/media/crests/dark/${shortName.toLowerCase()}.png`;
+}

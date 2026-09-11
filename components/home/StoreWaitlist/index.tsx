@@ -166,6 +166,7 @@ export default function StoreWaitlist() {
   return (
     <CardShell
       radius={40}
+      surface="soft"
       data-card="store"
       /* Readable from OUTSIDE this component's stylesheet, which the module
          class is not — `app/page.module.css` owns the orange band that bleeds

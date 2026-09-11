@@ -479,6 +479,7 @@ export default function AboutMeCard() {
           as="button"
           type="button"
           radius={28}
+          surface="soft"
           data-card="about"
           static
           className={styles.card}

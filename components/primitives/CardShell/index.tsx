@@ -1,7 +1,9 @@
 import type { ElementType, ComponentPropsWithRef, ReactNode } from "react";
 import styles from "./CardShell.module.css";
 
-type Surface = "translucent" | "solid" | "glass" | "none";
+/** `translucent` is the case studies, `soft` every other card — see
+ *  `--surface-soft` in globals.css. */
+type Surface = "translucent" | "soft" | "solid" | "glass" | "none";
 /** The card's corner at the 1440 frame. Each one is a curve, not a step — see
  *  `--r-card-*` in globals.css for what it does at every other width. 28 and 32
  *  are flat across the range. */
