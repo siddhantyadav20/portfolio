@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { piecesOf, readSse } from "@/lib/gemini";
+import { pieceOf, readSse } from "@/lib/gemini";
 
 describe("readSse", () => {
   it("reads complete events and holds back the one still arriving", () => {
@@ -26,22 +26,24 @@ describe("readSse", () => {
   });
 });
 
-describe("piecesOf", () => {
-  it("takes the answer's text and skips thought summaries", () => {
-    const chunk = {
-      candidates: [{ content: { parts: [{ text: "thinking", thought: true }, { text: "Yes, I have." }] } }],
-    };
-    expect(piecesOf(chunk)).toEqual([{ text: "Yes, I have." }]);
+describe("pieceOf", () => {
+  it("takes the answer's text from text deltas", () => {
+    expect(pieceOf({ event_type: "step.delta", delta: { type: "text", text: "Yes, I have." } })).toEqual({
+      text: "Yes, I have.",
+    });
   });
 
-  it("reads a blocked prompt or a safety stop as a decline", () => {
-    expect(piecesOf({ promptFeedback: { blockReason: "SAFETY" } })).toEqual([{ declined: true }]);
-    expect(piecesOf({ candidates: [{ finishReason: "SAFETY" }] })).toEqual([{ declined: true }]);
+  it("skips thinking and every other kind of delta", () => {
+    expect(pieceOf({ event_type: "step.delta", delta: { type: "thought", text: "hmm" } })).toBeNull();
+    expect(pieceOf({ event_type: "step.start" })).toBeNull();
+    expect(pieceOf({ event_type: "interaction.created" })).toBeNull();
   });
 
-  it("treats a normal stop as the end, not a decline", () => {
-    expect(piecesOf({ candidates: [{ content: { parts: [{ text: "Done." }] }, finishReason: "STOP" }] })).toEqual([
-      { text: "Done." },
-    ]);
+  it("marks the end of the stream", () => {
+    expect(pieceOf({ event_type: "interaction.completed" })).toEqual({ done: true });
+  });
+
+  it("throws on an error event, so the route says it failed", () => {
+    expect(() => pieceOf({ event_type: "error", error: { code: 429, message: "quota" } })).toThrow(/429 quota/);
   });
 });
