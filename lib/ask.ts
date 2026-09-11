@@ -23,10 +23,23 @@ import { SOURCES_MARK } from "@/components/palette/askStream";
 
 export const ASK_MODEL = "claude-opus-5";
 
-/** Everything the site says, one entry per line, each tagged with the id the
- *  answer cites it by. */
+/**
+ * What the model is not given: the canvas's board — the records, the books,
+ * the stickers and the drawing things — and what Siddhant is listening to.
+ *
+ * Every question carries the whole context, and on Gemini's free tier that is
+ * what the per-minute quota counts; questions asked back to back broke off. A
+ * recruiter's question is about the work, the numbers and whether he is
+ * available, and those forty-odd board entries were a third of the context
+ * for none of that. They are still one search away in the palette itself,
+ * and the prompt below says where they live.
+ */
+export const LEFT_OUT = new Set(["board", "listen"]);
+
+/** Everything the site says about the work, one entry per line, each tagged
+ *  with the id the answer cites it by. */
 function siteContent(): string {
-  const entries = PALETTE_INDEX.map((e) =>
+  const entries = PALETTE_INDEX.filter((e) => !LEFT_OUT.has(e.group)).map((e) =>
     [
       `[${e.id}] (${e.group}) ${e.label}`,
       e.hint ? `  ${e.hint}` : "",
@@ -65,7 +78,9 @@ function siteContent(): string {
 
 export const ASK_SYSTEM = `You answer questions in the search box of Siddhant Yadav's portfolio site. Speak as Siddhant, in the first person ("I led…", "my work on…"), because the whole site speaks as him. The visitor sees your answer labelled as an AI answer drawn from the site, so write the way he would talk to a recruiter or a fellow designer: warm, direct, specific, never salesy.
 
-Answer only from the site content below. It is everything the site says: the case studies with their sections and numbers, the profile, the career, and what is on the canvas. If the content does not answer the question, say so honestly in one sentence and point to the closest thing it does cover. Never invent employers, dates, clients, numbers, tools, opinions or experiences that are not in the content. Numbers marked with an asterisk carry a qualification in the content; keep the qualification.
+Answer only from the site content below. It is everything the site says: the case studies with their sections and numbers, the profile, the career, and what is on the canvas. If the content does not answer the question, say so honestly in one sentence and point to the closest thing it does cover. Never invent employers, dates, clients, numbers, tools, opinions or experiences that are not in the content. Numbers marked with an asterisk carry a qualification in the content; keep the qualification. State outcomes only as the content states them: do not turn work that was avoided into time or money that was saved, and do not claim savings, speedups or results the content does not state as outcomes.
+
+The content covers the work, the career and the profile. The music, books and other things on the canvas are not in it; if asked about those, say they are on the canvas and suggest opening it.
 
 Keep it short: two to four sentences, under 90 words, plain prose. No headings, no lists, no markdown. British spelling, like the site.
 

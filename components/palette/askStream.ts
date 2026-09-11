@@ -20,6 +20,9 @@ export const SOURCES_MARK = "§sources:";
 export const REFUSED_MARK = "§refused";
 /** The route appends this when the stream broke. */
 export const FAILED_MARK = "§failed";
+/** The route sends this before retrying a broken answer: everything written
+ *  before it was the failed attempt and is thrown away. */
+export const RESET_MARK = "§reset";
 
 /** Longest question the route will take. A sentence, not an essay. */
 export const MAX_QUESTION = 280;
@@ -33,7 +36,11 @@ export type AskRead = {
   failed: boolean;
 };
 
-export function readAsk(raw: string): AskRead {
+export function readAsk(stream: string): AskRead {
+  // Only the last attempt counts — see RESET_MARK.
+  const cut = stream.lastIndexOf(RESET_MARK);
+  const raw = cut === -1 ? stream : stream.slice(cut + RESET_MARK.length);
+
   const refused = raw.includes(REFUSED_MARK);
   const failed = raw.includes(FAILED_MARK);
 

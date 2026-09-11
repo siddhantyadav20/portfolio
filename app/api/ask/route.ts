@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { ASK_MODEL, ASK_SYSTEM } from "@/lib/ask";
 import { streamGemini } from "@/lib/gemini";
 import { requester, throttled } from "@/lib/mail";
-import { FAILED_MARK, MAX_QUESTION, REFUSED_MARK } from "@/components/palette/askStream";
+import { FAILED_MARK, MAX_QUESTION, REFUSED_MARK, RESET_MARK } from "@/components/palette/askStream";
 
 /* ===========================================================================
    POST /api/ask — the palette's "Ask me instead", streamed.
@@ -25,8 +25,21 @@ import { FAILED_MARK, MAX_QUESTION, REFUSED_MARK } from "@/components/palette/as
    =========================================================================== */
 
 /** A short answer lands in a few seconds; this is the ceiling, not the
- *  expectation. */
+ *  expectation — it has to hold two attempts and the pause between them. */
 export const maxDuration = 60;
+
+/**
+ * ONE RETRY, AFTER A BREATH.
+ *
+ * On Gemini's free tier, questions asked back to back broke off a word in —
+ * "I", then nothing — while the same questions twenty seconds apart all
+ * answered. Every question carries the whole site, so the per-minute token
+ * quota is the likely culprit, and a short pause is often all it needs. The
+ * retry is announced with RESET_MARK first, so the palette throws away the
+ * broken word or two instead of printing the answer twice. A second failure
+ * is reported as one, with its status code.
+ */
+const RETRY_AFTER_MS = 2500;
 
 let anthropic: Anthropic | null = null;
 
@@ -57,30 +70,43 @@ export async function POST(request: Request) {
     return Response.json({ reason: "throttled" }, { status: 429 });
   }
 
-  const pieces = provider === "gemini" ? fromGemini(question, request.signal) : fromClaude(question, request.signal);
+  const answer = () =>
+    provider === "gemini" ? fromGemini(question, request.signal) : fromClaude(question, request.signal);
 
   const encoder = new TextEncoder();
+  const write = (controller: ReadableStreamDefaultController<Uint8Array>, text: string) =>
+    controller.enqueue(encoder.encode(text));
+
   const body = new ReadableStream<Uint8Array>({
     async start(controller) {
-      try {
-        for await (const piece of pieces) {
-          if ("text" in piece) controller.enqueue(encoder.encode(piece.text));
-          else controller.enqueue(encoder.encode(`\n${REFUSED_MARK}`));
-        }
-      } catch (err) {
-        if (!request.signal.aborted) {
-          console.error(`[ask] ${provider} stream failed`, err);
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          for await (const piece of answer()) {
+            if ("text" in piece) write(controller, piece.text);
+            else write(controller, `\n${REFUSED_MARK}`);
+          }
+          break;
+        } catch (err) {
+          if (request.signal.aborted) break;
+          console.error(`[ask] ${provider} attempt ${attempt} failed`, err);
+
+          if (attempt === 1) {
+            write(controller, `\n${RESET_MARK}`);
+            await pause(RETRY_AFTER_MS, request.signal);
+            if (request.signal.aborted) break;
+            continue;
+          }
+
           /* The upstream status code rides after the marker — "§failed 429" —
              and nothing else from the error does. The palette shows the same
              sentence either way; the number is what lets a failure be told
              apart from outside without the server logs: 429 is the free
              tier's quota, 5xx is Google's side. */
           const code = err instanceof Error ? (/\b([45]\d\d)\b/.exec(err.message)?.[1] ?? "") : "";
-          controller.enqueue(encoder.encode(`\n${FAILED_MARK}${code ? ` ${code}` : ""}`));
+          write(controller, `\n${FAILED_MARK}${code ? ` ${code}` : ""}`);
         }
-      } finally {
-        controller.close();
       }
+      controller.close();
     },
   });
 
@@ -91,6 +117,21 @@ export async function POST(request: Request) {
       // Keeps proxies from buffering the stream into one late chunk.
       "X-Accel-Buffering": "no",
     },
+  });
+}
+
+/** A wait the visitor closing the panel cuts short. */
+function pause(ms: number, signal: AbortSignal) {
+  return new Promise<void>((resolve) => {
+    const t = setTimeout(resolve, ms);
+    signal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(t);
+        resolve();
+      },
+      { once: true },
+    );
   });
 }
 
@@ -115,8 +156,8 @@ async function* fromClaude(question: string, signal: AbortSignal): AsyncGenerato
          request server-side rather than handing back a refusal. */
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",
-      /* The site's content, cached: ~15-19k tokens that are the same for every
-         visitor, so only the question is new each time. */
+      /* The site's content, cached: the same for every visitor, so only the
+         question is new each time. */
       system: [{ type: "text", text: ASK_SYSTEM, cache_control: { type: "ephemeral", ttl: "1h" } }],
       messages: [{ role: "user", content: `<question>${question}</question>` }],
     },

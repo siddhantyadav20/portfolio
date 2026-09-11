@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { FAILED_MARK, REFUSED_MARK, SOURCES_MARK, readAsk } from "@/components/palette/askStream";
-import { ASK_SYSTEM } from "@/lib/ask";
+import { FAILED_MARK, REFUSED_MARK, RESET_MARK, SOURCES_MARK, readAsk } from "@/components/palette/askStream";
+import { ASK_SYSTEM, LEFT_OUT } from "@/lib/ask";
 import { PALETTE_INDEX } from "@/content/palette";
 
 describe("readAsk", () => {
@@ -37,9 +37,28 @@ describe("readAsk", () => {
   });
 });
 
+describe("readAsk across a retry", () => {
+  it("throws away the attempt that broke and keeps the one after it", () => {
+    const read = readAsk(`I\n${RESET_MARK}Yes, most of my work is for field inspectors.\n${SOURCES_MARK} study:search`);
+    expect(read.text).toBe("Yes, most of my work is for field inspectors.");
+    expect(read.sources).toEqual(["study:search"]);
+  });
+
+  it("shows nothing while the retry has not written anything yet", () => {
+    expect(readAsk(`I don't\n${RESET_MARK}`).text).toBe("");
+  });
+});
+
 describe("the ask system prompt", () => {
-  it("carries every entry, tagged with the id the palette can open", () => {
-    for (const entry of PALETTE_INDEX) expect(ASK_SYSTEM).toContain(`[${entry.id}]`);
+  it("carries every work entry, tagged with the id the palette can open", () => {
+    for (const entry of PALETTE_INDEX) {
+      if (LEFT_OUT.has(entry.group)) expect(ASK_SYSTEM).not.toContain(`[${entry.id}]`);
+      else expect(ASK_SYSTEM).toContain(`[${entry.id}]`);
+    }
+  });
+
+  it("forbids turning avoided work into claimed savings", () => {
+    expect(ASK_SYSTEM).toMatch(/do not turn work that was avoided into time or money that was saved/);
   });
 
   it("is stable enough to cache — no clock, no per-request anything", () => {
