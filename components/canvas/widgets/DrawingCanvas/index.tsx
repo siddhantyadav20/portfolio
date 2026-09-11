@@ -8,6 +8,7 @@ import { useSyncExternalStore } from "react";
 import { useVisible } from "@/lib/visible";
 import { graphite } from "./graphite";
 import { paintStroke as paintInk, type Pt, type Stroke } from "@/components/canvas/ink/ink";
+import { frameOf, toLocal, type Frame } from "@/components/canvas/ink/local";
 import styles from "./DrawingCanvas.module.css";
 
 /* ===========================================================================
@@ -374,19 +375,30 @@ export default function DrawingCanvas() {
 
   /* --- Pointer -------------------------------------------------------------- */
 
-  const posFrom = useCallback((cx: number, cy: number): Pt => {
-    const el = surfaceRef.current;
-    if (!el) return { x: 0, y: 0 };
-    const r = el.getBoundingClientRect();
-    return { x: (cx - r.left) * (SIZE / r.width), y: (cy - r.top) * (SIZE / r.height) };
+  /* THROUGH THE TILT, NOT THE BOUNDING BOX. This card sits in a slot rotated
+     a couple of degrees, on a board that zooms; `getBoundingClientRect()` is
+     the bigger axis-aligned box around it, and mapping through that put the
+     ink 20-odd pixels from the pen at the corners. See
+     components/canvas/ink/local.ts. Read once per event — every coalesced
+     point in it shares the frame. */
+  const frame = useCallback(
+    (): Frame | null => (surfaceRef.current ? frameOf(surfaceRef.current) : null),
+    [],
+  );
+
+  const posFrom = useCallback((f: Frame | null, cx: number, cy: number): Pt => {
+    if (!f) return { x: 0, y: 0 };
+    const p = toLocal(f, cx, cy);
+    return { x: p.x * (SIZE / f.w), y: p.y * (SIZE / f.h) };
   }, []);
 
-  function moveCursor(e: React.PointerEvent) {
+  /** The ring lives inside the surface, so it moves in the surface's own
+   *  pixels — the same space the ink is mapped into. */
+  function moveCursor(e: React.PointerEvent, f: Frame | null) {
     const ring = cursorRef.current;
-    const el = surfaceRef.current;
-    if (!ring || !el) return;
-    const r = el.getBoundingClientRect();
-    ring.style.transform = `translate(${e.clientX - r.left}px, ${e.clientY - r.top}px) translate(-50%, -50%)`;
+    if (!ring || !f) return;
+    const p = toLocal(f, e.clientX, e.clientY);
+    ring.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%)`;
   }
 
   function onPointerDown(e: React.PointerEvent) {
@@ -402,7 +414,7 @@ export default function DrawingCanvas() {
     // Drawing over the intro cuts it short, as it should.
     intro.current.done = true;
 
-    const p = posFrom(e.clientX, e.clientY);
+    const p = posFrom(frame(), e.clientX, e.clientY);
     drawing.current = true;
     last.current = p;
     lastMid.current = p;
@@ -419,7 +431,8 @@ export default function DrawingCanvas() {
   }
 
   function onPointerMove(e: React.PointerEvent) {
-    moveCursor(e);
+    const f = frame();
+    moveCursor(e, f);
     if (!drawing.current || !current.current) return;
     e.stopPropagation();
     e.preventDefault();
@@ -455,7 +468,7 @@ export default function DrawingCanvas() {
     const batch = native.getCoalescedEvents?.() ?? [native];
 
     for (const ev of batch) {
-      const p = posFrom(ev.clientX, ev.clientY);
+      const p = posFrom(f, ev.clientX, ev.clientY);
       const mid = { x: (last.current.x + p.x) / 2, y: (last.current.y + p.y) / 2 };
       ctx.beginPath();
       ctx.moveTo(lastMid.current.x, lastMid.current.y);

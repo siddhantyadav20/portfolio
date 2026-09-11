@@ -23,7 +23,9 @@ import { useMediaQuery } from "@/lib/clientValue";
 import { play, warm } from "@/lib/sfx";
 import { SKETCH_EXPORT_PX } from "@/lib/sketch";
 import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
-import { SHEET, useInk } from "@/components/canvas/ink/useInk";
+import { SHEET, useInk, type ToolKind } from "@/components/canvas/ink/useInk";
+import type { Pt } from "@/components/canvas/ink/ink";
+import { frameOf, toLocal } from "@/components/canvas/ink/local";
 import { graphite } from "@/components/canvas/widgets/DrawingCanvas/graphite";
 import { FRAME_LABEL, paintFrame, paintFrameCanvas, tapeMeta } from "./frames";
 import { sendSketch, type SketchResult } from "./send";
@@ -65,12 +67,20 @@ const INKS = ["#2B2824", "#D9483B", "#3A5FCD", "#2F8F5B"] as const;
 const INK_NAMES = ["Graphite", "Red", "Blue", "Green"] as const;
 const FINE = 8;
 const MARKER = 18;
+/** Type size for each nib, in sheet units — about the size a label is
+ *  lettered at on a sheet this big, and a step up for the marker. */
+const TEXT_FINE = 34;
+const TEXT_MARKER = 54;
 
 /** The frame under the sketch: graphite, faint. */
 const FRAME_INK = "rgba(43, 40, 36, 0.18)";
 
 const PATHS = {
   back: "M14.5 6 8.5 12l6 6",
+  pen: "M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5 4 20zM13.5 7l3 3",
+  box: "M6.5 5h11A1.5 1.5 0 0 1 19 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 17.5v-11A1.5 1.5 0 0 1 6.5 5z",
+  arrow: "M5 19 19 5M10 5h9v9",
+  text: "M5 7V5h14v2M12 5v14M9 19h6",
   eraser:
     "M7 17h11M16.5 6.5 9 14l3.5 3.5L20 10zM9 14 5.5 10.5a1.5 1.5 0 0 1 0-2.1l3-3a1.5 1.5 0 0 1 2.1 0L14 8.5",
   undo: "M9 7 4.5 11.5 9 16M5 11.5h9.5a4.5 4.5 0 0 1 0 9H9",
@@ -78,6 +88,25 @@ const PATHS = {
   trash:
     "M4 7h16M9.5 7V5.2c0-.6.5-1.2 1.2-1.2h2.6c.7 0 1.2.6 1.2 1.2V7M6.5 7l.8 12c0 .8.6 1.4 1.4 1.4h6.6c.8 0 1.4-.6 1.4-1.4l.8-12",
 };
+
+/**
+ * What goes on the sheet, and the key that picks each.
+ *
+ * WHY MORE THAN A PENCIL. Every brief is a screen on a device frame, and a
+ * screen is mostly boxes, arrows between them and a few words. Freehand with
+ * a mouse those were the slowest, wobbliest things to get down in sixty
+ * seconds — a lettered "Pay" alone could take ten of them — so the sketch
+ * spent its time on handwriting instead of on the idea. A box, an arrow and a
+ * typed label make the wireframe quick and leave the pencil for what only a
+ * pencil can say. Pencil first: it is still most of a sketch.
+ */
+const TOOLS: { kind: ToolKind; label: string; key: string; d: keyof typeof PATHS }[] = [
+  { kind: "pen", label: "Pencil", key: "p", d: "pen" },
+  { kind: "box", label: "Box", key: "b", d: "box" },
+  { kind: "arrow", label: "Arrow", key: "a", d: "arrow" },
+  { kind: "text", label: "Text", key: "t", d: "text" },
+  { kind: "eraser", label: "Eraser", key: "e", d: "eraser" },
+];
 
 const SEND_ERRORS: Record<Extract<SketchResult, { ok: false }>["reason"], string> = {
   invalid: "Couldn't read that sketch. Try again?",
@@ -168,7 +197,15 @@ function Desk({
 
   const [color, setColor] = useState<string>(INKS[0]);
   const [size, setSize] = useState(FINE);
-  const [erasing, setErasing] = useState(false);
+  const [kind, setKind] = useState<ToolKind>("pen");
+  const erasing = kind === "eraser";
+  /** The ring is the pencil's and the eraser's cursor; the others use the
+   *  system's crosshair and I-beam, which say "drag" and "type" already. */
+  const ringed = kind === "pen" || erasing;
+  /* A label being typed: where it sits on the sheet, in sheet units. */
+  const [draft, setDraft] = useState<{ at: Pt; text: string } | null>(null);
+  const textRef = useRef<HTMLInputElement>(null);
+  const textSize = size === MARKER ? TEXT_MARKER : TEXT_FINE;
 
   // Mounted already landed: dealt in the Studio, not torn off the board.
   const [dealt] = useState(landed);
@@ -214,21 +251,79 @@ function Desk({
       const ring = ringRef.current;
       const c = inkRef.current;
       if (!ring || !c) return;
-      const r = c.getBoundingClientRect();
-      const d = Math.max(6, (size * r.width) / SHEET);
+      // Mapped the same way the ink is, so the ring is where the line lands.
+      const f = frameOf(c);
+      const p = toLocal(f, e.clientX, e.clientY);
+      const d = Math.max(6, (size * f.w) / SHEET);
       ring.style.width = `${d}px`;
       ring.style.height = `${d}px`;
-      ring.style.transform = `translate(${e.clientX - r.left}px, ${e.clientY - r.top}px) translate(-50%, -50%)`;
+      ring.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%)`;
     },
     [size],
   );
 
+  /**
+   * Lays the label being typed onto the sheet, if it says anything.
+   *
+   * Reached from Enter, from the field losing focus, from a press elsewhere
+   * with the text tool and from Done — so the field is marked once it has
+   * committed, and a second call for the same field does nothing. The font is
+   * read off the field itself, so the export sets the words in exactly the
+   * face that was on screen.
+   */
+  function commitDraft() {
+    const field = textRef.current;
+    if (draft && field && field.dataset.done !== "1") {
+      field.dataset.done = "1";
+      const text = field.value.trim();
+      if (text) {
+        ink.add({
+          kind: "text",
+          color,
+          size: textSize,
+          at: draft.at,
+          text,
+          font: getComputedStyle(field).fontFamily,
+        });
+      }
+    }
+    setDraft(null);
+  }
+
   const ink = useInk({
     canvasRef: inkRef,
-    tool: { color, size, erasing },
+    tool: { kind, color, size },
     onMove: moveRing,
+    onText: (at) => {
+      commitDraft();
+      setDraft({ at, text: "" });
+    },
     sound: graphite,
   });
+
+  // A new label takes the keyboard the moment it is on the sheet.
+  const draftAt = draft?.at;
+  useEffect(() => {
+    if (draftAt) textRef.current?.focus({ preventScroll: true });
+  }, [draftAt]);
+
+  /* P, B, A, T, E pick a tool — never while typing, and never with a
+     modifier, which belongs to undo and the browser. Captured and stopped, so
+     a letter that means something on the board behind never reaches it. */
+  useEffect(() => {
+    if (!open || phase !== "draw") return;
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.target instanceof HTMLInputElement) return;
+      const t = TOOLS.find((x) => x.key === e.key.toLowerCase());
+      if (!t) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setKind(t.kind);
+    }
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [open, phase]);
 
   // The frame under the paper, repainted at the displayed size.
   useEffect(() => {
@@ -271,6 +366,8 @@ function Desk({
   }
 
   function done() {
+    // A label still being typed is part of the sketch.
+    commitDraft();
     setYours(ink.exportSheet(SKETCH_EXPORT_PX, paper, under));
     recordHandIn(brief.id, ink.exportSheet(160, paper, under));
     setUsed(brief.seconds - left);
@@ -375,7 +472,13 @@ function Desk({
           the same strokes. */}
       <div className={styles.drawView} data-hidden={phase === "draw" ? undefined : ""}>
         <p className={styles.phoneBrief}>{brief.brief}</p>
-        <div className={styles.paper} data-cursor="none">
+        <div
+          className={styles.paper}
+          data-tool={kind}
+          /* The ring draws the pencil's pointer, so the site's cursor stands
+             down; the other tools hand the pointer back to the system's. */
+          data-cursor={ringed ? "none" : "native"}
+        >
           <canvas ref={frameRef} className={styles.layer} aria-hidden="true" />
           <canvas
             ref={inkRef}
@@ -390,58 +493,109 @@ function Desk({
               if (ringRef.current) ringRef.current.style.opacity = "0";
             }}
           />
-          <div ref={ringRef} className={styles.ring} style={{ borderColor: erasing ? INKS[0] : color }} />
+          <div
+            ref={ringRef}
+            className={styles.ring}
+            data-off={ringed ? undefined : ""}
+            style={{ borderColor: erasing ? INKS[0] : color }}
+          />
+          {draft && (
+            <input
+              /* Keyed by place, so a new label is a new field — the committed
+                 mark on the last one must not carry over. */
+              key={`${draft.at.x},${draft.at.y}`}
+              ref={textRef}
+              className={styles.label}
+              value={draft.text}
+              size={Math.max(4, draft.text.length + 1)}
+              placeholder="Label"
+              aria-label="Label text"
+              spellCheck={false}
+              autoComplete="off"
+              onChange={(e) => setDraft({ ...draft, text: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commitDraft();
+                }
+              }}
+              onBlur={commitDraft}
+              onPointerDown={(e) => e.stopPropagation()}
+              style={{
+                left: `${(draft.at.x / SHEET) * 100}%`,
+                top: `${(draft.at.y / SHEET) * 100}%`,
+                // The sheet is `--side` wide, so this is the mark's own size.
+                fontSize: `calc(var(--side) * ${textSize / SHEET})`,
+                color,
+              }}
+            />
+          )}
         </div>
 
+        {/* Three groups — what you draw with, what colour and how thick, and
+            history — so a phone can wrap between them rather than mid-thought. */}
         <div className={styles.tools} role="toolbar" aria-label="Drawing tools">
-          {INKS.map((c, i) => (
+          <div className={styles.group}>
+            {TOOLS.map((t) => (
+              <button
+                key={t.kind}
+                type="button"
+                className={styles.tool}
+                onClick={() => setKind(t.kind)}
+                aria-label={`${t.label} (${t.key.toUpperCase()})`}
+                title={`${t.label} — ${t.key.toUpperCase()}`}
+                aria-pressed={kind === t.kind}
+              >
+                <Ico d={PATHS[t.d]} />
+              </button>
+            ))}
+          </div>
+          <span className={styles.sep} />
+          <div className={styles.group}>
+            {INKS.map((c, i) => (
+              <button
+                key={c}
+                type="button"
+                className={styles.tool}
+                onClick={() => {
+                  setColor(c);
+                  // Picking a colour means you want to draw with it.
+                  if (erasing) setKind("pen");
+                }}
+                aria-label={INK_NAMES[i]}
+                aria-pressed={c === color && !erasing}
+              >
+                <span className={styles.chip} style={{ background: c }} />
+              </button>
+            ))}
+            {/* One nib button, not two: fine or marker, and the dot shows
+                which. It sets the line for boxes and arrows and the size of a
+                label too. */}
             <button
-              key={c}
               type="button"
               className={styles.tool}
               onClick={() => {
-                setColor(c);
-                setErasing(false);
+                setSize((s) => (s === FINE ? MARKER : FINE));
+                if (erasing) setKind("pen");
               }}
-              aria-label={INK_NAMES[i]}
-              aria-pressed={c === color && !erasing}
+              aria-label="Marker"
+              aria-pressed={size === MARKER}
             >
-              <span className={styles.chip} style={{ background: c }} />
+              <span className={styles.nib} style={{ width: size === MARKER ? 12 : 5, height: size === MARKER ? 12 : 5 }} />
             </button>
-          ))}
+          </div>
           <span className={styles.sep} />
-          {/* One nib button, not two: fine or marker, and the dot shows which. */}
-          <button
-            type="button"
-            className={styles.tool}
-            onClick={() => {
-              setSize((s) => (s === FINE ? MARKER : FINE));
-              setErasing(false);
-            }}
-            aria-label="Marker"
-            aria-pressed={size === MARKER}
-          >
-            <span className={styles.nib} style={{ width: size === MARKER ? 12 : 5, height: size === MARKER ? 12 : 5 }} />
-          </button>
-          <button
-            type="button"
-            className={styles.tool}
-            onClick={() => setErasing((v) => !v)}
-            aria-label="Eraser"
-            aria-pressed={erasing}
-          >
-            <Ico d={PATHS.eraser} />
-          </button>
-          <span className={styles.sep} />
-          <button type="button" className={styles.tool} disabled={!ink.canUndo} onClick={ink.undo} aria-label="Undo">
-            <Ico d={PATHS.undo} />
-          </button>
-          <button type="button" className={styles.tool} disabled={!ink.canRedo} onClick={ink.redo} aria-label="Redo">
-            <Ico d={PATHS.redo} />
-          </button>
-          <button type="button" className={styles.tool} disabled={!ink.canUndo} onClick={ink.clear} aria-label="Clear the sheet">
-            <Ico d={PATHS.trash} />
-          </button>
+          <div className={styles.group}>
+            <button type="button" className={styles.tool} disabled={!ink.canUndo} onClick={ink.undo} aria-label="Undo">
+              <Ico d={PATHS.undo} />
+            </button>
+            <button type="button" className={styles.tool} disabled={!ink.canRedo} onClick={ink.redo} aria-label="Redo">
+              <Ico d={PATHS.redo} />
+            </button>
+            <button type="button" className={styles.tool} disabled={!ink.canUndo} onClick={ink.clear} aria-label="Clear the sheet">
+              <Ico d={PATHS.trash} />
+            </button>
+          </div>
         </div>
       </div>
 

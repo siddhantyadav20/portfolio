@@ -104,7 +104,10 @@ export default function LinkedInCard() {
   return (
     <CardShell
       radius={40}
-      surface="soft"
+      /* Opaque, not the homepage's `soft`: this card only ever renders on the
+         canvas, where it sits on the drafting grid and 40% let the lines show
+         straight through it. */
+      surface="solid"
       className={`${styles.card} ${lit ? styles.lit : ""}`}
       data-card="linkedin"
     >
