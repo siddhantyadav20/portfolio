@@ -15,6 +15,17 @@ describe("readAsk", () => {
     expect(readAsk("Mostly field software §sou").text).toBe("Mostly field software");
   });
 
+  it("takes the brackets off an id cited the way the prompt shows it", () => {
+    expect(readAsk(`a\n${SOURCES_MARK} [answer:tour], [study:search]`).sources).toEqual([
+      "answer:tour",
+      "study:search",
+    ]);
+  });
+
+  it("still reads a failure that carries a status code", () => {
+    expect(readAsk(`I\n${FAILED_MARK} 429`)).toMatchObject({ text: "I", failed: true });
+  });
+
   it("keeps three sources at most, and none when the model cited none", () => {
     expect(readAsk(`a\n${SOURCES_MARK} a, b, c, d`).sources).toEqual(["a", "b", "c"]);
     expect(readAsk(`a\n${SOURCES_MARK}`).sources).toEqual([]);

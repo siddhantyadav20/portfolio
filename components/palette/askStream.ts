@@ -46,7 +46,9 @@ export function readAsk(raw: string): AskRead {
         .slice(SOURCES_MARK.length)
         .split(/[\n§]/)[0]
         .split(",")
-        .map((id) => id.trim())
+        /* Gemini cited "[answer:tour]" — the brackets the prompt shows the
+           ids in — so the brackets come off before an id is looked up. */
+        .map((id) => id.trim().replace(/^\[/, "").replace(/\]$/, "").trim())
         .filter(Boolean)
         .slice(0, 3)
     : [];

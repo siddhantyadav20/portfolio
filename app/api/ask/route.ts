@@ -70,7 +70,13 @@ export async function POST(request: Request) {
       } catch (err) {
         if (!request.signal.aborted) {
           console.error(`[ask] ${provider} stream failed`, err);
-          controller.enqueue(encoder.encode(`\n${FAILED_MARK}`));
+          /* The upstream status code rides after the marker — "§failed 429" —
+             and nothing else from the error does. The palette shows the same
+             sentence either way; the number is what lets a failure be told
+             apart from outside without the server logs: 429 is the free
+             tier's quota, 5xx is Google's side. */
+          const code = err instanceof Error ? (/\b([45]\d\d)\b/.exec(err.message)?.[1] ?? "") : "";
+          controller.enqueue(encoder.encode(`\n${FAILED_MARK}${code ? ` ${code}` : ""}`));
         }
       } finally {
         controller.close();
