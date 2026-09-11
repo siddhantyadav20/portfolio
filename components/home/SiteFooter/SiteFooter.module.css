@@ -112,8 +112,25 @@
   line-height: var(--lh-wide);
   color: var(--ink-60);
   text-decoration: underline;
+  /* A step lighter than the words at rest, so the hover below has somewhere
+     to go: the underline darkening with the text is what makes a grey caption
+     read as a link. */
+  text-decoration-color: var(--ink-40);
   text-underline-offset: 2px;
   white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
+}
+
+/* It sat at the same grey as the credit beside it and did nothing under the
+   pointer, so it read as a caption. Full ink on hover and on keyboard focus.
+   Not on the placeholder, which goes nowhere. */
+.making:not([data-placeholder]):hover,
+.making:not([data-placeholder]):focus-visible {
+  color: var(--ink);
+  text-decoration-color: var(--ink);
 }
 
 @media (width < 700px) {
