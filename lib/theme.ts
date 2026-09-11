@@ -14,6 +14,10 @@ export const THEME_ATTR = "data-theme";
 
 export const THEME_KEY = "sy-theme";
 
+/** Fired on window whenever the theme on <html> changes — by the toggle, or
+ *  by the pre-paint script following the device. */
+export const THEME_EVENT = "sy-themechange";
+
 /**
  * The browser chrome's colour, per theme — the page as *painted*, which is not
  * `--page-base`.
@@ -73,35 +77,59 @@ export const CHROME: Record<Theme, string> = {
  * shows every dark-mode visitor a full white page first. The flash is worst
  * on a slow connection, which is exactly when it is least excusable.
  *
- * Wrapped in try/catch because `localStorage` throws outright in Safari's
- * private mode and under some embedded webviews. A theme is not worth a blank
- * page, so a failure here falls through to the light default in globals.css.
+ * Storage is read inside its own try/catch, because `localStorage` throws
+ * outright in Safari's private mode and under some embedded webviews. It used
+ * to wrap the whole script, so a private window got the light default in
+ * globals.css whatever the device said; now it just reads as "nothing chosen"
+ * and the device decides.
  *
  * Kept as a string, and deliberately terse — it ships in the HTML on every
  * request, and it is small enough that a build step would cost more than it
  * saves. It is minified by hand; the readable version is:
  *
- *     const stored = localStorage.getItem(THEME_KEY);
- *     const prefersDark = matchMedia("(prefers-color-scheme: dark)").matches;
- *     const theme = stored === "light" || stored === "dark"
- *       ? stored
- *       : prefersDark ? "dark" : "light";
- *     document.documentElement.setAttribute(THEME_ATTR, theme);
+ *     const system = matchMedia("(prefers-color-scheme: dark)");
+ *     const stored = () => { try { return localStorage.getItem(THEME_KEY) } catch { return null } };
+ *     const paint = (theme) => {
+ *       document.documentElement.setAttribute(THEME_ATTR, theme);
+ *       // replace, don't edit, the browser-chrome meta — see paintChrome
+ *     };
+ *     const s = stored();
+ *     paint(s === "light" || s === "dark" ? s : system.matches ? "dark" : "light");
+ *     system.addEventListener("change", (e) => {
+ *       if (stored()) return;
+ *       paint(e.matches ? "dark" : "light");
+ *       dispatchEvent(new Event(THEME_EVENT));
+ *     });
  *
- * Note the precedence: a stored choice always wins over the OS. Someone who
- * picked light on a dark-mode machine meant it.
+ * THE PRECEDENCE, AND THE WAY BACK. A stored choice wins over the device —
+ * someone who picked light on a dark-mode machine meant it. But there used to
+ * be no way to un-choose: one press of the toggle pinned the site to that
+ * theme on every later visit, even after switching back, and nobody could
+ * tell why the site had stopped following their device. So picking the theme
+ * the device already asks for now stores nothing (see `storedChoice`), and the
+ * site is back to following it.
+ *
+ * FOLLOWING IT LIVE. With nothing stored, a device that changes appearance —
+ * macOS going dark at sunset — used to leave an open tab in the old theme
+ * until a reload. The listener above repaints it and tells the toggles. It
+ * lives in this script, not in React, so it is registered once per page load
+ * whatever else has or has not loaded.
  */
-export const THEME_SCRIPT = `try{var s=localStorage.getItem(${JSON.stringify(
+export const THEME_SCRIPT = `try{var q=matchMedia("(prefers-color-scheme: dark)");function g(){try{return localStorage.getItem(${JSON.stringify(
   THEME_KEY,
-)});var t=s==="light"||s==="dark"?s:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute(${JSON.stringify(
+)})}catch(e){return null}}function p(t){document.documentElement.setAttribute(${JSON.stringify(
   THEME_ATTR,
-)},t);var m=document.createElement("meta");m.id=${JSON.stringify(
+)},t);var o=document.getElementById(${JSON.stringify(
+  CHROME_ID,
+)});if(o)o.remove();var m=document.createElement("meta");m.id=${JSON.stringify(
   CHROME_ID,
 )};m.name="theme-color";m.content=t==="dark"?${JSON.stringify(
   CHROME.dark,
 )}:${JSON.stringify(
   CHROME.light,
-)};document.head.insertBefore(m,document.head.firstChild)}catch(e){}`;
+)};document.head.insertBefore(m,document.head.firstChild)}var s=g();p(s==="light"||s==="dark"?s:q.matches?"dark":"light");q.addEventListener("change",function(e){if(g())return;p(e.matches?"dark":"light");dispatchEvent(new Event(${JSON.stringify(
+  THEME_EVENT,
+)}))})}catch(e){}`;
 
 /* ===========================================================================
    The theme as an external store.
@@ -117,7 +145,7 @@ export const THEME_SCRIPT = `try{var s=localStorage.getItem(${JSON.stringify(
    read the same attribute rather than three copies that could drift.
    =========================================================================== */
 
-const EVENT = "sy-themechange";
+const EVENT = THEME_EVENT;
 
 /** What the pre-paint script left on <html>. Client-side only. */
 export function readTheme(): Theme {
@@ -200,11 +228,28 @@ export function paintChrome(theme: Theme) {
   }
 }
 
+/** What the device asks for, right now. Client-side only. */
+export function systemTheme(): Theme {
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+/**
+ * What to remember for a choice: nothing at all when it is what the device
+ * already asks for — see "the precedence, and the way back" over
+ * `THEME_SCRIPT`. The toggle stays a plain two-way switch; picking the
+ * device's own theme is simply how you hand the decision back to the device.
+ */
+export function storedChoice(theme: Theme, system: Theme): Theme | null {
+  return theme === system ? null : theme;
+}
+
 export function writeTheme(theme: Theme) {
   document.documentElement.setAttribute(THEME_ATTR, theme);
   paintChrome(theme);
   try {
-    localStorage.setItem(THEME_KEY, theme);
+    const keep = storedChoice(theme, systemTheme());
+    if (keep) localStorage.setItem(THEME_KEY, keep);
+    else localStorage.removeItem(THEME_KEY);
   } catch {
     // Storage denied. The theme still applies for this page; it just won't
     // survive a reload, which is a better outcome than throwing.
