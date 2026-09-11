@@ -22,6 +22,9 @@ import { STUDIES } from "@/content/work";
 
 export type AnswerRow = {
   readonly label: string;
+  /** The number, when the row is one — drawn as the hero of a stat chip, with
+   *  `value` as what it counts. */
+  readonly figure?: string;
   readonly value: string;
   /** The quiet line under the value. */
   readonly note?: string;
@@ -67,7 +70,10 @@ function shipped(): Answer {
     for (const item of items) {
       rows.push({
         label: study.title,
-        value: `${item.value} ${item.label.toLowerCase()}`,
+        figure: item.value,
+        // The homepage's chips are sentence case — "281 Reusable Token" —
+        // and the outcome labels are stored in caps for the study's tiles.
+        value: item.label.charAt(0).toUpperCase() + item.label.slice(1).toLowerCase(),
         note: item.note,
         to: { kind: "study", slug: study.slug },
       });

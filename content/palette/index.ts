@@ -93,6 +93,10 @@ const questions: PaletteEntry[] = [
       title: intro.title,
       subtitle: intro.note,
       body: intro.tagline,
+      /* The three studies' own stills, fanned — a tour is all of the work at
+         once, and the card that introduces it should show the work rather
+         than a sentence floating in white. */
+      stack: STUDIES.flatMap((study) => (study.hero ? [heroStill(study.hero)] : [])).slice(0, 3),
     },
   },
   {
@@ -138,7 +142,7 @@ const questions: PaletteEntry[] = [
     preview: {
       title: profile.status.text,
       subtitle: profile.role,
-      image: { src: profile.avatar, alt: profile.name },
+      avatar: { src: profile.avatar, alt: profile.name },
       facts: [
         ["Where", profile.location],
         ["Now", timeline.entries[timeline.entries.length - 1].context],
@@ -223,6 +227,14 @@ function fromStudies(): PaletteEntry[] {
            grey brick above the title. The sentence is the body's job. */
         subtitle: study.helpers?.join(" · "),
         image: still,
+        /* The study's first published number, on its photo. Absent for a
+           study with no outcomes yet — a gap, never a filler line. */
+        chip: study.outcomes?.items[0]
+          ? {
+              value: study.outcomes.items[0].value,
+              label: study.outcomes.items[0].label.toLowerCase(),
+            }
+          : undefined,
         /* The meta list, minus the rows that have not been written. A study
            with `Role: null` shows its scaffold on the page, deliberately —
            but a preview is a glance, and a glance made mostly of gaps reads

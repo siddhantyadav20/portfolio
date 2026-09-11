@@ -106,12 +106,24 @@ export type PalettePreview = {
   readonly title: string;
   readonly subtitle?: string;
   readonly image?: { readonly src: string; readonly alt: string };
+  /** A person rather than a picture — drawn round, the way the site draws
+   *  Siddhant everywhere else, never letterboxed in a 16:10 frame. */
+  readonly avatar?: { readonly src: string; readonly alt: string };
+  /** Several pictures, fanned like the canvas's photo stack — for a preview
+   *  that is about all of the work at once. */
+  readonly stack?: readonly { readonly src: string; readonly alt: string }[];
   /** The big-number treatment, for an outcome. */
   readonly figure?: {
     readonly value: string;
     readonly label: string;
     readonly note?: string;
   };
+  /**
+   * One outcome, laid over the image the way the homepage lays one over each
+   * study's photo — "Cut reporting time by 13 minutes…". The picture says what
+   * the work looks like and the chip says what it changed.
+   */
+  readonly chip?: { readonly value: string; readonly label: string };
   /** Which of the study washes this carries. */
   readonly tint?: "amber" | "teal" | "violet";
   /** Small label/value pairs under the image. */

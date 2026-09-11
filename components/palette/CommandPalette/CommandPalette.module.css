@@ -101,6 +101,18 @@
 }
 
 .panel {
+  /* THE HOMEPAGE'S TWO MATERIALS, not a dev tool's one. The panel is the
+     page's ground, and whatever you are pointing at is a card lifted off it —
+     the armed row, the peek — the way the homepage sets white cards on
+     #efefef. The old panel was one flat sheet with grey washes laid on it,
+     which is every palette's material and none of this site's. */
+  --pal-ground: #f4f4f2;
+  --pal-card: #ffffff;
+  --pal-line: rgba(34, 34, 34, 0.08);
+  --pal-lift: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 22px -8px rgb(0 0 0 / 0.16);
+  /* The homepage's key cap — the white "⌘K" chip inside Search Portfolio. */
+  --pal-key-shadow: 0 0 12px rgb(145 158 171 / 0.32);
+
   display: flex;
   flex-direction: column;
   /* Wide enough for a list and a picture side by side. It was 620 when it was
@@ -114,8 +126,8 @@
      shadow alone left the top corners dissolving into the blur — the sheet had
      no edge, which is most of what made it read as unfinished. One pixel of
      ink at 8% is the whole fix. */
-  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
-  background-color: var(--surface-raised);
+  border: 1px solid var(--pal-line);
+  background-color: var(--pal-ground);
   /* Three casts rather than one. A single 90px blur is a grey cloud; contact,
      form and ambient is what a sheet lifted off a page actually drops. */
   box-shadow:
@@ -155,6 +167,17 @@
     transform 200ms cubic-bezier(0.32, 0, 0.24, 1);
 }
 
+/* Dark keeps the same two steps — a ground and a card a shade up — on the
+   site's dark card colours. The shadows mostly stop being visible over #181818,
+   so the lift is carried by the step in value and a top hairline of light. */
+:global(html[data-theme="dark"]) .panel {
+  --pal-ground: #181818;
+  --pal-card: #252525;
+  --pal-line: rgba(255, 255, 255, 0.07);
+  --pal-lift: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 10px 24px -10px rgb(0 0 0 / 0.6);
+  --pal-key-shadow: none;
+}
+
 /* --- The field ----------------------------------------------------------- */
 
 .field {
@@ -162,8 +185,8 @@
   align-items: center;
   gap: 12px;
   flex: 0 0 auto;
-  padding: 17px 18px 17px 20px;
-  border-bottom: 1px solid var(--ink-20);
+  padding: 18px 16px 18px 22px;
+  border-bottom: 1px solid var(--pal-line);
 }
 
 .glyph {
@@ -180,8 +203,11 @@
   border: none;
   outline: none;
   background: none;
-  font-family: var(--font-ui);
-  font-size: 16px;
+  /* In the display face. The question is asked the way the homepage says
+     "Hi, I'm Siddhant" — a person talking, not a search field in a tool. */
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 500;
   color: var(--ink-strong);
 }
 
@@ -216,28 +242,31 @@
   color: var(--ink-50);
 }
 
+/* The homepage's key cap, not a terminal's: a white pill with a soft cast and
+   the key in the site's key ink, exactly as "⌘K" sits in Search Portfolio.
+   The monospace outlined boxes it replaced are what made every key on the
+   panel read as a developer's tool. */
 .esc {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  min-width: 34px;
-  min-height: 28px;
-  padding: 3px 8px;
-  border: 1px solid var(--ink-20);
-  border-radius: 7px;
-  background: none;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 11px;
-  color: var(--ink-40);
+  min-width: 36px;
+  min-height: 24px;
+  padding: 0 9px;
+  border: none;
+  border-radius: var(--r-pill);
+  background-color: var(--pal-card);
+  box-shadow: var(--pal-key-shadow);
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--kbd-ink);
   cursor: pointer;
-  transition:
-    color 120ms ease,
-    border-color 120ms ease;
+  transition: color 120ms ease;
 }
 
 .esc:hover {
-  color: var(--ink-70);
-  border-color: var(--ink-40);
+  color: var(--ink-strong);
 }
 
 .escGlyph {
@@ -269,7 +298,7 @@
    reflow as you arrow between a row with a picture and one without. */
 .body {
   display: grid;
-  grid-template-columns: 400px 1fr;
+  grid-template-columns: 380px 1fr;
   flex: 1 1 auto;
   min-height: 0;
 }
@@ -281,8 +310,9 @@
      element parks at the top of the *padding* box — eight pixels of padding
      would leave an eight-pixel sliver above every parked heading with rows
      sliding through it. The first heading carries the top space itself. */
-  padding: 0 8px 8px;
-  border-right: 1px solid var(--ink-20);
+  /* No rule down the middle: the peek is a card of its own, and a card does
+     not need a line to say where it starts. */
+  padding: 0 8px 10px 10px;
   scrollbar-width: thin;
   scrollbar-color: var(--ink-20) transparent;
 }
@@ -296,73 +326,94 @@
    third case study by parsing three labels. With a glyph the eye finds it by
    shape, which is why every palette worth copying has one. See `Glyph.tsx` for
    why these are drawn rather than loaded. */
+/* Two tracks: what leads the row, and the words. The lead is `auto` — most
+   are a 36px square, but an evidence row leads with its own number, and
+   "~11,000" is wider than a square. */
 .row {
   position: relative;
   display: grid;
-  grid-template-columns: 26px minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
-  padding: 8px 10px;
-  border-radius: 11px;
+  padding: 7px 12px 7px 7px;
+  border-radius: 14px;
   cursor: pointer;
   scroll-margin: 10px;
+  transition:
+    background-color 160ms ease,
+    box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* The rail, growing out of the middle of the row it marks.
+/* THE ARMED ROW IS A CARD, lifted off the ground — the homepage's gesture,
+   white on the palette's #f4f4f2 — where it used to be a grey wash with an
+   orange rail, which is what every palette wears.
 
-   A flat wash alone said "the pointer is somewhere near here". This row is not
-   hovered, it is *armed* — it is the one Enter runs — and that deserves a mark
-   that arrives rather than one that is simply present. Height rather than
-   opacity or scale, so it grows from its own centre and reads as extending.
-
-   Drawn as a positioned pseudo-element and not an inset box-shadow: an inset
-   shadow is clipped by the row's 11px radius, so a 2px rail comes out as a
-   crescent that is thin at both ends. */
-.row::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 2.5px;
-  height: 0;
-  border-radius: 2px;
-  background-color: var(--accent);
-  transform: translateY(-50%);
-  transition: height 200ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Driven by `data-active` rather than `:hover`, so the pointer and the arrow
+   Driven by `data-active` rather than `:hover`, so the pointer and the arrow
    keys cannot disagree about which row is the one Enter will run. Moving the
    mouse sets `active`; that is the only thing hover does. */
 .row[data-active="true"] {
-  background-color: color-mix(in srgb, var(--ink) 6%, transparent);
+  background-color: var(--pal-card);
+  box-shadow: var(--pal-lift);
 }
 
-.row[data-active="true"]::before {
-  height: 20px;
-}
+/* --- What leads a row --------------------------------------------------------
+   The thing itself, wherever there is one — see `Lead` in Results.tsx. */
 
-/* The mark, in a ground rather than loose.
-
-   A 16px stroke floating beside a 14px label is a speck. Centred in a 26px
-   tile it is an anchor — and the tile gives the active state somewhere to put
-   the accent that is not the text, which would have made the label shout. */
+/* A drawn mark, for rows with nothing to show. Bare now: the grey tile it sat
+   in made every row the same shape, which is the look being left behind. */
 .rowIcon {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
   color: var(--ink-40);
-  background-color: color-mix(in srgb, var(--ink) 5%, transparent);
-  transition:
-    color 140ms ease,
-    background-color 140ms ease;
+  transition: color 140ms ease;
 }
 
 .row[data-active="true"] .rowIcon {
+  color: var(--ink-strong);
+}
+
+/* A study's own photo, at row size. */
+.leadThumb {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  object-fit: cover;
+  background-color: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+/* 01–04 down "Start here", in the accent and the display face: the homepage's
+   "5 yr", and a path to follow rather than four sparkles. */
+.leadNum {
+  width: 36px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
   color: var(--accent);
-  background-color: var(--accent-wash);
+}
+
+/* An outcome leads with its number, in the homepage's stat chip — "281
+   Reusable Token": a green-edged, faintly green glass. */
+.leadFigure {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  height: 30px;
+  padding: 0 9px;
+  box-sizing: border-box;
+  border: 1px solid rgb(from var(--green) r g b / 0.22);
+  border-radius: 10px;
+  background-image: linear-gradient(107deg, rgb(255 255 255 / 0.2) 5%, rgb(124 216 153 / 0.2) 369%);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ink-strong);
 }
 
 .rowText {
@@ -382,6 +433,7 @@
 .label {
   font-family: var(--font-ui);
   font-size: 14px;
+  font-weight: 500;
   color: var(--ink-strong);
   white-space: nowrap;
   overflow: hidden;
@@ -391,36 +443,15 @@
 .hint {
   font-family: var(--font-ui);
   font-size: 12px;
-  color: var(--ink-40);
+  color: var(--ink-50);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Drawn on every row, revealed on the active one — see the note in Results.
-   Mounting it per-row would resize the text column under the cursor. */
-.rowEnter {
-  display: grid;
-  place-items: center;
-  width: 21px;
-  height: 21px;
-  border-radius: 6px;
-  border: 1px solid var(--ink-20);
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 10px;
-  line-height: 1;
-  color: var(--ink-50);
-  opacity: 0;
-  transform: translateX(-3px);
-  transition:
-    opacity 140ms ease,
-    transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.row[data-active="true"] .rowEnter {
-  opacity: 1;
-  transform: none;
-}
+/* No ↵ key on the armed row any more. The row lifting into a card already
+   says "this one", and the peek's button says what Enter does — a third
+   signal in a bordered monospace box was the loudest thing on the list. */
 
 /* The opening cascade. Applied only before anything is typed — Results.tsx
    carries the reasoning, and the `backwards` fill is what makes the delay
@@ -440,19 +471,23 @@
    ground and the negative side margins, which stretch that ground across the
    list's own 8px gutters. Without them the rows scroll visibly through two
    thin channels either side of the heading. */
+/* Sentence case, the homepage's eyebrow — "Currently Building", "Scaling a" —
+   rather than tracked-out caps, which is the palette-kit convention. */
 .groupLabel {
   position: sticky;
   top: 0;
   z-index: 1;
-  margin: 0 -8px;
-  padding: 14px 20px 6px;
-  background-color: var(--surface-raised);
+  margin: 0 -8px 0 -10px;
+  padding: 16px 20px 7px 17px;
+  background-color: var(--pal-ground);
   font-family: var(--font-ui);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-40);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-50);
+}
+
+.groupLabel[data-lead] {
+  color: var(--accent);
 }
 
 .mark {
@@ -467,11 +502,24 @@
 
    The scroll lives on the inner block rather than here, so the bar stays put
    against the bottom edge instead of scrolling away with a long preview. */
+/* A card on the ground — see Peek.tsx. */
 .peek {
+  --sq-r: var(--r-lg);
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   min-height: 0;
+  margin: 6px 10px 10px 2px;
+  background-color: var(--pal-card);
+  box-shadow: var(--pal-lift);
+  overflow: hidden;
   animation: peekIn 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Nothing highlighted — a search that found nothing. A blank white card
+   beside "Nothing here matches" read as a preview that failed to load. */
+.peek:empty {
+  background: none;
+  box-shadow: none;
 }
 
 @keyframes peekIn {
@@ -503,7 +551,7 @@
   justify-content: safe center;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 20px;
+  padding: 16px 18px 12px;
   scrollbar-width: thin;
   scrollbar-color: var(--ink-20) transparent;
 }
@@ -527,82 +575,146 @@
 .peekBareIcon {
   display: grid;
   place-items: center;
-  width: 60px;
-  height: 60px;
-  --sq-r: var(--r-sm);
-  background-color: color-mix(in srgb, var(--ink) 5%, transparent);
-  color: var(--ink-40);
+  width: 64px;
+  height: 64px;
+  --sq-r: var(--r-md);
+  background-color: var(--pal-ground);
+  color: var(--ink-60);
 }
 
 .peekBareIcon svg {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
 }
 
 .peekBareLabel {
-  max-width: 26ch;
+  max-width: 24ch;
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: 22px;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.25;
   color: var(--ink-strong);
 }
 
 .peekBareHint {
   font-family: var(--font-ui);
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--ink-50);
 }
 
-/* The floor. What Enter does, said once, where the eye lands after reading. */
-.peekBar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 20px;
-  border-top: 1px solid var(--ink-20);
+/* --- The button at the foot --------------------------------------------------
+   The homepage's "Search Portfolio ⌘K": a pale glass pill, a mark, the words
+   in semibold, and the key in a white cap at the end. It replaced a status bar
+   ruled across the bottom of the column, which told you what Enter did in
+   12px grey and could not itself be pressed. */
+.peekFoot {
+  padding: 4px 18px 18px;
 }
 
-.peekBarIcon {
+.peekCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 8px 8px 8px 14px;
+  border: none;
+  border-radius: var(--r-pill);
+  background-image: linear-gradient(117deg, rgb(255 255 255 / 0.6) 5%, rgb(217 217 217 / 0.6) 369%);
+  background-color: var(--pal-ground);
+  box-shadow: inset 0 0 0 1px var(--pal-line);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-strong);
+  cursor: pointer;
+  transition: box-shadow 200ms ease, transform 160ms ease;
+}
+
+.peekCta:hover {
+  box-shadow: inset 0 0 0 1px var(--pal-line), var(--pal-lift);
+}
+
+.peekCta:active {
+  transform: scale(0.98);
+}
+
+.peekCtaIcon {
   display: grid;
   place-items: center;
   color: var(--accent);
 }
 
-.peekBarIcon svg {
-  width: 14px;
-  height: 14px;
+.peekCtaIcon svg {
+  width: 16px;
+  height: 16px;
 }
 
-.peekBarVerb {
-  flex: 1 1 auto;
+.peekCtaVerb {
   min-width: 0;
-  font-family: var(--font-ui);
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--ink-70);
-  white-space: nowrap;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.peekBarKey {
-  flex: 0 0 auto;
+.peekCtaKey {
+  flex: none;
   display: grid;
   place-items: center;
-  width: 21px;
-  height: 21px;
-  border-radius: 6px;
-  border: 1px solid var(--ink-20);
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 10px;
+  min-width: 32px;
+  height: 24px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border-radius: var(--r-pill);
+  background-color: var(--pal-card);
+  box-shadow: var(--pal-key-shadow);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
   line-height: 1;
-  color: var(--ink-50);
+  color: var(--kbd-ink);
+}
+
+:global(html[data-theme="dark"]) .peekCta {
+  background-image: none;
+  background-color: #2f2f31;
+}
+
+:global(html[data-theme="dark"]) .peekCtaKey {
+  background-color: #3a3a3c;
+}
+
+/* The picture, with room to lay the evidence chip over it. */
+.peekMedia {
+  position: relative;
+  --sq-r: var(--r-md);
+  overflow: hidden;
+  flex: none;
+}
+
+/* The homepage's "Cut reporting time by 13 minutes…" chip: frosted over the
+   photograph, green-edged, white words. A dark veil under the frost so it
+   reads over a light screenshot as well as over a dark photo. */
+.peekChip {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  max-width: min(62%, 220px);
+  padding: 10px 12px;
+  --sq-r: var(--r-sm);
+  border: 1px solid rgb(88 169 66 / 0.25);
+  background-color: rgb(20 20 20 / 0.28);
+  background-image: linear-gradient(98deg, rgb(255 255 255 / 0.2) 5%, rgb(124 216 153 / 0.2) 369%);
+  backdrop-filter: blur(12px) saturate(1.2);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #fff;
 }
 
 .peekImage {
+  display: block;
   width: 100%;
-  --sq-r: var(--r-sm);
   /* Fixed box, because the column must not resize as you arrow between a wide
      screenshot and a tall book cover — the list beside it would jump.
 
@@ -613,10 +725,81 @@
   /* 16:10 rather than 4:3. At this column width 4:3 was 345px of picture, which
      pushed the title, the paragraph and the facts below the fold on every
      study — a preview you have to scroll is not a preview. */
-  aspect-ratio: 16 / 10;
-  max-height: 240px;
+  /* 16:9 and capped, so the title, a three-line body and the facts all fit
+     under it at the panel's height; at 16:10 the body ran under the button. */
+  aspect-ratio: 16 / 9;
+  max-height: 176px;
   object-fit: contain;
-  background-color: color-mix(in srgb, var(--ink) 5%, transparent);
+  background-color: var(--pal-ground);
+}
+
+/* A study's still is a photograph, and the homepage crops its photographs to
+   fill the card. Covers keep `contain` above. */
+.peekImage[data-fill] {
+  object-fit: cover;
+}
+
+/* The work, fanned like the canvas's photo stack: three stills on white
+   borders, tilted either side of the middle one, dealt out from a single pile
+   when the card arrives. `--at` is −1, 0, 1. */
+.peekStack {
+  position: relative;
+  flex: none;
+  height: 164px;
+  margin-bottom: 6px;
+}
+
+.peekStackCard {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44%;
+  aspect-ratio: 4 / 3;
+  --sq-r: 14px;
+  object-fit: cover;
+  border: 4px solid var(--pal-card);
+  background-color: var(--pal-ground);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.06), 0 14px 28px -10px rgb(0 0 0 / 0.3);
+  transform: translate(-50%, -50%) translateX(calc(var(--at) * 62%))
+    rotate(calc(var(--at) * 7deg)) translateY(calc(var(--at) * var(--at) * 6%));
+  animation: deal 520ms var(--spring) backwards;
+}
+
+@keyframes deal {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.96);
+  }
+}
+
+/* A person, drawn round — the site draws Siddhant this way everywhere — with
+   the canvas profile card's green "open" dot, since this is the availability
+   answer. */
+.peekPerson {
+  position: relative;
+  align-self: flex-start;
+  flex: none;
+}
+
+.peekAvatar {
+  display: block;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--pal-card);
+  box-shadow: 0 8px 20px -8px rgb(0 0 0 / 0.3);
+}
+
+.peekPerson::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--pal-card);
+  border-radius: 50%;
+  background-color: var(--green);
 }
 
 .peekText {
@@ -625,70 +808,82 @@
   gap: 6px;
 }
 
+/* The homepage's eyebrow — "Currently Building" — in sentence case and the
+   accent, where it was tracked-out grey caps. */
 .peekEyebrow {
   font-family: var(--font-ui);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-40);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--accent);
 }
 
 .peekTitle {
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: 23px;
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.2;
   color: var(--ink-strong);
 }
 
 .peekBody {
   font-family: var(--font-ui);
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: var(--lh-read);
   color: var(--ink-60);
-  /* Four lines. A preview that runs longer than the list beside it stops being
-     a preview. */
+  /* Three lines. A preview that runs longer than the list beside it stops
+     being a preview. */
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
+/* Under a photograph, two. The picture is already doing the describing, and
+   the third line was what pushed a study's fact pills under the button. */
+.peekMedia ~ .peekText .peekBody {
+  -webkit-line-clamp: 2;
+}
+
+/* Facts as pills — the Pill frames under every study on the homepage — rather
+   than a ruled two-column table. */
 .peekFacts {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 6px;
-  padding-top: 12px;
-  border-top: 1px solid var(--ink-20);
 }
 
 .peekFact {
-  display: flex;
+  display: inline-flex;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: var(--r-pill);
+  background-color: var(--pal-ground);
   font-family: var(--font-ui);
   font-size: 12px;
 }
 
 .peekFact dt {
-  color: var(--ink-40);
+  color: var(--ink-50);
 }
 
 .peekFact dd {
   color: var(--ink-strong);
-  text-align: right;
+  font-weight: 500;
 }
 
-/* The outcome tile, wearing the wash it wears on the page. */
+/* An outcome, as the homepage's stat chip at hero size: a green-edged glass
+   with the number first. A study wash, where the outcome has one, still
+   underlies it — so the number looks here as it does where it is published. */
 .figure {
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 22px 20px 20px;
   --sq-r: var(--r-md);
-  background-color: var(--peek-wash, color-mix(in srgb, var(--ink) 5%, transparent));
+  border: 1px solid rgb(from var(--green) r g b / 0.22);
+  background-color: var(--pal-ground);
+  background-image: linear-gradient(107deg, rgb(255 255 255 / 0.2) 5%, rgb(124 216 153 / 0.22) 369%);
 }
 
 .peek[data-tint="amber"] .figure {
@@ -705,26 +900,27 @@
 
 .figureValue {
   font-family: var(--font-display);
-  font-size: 40px;
+  font-size: 52px;
   font-weight: 700;
   line-height: 1;
   color: var(--ink-strong);
 }
 
+/* Then the chip's two lines: what it counts in semibold ink, the
+   qualification in green — "281 Reusable Token / Used across 12 products". */
 .figureLabel {
-  margin-top: 8px;
+  margin-top: 10px;
   font-family: var(--font-ui);
-  font-size: 10.5px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-60);
+  color: var(--ink-strong);
 }
 
 .figureNote {
   font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--ink-60);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--green);
 }
 
 /* --- Nothing found -------------------------------------------------------- */
@@ -758,20 +954,305 @@
   color: var(--accent);
 }
 
+/* --- Ask me instead --------------------------------------------------------
+   The offer, in the homepage's pill with his face where the icon goes, and
+   the answer view — see Ask.tsx. */
+
+.askOffer {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 6px 7px 6px 6px;
+  border: none;
+  border-radius: var(--r-pill);
+  background-image: linear-gradient(117deg, rgb(255 255 255 / 0.6) 5%, rgb(217 217 217 / 0.6) 369%);
+  background-color: var(--pal-card);
+  box-shadow: inset 0 0 0 1px var(--pal-line), var(--pal-lift);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-strong);
+  cursor: pointer;
+  transition: transform 160ms ease;
+}
+
+.askOffer:active {
+  transform: scale(0.98);
+}
+
+.askOffer img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+:global(html[data-theme="dark"]) .askOffer {
+  background-image: none;
+  background-color: #2f2f31;
+}
+
+.ask {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 26px 28px 24px;
+}
+
+.askEyebrow {
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.askQuestion {
+  max-width: 30ch;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.18;
+  color: var(--ink-strong);
+}
+
+.askBody {
+  min-height: 80px;
+  margin-top: 6px;
+}
+
+.askAnswer {
+  max-width: 62ch;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--ink-strong);
+}
+
+/* The pen, while it is writing. */
+.askCaret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 3px;
+  vertical-align: -3px;
+  border-radius: 1px;
+  background-color: var(--accent);
+  animation: caret 1s steps(2, start) infinite;
+}
+
+@keyframes caret {
+  to {
+    visibility: hidden;
+  }
+}
+
+.askThinking {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  color: var(--ink-50);
+}
+
+/* Three dots, drawn by one pseudo-element stepping through its content. */
+.askThinking span::after {
+  content: "";
+  animation: dots 1.2s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+}
+
+.askStatus {
+  max-width: 52ch;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-60);
+}
+
+.askSources {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.askSourcesLabel {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-50);
+}
+
+.askChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.askChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 7px 14px 7px 10px;
+  border: none;
+  border-radius: var(--r-pill);
+  background-color: var(--pal-card);
+  box-shadow: var(--pal-lift);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-strong);
+  cursor: pointer;
+  transition: transform 200ms var(--spring);
+}
+
+.askChip:hover {
+  transform: translateY(-1px);
+}
+
+.askChip svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--accent);
+}
+
+.askChip span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* What it is, said once and quietly: an AI answer, from the site. */
+.askNote {
+  margin-top: auto;
+  padding-top: 10px;
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  color: var(--ink-40);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .askCaret,
+  .askThinking span::after {
+    animation: none;
+  }
+
+  .askThinking span::after {
+    content: "…";
+  }
+}
+
 /* --- An answer ------------------------------------------------------------ */
 
 .answer {
   flex: 1 1 auto;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 22px 24px 24px;
+  padding: 24px 28px 28px;
 }
 
 .answerTitle {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--ink-strong);
+}
+
+/* --- The wall of numbers — see `Wall` in Answer.tsx ------------------------ */
+
+.wall {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin-top: 22px;
+}
+
+.wallTitle {
+  margin-bottom: 10px;
+  font-family: var(--font-display);
+  font-size: 17px;
   font-weight: 700;
   color: var(--ink-strong);
+}
+
+.wallStats {
+  display: grid;
+  /* `auto-fit`, not `auto-fill`: fill keeps an empty fourth track at this
+     width and the three chips stopped two-thirds of the way across. */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+/* The homepage's stat chip, at card size, on a white card so it lifts off the
+   palette's ground the way the chip lifts off its study card. */
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 16px 16px 14px;
+  --sq-r: var(--r-md);
+  border: 1px solid rgb(from var(--green) r g b / 0.22);
+  background-color: var(--pal-card);
+  background-image: linear-gradient(107deg, rgb(255 255 255 / 0.2) 5%, rgb(124 216 153 / 0.2) 369%);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 200ms ease, transform 200ms var(--spring);
+}
+
+.stat:hover:not(:disabled) {
+  box-shadow: var(--pal-lift);
+  transform: translateY(-1px);
+}
+
+.stat:disabled {
+  cursor: default;
+}
+
+/* A study with no numbers published yet: its subtitle, without the green —
+   a visible gap rather than a borrowed look. */
+.stat[data-plain] {
+  border-color: var(--pal-line);
+  background-image: none;
+}
+
+.statValue {
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-size: 30px;
+  white-space: nowrap;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-strong);
+}
+
+.statLabel {
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink-strong);
+}
+
+.statNote {
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--green);
 }
 
 .answerLead {
@@ -847,8 +1328,8 @@
   justify-content: space-between;
   gap: 16px;
   flex: 0 0 auto;
-  padding: 9px 18px;
-  border-top: 1px solid var(--ink-20);
+  padding: 10px 18px;
+  border-top: 1px solid var(--pal-line);
 }
 
 .toast,
@@ -874,19 +1355,23 @@
   white-space: nowrap;
 }
 
+/* The same white key cap as the field's `esc` and the homepage's ⌘K. */
 .hints kbd {
   display: inline-grid;
   place-items: center;
-  min-width: 19px;
-  height: 19px;
-  padding: 0 5px;
-  margin-left: 6px;
-  border: 1px solid var(--ink-20);
-  border-radius: 5px;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  min-width: 24px;
+  height: 20px;
+  padding: 0 7px;
+  margin-left: 8px;
+  box-sizing: border-box;
+  border-radius: var(--r-pill);
+  background-color: var(--pal-card);
+  box-shadow: var(--pal-key-shadow);
+  font-family: var(--font-ui);
   font-size: 10.5px;
+  font-weight: 500;
   line-height: 1;
-  color: var(--ink-50);
+  color: var(--kbd-ink);
 }
 
 .hints kbd:first-child {
@@ -959,8 +1444,7 @@
     align-items: start;
   }
 
-  .rowIcon,
-  .rowEnter {
+  .row > :first-child {
     margin-top: 1px;
   }
 }
@@ -1003,13 +1487,14 @@
     animation: none;
   }
 
-  .row::before,
+  .row,
   .rowIcon,
-  .rowEnter {
+  .peekCta,
+  .stat {
     transition: none;
   }
 
-  .rowEnter {
-    transform: none;
+  .peekStackCard {
+    animation: none;
   }
 }

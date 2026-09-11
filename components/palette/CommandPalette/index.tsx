@@ -17,6 +17,7 @@ import { useModalShell } from "@/lib/modalShell";
 import { answerFor, type Answer } from "../answers";
 import { recents, remember } from "../recents";
 import { AnswerPanel } from "./Answer";
+import { AskPanel, askOffline } from "./Ask";
 import { Peek } from "./Peek";
 import { Results, rowId } from "./Results";
 import { hrefFor, run, verbFor } from "../run";
@@ -66,7 +67,11 @@ type Props = {
 };
 
 /** What the panel is currently showing. */
-type View = { kind: "search" } | { kind: "answer"; answer: Answer };
+type View =
+  | { kind: "search" }
+  | { kind: "answer"; answer: Answer }
+  /** "Ask me instead" — see Ask.tsx. */
+  | { kind: "ask"; question: string };
 
 /** Must match the longest `[data-exit]` transition in CommandPalette.module.css. */
 const PALETTE_EXIT_MS = 200;
@@ -334,7 +339,17 @@ export default function CommandPalette({
       e.preventDefault();
       const hit = ordered[active];
       if (hit) void go(hit.entry, e.metaKey || e.ctrlKey);
+      // Nothing matched: Enter asks instead, which is what the row offers.
+      else if (canAsk) ask();
     }
+  }
+
+  /* Only when search finds nothing — the index answers everything it can,
+     and a model is for the question it cannot. Not offered once the route has
+     said answers are off this visit. */
+  const canAsk = view.kind === "search" && ordered.length === 0 && query.trim() !== "" && !askOffline();
+  function ask() {
+    setView({ kind: "ask", question: query.trim() });
   }
 
   if (!mounted || typeof document === "undefined") return null;
@@ -411,6 +426,10 @@ export default function CommandPalette({
 
         {view.kind === "answer" ? (
           <AnswerPanel answer={view.answer} onPick={go} />
+        ) : view.kind === "ask" ? (
+          /* Keyed by the question so a new one is a fresh stream, never a
+             continuation of the last. */
+          <AskPanel key={view.question} question={view.question} onPick={(entry) => void go(entry)} />
         ) : (
           /* Results and peek are siblings in one grid rather than the peek
              being a child of the list, so the list scrolls and the peek does
@@ -427,8 +446,9 @@ export default function CommandPalette({
               onHover={setActive}
               onPick={go}
               onSuggest={setQuery}
+              onAsk={canAsk ? ask : undefined}
             />
-            <Peek entry={ordered[active]?.entry} />
+            <Peek entry={ordered[active]?.entry} onOpen={(entry) => void go(entry)} />
           </div>
         )}
 
@@ -454,7 +474,7 @@ export default function CommandPalette({
               it is the panel telling you about keys it will ignore. Escape is
               what an answer honours, and `onEscape` backs out one layer rather
               than closing, so that is what it says. */}
-          {view.kind === "answer" ? (
+          {view.kind !== "search" ? (
             <span className={styles.hints}>
               <kbd>esc</kbd> back
             </span>
@@ -481,7 +501,8 @@ export default function CommandPalette({
                 )}
               </>
             )}
-            <kbd>{commandKeyLabel()}K</kbd> close
+            {/* No "⌘K close": the field's own `esc` cap already says it, a
+                few hundred pixels away, and saying it twice is clutter. */}
           </span>
           )}
         </div>
