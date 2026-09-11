@@ -133,7 +133,8 @@ describe("searchPalette", () => {
     // A row whose label matches *is* the answer; a row that merely lists the
     // word as a hidden synonym is related to it. Letting group priority
     // overturn that is the bug QUALITY_SPREAD exists to prevent.
-    const hits = searchPalette("chess");
+    // "sketch" lives only in the drawing canvas's and scratch card's keywords.
+    const hits = searchPalette("sketch");
     expect(hits.length).toBeGreaterThan(0);
 
     const firstViaKeywords = hits.findIndex((h) => h.viaKeywords);

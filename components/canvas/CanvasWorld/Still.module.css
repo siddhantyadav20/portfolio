@@ -395,7 +395,9 @@
    -------------------------------------------------------------------------- */
 
 .disc {
+  position: relative;
   display: block;
+  overflow: hidden;
   width: 100%;
   height: 100%;
   --sq-r: var(--r-card-40);
@@ -406,4 +408,26 @@
 :global(html[data-theme="dark"]) .disc {
   background: linear-gradient(160deg, #262626, #1b1b1b);
   box-shadow: inset 0 0 0 1px rgba(243, 243, 243, 0.08);
+}
+
+/* The sleeve, over the plate once it has arrived. Faded rather than cut in,
+   so a sleeve landing while someone is looking at the card reads as the
+   board coming into focus, not as a pop. */
+.discArt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: sleeveIn 0.6s ease both;
+}
+
+@keyframes sleeveIn {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .discArt {
+    animation: none;
+  }
 }

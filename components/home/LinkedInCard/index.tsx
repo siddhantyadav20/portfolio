@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
 import { linkedin } from "@/content/site";
 import { externalLinkProps } from "@/lib/externalLink";
-import { createChime, type Chime } from "./chime";
+import { createChime, type Chime } from "@/lib/chime";
 import styles from "./LinkedInCard.module.css";
 
 const toneClass: Record<string, string> = {

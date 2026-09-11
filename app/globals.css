@@ -126,6 +126,11 @@
      literal #fff at each call site, which is what made these vanish. */
   --surface-raised: #ffffff;
 
+  /* Masking tape — the brief on the canvas's drawing paper. Channels, so
+     the alpha stays tunable. See `.briefTape`. */
+  --tape-paper: 236 226 196;
+  --tape-ink: 42 40 36;
+
   /* LinkedIn's blue where it is a *fill* carrying white type — the card's CTA
      and the hover flood. Separate from `--blue`, which is ink: the dark theme
      lifts ink to stay legible on a dark ground, and that same lift under white
@@ -768,6 +773,59 @@ html[data-canvas] body {
     var(--ink-20) 0 6px,
     transparent 6px 14px
   );
+}
+
+/* The brief, as masking tape.
+
+   Global because two modules draw it and they must match to the pixel: the
+   drawing canvas wears it, and the scratch card flies a copy of it across the
+   board that the real tape replaces on landing (lib/briefFlight). Two copies
+   of these numbers would drift, and a drift here is a visible jump at the
+   handover. Where it sits is each module's business; what it is, is this.
+
+   Torn at both ends, not cut: the polygon's corners wander by a percent or
+   two. No `position` — the modules place it. */
+.briefTape {
+  box-sizing: border-box;
+  padding: 9px 30px 12px 20px;
+  background: rgb(var(--tape-paper) / 0.86);
+  color: rgb(var(--tape-ink));
+  clip-path: polygon(
+    0 6%, 2% 0, 50% 3%, 98% 0, 100% 8%, 99% 50%, 100% 94%,
+    97% 100%, 50% 97%, 3% 100%, 0 95%, 1% 50%
+  );
+}
+
+.briefTapeText {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.briefTapeMeta {
+  margin: 4px 0 0;
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  opacity: 0.7;
+}
+
+/* The same tape at the Studio's size, over a paper five times the board's. */
+.briefTapeLarge {
+  padding: 12px 40px 15px 24px;
+}
+
+.briefTapeLarge .briefTapeText {
+  font-size: 21px;
+  line-height: 1.12;
+}
+
+.briefTapeLarge .briefTapeMeta {
+  margin-top: 6px;
+  font-size: 12px;
 }
 
 [data-placeholder] {
@@ -1688,6 +1746,11 @@ html[data-theme="dark"] {
 
   /* One step up from the card, for controls drawn on top of one. */
   --surface-raised: #2c2c2e;
+
+  /* Still cream in the dark, a shade down: it is masking tape, and the dark
+     olive it used to be here read as a heavy band rather than as tape. */
+  --tape-paper: 226 212 176;
+  --tape-ink: 40 34 26;
 
   /* The reader's washes. A 100%-lightness tint has nothing to lighten on a
      #111 page — #fffbe5 over black is a flat cream rectangle — so each one

@@ -41,6 +41,10 @@ export default function Dock({
           data-on={active === c ? "" : undefined}
           onClick={() => onPick(c)}
           aria-current={active === c ? "true" : undefined}
+          /* Named on the button itself: under 700px the visible labels are
+             display:none, which also takes them out of the accessibility tree,
+             and five bare glyphs were five unnamed buttons. */
+          aria-label={CLUSTER_LABELS[c]}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path

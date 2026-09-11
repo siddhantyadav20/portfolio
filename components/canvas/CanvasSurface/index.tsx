@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useMounted } from "@/lib/clientValue";
@@ -11,6 +11,8 @@ import Dock from "@/components/canvas/chrome/Dock";
 import Minimap from "@/components/canvas/chrome/Minimap";
 import Oneko from "@/components/canvas/chrome/Oneko";
 import { enterRoom } from "./room";
+import Studio from "@/components/canvas/studio/Studio";
+import { closeStudio, noStudioServerSide, readStudio, subscribeStudio } from "@/lib/brief";
 import { useModalShell } from "@/lib/modalShell";
 import { newsreader } from "@/app/fonts-serif";
 import ThemeToggle from "@/components/home/ThemeToggle";
@@ -18,7 +20,9 @@ import { createCamera } from "@/lib/camera";
 import { frameDelta } from "@/lib/spring";
 import {
   CANVAS_MORPH,
-  clusterBounds,
+  clusterAt,
+  clusterView,
+  homeScale,
   widgets,
   HOME,
   WORLD_H,
@@ -88,6 +92,10 @@ export default function CanvasSurface({ onClose }: Props) {
      the chrome needs to draw, published once a frame by the loop below. */
   const [cluster, setCluster] = useState<Cluster | null>(null);
   const [confetti, setConfetti] = useState(0);
+  /* The Brief Studio sits over the board when open; the board and its chrome
+     go inert behind it, and the camera's keys and gestures stand down. */
+  const studio = useSyncExternalStore(subscribeStudio, readStudio, noStudioServerSide);
+  const studioOpen = !!studio?.open;
   const [view, setView] = useState<{ cam: CameraState; w: number; h: number }>({
     cam: { x: 0, y: 0, scale: 1 },
     w: 1,
@@ -150,6 +158,11 @@ export default function CanvasSurface({ onClose }: Props) {
         active.isContentEditable)
     ) {
       active.blur();
+      return true;
+    }
+    // The Studio, over the board: Escape puts the paper down first.
+    if (readStudio()?.open) {
+      closeStudio();
       return true;
     }
     return false;
@@ -293,7 +306,18 @@ export default function CanvasSurface({ onClose }: Props) {
           ? prev
           : { cam: { x, y, scale }, w: surface!.clientWidth, h: surface!.clientHeight },
       );
+      /* The dock's lit tab follows the camera: the neighbourhood under the
+         middle of the screen. Not while a dock flight is on its way, or the
+         tab you pressed would flicker through every place the camera passes
+         over; the next drag or scroll hands it back. */
+      if (dockFlight) return;
+      const mid = camera.toWorld(surface!.clientWidth / 2, surface!.clientHeight / 2);
+      const here = clusterAt(mid.x, mid.y);
+      setCluster((prev) => (prev === here ? prev : here));
     }
+
+    /** A dock tab is steering the camera; see `publish`. */
+    let dockFlight = false;
 
     function tick(now: number) {
       frame = 0;
@@ -327,7 +351,7 @@ export default function CanvasSurface({ onClose }: Props) {
     measure();
     // Framed on the contact card and what surrounds it, not on the board's
     // geometric centre — arriving in empty space is how a canvas loses people.
-    camera.jumpTo(HOME.x, HOME.y, 1);
+    camera.jumpTo(HOME.x, HOME.y, homeScale(surface.clientWidth));
     render();
 
     publish();
@@ -370,14 +394,10 @@ export default function CanvasSurface({ onClose }: Props) {
       start();
     };
     flyToCluster.current = (c) => {
-      const b = clusterBounds(c);
-      // Frame the whole cluster with a margin, clamped so a two-widget cluster
-      // does not slam into the zoom ceiling.
-      const fit = Math.min(
-        surface!.clientWidth / (b.w + 420),
-        surface!.clientHeight / (b.h + 420),
-      );
-      camera.flyTo(b.x, b.y, Math.max(0.4, Math.min(1.1, fit)));
+      // The whole neighbourhood where it reads; its anchor where it wouldn't.
+      const v = clusterView(c, surface!.clientWidth, surface!.clientHeight);
+      dockFlight = true;
+      camera.flyTo(v.x, v.y, v.scale);
       start();
     };
 
@@ -439,6 +459,8 @@ export default function CanvasSurface({ onClose }: Props) {
       // Native controls are matched by tag as well as by the explicit marker,
       // so the next widget with a button in it cannot reintroduce this.
       if (e.button !== 0) return;
+      // Nothing on the board moves while the Studio is up.
+      if (readStudio()?.open) return;
       const target = e.target as HTMLElement;
       if (
         target.closest(
@@ -462,6 +484,7 @@ export default function CanvasSurface({ onClose }: Props) {
       }
 
       dragging = true;
+      dockFlight = false;
       surface!.setPointerCapture(e.pointerId);
       camera.beginDrag(e.clientX, e.clientY);
       render();
@@ -512,7 +535,11 @@ export default function CanvasSurface({ onClose }: Props) {
     /* --- Wheel ------------------------------------------------------------- */
 
     function onWheel(e: WheelEvent) {
+      // The Studio's take can scroll on a phone; let the wheel do that rather
+      // than panning a board nobody can see.
+      if (readStudio()?.open) return;
       e.preventDefault();
+      dockFlight = false;
 
       // ⌘/Ctrl + wheel is what a trackpad pinch arrives as, on every platform.
       if (e.ctrlKey || e.metaKey) {
@@ -540,7 +567,7 @@ export default function CanvasSurface({ onClose }: Props) {
     }
 
     function onKeyDown(e: KeyboardEvent) {
-      if (editable() || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (editable() || e.metaKey || e.ctrlKey || e.altKey || readStudio()?.open) return;
 
       switch (e.key) {
         case "+":
@@ -556,7 +583,8 @@ export default function CanvasSurface({ onClose }: Props) {
         case "r":
         case "R":
           e.preventDefault();
-          camera.flyTo(HOME.x, HOME.y, 1);
+          dockFlight = false;
+          camera.flyTo(HOME.x, HOME.y, homeScale(surface!.clientWidth));
           break;
         case "c":
         case "C":
@@ -663,6 +691,10 @@ export default function CanvasSurface({ onClose }: Props) {
       {/* Above the surface's ground, below everything else. */}
       <div ref={gridRef} className={styles.grid} aria-hidden="true" />
 
+      {/* The board and its chrome, inert while the Studio is open so Tab and
+          screen readers stay on the sheet. `display: contents`, so wrapping
+          them changes nothing about where they sit. */}
+      <div className={styles.board} inert={studioOpen}>
       <CanvasWorldLive ref={worldRef} />
 
       {/* Fixed to the viewport, deliberately outside the transformed world:
@@ -689,6 +721,7 @@ export default function CanvasSurface({ onClose }: Props) {
       <Minimap
         camera={view.cam}
         viewport={{ w: view.w, h: view.h }}
+        active={cluster}
         onJump={(x, y) => flyToPoint.current(x, y)}
       />
 
@@ -707,6 +740,9 @@ export default function CanvasSurface({ onClose }: Props) {
       >
         press <kbd>/</kbd> for shortcuts
       </button>
+      </div>
+
+      <Studio />
 
       <Confetti fire={confetti} />
       <Oneko />

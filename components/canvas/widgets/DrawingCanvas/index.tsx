@@ -7,6 +7,7 @@ import { readTheme, serverTheme, subscribeTheme } from "@/lib/theme";
 import { useSyncExternalStore } from "react";
 import { useVisible } from "@/lib/visible";
 import { graphite } from "./graphite";
+import { paintStroke as paintInk, type Pt, type Stroke } from "@/components/canvas/ink/ink";
 import styles from "./DrawingCanvas.module.css";
 
 /* ===========================================================================
@@ -44,8 +45,6 @@ const WOBBLE_IDLE = 0.3;
 const WOBBLE_ACTIVE = 0.85;
 const WOBBLE_SCALE = 6;
 
-type Pt = { x: number; y: number };
-type Stroke = { mode: "draw" | "erase"; color: string; size: number; points: Pt[] };
 
 const PATHS = {
   eraser:
@@ -156,7 +155,12 @@ export default function DrawingCanvas() {
   const catStrokes = useRef<Pt[][] | null>(null);
   const intro = useRef({ strokeIdx: 0, pointIdx: 0, done: false });
 
-  const [color, setColor] = useState(defaultInk);
+  /* The ink follows the theme until the visitor picks one. Seeded straight
+     from `defaultInk` it was frozen at the first render's value — and on the
+     server-rendered /canvas that render is the server's light theme, so every
+     dark-mode visitor drew #222 onto #1a1a1a paper. */
+  const [picked, setColor] = useState<string | null>(null);
+  const color = picked ?? defaultInk;
   const [size, setSize] = useState(9);
   const [erasing, setErasing] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -168,45 +172,8 @@ export default function DrawingCanvas() {
 
   /* --- Painting ------------------------------------------------------------ */
 
-  const paintStroke = useCallback((ctx: CanvasRenderingContext2D, st: Stroke) => {
-    ctx.save();
-    ctx.globalCompositeOperation =
-      st.mode === "erase" ? "destination-out" : "source-over";
-    ctx.strokeStyle = st.color;
-    ctx.fillStyle = st.color;
-    ctx.lineWidth = st.size;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-
-    const pts = st.points;
-    if (pts.length === 1) {
-      ctx.beginPath();
-      ctx.arc(pts[0].x, pts[0].y, st.size / 2, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (pts.length === 2) {
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      ctx.lineTo(pts[1].x, pts[1].y);
-      ctx.stroke();
-    } else {
-      // Quadratic through midpoints: raw points become control points and the
-      // curve passes through the midpoints between them. A polyline through
-      // the raw points shows every hand tremor as a corner.
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length - 1; i++) {
-        ctx.quadraticCurveTo(
-          pts[i].x,
-          pts[i].y,
-          (pts[i].x + pts[i + 1].x) / 2,
-          (pts[i].y + pts[i + 1].y) / 2,
-        );
-      }
-      ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }, []);
+  // How a stroke is drawn is shared with the Brief Studio — see components/canvas/ink.
+  const paintStroke = paintInk;
 
   /** The cat, up to a point — used by both the intro and the finished state. */
   const paintCat = useCallback(

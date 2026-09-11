@@ -134,6 +134,30 @@ export default function CanvasCard() {
     };
   }, []);
 
+  /* --- The records' sleeves ------------------------------------------------
+     Fetched when the card comes near the viewport, not with the page: one
+     cached JSON and six 100px JPEGs, at low priority, well after the hero.
+     Without them the preview's top row was six blank plates (see
+     CanvasWorld/DiscStill). Skipped under Save-Data, where the plates are the
+     honest answer. The hover and pointerdown warm-ups below still stand for
+     a card that is clicked before it has scrolled into view. */
+  useEffect(() => {
+    const shell = viewportRef.current;
+    if (!shell || typeof IntersectionObserver === "undefined") return;
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    if (conn?.saveData) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        prefetchDiscArt();
+      },
+      { rootMargin: "300px" },
+    );
+    io.observe(shell);
+    return () => io.disconnect();
+  }, []);
+
   /* --- Open and close ------------------------------------------------------ */
 
   const openCanvas = useCallback(async () => {

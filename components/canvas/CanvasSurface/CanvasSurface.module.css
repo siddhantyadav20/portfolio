@@ -203,6 +203,12 @@
   color: var(--ink-70);
 }
 
+/* The board and its chrome, grouped only so they can go inert together
+   behind the Brief Studio. No box of its own. */
+.board {
+  display: contents;
+}
+
 .hint kbd {
   padding: 1px 6px;
   border: 1px solid var(--ink-20);

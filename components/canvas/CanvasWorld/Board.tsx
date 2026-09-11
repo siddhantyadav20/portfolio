@@ -1,4 +1,13 @@
-import { widgetLabel, widgets, WORLD_H, WORLD_W, type Widget } from "@/content/canvas";
+import {
+  CLUSTER_LABELS,
+  CLUSTERS,
+  DISTRICT_LABELS,
+  widgetLabel,
+  widgets,
+  WORLD_H,
+  WORLD_W,
+  type Widget,
+} from "@/content/canvas";
 import styles from "./CanvasWorld.module.css";
 
 /* ===========================================================================
@@ -43,6 +52,30 @@ export function Board({
     >
       {children}
     </div>
+  );
+}
+
+/**
+ * The neighbourhoods' names, set on the board.
+ *
+ * The same words as the dock, quiet, in the world so they travel with the
+ * camera. Decoration for sighted readers — the dock and each widget's own
+ * label carry the names for everyone else.
+ */
+export function DistrictLabels() {
+  return (
+    <>
+      {CLUSTERS.map((c) => (
+        <span
+          key={c}
+          className={styles.district}
+          style={{ left: DISTRICT_LABELS[c].x, top: DISTRICT_LABELS[c].y }}
+          aria-hidden="true"
+        >
+          {CLUSTER_LABELS[c]}
+        </span>
+      ))}
+    </>
   );
 }
 

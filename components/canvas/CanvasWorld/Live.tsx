@@ -1,5 +1,5 @@
 import LinkedInCard from "@/components/home/LinkedInCard";
-import { Board, Slot, widgets, type Widget } from "./Board";
+import { Board, DistrictLabels, Slot, widgets, type Widget } from "./Board";
 import Book from "../widgets/Book";
 import Disc from "../widgets/Disc";
 import DrawingCanvas from "../widgets/DrawingCanvas";
@@ -50,6 +50,7 @@ export default function CanvasWorldLive({
 }) {
   return (
     <Board className={className} style={style} ref={ref}>
+      <DistrictLabels />
       {widgets.map((w, i) => (
         <Slot key={w.id} widget={w} index={i} preview={false}>
           <Render widget={w} />

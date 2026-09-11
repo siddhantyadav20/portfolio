@@ -586,7 +586,7 @@ const NAMED_KEYWORDS: Record<string, string> = {
   linkedin: "connect social network",
   receipt: "skills prices bill invoice",
   terminal: `command line shell ${terminal.skills.join(" ")} ${terminal.tools.join(" ")}`,
-  scratch: "game chess play coffee",
+  scratch: "brief sketch design challenge prompt game",
   draw: "draw sketch paint doodle",
   photos: "pictures cats wallpapers me",
 };

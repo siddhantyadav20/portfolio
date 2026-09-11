@@ -1,7 +1,14 @@
 "use client";
 
 import { useRef } from "react";
-import { widgets, WORLD_H, WORLD_W } from "@/content/canvas";
+import {
+  CLUSTERS,
+  clusterBounds,
+  widgets,
+  WORLD_H,
+  WORLD_W,
+  type Cluster,
+} from "@/content/canvas";
 import type { CameraState } from "@/lib/camera";
 import styles from "./Minimap.module.css";
 
@@ -24,10 +31,13 @@ const SIZE = 132;
 export default function Minimap({
   camera,
   viewport,
+  active,
   onJump,
 }: {
   camera: CameraState;
   viewport: { w: number; h: number };
+  /** The neighbourhood the camera is in — the same one the dock lights. */
+  active: Cluster | null;
   onJump: (worldX: number, worldY: number) => void;
 }) {
   const ref = useRef<HTMLButtonElement>(null);
@@ -60,6 +70,28 @@ export default function Minimap({
         );
       }}
     >
+      {/* The five neighbourhoods, as faint regions under the dots, so the map
+          and the dock describe the same places. The one you are in is
+          stronger. Padded a little, as the board's own names sit just
+          outside each place. */}
+      {CLUSTERS.map((c) => {
+        const b = clusterBounds(c);
+        const pad = 60;
+        return (
+          <span
+            key={c}
+            className={styles.district}
+            data-on={active === c ? "" : undefined}
+            style={{
+              left: `${((b.x - b.w / 2 - pad) / WORLD_W) * 100}%`,
+              top: `${((b.y - b.h / 2 - pad) / WORLD_H) * 100}%`,
+              width: `${((b.w + pad * 2) / WORLD_W) * 100}%`,
+              height: `${((b.h + pad * 2) / WORLD_H) * 100}%`,
+            }}
+          />
+        );
+      })}
+
       {/* Every widget as a dot, so the map shows where things *are* rather
           than just where you are. Static — the board does not move. */}
       {widgets.map((w) => (

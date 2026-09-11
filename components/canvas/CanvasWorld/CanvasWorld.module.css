@@ -45,6 +45,34 @@
   animation: none;
 }
 
+/* A neighbourhood's name, on the board. The dock's word, set small and
+   quiet: a signpost, not a heading. A short rule leads it in, like a label
+   on a drawing. */
+.district {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  animation: settle 520ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.district::before {
+  content: "";
+  width: 18px;
+  height: 1.5px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .slot {
     animation: none;

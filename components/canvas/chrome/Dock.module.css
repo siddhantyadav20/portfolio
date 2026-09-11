@@ -47,4 +47,9 @@
   .tab {
     padding: 0 10px;
   }
+  /* But the place you are in keeps its name: five bare glyphs told a phone
+     visitor nothing about where they had landed. */
+  .tab[data-on] .label {
+    display: inline;
+  }
 }

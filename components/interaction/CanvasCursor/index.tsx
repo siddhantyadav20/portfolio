@@ -92,6 +92,11 @@ export default function CanvasCursor() {
     let frame = 0;
     let visible = false;
     let overNative = false;
+    /** Over a surface that draws its own pointer — `data-cursor="none"`.
+     *  Held as state, not just acted on in pointerover: every pointermove
+     *  calls show(), so a one-off hide() there lasted until the next move,
+     *  and the drawing papers wore the arrow beside their brush ring. */
+    let overOwn = false;
     /** The glass surface under the pointer, if any — see `lightGlass`. */
     let litGlass: HTMLElement | null = null;
 
@@ -122,7 +127,7 @@ export default function CanvasCursor() {
     }
 
     function show() {
-      if (visible || overNative) return;
+      if (visible || overNative || overOwn) return;
       visible = true;
       el!.setAttribute("data-visible", "");
     }
@@ -144,10 +149,6 @@ export default function CanvasCursor() {
     function onPointerOver(e: PointerEvent) {
       const t = e.target instanceof Element ? e.target : null;
 
-      overNative = !!t?.closest(NATIVE_CURSOR);
-      if (overNative) hide();
-      else show();
-
       const holder = t?.closest(VARIANT_TARGET) ?? null;
       let variant = holder?.getAttribute("data-cursor") ?? null;
 
@@ -155,8 +156,12 @@ export default function CanvasCursor() {
       // one would be a second cursor on screen — the drawing canvas has a
       // brush ring, the scratch card has a coin. Suppress ours entirely
       // rather than swapping it for a variant.
-      if (variant === "none") {
-        hide();
+      overNative = !!t?.closest(NATIVE_CURSOR);
+      overOwn = variant === "none";
+      if (overNative || overOwn) hide();
+      else show();
+
+      if (overOwn) {
         el!.removeAttribute("data-variant");
         return;
       }

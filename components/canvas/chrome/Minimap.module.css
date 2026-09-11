@@ -21,6 +21,19 @@
   transform: scale(1.03);
 }
 
+/* A neighbourhood: a faint region under its widgets' dots. */
+.district {
+  position: absolute;
+  border-radius: 3px;
+  background-color: var(--ink-20);
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+}
+
+.district[data-on] {
+  opacity: 0.8;
+}
+
 /* A widget. Deliberately not to scale — at this size a faithful rectangle is
    two pixels, and what the map has to convey is distribution, not shape. */
 .pip {
