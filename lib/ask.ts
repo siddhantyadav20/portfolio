@@ -27,12 +27,16 @@ export const ASK_MODEL = "claude-opus-5";
  * What the model is not given: the canvas's board — the records, the books,
  * the stickers and the drawing things — and what Siddhant is listening to.
  *
- * Every question carries the whole context, and on Gemini's free tier that is
- * what the per-minute quota counts; questions asked back to back broke off. A
- * recruiter's question is about the work, the numbers and whether he is
- * available, and those forty-odd board entries were a third of the context
- * for none of that. They are still one search away in the palette itself,
- * and the prompt below says where they live.
+ * A recruiter's question is about the work, the numbers and whether he is
+ * available, and those forty-odd entries answer none of it. They are still
+ * one search away in the palette itself, and the prompt below says where
+ * they live.
+ *
+ * It is NOT what fixes the back-to-back failures on Gemini's free tier, and
+ * an earlier note here overstated it: the entries are short, and leaving them
+ * out took the context from 57,275 characters to 52,585 — about 8%. The bulk
+ * is the studies' own prose, which is the part answers need. The retry in
+ * app/api/ask/route.ts is what carries a question past a quota blip.
  */
 export const LEFT_OUT = new Set(["board", "listen"]);
 
