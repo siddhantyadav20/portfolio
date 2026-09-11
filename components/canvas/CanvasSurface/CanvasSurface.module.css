@@ -111,66 +111,28 @@
 
    The theme toggle and the close cross, fixed to the viewport's top-right.
 
-   Same 64px discs, same 16px gap and same 48px inset as ModalSurface's
-   cluster, and built from the same `.liquid` material — closing the canvas
-   and closing a case study should read as one gesture that the site has, not
-   as two similar buttons.
+   The case study's cluster, exactly: 32 from the top and the right at every
+   width, 12 between the toggle and the close, and the close is the same
+   `GlassAction` disc — 64, or 48 on a phone, where the toggle drops to its
+   phone size too. It used to be a copy — its own 64px disc, a 16px gap and a
+   48px inset — and closing the canvas and closing a case study should read as
+   one gesture that the site has, not as two similar buttons.
 
    This is also the only place on the canvas where glass is allowed. Nothing
    here is inside the transformed world, so its backdrop-filter is composited
    once rather than on every frame of a pan.
    --------------------------------------------------------------------------- */
 
+/* No fixed height: the row is as tall as what is in it, 64 or 48, so its
+   top edge — and so both controls' — is the 32 it is placed at. */
 .controls {
   position: absolute;
-  top: 48px;
-  right: 48px;
+  top: max(32px, env(safe-area-inset-top, 0px));
+  right: max(32px, env(safe-area-inset-right, 0px));
   z-index: 3;
   display: flex;
   align-items: center;
-  gap: 16px;
-  height: 64px;
-}
-
-/* Figma node 67:4229 — 64x64, radius 60. The close glyph is two 2x23.756
-   rounded bars at ±45deg, not an icon file. */
-.action {
-  position: relative;
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 64px;
-  height: 64px;
-  border-radius: 60px;
-  color: var(--ink);
-}
-
-.action:hover {
-  --liquid-body: var(--liquid-body-hi);
-  --liquid-shade: var(--liquid-shade-hi);
-  --liquid-gloss: var(--liquid-gloss-hi);
-  --liquid-spec: var(--liquid-spec-hi);
-
-  transform: scale(1.015);
-  box-shadow: var(--liquid-cast-hi);
-}
-
-/* Classed rather than `.action span`, which would also catch the button's own
-   .srOnly label and draw it as a third stroke. */
-.bar {
-  position: absolute;
-  width: 2px;
-  height: 23.756px;
-  border-radius: 12px;
-  background-color: currentColor;
-}
-
-.barBack {
-  transform: rotate(-45deg);
-}
-
-.barForward {
-  transform: rotate(45deg);
+  gap: 12px;
 }
 
 /* --- Hint ---------------------------------------------------------------- */
@@ -220,12 +182,5 @@
 @media (width < 700px) {
   .hint {
     display: none;
-  }
-}
-
-@media (width < 700px) {
-  .controls {
-    top: 24px;
-    right: 24px;
   }
 }

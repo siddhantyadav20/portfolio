@@ -186,6 +186,26 @@
   transform: scale(1.08);
 }
 
+/* --- On a phone, one size everywhere ---------------------------------------
+   The case study's phone toggle — the homepage control at three quarters,
+   84x48 with 6 of padding around two 36s and 18px glyphs — is the one every
+   surface wears at this width now: the homepage, the canvas, the modals and
+   the /work route. It used to be set by the modal's own cluster, so the
+   homepage and the canvas kept the full 112x64 on a phone and the same switch
+   was three sizes depending on which page you were on.
+
+   Declared here, on the control, so no surface can forget it. Doubled because
+   the homepage's `.themeToggle` sets `--u` on this same element at one class,
+   and a tie between two modules is decided by bundle order — see the note on
+   `.themeToggle.themeToggle` in app/page.module.css. */
+@media (width <= 500px) {
+  .toggle.toggle {
+    --u: 0.75px;
+    --toggle-w: calc(112 * var(--u));
+    --toggle-h: calc(64 * var(--u));
+  }
+}
+
 /* The pill's travel and the glyph swap are the control's whole explanation of
    itself, so with motion reduced they arrive rather than move. The states are
    still fully distinct — a filled glyph on a pill against a line glyph on the

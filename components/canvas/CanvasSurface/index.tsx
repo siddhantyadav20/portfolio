@@ -16,6 +16,7 @@ import { closeStudio, noStudioServerSide, readStudio, subscribeStudio } from "@/
 import { useModalShell } from "@/lib/modalShell";
 import { newsreader } from "@/app/fonts-serif";
 import ThemeToggle from "@/components/home/ThemeToggle";
+import GlassAction, { CloseGlyph } from "@/components/primitives/GlassAction";
 import { createCamera } from "@/lib/camera";
 import { frameDelta } from "@/lib/spring";
 import {
@@ -706,16 +707,11 @@ export default function CanvasSurface({ onClose }: Props) {
       <div className={styles.controls} data-canvas-interactive="">
         <ThemeToggle />
 
-        <button
-          ref={closeRef}
-          type="button"
-          className={`${styles.action} liquid`}
-          onClick={close}
-        >
-          <span className={`${styles.bar} ${styles.barBack}`} />
-          <span className={`${styles.bar} ${styles.barForward}`} />
-          <span className="srOnly">Close the canvas</span>
-        </button>
+        {/* The case study's close, not a copy of it — the same disc at the
+            same sizes, 64 and 48 on a phone. */}
+        <GlassAction ref={closeRef} onClick={close} label="Close the canvas">
+          <CloseGlyph />
+        </GlassAction>
       </div>
 
       <Minimap

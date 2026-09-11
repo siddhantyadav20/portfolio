@@ -62,14 +62,12 @@
   gap: 12px;
 }
 
+/* 32 from the top and the sides at every width, by request — the same inset
+   as the modal, the homepage's toggle and the canvas's close. It was 24 below
+   the breakpoint and 16 at the sides on a phone. */
 @media (width < 700px) {
   .controls {
-    margin: 24px 24px 32px;
-  }
-
-  .leading {
-    top: 24px;
-    left: 24px;
+    margin: 32px 32px 32px;
   }
 }
 
@@ -109,66 +107,25 @@
   padding-right: calc(64px + 12px);
 }
 
-/* --- The close, in step with the narrower gutter --------------------------
-
-   The narrow query above takes `.controls` and `.leading` from the 32 gutter
-   to 24, but `.close` is `position: fixed` and reads neither — it kept the 32
-   it is given below, so between 501 and 699 the disc sat eight low of the
-   share button and the theme toggle it is meant to share a line with, and a
-   third of the gutter from the toggle instead of the full twelve.
-
-   (The narrow query is named rather than quoted: the guard in
-   tests/breakpoints.test.ts scans from any `@media` to the next brace, so a
-   condition written out in a comment reads as a real one and every length
-   after it as a breakpoint.)
-
-   It cannot go in that block: a media query adds no specificity, and the
-   base `.close` is declared after it, so the 32 would simply win. Hence a
-   second query here, below the rule it has to beat and above the 500 one
-   that has to beat this. */
-@media (width < 700px) {
-  .close {
-    top: 24px;
-    right: 24px;
-  }
-}
-
 @media (width <= 500px) {
-  /* The 24 above the controls is the parent's padding, not the controls'
+  /* The 32 above the controls is the parent's padding, not the controls'
      margin. In flow with no border or padding between them, a top margin here
      collapses straight out through the parent: it moved the whole column down
-     instead of offsetting the row inside it, which put the theme switch at 48
+     instead of offsetting the row inside it, which put the theme switch low
      while the share button — `position: fixed`, so no collapsing — sat
-     correctly at 24. Padding cannot collapse, so the two agree. */
+     correctly. Padding cannot collapse, so the two agree.
+
+     32 above, 48 of control and 40 below keeps the study's first line at the
+     120 the phone frame puts it at, now that the inset is 32 rather than 24. */
   .page {
-    padding-top: 24px;
+    padding-top: 32px;
   }
 
   .controls {
     height: 48px;
-    margin: 0 16px 48px;
+    margin: 0 32px 40px;
     padding-right: calc(48px + 12px);
-
-    /* The homepage's control, scaled — not the frame's own 88x48, which is
-       112x64 with its padding and halves reduced by different fractions and
-       therefore a second design rather than the same one smaller.
-
-       `--u` is what the whole site scales geometry with, so 0.75 of it is the
-       homepage toggle at the height the frame asks for: 84x48 with 6 of
-       padding around two 36s. The two size tokens are derived from the same
-       number so nothing can drift out of step with the rest. */
-    --u: 0.75px;
-    --toggle-w: calc(112 * var(--u));
-    --toggle-h: calc(64 * var(--u));
-  }
-
-  .close {
-    top: 24px;
-    right: 16px;
-  }
-
-  .leading {
-    top: 24px;
-    left: 16px;
+    /* The toggle's phone size is its own now — see ThemeToggle.module.css —
+       so it is the same 84x48 on every surface, not only in here. */
   }
 }

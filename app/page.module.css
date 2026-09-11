@@ -194,8 +194,8 @@
      Stated once here rather than per branch. `32 * --u` is what both frames
      draw, and `--u` is whichever branch's the viewport is in — so this one
      declaration is the phone's 32 and the bento's 32 at the same time. */
-  top: max(calc(32 * var(--u)), env(safe-area-inset-top, 0px));
-  right: max(calc(32 * var(--u)), env(safe-area-inset-right, 0px));
+  top: max(var(--toggle-inset, calc(32 * var(--u))), env(safe-area-inset-top, 0px));
+  right: max(var(--toggle-inset, calc(32 * var(--u))), env(safe-area-inset-right, 0px));
   z-index: 10;
 }
 
@@ -489,11 +489,27 @@
     padding: 0;
   }
 
-  .band,
-  .themeToggle {
+  .band {
     --u: min(100cqw / 390, 1.345px);
     --toggle-w: calc(112 * var(--u));
     --toggle-h: calc(64 * var(--u));
+  }
+
+  /* THE TOGGLE LEAVES THE SCALE HERE, and sits where every other page puts it.
+     It used to share the column's `--u`, which reaches 1.345 by 525 — so on a
+     large phone or a small tablet it grew to 150x86 and moved to 43px off the
+     corner, while the case study beside it drew 112x64 at 32. A control is the
+     same object on every surface; the column is a drawing that scales.
+
+     So: 32px from the top and right, and the full-size control, fixed. Below
+     500 the control shrinks itself to the case study's phone size — that rule
+     lives in ThemeToggle.module.css, since this file keeps 700 as its only
+     breakpoint (tests/breakpoints.test.ts). */
+  .themeToggle {
+    --u: 1px;
+    --toggle-w: 112px;
+    --toggle-h: 64px;
+    --toggle-inset: 32px;
   }
 
   /* One centred column at the width the frame draws it. */
