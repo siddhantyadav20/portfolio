@@ -1,0 +1,387 @@
+/* The compose popover — Mail's New Message, hung off the Send Email pill and
+   drawn in the site's tokens so it follows the theme. Portalled to <body>,
+   outside `.band`, so `--u` is its 1px default and everything here is plain
+   pixels. Its position, width and `--ox` are written by index.tsx. */
+
+.popover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* ModalSurface's layer: above every card, below CanvasCursor. */
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  overflow: hidden;
+
+  /* The `border-radius` tier of `.squircle`: native squircle where there is
+     `corner-shape`, a rounded rect elsewhere — and the shadow survives both. */
+  border-radius: 18px;
+  background: var(--surface-solid);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.14),
+    0 2px 6px rgb(0 0 0 / 0.06),
+    0 18px 48px rgb(0 0 0 / 0.18);
+
+  /* Measured before it is shown: laid out, invisible, until index.tsx has
+     placed it. */
+  visibility: hidden;
+
+  /* It grows out of the pill: the origin is the pill's centre on the edge
+     facing it. */
+  opacity: 0;
+  transform-origin: var(--ox, 64px) top;
+  transform: translateY(-6px) scale(0.96);
+  transition:
+    opacity 180ms ease,
+    transform 340ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.popover[data-side="above"] {
+  transform-origin: var(--ox, 64px) bottom;
+  transform: translateY(6px) scale(0.96);
+}
+
+.popover[data-placed] {
+  visibility: visible;
+}
+
+/* After `[data-side]`, which it has to outrank at equal specificity. */
+.popover[data-enter] {
+  opacity: 1;
+  transform: none;
+}
+
+/* In dark the black hairline disappears into the black page, so the edge is
+   a light one instead — Mail draws its dark windows the same way. */
+:global(html[data-theme="dark"]) .popover {
+  box-shadow:
+    0 0 0 0.5px rgb(255 255 255 / 0.14),
+    0 2px 6px rgb(0 0 0 / 0.3),
+    0 18px 48px rgb(0 0 0 / 0.5);
+}
+
+/* --- Leaving ----------------------------------------------------------------
+   Two exits, timed to `LEAVE_MS` in index.tsx.
+
+   Closing folds back towards the pill. Sending is Mail's: the letter gathers
+   itself for a beat — a small dip, a little smaller — and then goes up and off
+   the top of the screen. The dip is what makes it read as thrown rather than
+   dragged: the easing changes between the two keyframes, out of the first and
+   hard in to the second. */
+.popover[data-leave] {
+  pointer-events: none;
+}
+
+.popover[data-leave="close"] {
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity 160ms ease,
+    transform 180ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.popover[data-leave="sent"] {
+  animation: compose-away 600ms forwards;
+}
+
+@keyframes compose-away {
+  0% {
+    transform: none;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.2, 0, 0.2, 1);
+  }
+  22% {
+    transform: translateY(8px) scale(0.97);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.3);
+  }
+  100% {
+    transform: translateY(-110vh) scale(0.8);
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popover,
+  .popover[data-side="above"],
+  .popover[data-leave="close"] {
+    transform: none;
+  }
+
+  .popover[data-leave="sent"] {
+    animation: none;
+    opacity: 0;
+    transition: opacity 140ms ease;
+  }
+}
+
+/* --- Title bar ---------------------------------------------------------------- */
+.bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 14px;
+  height: 40px;
+  padding: 0 14px;
+  background: rgb(from var(--ink) r g b / 0.035);
+  border-bottom: 0.5px solid rgb(from var(--ink) r g b / 0.12);
+}
+
+.lights {
+  display: flex;
+  gap: 8px;
+}
+
+.light {
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--light);
+  box-shadow: inset 0 0 0 0.5px var(--light-edge);
+}
+
+.light[data-light="close"] {
+  --light: #ff5f57;
+  --light-edge: #e0443e;
+  cursor: pointer;
+}
+
+.light[data-light="min"] {
+  --light: #febc2e;
+  --light-edge: #dea123;
+}
+
+.light[data-light="zoom"] {
+  --light: #28c840;
+  --light-edge: #1aab29;
+}
+
+/* The ×, shown the way Mail shows it: on hovering the group, not the dot. */
+.light svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: rgb(77 0 0 / 0.75);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  opacity: 0;
+}
+
+.lights:hover .light svg,
+.light:focus-visible svg {
+  opacity: 1;
+}
+
+/* Touch. Twelve pixels is a Mac's target, not a thumb's: the dot stays the
+   size it is and the button's reach grows around it. And there is no hover to
+   reveal the ×, so it is simply there — a red dot with nothing on it does not
+   say "close" to anybody who has not used a Mac. */
+@media (pointer: coarse) {
+  .light[data-light="close"] {
+    position: relative;
+  }
+
+  .light[data-light="close"]::after {
+    content: "";
+    position: absolute;
+    inset: -14px;
+  }
+
+  .light[data-light="close"] svg {
+    opacity: 1;
+  }
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* --- Header fields ----------------------------------------------------------
+   Label and value on one baseline, a hairline under each row, inset from the
+   left edge as Mail insets them. */
+.row {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  margin-left: 14px;
+  padding-right: 14px;
+  border-bottom: 0.5px solid rgb(from var(--ink) r g b / 0.12);
+  font-size: 14px;
+  line-height: var(--lh);
+}
+
+.label {
+  flex: none;
+  color: var(--ink-50);
+}
+
+/* The address, already resolved into a token the way Mail draws a recipient
+   it recognises. Not editable: this only goes one place. */
+.token {
+  min-width: 0;
+  overflow: hidden;
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: rgb(from var(--kbd-ink) r g b / 0.1);
+  color: var(--kbd-ink);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.field {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: var(--ink);
+}
+
+.field::placeholder,
+.body::placeholder {
+  color: var(--ink-40);
+}
+
+/* A field that stopped a send is underlined in the accent, not boxed in red —
+   the line beside Send says what is missing. */
+.row:has(.field[aria-invalid]) {
+  border-bottom-color: var(--accent);
+}
+
+/* --- Message ---------------------------------------------------------------- */
+/* 148 when there is room; the part that gives when index.tsx caps the
+   popover's height to fit the side of the pill it opened on. */
+.body {
+  flex: 1 1 148px;
+  min-height: 64px;
+  padding: 12px 14px;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  line-height: var(--lh);
+  color: var(--ink);
+}
+
+/* --- Footer -----------------------------------------------------------------
+   Whatever needs saying on the left, Send on the right. */
+.foot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 12px 12px 14px;
+}
+
+.problem {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--accent);
+}
+
+.problem a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Send. The waitlist's Join in a squircle: the accent, a white label, and 40%
+   until there is something worth sending (Figma's Input state there). The
+   inset light along the top and the shade along the bottom are what make it
+   read as a thing you press rather than a coloured label — inset, so the
+   squircle mask where `corner-shape` is missing trims them rather than
+   clipping them away. */
+.send {
+  --sq-r: 12px;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px 0 12px;
+  border: 0;
+  background: var(--accent);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.24),
+    inset 0 -1px 0 rgb(0 0 0 / 0.14);
+  color: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.4;
+  transition:
+    opacity 180ms ease,
+    transform 160ms cubic-bezier(0.2, 0, 0, 1),
+    filter 160ms ease;
+}
+
+.send[data-ready],
+.send[aria-busy] {
+  opacity: 1;
+}
+
+.send[data-ready]:hover {
+  filter: brightness(1.06);
+}
+
+.send:active {
+  transform: scale(0.96);
+}
+
+.send[aria-busy] {
+  cursor: progress;
+}
+
+.sendIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.send[aria-busy] .sendIcon {
+  animation: compose-busy 700ms ease-in-out infinite alternate;
+}
+
+@keyframes compose-busy {
+  to {
+    transform: translate(2px, -2px);
+    opacity: 0.5;
+  }
+}
+
+/* A thumb's target for the one button that matters. */
+@media (pointer: coarse) {
+  .send {
+    height: 40px;
+  }
+}
+
+/* 16px on a phone, or iOS zooms the page into the field it just focused. */
+@media (width < 700px) {
+  .row,
+  .body,
+  .field {
+    font-size: 16px;
+  }
+}

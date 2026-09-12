@@ -122,8 +122,8 @@
 
 /* One row on a phone, as the frame draws it (Figma 843:2652).
 
-   The frame's own row does not quite fit the frame: Copy Email is about 133
-   wide, the search pill is a stated 200, and 133 + 16 + 200 is 349 in a 342
+   The frame's own row does not quite fit the frame: Copy Email (now Send
+   Email, the same width to within a few pixels) is about 133 wide, the search pill is a stated 200, and 133 + 16 + 200 is 349 in a 342
    column — so in Figma the second pill runs 7px under the frame's clip. Rather
    than reproduce a clipped control or stack them, the search pill gives back
    the 7: it is the one of the two carrying a fixed width, and losing a few

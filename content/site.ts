@@ -14,8 +14,39 @@ export const intro = {
   title: "Hi, I’m Siddhant",
   tagline: "I design tools for people who work with their hands, not a mouse.",
   note: "— Less, but better",
-  /** Used by the Copy Email button. */
+  /** Where the Send Email window is addressed, and the palette's Copy email. */
   email: "siddhantyadav20@gmail.com",
+
+  /**
+   * "Send Email" — the pill, and the Mail-style compose window it opens.
+   *
+   * Not from Figma: the frame's pill said Copy Email, and this replaced it by
+   * request. The window's labels are Mail's own.
+   */
+  compose: {
+    cta: "Send Email",
+    sent: "Sent!",
+    title: "New Message",
+    to: "To:",
+    from: "From:",
+    subject: "Subject:",
+    message: "Message",
+    fromPlaceholder: "Your email, so I can reply",
+    bodyPlaceholder: "Hi Siddhant,",
+    send: "Send",
+    close: "Close",
+    sending: "Sending…",
+    errors: {
+      from: "Add your email so I can write back.",
+      body: "Write a message before sending.",
+      "too-long": "That’s longer than this window can carry — trim it a little.",
+      throttled: "That’s a lot of mail at once. Try again in a minute.",
+      failed: "It didn’t go through.",
+    },
+    /** Shown after `errors.failed`, linking to the visitor's own mail app. */
+    fallback: "Send it from your mail app instead",
+  },
+
   /* No longer linked from the intro — the Figma CTA row is Copy Email and
      Search Portfolio only. The Store's door is the waitlist card further down
      the page; this stays for whenever the shop itself exists. */

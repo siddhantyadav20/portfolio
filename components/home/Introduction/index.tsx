@@ -1,18 +1,32 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import LogoMark from "@/components/brand/LogoMark";
+import Compose from "@/components/home/Compose";
 import CtaPill from "@/components/primitives/CtaPill";
 import { intro } from "@/content/site";
 import { useMounted } from "@/lib/clientValue";
-import { copyToClipboard } from "@/lib/clipboard";
 import { commandKeyLabel, openPalette } from "@/lib/palette";
 import styles from "./Introduction.module.css";
 
 export default function Introduction({ className }: { className?: string }) {
-  const [copied, setCopied] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [composing, setComposing] = useState(false);
+  // The pill is what the compose popover hangs off, and what it names.
+  const pillId = useId();
+  const composeId = useId();
+  /* The address the last letter went from, for as long as the pill says
+     "Sent!" — and for the announcement, which names it so a screen-reader
+     user hears where the reply will arrive. */
+  const [sentFrom, setSentFrom] = useState<string | null>(null);
+  const sentTimer = useRef(0);
+  useEffect(() => () => window.clearTimeout(sentTimer.current), []);
+
+  function sent(from: string) {
+    setSentFrom(from);
+    window.clearTimeout(sentTimer.current);
+    sentTimer.current = window.setTimeout(() => setSentFrom(null), 2500);
+  }
 
   /* The key legend is ⌘ on a Mac and Ctrl everywhere else, which is only
      knowable from the client. Rendered as ⌘ on the server and corrected after
@@ -20,20 +34,6 @@ export default function Introduction({ className }: { className?: string }) {
      warning on every Windows visit. `useMounted` is the sanctioned way to read
      a browser-only value; see the note at the top of `lib/clientValue`. */
   const mounted = useMounted();
-
-  async function copyEmail() {
-    /* Two attempts, then give up honestly — see `lib/clipboard`. This used to
-       be a bare `navigator.clipboard.writeText` in a try/catch that set
-       `copied` back to false, so a browser that refused the clipboard left
-       the button reading "Copy Email" and doing nothing visible. */
-    if (!(await copyToClipboard(intro.email))) {
-      setFailed(true);
-      window.setTimeout(() => setFailed(false), 6000);
-      return;
-    }
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
-  }
 
   return (
     // Passive in the proximity field: the composition can carry it when a
@@ -69,8 +69,8 @@ export default function Introduction({ className }: { className?: string }) {
         <p className={styles.note}>{intro.note}</p>
       </div>
 
-      {/* Two pills, per Figma 516:11435 — Copy Email, and the palette's front
-          door beside it.
+      {/* Two pills, per Figma 516:11435 — Send Email (Copy Email in the frame,
+          replaced by request), and the palette's front door beside it.
 
           The door used to be a full-width bordered field above this row: a
           button dressed as an input, which is a small lie the moment anybody
@@ -84,7 +84,11 @@ export default function Introduction({ className }: { className?: string }) {
           all. So the shortcut is the accelerator and this is the affordance. */}
       <div className={styles.ctas}>
         <CtaPill
-          onClick={copyEmail}
+          id={pillId}
+          onClick={() => setComposing((o) => !o)}
+          aria-haspopup="dialog"
+          aria-expanded={composing}
+          aria-controls={composing ? composeId : undefined}
           icon={
             <span
               className="inkIcon"
@@ -92,7 +96,7 @@ export default function Introduction({ className }: { className?: string }) {
             />
           }
         >
-          {copied ? "Copied!" : failed ? intro.email : "Copy Email"}
+          {sentFrom ? intro.compose.sent : intro.compose.cta}
         </CtaPill>
 
         <CtaPill
@@ -128,9 +132,17 @@ export default function Introduction({ className }: { className?: string }) {
         </CtaPill>
       </div>
 
+      {/* Mounted for the life of the card, so a draft survives closing it. */}
+      <Compose
+        id={composeId}
+        anchorId={pillId}
+        open={composing}
+        onClose={() => setComposing(false)}
+        onSent={sent}
+      />
+
       <p className={styles.srOnlyEmail} aria-live="polite">
-        {copied ? `Copied ${intro.email} to clipboard` : ""}
-        {failed ? `Copying was blocked. The address is ${intro.email}` : ""}
+        {sentFrom ? `Sent. Siddhant will reply to ${sentFrom}` : ""}
       </p>
     </section>
   );
