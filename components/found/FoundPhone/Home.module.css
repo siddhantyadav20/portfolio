@@ -1,0 +1,127 @@
+.home {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--os-top) + 14px) 20px 30px;
+  /* The same wallpaper as the lock screen, dimmed for icons to sit on. */
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.22) 40%, rgba(0, 0, 0, 0.58) 100%),
+    var(--wallpaper, linear-gradient(180deg, #0a0c1c 0%, #16132b 45%, #2a1a1c 100%)) center / cover no-repeat,
+    #0a0c1c;
+  animation: settle 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    scale: 1.06;
+  }
+}
+
+.widget {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border: 0;
+  border-radius: 22px;
+  background: rgba(30, 30, 34, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--os-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.1);
+}
+
+.widgetLabel {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--os-accent);
+}
+
+.widgetText {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px 12px;
+  margin-top: 28px;
+}
+
+.dock {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: auto;
+  padding: 14px 12px 10px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.icon {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--os-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tile {
+  position: relative;
+  width: min(62px, 100%);
+  aspect-ratio: 1;
+  transition: scale 0.15s;
+}
+
+.icon:active .tile {
+  scale: 0.9;
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--os-danger);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 22px;
+  text-align: center;
+  animation: pop 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+@keyframes pop {
+  from {
+    scale: 0;
+  }
+}
+
+.label {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dock .label {
+  display: none;
+}

@@ -52,7 +52,10 @@ export type SfxCue =
   | "needle-drop"
   | "needle-lift"
   /* The one homepage cue that is a picture of an object. */
-  | "jet-pass";
+  | "jet-pass"
+  /* Found's phone: a real motor on real wood, played twice per text by
+     lib/found/buzz.ts. */
+  | "found-buzz";
 
 export type SfxEntry = {
   /** Filenames under `/sfx/`. More than one is a round-robin — see `pick` in
@@ -87,6 +90,7 @@ export const SFX: Record<SfxCue, SfxEntry> = {
   "needle-drop": { takes: ["needle-drop-1.m4a", "needle-drop-2.m4a"], gain: 1 },
   "needle-lift": { takes: ["needle-lift-1.m4a", "needle-lift-2.m4a"], gain: 1 },
   "jet-pass": { takes: ["jet-pass-1.m4a", "jet-pass-2.m4a"], gain: 1, sustained: true },
+  "found-buzz": { takes: ["found-buzz-1.m4a", "found-buzz-2.m4a"], gain: 1 },
 };
 /* @generated:end */
 

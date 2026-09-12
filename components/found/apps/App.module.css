@@ -1,0 +1,168 @@
+/* The chrome every app shares: a full-screen view, a bar, a scrolling body,
+   and grouped rows. Each app adds only what's its own. */
+
+.view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--os-top);
+  background: var(--os-bg);
+  animation: open 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes open {
+  from {
+    opacity: 0;
+    scale: 0.97;
+  }
+}
+
+.bar {
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 6px;
+}
+
+.back {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 6px;
+  border: 0;
+  background: none;
+  color: var(--os-accent);
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.back svg {
+  width: 12px;
+  height: 20px;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.barEnd {
+  justify-self: end;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px 16px 48px;
+  scrollbar-width: none;
+}
+
+.body::-webkit-scrollbar {
+  display: none;
+}
+
+.big {
+  margin: 2px 4px 16px;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.groupLabel {
+  margin: 0 4px 7px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--os-faint);
+}
+
+.group {
+  margin: 0 0 22px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--os-panel);
+  list-style: none;
+}
+
+.group > li + li {
+  border-top: 1px solid var(--os-line);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.row {
+  cursor: pointer;
+}
+
+button.row:active {
+  background: var(--os-panel-2);
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.rowTitle {
+  overflow: hidden;
+  font-size: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rowSub {
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--os-dim);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rowMeta {
+  flex: none;
+  font-size: 13px;
+  color: var(--os-faint);
+}
+
+.note {
+  margin: -14px 4px 22px;
+  font-size: 12px;
+  color: var(--os-faint);
+}
+
+.chev {
+  flex: none;
+  width: 8px;
+  height: 14px;
+  color: var(--os-faint);
+}
+
+.empty {
+  padding: 48px 12px;
+  color: var(--os-faint);
+  text-align: center;
+}

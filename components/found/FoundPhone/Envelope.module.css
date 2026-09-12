@@ -1,0 +1,159 @@
+.stage {
+  display: grid;
+  justify-items: center;
+  gap: 26px;
+  width: min(540px, 100cqw);
+  max-height: 100cqh;
+  padding: 32px 24px;
+  overflow-y: auto;
+  text-align: center;
+  animation: rise 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ff8a3d;
+}
+
+/* An opened envelope: the back (this box, darker, the inside you see
+   through the torn top), a lit phone standing in it, and the front pocket
+   drawn over the phone so only its top shows. A label written by someone
+   who didn't want their handwriting recognised. */
+.envelope {
+  position: relative;
+  width: min(330px, 76cqw);
+  aspect-ratio: 1.5;
+  margin-top: 64px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #6f5231, #8a6740);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55);
+  rotate: -3deg;
+  animation: shiver 3.4s ease-in-out 1.2s infinite;
+}
+
+.front {
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  clip-path: polygon(0 0, 50% 26%, 100% 0, 100% 100%, 0 100%);
+  background:
+    radial-gradient(120% 90% at 20% 10%, rgba(255, 255, 255, 0.12), transparent 60%),
+    repeating-linear-gradient(35deg, rgba(0, 0, 0, 0.025) 0 2px, transparent 2px 5px),
+    #a9814f;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+}
+
+@keyframes shiver {
+  0%,
+  86%,
+  100% {
+    translate: 0 0;
+  }
+  88%,
+  92%,
+  96% {
+    translate: -1.5px 0.5px;
+  }
+  90%,
+  94%,
+  98% {
+    translate: 1.5px -0.5px;
+  }
+}
+
+.phone {
+  position: absolute;
+  top: -30%;
+  left: 37%;
+  width: 26%;
+  aspect-ratio: 0.48;
+  border-radius: 14px;
+  background: linear-gradient(170deg, #1c1c1e, #050505 60%);
+  box-shadow:
+    inset 0 0 0 2px #2a2a2c,
+    0 -6px 30px rgba(255, 150, 80, 0.18);
+  rotate: 8deg;
+}
+
+.phone::after {
+  content: "";
+  position: absolute;
+  inset: 8% 10% auto;
+  height: 30%;
+  border-radius: 8px;
+  background: radial-gradient(circle at 50% 30%, rgba(255, 170, 110, 0.55), rgba(255, 120, 60, 0.05) 70%);
+}
+
+.label {
+  position: absolute;
+  left: 12%;
+  bottom: 16%;
+  padding: 9px 14px;
+  background: #f1ece2;
+  color: #1b1a18;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.15;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+  rotate: 1.5deg;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.lines {
+  display: grid;
+  gap: 10px;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(20px, 5.4cqw, 26px);
+  line-height: 1.3;
+  color: #f2ede6;
+}
+
+.lines p {
+  margin: 0;
+}
+
+.lines p:last-child {
+  color: #ffb58a;
+}
+
+.cta {
+  padding: 14px 30px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #111;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  transition:
+    scale 0.2s,
+    box-shadow 0.2s;
+}
+
+.cta:hover {
+  scale: 1.03;
+  box-shadow: 0 14px 36px rgba(255, 140, 60, 0.25);
+}
+
+.small {
+  margin: 0;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 13px;
+  color: rgba(242, 237, 230, 0.45);
+}

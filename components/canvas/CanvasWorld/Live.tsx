@@ -3,6 +3,7 @@ import { Board, DistrictLabels, Slot, widgets, type Widget } from "./Board";
 import Book from "../widgets/Book";
 import Disc from "../widgets/Disc";
 import DrawingCanvas from "../widgets/DrawingCanvas";
+import FoundCard from "../widgets/FoundCard";
 import PhotoStack from "../widgets/PhotoStack";
 import ProfileCard from "../widgets/ProfileCard";
 import Receipt from "../widgets/Receipt";
@@ -93,5 +94,7 @@ function Render({ widget }: { widget: Widget }) {
       return <DrawingCanvas />;
     case "photos":
       return <PhotoStack />;
+    case "found":
+      return <FoundCard />;
   }
 }

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import ProfileCard from "@/components/canvas/widgets/ProfileCard";
 import DiscStill from "./DiscStill";
+import FoundStill from "./FoundStill";
 import {
   linkedInCard,
   photoCategories,
@@ -71,6 +72,8 @@ export default function Still({ widget }: { widget: Widget }) {
       return <ScratchStill />;
     case "draw":
       return <DrawStill />;
+    case "found":
+      return <FoundStill />;
   }
 }
 

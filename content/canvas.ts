@@ -33,7 +33,9 @@
 /** Board extent, world px: the cross's bounds plus a margin. The corners are
  *  the empty space a cross leaves, and they are where the edge fades. */
 export const WORLD_W = 3400;
-export const WORLD_H = 2300;
+/* 2560 since Found joined Playing: the phone spans two rows of the group's
+   grid, and the drawing canvas moved down a row to make room for it. */
+export const WORLD_H = 2560;
 
 /**
  * The five neighbourhoods — the dock's places, and where things are.
@@ -127,6 +129,8 @@ export type Widget = Placed &
     | { kind: "scratch" }
     | { kind: "draw" }
     | { kind: "photos" }
+    /** Found's phone: the door into the mystery at /found. */
+    | { kind: "found" }
   );
 
 /* --- The board ------------------------------------------------------------- */
@@ -163,6 +167,8 @@ export function widgetLabel(w: Widget): string {
       return "Scratch card — press Enter to reveal a design brief";
     case "draw":
       return "Drawing canvas";
+    case "found":
+      return "Low Battery, a mystery game — press Enter to pick up the phone";
   }
 }
 
@@ -182,9 +188,13 @@ export const widgets: readonly Widget[] = [
 
   /* --- Play ---------------------------------------------------------------- */
   { id: "scratch", kind: "scratch", cluster: "play", x: 1445, y: 1713, w: 320, h: 320, rotate: 2 },
-  // Level with the scratch card: the doodle toy, beside the brief that
-  // opens the Studio.
-  { id: "draw", kind: "draw", cluster: "play", x: 1829, y: 1713, w: 320, h: 320, rotate: -2 },
+  // Found's phone, level with the scratch card and exactly two rows tall
+  // (320 + 64 + 320): the group reads as a grid, scratch card over drawing
+  // canvas on the left and the phone filling the right. 320 x 704 is also,
+  // almost to the pixel, a real phone's proportion.
+  { id: "found", kind: "found", cluster: "play", x: 1829, y: 1713, w: 320, h: 704, rotate: -1 },
+  // The doodle toy, under the brief that opens the Studio.
+  { id: "draw", kind: "draw", cluster: "play", x: 1445, y: 2097, w: 320, h: 320, rotate: -2 },
   { id: "sticker-cs", kind: "sticker", cluster: "play", x: 1181, y: 1905, w: 200, h: 200, rotate: 6, label: "Counter-Strike", art: "/media/workspace/sticker-counter-strike.png" , effect: "recoil" },
   { id: "sticker-rooney", kind: "sticker", cluster: "play", x: 2213, y: 1641, w: 200, h: 200, rotate: -6, label: "Rooney’s bicycle kick", art: "/media/workspace/sticker-rooney.png" , effect: "bicycle" },
   { id: "sticker-ken", kind: "sticker", cluster: "play", x: 1181, y: 1641, w: 200, h: 200, rotate: -8, label: "Street Fighter", art: "/media/workspace/sticker-ken.png" , effect: "hadouken" },

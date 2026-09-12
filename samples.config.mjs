@@ -142,4 +142,12 @@ export default {
       { src: "jet-pass/162417.mp3", start: 0.000, duration: 3.000 },
       { src: "jet-pass/270271.mp3", start: 0.000, duration: 3.000 },
   ] },
+  /* --- Found --------------------------------------------------------------
+     A phone vibrating on wood, one pulse per take; lib/found/buzz.ts plays two
+     of them 450ms apart, the way a text lands. Pulses measured off the 50ms
+     envelope (scripts/build-found-audio.mjs prints it). */
+  "found-buzz": { gain: 1, takes: [
+      { src: "found-buzz/708216.mp3", start: 0.080, duration: 0.400 },
+      { src: "found-buzz/708216.mp3", start: 1.280, duration: 0.400 },
+  ] },
 };

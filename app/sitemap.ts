@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { found } from "@/content/found";
 import { STUDIES } from "@/content/work";
 import { siteOrigin } from "@/lib/origin";
 
@@ -23,6 +24,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.6,
+    },
+    {
+      url: `${SITE}${found.href}`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.5,
     },
     ...STUDIES.map((study) => ({
       url: `${SITE}/work/${study.slug}`,

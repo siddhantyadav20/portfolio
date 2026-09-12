@@ -50,6 +50,7 @@ import {
   store,
   timeline,
 } from "@/content/site";
+import { found } from "@/content/found";
 import { making } from "@/content/making";
 import { STUDIES, type StudyBlock, heroStill } from "@/content/work";
 import type { PaletteEntry } from "./types";
@@ -591,6 +592,7 @@ const NAMED: Record<string, string> = {
   scratch: "Scratch card",
   draw: "Drawing canvas",
   photos: "Photographs",
+  found: `${found.title}, the phone`,
 };
 
 const NAMED_KEYWORDS: Record<string, string> = {
@@ -601,6 +603,7 @@ const NAMED_KEYWORDS: Record<string, string> = {
   scratch: "brief sketch design challenge prompt game",
   draw: "draw sketch paint doodle",
   photos: "pictures cats wallpapers me",
+  found: "phone game mystery missing thriller notifications",
 };
 
 /**
@@ -717,6 +720,18 @@ const actions: PaletteEntry[] = [
     hint: "The board behind the homepage",
     keywords: "workspace explore board desk play",
     to: { kind: "route", href: canvasCard.href },
+  },
+  {
+    /* The pilot of a mystery game, here so it can be measured before it
+       becomes its own app. Featured while it's being tested: an empty ⌘K is
+       one of the few places a stranger would find it. */
+    id: "do:found",
+    group: "do",
+    label: found.cta,
+    hint: found.hint,
+    keywords: "game mystery thriller missing phone found play story puzzle detective",
+    featured: true,
+    to: { kind: "route", href: found.href },
   },
   {
     id: "do:shortcuts",

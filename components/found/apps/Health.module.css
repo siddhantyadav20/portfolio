@@ -1,0 +1,135 @@
+.segment {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 2px;
+  margin: 4px 0 22px;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--os-panel);
+}
+
+.seg {
+  padding: 6px 0;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--os-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.seg[data-on] {
+  background: var(--os-panel-2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.label {
+  margin: 0 2px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--os-faint);
+}
+
+.total {
+  margin: 0 2px 18px;
+  font-size: 34px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.total span {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--os-dim);
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 150px;
+  padding-bottom: 1px;
+  border-bottom: 1px solid var(--os-line);
+}
+
+.col {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.bar {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 3px 3px 0 0;
+  background: #ff6b8b;
+  opacity: 0.55;
+  transform-origin: bottom;
+  animation: grow 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.bar[data-late] {
+  opacity: 1;
+}
+
+@keyframes grow {
+  from {
+    scale: 1 0;
+  }
+}
+
+.axis {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0 24px;
+  padding-right: 25%;
+  font-size: 11px;
+  color: var(--os-faint);
+}
+
+.walk {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--os-panel);
+}
+
+.walkKind {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ff6b8b;
+}
+
+.walkKm {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.walkKm span,
+.walkTime {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--os-dim);
+}
+
+.walkTime {
+  margin: 0;
+}
+
+.none {
+  margin: 0;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--os-panel);
+  color: var(--os-dim);
+  text-align: center;
+}

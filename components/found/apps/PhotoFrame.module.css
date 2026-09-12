@@ -1,0 +1,251 @@
+/* A photograph, or until it exists, a dark exposure with its description.
+   The grain is an inline SVG turbulence so there's no asset to budget. */
+
+.frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  background: radial-gradient(
+    120% 90% at 30% 25%,
+    hsl(var(--hue) 26% 24%) 0%,
+    hsl(var(--hue) 18% 9%) 58%,
+    #050505 100%
+  );
+}
+
+.frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.frame[data-size="thumb"] {
+  aspect-ratio: 1;
+}
+
+.frame[data-size="bubble"] {
+  aspect-ratio: 4 / 5;
+  border-radius: 16px;
+}
+
+.frame[data-size="full"] {
+  aspect-ratio: 3 / 4;
+}
+
+.image {
+  object-fit: cover;
+}
+
+/* A story's timestamp, set on the photo the way the app stamps it. */
+.overlay {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.pending {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.74);
+  text-align: left;
+}
+
+/* Inset rather than padded: a clamped box clips at its padding edge, so
+   padding let the top of the fifth line show under the fourth. */
+.frame[data-size="thumb"] .pending {
+  display: -webkit-box;
+  overflow: hidden;
+  inset: auto 7px 6px;
+  padding: 0;
+  font-size: 9px;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+/* --- Viewer ----------------------------------------------------------------- */
+
+.viewer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--os-top);
+  background: #000;
+  animation: show 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes show {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
+.viewerBar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 2px 10px 8px;
+}
+
+.viewerDone {
+  justify-self: start;
+  padding: 8px 6px;
+  border: 0;
+  background: none;
+  color: var(--os-accent);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.viewerWhen {
+  display: grid;
+  font-size: 12px;
+  color: var(--os-dim);
+  text-align: center;
+}
+
+.viewerWhen strong {
+  font-size: 14px;
+  color: var(--os-text);
+}
+
+.viewerImage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  align-content: center;
+  overflow: hidden;
+}
+
+/* What Live Text found, lifted off the photo. */
+.recognised {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 0 0 2px #ffd60a,
+    0 10px 30px rgba(0, 0, 0, 0.5);
+  color: #111;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  user-select: text;
+  -webkit-user-select: text;
+  animation: lift 0.35s cubic-bezier(0.2, 1.2, 0.3, 1) both;
+}
+
+@keyframes lift {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+}
+
+.textButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 12px;
+  padding: 5px 12px 5px 9px;
+  border: 1.5px solid var(--os-text);
+  border-radius: 999px;
+  background: none;
+  color: var(--os-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.textButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.textButton[data-on] {
+  border-color: #ffd60a;
+  background: #ffd60a;
+  color: #111;
+}
+
+.info {
+  display: grid;
+  margin: 0 12px 6px;
+  padding: 2px 14px;
+  border-radius: 14px;
+  background: var(--os-panel);
+  animation: show 0.25s ease-out both;
+}
+
+.info div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+}
+
+.info div + div {
+  border-top: 1px solid var(--os-line);
+}
+
+.info dt {
+  font-size: 14px;
+  color: var(--os-dim);
+}
+
+.info dd {
+  margin: 0;
+  font-size: 14px;
+  text-align: right;
+}
+
+.infoNote {
+  color: var(--os-danger);
+}
+
+.tools {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 36px;
+}
+
+.infoButton {
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--os-text);
+  border-radius: 50%;
+  background: none;
+  color: var(--os-text);
+  font: italic 600 15px Georgia, serif;
+  cursor: pointer;
+}
+
+.infoButton[data-on] {
+  background: var(--os-text);
+  color: #000;
+}

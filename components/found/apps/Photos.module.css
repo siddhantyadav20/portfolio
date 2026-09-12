@@ -1,0 +1,44 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  margin: 0 -16px;
+}
+
+.thumb {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.thumb:active {
+  opacity: 0.7;
+}
+
+/* Top corner: the bottom is where a placeholder's description sits. */
+.days {
+  position: absolute;
+  left: 6px;
+  top: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.count {
+  margin: 14px 0 26px;
+  font-size: 13px;
+  color: var(--os-dim);
+  text-align: center;
+}
+
+.kept {
+  margin: 0 4px 14px;
+  font-size: 13px;
+  color: var(--os-dim);
+  text-align: center;
+}

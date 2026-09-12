@@ -1,0 +1,334 @@
+/* ===========================================================================
+   Found: the room, the phone, and the phone's own OS.
+
+   One committed look, whatever the site's theme: it's night, and a phone is
+   lit in front of you. The phone's OS has its own palette (`--os-*`, set on
+   `.screen`) because a phone's OS never follows the page it's lying next to.
+
+   On a phone the device frame disappears and the screen *is* the viewport:
+   the player's phone becomes the missing person's. That switch is a container
+   query on the room, not a media query (tests/breakpoints.test.ts).
+   =========================================================================== */
+
+.surface {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  container: found / size;
+  background-color: #0a0908;
+  background-image:
+    radial-gradient(70% 55% at 50% 12%, rgba(255, 150, 80, 0.1) 0%, transparent 70%),
+    radial-gradient(90% 70% at 50% 8%, #2b221c 0%, #120f0d 55%, #070606 100%);
+  color: #f2ede6;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- The device ------------------------------------------------------------ */
+
+.device {
+  position: relative;
+  height: min(860px, calc(100cqh - 48px));
+  aspect-ratio: 390 / 844;
+  padding: 11px;
+  border-radius: 60px;
+  background: linear-gradient(150deg, #2c2c2e 0%, #0d0d0e 38%, #1b1b1c 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    inset 0 0 0 3px #050505,
+    0 50px 120px rgba(0, 0, 0, 0.75),
+    0 0 120px rgba(255, 140, 60, 0.07);
+  animation: lift 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes lift {
+  from {
+    opacity: 0;
+    translate: 0 40px;
+    scale: 0.96;
+  }
+}
+
+.screen {
+  --os-bg: #050505;
+  --os-panel: #1c1c1e;
+  --os-panel-2: #2c2c2e;
+  --os-line: rgba(255, 255, 255, 0.09);
+  --os-text: #f5f5f7;
+  --os-dim: rgba(235, 235, 245, 0.62);
+  --os-faint: rgba(235, 235, 245, 0.34);
+  --os-accent: #ff8a3d;
+  --os-owner: #c2410c;
+  --os-warn: #ffd60a;
+  --os-danger: #ff453a;
+  --os-good: #32d74b;
+  --os-top: 50px;
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 49px;
+  background: var(--os-bg);
+  color: var(--os-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.35;
+  -webkit-font-smoothing: antialiased;
+  isolation: isolate;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@container found (width < 560px) {
+  .device {
+    width: 100cqw;
+    height: 100cqh;
+    aspect-ratio: auto;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    animation: none;
+  }
+
+  .screen {
+    --os-top: calc(env(safe-area-inset-top, 0px) + 44px);
+    border-radius: 0;
+  }
+}
+
+/* --- Status bar ------------------------------------------------------------ */
+
+.status {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 30;
+  height: var(--os-top);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 30px 9px 34px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  pointer-events: none;
+}
+
+.battery {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--os-warn);
+}
+
+.battery[data-low] {
+  color: var(--os-danger);
+}
+
+.cell {
+  position: relative;
+  width: 25px;
+  height: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: 4px;
+}
+
+.cell::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 3px;
+  width: 2px;
+  height: 4px;
+  border-radius: 0 1px 1px 0;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.fill {
+  position: absolute;
+  inset: 1.5px auto 1.5px 1.5px;
+  border-radius: 1.5px;
+  background: currentColor;
+}
+
+/* --- Home indicator ------------------------------------------------------- */
+
+.homeBar {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  z-index: 40;
+  width: 150px;
+  height: 24px;
+  translate: -50% 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.homeBar::before {
+  content: "";
+  position: absolute;
+  inset: 9px 8px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.72);
+  transition: background-color 0.2s;
+}
+
+.homeBar:hover::before {
+  background: #fff;
+}
+
+/* --- Notification banner --------------------------------------------------- */
+
+.banner {
+  position: absolute;
+  z-index: 50;
+  /* Just under the status bar, not over it: over it, the battery reading
+     showed through the glass and collided with "now". */
+  top: calc(var(--os-top) + 2px);
+  left: 9px;
+  right: 9px;
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  padding: 11px 14px 11px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  background: rgba(38, 38, 40, 0.94);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+  color: var(--os-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  animation: drop 0.5s cubic-bezier(0.2, 1.1, 0.3, 1) both;
+}
+
+@keyframes drop {
+  from {
+    translate: 0 -130%;
+    opacity: 0;
+  }
+}
+
+.bannerIcon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+}
+
+.bannerText {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+
+.bannerFrom {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bannerBody {
+  overflow: hidden;
+  font-size: 14px;
+  color: var(--os-dim);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bannerNow {
+  align-self: flex-start;
+  font-size: 12px;
+  color: var(--os-faint);
+}
+
+/* --- The battery going ----------------------------------------------------- */
+
+.powerOff {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: #000;
+  animation: dark 2.6s ease-in both;
+}
+
+@keyframes dark {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+}
+
+.dying {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  color: var(--os-danger);
+  font-size: 14px;
+  font-weight: 600;
+  animation: last 2.6s ease-in both;
+}
+
+@keyframes last {
+  0%,
+  22% {
+    opacity: 0;
+  }
+  35%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.bigCell {
+  position: relative;
+  width: 72px;
+  height: 32px;
+  border: 3px solid #5a5a5e;
+  border-radius: 9px;
+}
+
+.bigCell::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  bottom: 3px;
+  width: 6px;
+  border-radius: 3px;
+  background: var(--os-danger);
+}
+
+.bigCell::after {
+  content: "";
+  position: absolute;
+  right: -9px;
+  top: 9px;
+  width: 4px;
+  height: 8px;
+  border-radius: 0 3px 3px 0;
+  background: #5a5a5e;
+}
