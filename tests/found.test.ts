@@ -41,6 +41,7 @@ import {
   threadMessages,
   tryUnlock,
   logUsage,
+  TOO_MUCH,
   type CaseState,
 } from "@/lib/found/engine";
 import { FOUND_EVENTS, MILESTONE_OF, isFoundEvent } from "@/lib/found/events";
@@ -396,7 +397,7 @@ describe("playing it", () => {
     s = see(ep, s, "health-walk");
     const wrong = answer(ep, s, "went-home", ["group-home"]);
     expect(wrong.reply).toBe(ep.deductions[0].nudges["group-home"]);
-    expect(answer(ep, s, "went-home", ["group-home", "health-walk"]).ok).toBe(true);
+    expect(answer(ep, s, "went-home", ["health-walk"]).ok).toBe(true);
   });
 
   it("takes a typed answer however it's typed, and nudges the missing person's own name", () => {
@@ -619,3 +620,18 @@ describe("the calculator", () => {
 
 // Keep the type import honest.
 export type { Reply };
+
+describe("showing evidence", () => {
+  it("takes exactly the evidence that proves it, not everything at once", () => {
+    const { state: done } = playThrough();
+    const everything = ep.evidence.map((e) => e.id);
+    for (const d of ep.deductions) {
+      if (d.answer.kind !== "evidence") continue;
+      const open: CaseState = { ...done, flags: done.flags.filter((f) => f !== `solved:${d.id}`) };
+      const shown = answer(ep, open, d.id, everything);
+      expect(shown.ok, d.id).toBe(false);
+      expect(shown.reply, d.id).toBe(TOO_MUCH);
+      expect(answer(ep, open, d.id, d.answer.accepts[0]).ok, d.id).toBe(true);
+    }
+  });
+});

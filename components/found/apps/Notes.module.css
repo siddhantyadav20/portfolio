@@ -259,3 +259,14 @@
   text-transform: uppercase;
   color: var(--os-faint);
 }
+
+/* How many to show, and how many are ticked. */
+.choose {
+  margin: 0;
+  font-size: 13px;
+  color: var(--os-dim);
+}
+
+.choose[data-over] {
+  color: var(--os-danger);
+}

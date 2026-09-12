@@ -42,3 +42,14 @@
   color: var(--os-dim);
   text-align: center;
 }
+
+/* Recently Deleted's own "Recover All", where a phone puts it. */
+.recoverAll {
+  padding: 8px 6px;
+  border: 0;
+  background: none;
+  color: var(--os-accent);
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}

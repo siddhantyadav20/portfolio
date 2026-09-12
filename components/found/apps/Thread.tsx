@@ -4,12 +4,13 @@ import { Fragment, useEffect, useRef, useState } from "react";
 
 import { story as ep } from "@/content/found/story";
 import type { Message } from "@/content/found/types";
-import { openReply, replyOptions, sessionVars, type CaseState } from "@/lib/found/engine";
+import { actionAvailable, has, openReply, replyOptions, sessionVars, type CaseState } from "@/lib/found/engine";
 import { say } from "@/lib/found/voice";
 import * as play from "../FoundPhone/actions";
 import AppBar from "./AppBar";
 import GuardianCard from "./GuardianCard";
 import PhotoFrame, { PhotoViewer } from "./PhotoFrame";
+import Switch from "./Switch";
 import app from "./App.module.css";
 import styles from "./Thread.module.css";
 
@@ -36,6 +37,10 @@ const timeOf = (at: string) => (at === "now" ? "Just now" : (at.split(" ")[1] ??
  * Episode 1, nothing (Low Power Mode); in Episode 2, a short list of things
  * to send when there's something to answer. Whatever they pick is sent from
  * {name}'s phone, and it shows up in the thread like anything else sent.
+ *
+ * The name at the top opens the person's details, as it does on a phone,
+ * and that's where Send Read Receipts lives: the one switch that decides
+ * whether Mum is told her messages are being read.
  */
 export default function Thread({
   threadId,
@@ -63,11 +68,16 @@ export default function Thread({
   const body = useRef<HTMLDivElement>(null);
   const [viewing, setViewing] = useState<string | null>(null);
   const [naming, setNaming] = useState(false);
+  const [details, setDetails] = useState(false);
   const [name, setName] = useState(state.names[threadId] ?? "");
   const vars = sessionVars(ep, state);
   const t = (x: string) => say(x, state.cast, vars);
   const reply = composer === "replies" ? openReply(ep, state, threadId) : undefined;
   const options = reply ? replyOptions(state, reply) : [];
+  const receipts = !has(state, "did:receipts-off");
+  const canReceipts = actionAvailable(ep, state, "receipts-off");
+  // Group chats and the vault's copy of K.'s chat have no one person to open.
+  const hasDetails = !group && composer !== "none";
 
   useEffect(() => {
     play.seeAll(messages.map((m) => m.evidence));
@@ -87,6 +97,7 @@ export default function Thread({
     <section className={app.view}>
       <AppBar
         title={title}
+        onTitle={hasDetails ? () => setDetails(true) : undefined}
         onBack={onBack}
         backLabel={backLabel}
         end={
@@ -171,6 +182,34 @@ export default function Thread({
               {o.text === null ? "Don’t reply" : t(o.text)}
             </button>
           ))}
+        </div>
+      )}
+      {details && (
+        <div className={styles.contactSheet} role="dialog" aria-label={title} data-no-swipe>
+          <div className={styles.contactBar}>
+            <button type="button" className={styles.contactDone} onClick={() => setDetails(false)}>
+              Done
+            </button>
+          </div>
+          <span className={styles.contactAvatar} aria-hidden="true">
+            {contact.startsWith("+") && !state.names[threadId] ? "?" : title[0]}
+          </span>
+          <p className={styles.contactName}>{title}</p>
+          {title !== contact && <p className={styles.contactSub}>{contact}</p>}
+          <ul className={app.group}>
+            <li className={app.row}>
+              <span className={app.rowMain}>
+                <span className={app.rowTitle}>Send Read Receipts</span>
+              </span>
+              <Switch
+                on={receipts}
+                disabled={!receipts || !canReceipts}
+                onChange={() => play.perform("receipts-off")}
+                label="Send Read Receipts"
+              />
+            </li>
+          </ul>
+          <p className={app.note}>When this is on, people are told when you&apos;ve read their messages.</p>
         </div>
       )}
       {viewing && <PhotoViewer id={viewing} cast={state.cast} onClose={() => setViewing(null)} />}

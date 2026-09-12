@@ -51,10 +51,9 @@ export default function FoundCard() {
     // Only once the phone is actually in view: 15KB nobody on the far side
     // of the board should pay for.
     warmBuzz();
-    const timer = window.setInterval(() => {
-      setCount((n) => n + 1);
-      shake();
-    }, EVERY_MS);
+    // Messages keep landing on the lock screen, quietly, like a phone on
+    // silent. It only shakes and buzzes when someone reaches for it.
+    const timer = window.setInterval(() => setCount((n) => n + 1), EVERY_MS);
     return () => window.clearInterval(timer);
   }, [visible, still]);
 

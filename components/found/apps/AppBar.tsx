@@ -15,29 +15,44 @@ export function Chevron({ back = false }: { back?: boolean }) {
   );
 }
 
-/** An app's top bar: an optional back button, a title, and room on the right. */
+/**
+ * An app's top bar: an optional back button, a title (which can open
+ * something, like a contact's details), and room on the right.
+ *
+ * The back button carries `data-back`: swiping a screen right presses the
+ * last one on the phone, so every screen with a back button can be swiped.
+ */
 export default function AppBar({
   title = "",
   onBack,
   backLabel = "Back",
+  onTitle,
   end,
 }: {
   title?: string;
   onBack?: () => void;
   backLabel?: string;
+  onTitle?: () => void;
   end?: React.ReactNode;
 }) {
   return (
     <header className={styles.bar}>
       {onBack ? (
-        <button type="button" className={styles.back} onClick={onBack}>
+        <button type="button" className={styles.back} onClick={onBack} data-back>
           <Chevron back />
           {backLabel}
         </button>
       ) : (
         <span />
       )}
-      <h2 className={styles.title}>{title}</h2>
+      {onTitle ? (
+        <button type="button" className={styles.titleButton} onClick={onTitle}>
+          <span className={styles.title}>{title}</span>
+          <Chevron />
+        </button>
+      ) : (
+        <h2 className={styles.title}>{title}</h2>
+      )}
       <span className={styles.barEnd}>{end}</span>
     </header>
   );

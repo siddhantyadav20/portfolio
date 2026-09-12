@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { story as ep } from "@/content/found/story";
 import type { Cast } from "@/content/found/types";
 import { say } from "@/lib/found/voice";
 import * as play from "../FoundPhone/actions";
+import { drag } from "../FoundPhone/drag";
 import styles from "./PhotoFrame.module.css";
 
 /** A stable tone per photo, so placeholders are tellable apart in a grid. */
@@ -37,7 +38,7 @@ export default function PhotoFrame({ id, cast, size }: { id: string; cast: Cast;
   );
 }
 
-/** Full screen, with the info sheet a real phone keeps behind ⓘ. */
+/** Full screen, with the info sheet a real phone keeps behind ⓘ. Pull the photo down to put it away. */
 export function PhotoViewer({
   id,
   cast,
@@ -53,14 +54,44 @@ export function PhotoViewer({
   const photo = ep.photos.find((p) => p.id === id);
   const [info, setInfo] = useState(false);
   const [reading, setReading] = useState(false);
+  const shell = useRef<HTMLDivElement>(null);
+  const frame = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     play.see(photo?.evidence);
   }, [photo]);
 
+  // The photo follows the finger down and shrinks a little while the black
+  // behind it thins; past a point, or on a flick, it goes.
+  const pullDown = (e: React.PointerEvent) => {
+    const bg = shell.current;
+    const img = frame.current;
+    if (!bg || !img) return;
+    drag(e, {
+      engage: (dx, dy) => dy > 0 && dy > Math.abs(dx),
+      move: (dx, dy) => {
+        const d = Math.max(0, dy);
+        img.style.transition = "none";
+        img.style.transform = `translate(${dx * 0.4}px, ${d}px) scale(${1 - Math.min(d / 900, 0.3)})`;
+        bg.style.transition = "none";
+        bg.style.backgroundColor = `rgba(0, 0, 0, ${1 - Math.min(d / 360, 0.75)})`;
+      },
+      end: ({ dy, vy }) => {
+        if (dy > 110 || vy > 0.55) {
+          onClose();
+          return;
+        }
+        img.style.transition = "transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.1)";
+        img.style.transform = "";
+        bg.style.transition = "background-color 0.3s";
+        bg.style.backgroundColor = "";
+      },
+    });
+  };
+
   if (!photo) return null;
   return (
-    <div className={styles.viewer}>
+    <div ref={shell} className={styles.viewer} data-no-swipe>
       <div className={styles.viewerBar}>
         <button type="button" className={styles.viewerDone} onClick={onClose}>
           Done
@@ -71,7 +102,7 @@ export function PhotoViewer({
         </span>
         <span />
       </div>
-      <div className={styles.viewerImage}>
+      <div ref={frame} className={styles.viewerImage} onPointerDown={pullDown}>
         <PhotoFrame id={id} cast={cast} size="full" />
         {/* Live Text: the phone read something in the picture. Lifted and
             outlined the way the OS does it, so it reads as found, not added. */}

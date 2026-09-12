@@ -8,6 +8,8 @@
   flex-direction: column;
   padding-top: var(--os-top);
   background: var(--os-bg);
+  /* Vertical drags scroll; sideways ones are the swipe back. */
+  touch-action: pan-y;
   animation: open 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
@@ -53,6 +55,25 @@
   white-space: nowrap;
 }
 
+/* A title that opens something: the name at the top of a conversation. */
+.titleButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.titleButton .chev {
+  width: 6px;
+  height: 11px;
+}
+
 .barEnd {
   justify-self: end;
 }
@@ -63,6 +84,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 2px 16px 48px;
+  touch-action: pan-y;
   scrollbar-width: none;
 }
 

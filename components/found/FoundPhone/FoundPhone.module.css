@@ -92,6 +92,20 @@
   -webkit-user-select: none;
 }
 
+/* The island, on the drawn phone only: on a real phone, the real one is there. */
+.osIsland {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  z-index: 45;
+  width: 122px;
+  height: 35px;
+  translate: -50% 0;
+  border-radius: 20px;
+  background: #000;
+  pointer-events: none;
+}
+
 @container found (width < 560px) {
   .device {
     width: 100cqw;
@@ -108,6 +122,10 @@
     --os-top: calc(env(safe-area-inset-top, 0px) + 44px);
     border-radius: 0;
   }
+
+  .osIsland {
+    display: none;
+  }
 }
 
 /* --- Status bar ------------------------------------------------------------ */
@@ -120,18 +138,36 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding: 0 30px 9px 34px;
+  padding: 0 28px 10px 36px;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.01em;
   pointer-events: none;
 }
 
-.battery {
+.statusIcons {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+}
+
+.signal {
+  width: 17px;
+  height: 11px;
+  fill: currentColor;
+}
+
+.wifi {
+  width: 15px;
+  height: 11px;
+  fill: currentColor;
+}
+
+/* The battery the way the phone draws it now: the level inside the cell,
+   the number on top of it. Yellow in Low Power Mode, red when nearly gone,
+   green on the charger. */
+.battery {
+  display: flex;
   color: var(--os-warn);
 }
 
@@ -139,56 +175,83 @@
   color: var(--os-danger);
 }
 
-/* Episode 2: plugged in, and climbing. */
 .battery[data-charging] {
   color: var(--os-good);
 }
 
 .cell {
   position: relative;
-  width: 25px;
-  height: 12px;
-  border: 1.5px solid rgba(255, 255, 255, 0.55);
-  border-radius: 4px;
-}
-
-.cell::after {
-  content: "";
-  position: absolute;
-  right: -4px;
-  top: 3px;
-  width: 2px;
-  height: 4px;
-  border-radius: 0 1px 1px 0;
-  background: rgba(255, 255, 255, 0.55);
+  width: 27px;
+  height: 13px;
+  overflow: hidden;
+  border-radius: 4.2px;
+  background: rgba(255, 255, 255, 0.34);
 }
 
 .fill {
   position: absolute;
-  inset: 1.5px auto 1.5px 1.5px;
-  border-radius: 1.5px;
+  inset: 0 auto 0 0;
   background: currentColor;
+}
+
+.cellNum {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.cellNum[data-dark] {
+  color: #000;
+}
+
+/* The nub, outside the cell's clip. */
+.battery::after {
+  content: "";
+  align-self: center;
+  width: 2px;
+  height: 4.5px;
+  margin-left: 1.5px;
+  border-radius: 0 1.5px 1.5px 0;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* --- An open app ----------------------------------------------------------- */
+
+/* On its own layer, over the home screen, so it can shrink back into it. */
+.appLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform-origin: 50% 70%;
 }
 
 /* --- Home indicator ------------------------------------------------------- */
 
+/* Tap it, or swipe up from it: either goes home. */
 .homeBar {
   position: absolute;
   left: 50%;
-  bottom: 6px;
+  bottom: 4px;
   z-index: 40;
-  width: 150px;
-  height: 24px;
+  width: 180px;
+  height: 28px;
   translate: -50% 0;
   border: 0;
   background: none;
   cursor: pointer;
+  touch-action: none;
 }
 
 .homeBar::before {
   content: "";
   position: absolute;
-  inset: 9px 8px;
+  inset: 12px 23px 11px;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.72);
   transition: background-color 0.2s;
@@ -222,6 +285,8 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
+  /* Flicked up to dismiss: the drag is the banner's, not the page's. */
+  touch-action: none;
   animation: drop 0.5s cubic-bezier(0.2, 1.1, 0.3, 1) both;
 }
 

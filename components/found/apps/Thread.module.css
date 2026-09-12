@@ -183,3 +183,71 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+/* --- A person's details, behind their name at the top ---------------------- */
+
+.contactSheet {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--os-top) + 2px) 16px 40px;
+  background: var(--os-bg);
+  animation: sheet 0.38s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+
+@keyframes sheet {
+  from {
+    translate: 0 100%;
+  }
+}
+
+.contactSheet ul {
+  margin-top: 24px;
+}
+
+.contactBar {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 44px;
+}
+
+.contactDone {
+  padding: 8px 6px;
+  border: 0;
+  background: none;
+  color: var(--os-accent);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.contactAvatar {
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #a5a5aa, #6c6c71);
+  color: #fff;
+  font-size: 38px;
+  font-weight: 600;
+}
+
+.contactName {
+  margin: 12px 0 2px;
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.contactSub {
+  margin: 0;
+  font-size: 14px;
+  color: var(--os-dim);
+  text-align: center;
+}

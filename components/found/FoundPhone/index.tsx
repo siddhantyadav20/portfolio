@@ -26,6 +26,7 @@ import Settings from "../apps/Settings";
 import type { Nav } from "../apps/types";
 import * as play from "./actions";
 import Charge from "./Charge";
+import { drag } from "./drag";
 import EndCard from "./EndCard";
 import Envelope from "./Envelope";
 import Home from "./Home";
@@ -54,6 +55,9 @@ const POWER_OFF_AFTER = 7500;
 const DYING_MS = 3400;
 /** From "Thank you." to Episode 2's end card. */
 const EPISODE_END_AFTER = 6000;
+/** An app shrinking back into the home screen; a page sliding away after a swipe back. */
+const CLOSE_MS = 260;
+const BACK_MS = 260;
 
 /** What piled up while the phone was dead, for the banner that says so. */
 const BACKLOG =
@@ -71,6 +75,10 @@ let resumeCounted = false;
  * has been on screen (Guardian counts it, so the story can too). Everything
  * about the case itself is in the progress store and changes through
  * `./actions`. What the screen shows is the story's current stage.
+ *
+ * It also owns the phone's gestures, the ones that belong to the OS rather
+ * than an app: swipe up from the home bar to go home, swipe a screen right to
+ * go back, flick a banner away.
  */
 export default function FoundPhone() {
   const mounted = useMounted();
@@ -81,6 +89,8 @@ export default function FoundPhone() {
   const [dying, setDying] = useState(false);
   const [now, setNow] = useState(0);
   const bannerKey = useRef(0);
+  const screenRef = useRef<HTMLDivElement>(null);
+  const appRef = useRef<HTMLDivElement>(null);
 
   // The recorded buzz, decoded before the first text needs it.
   useEffect(() => warmBuzz(), []);
@@ -115,6 +125,112 @@ export default function FoundPhone() {
     }),
     [],
   );
+
+  /* --- Gestures ---------------------------------------------------------------
+     Each one follows the finger, then either lets go or springs back. The
+     moving element is styled directly while the finger is down: a gesture
+     re-rendering React sixty times a second would be the wrong trade. */
+
+  // The open app shrinks back into the home screen, which is already there
+  // underneath it.
+  const closeApp = () => {
+    const el = appRef.current;
+    if (!el) {
+      setRoute({ app: "home" });
+      return;
+    }
+    const ease = `${CLOSE_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+    el.style.transition = `scale ${ease}, translate ${ease}, border-radius ${ease}, opacity ${CLOSE_MS}ms ease-in`;
+    el.style.scale = "0.3";
+    el.style.translate = "0 -18%";
+    el.style.borderRadius = "56px";
+    el.style.opacity = "0";
+    window.setTimeout(() => setRoute({ app: "home" }), CLOSE_MS - 40);
+  };
+
+  // Swipe up from the home bar: the app shrinks toward a card as it rises,
+  // and past a point (or on a flick) it goes.
+  const pullHome = (e: React.PointerEvent) => {
+    const el = appRef.current;
+    if (!el) return;
+    drag(e, {
+      engage: (dx, dy) => dy < 0 && -dy > Math.abs(dx),
+      move: (dx, dy) => {
+        const p = Math.min(1, -dy / 360);
+        el.style.transition = "none";
+        el.style.scale = String(1 - p * 0.42);
+        el.style.translate = `${dx * 0.25}px ${Math.min(0, dy) * 0.4}px`;
+        el.style.borderRadius = `${Math.round(10 + p * 44)}px`;
+      },
+      end: ({ dy, vy }) => {
+        if (dy < -80 || vy < -0.5) {
+          closeApp();
+          return;
+        }
+        const spring = "0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1)";
+        el.style.transition = `scale ${spring}, translate ${spring}, border-radius ${spring}`;
+        el.style.scale = "";
+        el.style.translate = "";
+        el.style.borderRadius = "";
+      },
+    });
+  };
+
+  // Swipe right anywhere on a screen that has a back button, as iOS now
+  // lets you: the screen follows the finger and lets go past a third. Touch
+  // only, because with a mouse a sideways drag is someone selecting text;
+  // and not from inside a field, a photo or a sheet (`data-no-swipe`).
+  const swipeBack = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse" || route.app === "home") return;
+    if ((e.target as Element).closest("input, textarea, [data-no-swipe]")) return;
+    const backs = screenRef.current?.querySelectorAll<HTMLButtonElement>("[data-back]");
+    const back = backs?.[backs.length - 1];
+    const view = back?.closest("section");
+    if (!back || !view) return;
+    const width = view.clientWidth;
+    drag(e, {
+      engage: (dx, dy) => dx > 0 && dx > Math.abs(dy) * 1.3,
+      move: (dx) => {
+        view.style.transition = "none";
+        view.style.translate = `${Math.max(0, dx)}px 0`;
+        view.style.boxShadow = "-16px 0 36px rgba(0, 0, 0, 0.5)";
+      },
+      end: ({ dx, vx }) => {
+        const go = dx > width * 0.33 || vx > 0.45;
+        view.style.transition = `translate ${BACK_MS}ms cubic-bezier(0.2, 0.8, 0.2, 1)`;
+        view.style.translate = go ? `${width}px 0` : "0px 0";
+        window.setTimeout(() => {
+          if (go) back.click();
+          view.style.transition = "";
+          view.style.translate = "";
+          view.style.boxShadow = "";
+        }, BACK_MS);
+      },
+    });
+  };
+
+  // A banner flicked up goes away without opening anything. `transform`,
+  // because its arrival animation owns `translate`.
+  const flickBanner = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const el = e.currentTarget;
+    drag(e, {
+      engage: (dx, dy) => dy < 0 && -dy > Math.abs(dx),
+      move: (_dx, dy) => {
+        el.style.transition = "none";
+        el.style.transform = `translateY(${Math.min(0, dy)}px)`;
+      },
+      end: ({ dy, vy }) => {
+        if (dy < -26 || vy < -0.3) {
+          el.style.transition = "transform 0.22s cubic-bezier(0.4, 0, 1, 1)";
+          el.style.transform = "translateY(-160%)";
+          window.setTimeout(() => setBanner(null), 220);
+          return;
+        }
+        el.style.transition = "transform 0.3s cubic-bezier(0.2, 1.2, 0.3, 1)";
+        el.style.transform = "";
+      },
+    });
+  };
 
   // Time in each app, for Mum's report: counted from open to close, a pickup
   // each time one opens.
@@ -238,29 +354,44 @@ export default function FoundPhone() {
     const charging = st.episode === 2;
     body = (
       <div className={styles.device}>
-        <div className={styles.screen} style={{ "--wallpaper": `url(${found.wallpaper})` } as React.CSSProperties}>
+        <div
+          ref={screenRef}
+          className={styles.screen}
+          style={{ "--wallpaper": `url(${found.wallpaper})` } as React.CSSProperties}
+          onPointerDown={swipeBack}
+        >
+          <span className={styles.osIsland} aria-hidden="true" />
           {st.screen === "charge" ? (
             <Charge onPlug={() => play.perform("plug")} />
           ) : (
             <>
-              <StatusBar percent={battery(ep, s)} clock={clockNow(s, now)} charging={charging} />
+              <StatusBar
+                percent={battery(ep, s)}
+                clock={clockNow(s, now)}
+                charging={charging}
+                wifi={has(s, "did:wifi-on")}
+                bars={charging ? 3 : 2}
+              />
               {st.screen === "lock" || st.screen === "relock" ? (
                 <LockScreen state={s} mode={st.screen === "relock" ? "restart" : "first"} clock={clockNow(s, now)} />
               ) : (
                 <>
-                  {route.app === "home" ? (
-                    <Home state={s} nav={nav} unread={unread.size} />
-                  ) : (
-                    <App
-                      key={`${route.app}:${route.arg ?? ""}`}
-                      route={route}
-                      state={s}
-                      nav={nav}
-                      unread={unread}
-                      markRead={markRead}
-                    />
+                  {/* Home stays underneath an open app, the way it does on a
+                      phone: pulling the app away shows it. */}
+                  <Home state={s} nav={nav} unread={unread.size} covered={route.app !== "home"} />
+                  {route.app !== "home" && (
+                    <div ref={appRef} className={styles.appLayer}>
+                      <App
+                        key={`${route.app}:${route.arg ?? ""}`}
+                        route={route}
+                        state={s}
+                        nav={nav}
+                        unread={unread}
+                        markRead={markRead}
+                      />
+                    </div>
                   )}
-                  <button type="button" className={styles.homeBar} aria-label="Home" onClick={nav.home} />
+                  <button type="button" className={styles.homeBar} aria-label="Home" onClick={closeApp} onPointerDown={pullHome} />
                 </>
               )}
             </>
@@ -271,6 +402,7 @@ export default function FoundPhone() {
               key={banner.key}
               className={styles.banner}
               onClick={() => nav.go(banner.app, banner.arg)}
+              onPointerDown={flickBanner}
               aria-live="polite"
             >
               <span className={styles.bannerIcon}>
@@ -306,20 +438,51 @@ export default function FoundPhone() {
   );
 }
 
-function StatusBar({ percent, clock, charging }: { percent: number; clock: string; charging: boolean }) {
+/** The phone's status bar: the clock, the signal, Wi-Fi once it's on, and
+ *  the battery with its number inside, the way the phone draws it now. */
+function StatusBar({
+  percent,
+  clock,
+  charging,
+  wifi,
+  bars,
+}: {
+  percent: number;
+  clock: string;
+  charging: boolean;
+  wifi: boolean;
+  bars: number;
+}) {
   // At 1–4% a true-width fill is a hairline; Episode 1 draws it generously.
-  const width = charging ? percent : percent * 6;
+  const width = Math.max(8, Math.min(100, charging ? percent : percent * 6));
   return (
     <div className={styles.status} aria-hidden="true">
       <span>{clock}</span>
-      <span
-        className={styles.battery}
-        data-low={(!charging && percent <= 2) || undefined}
-        data-charging={charging || undefined}
-      >
-        {percent}%
-        <span className={styles.cell}>
-          <span className={styles.fill} style={{ width: `${Math.max(8, Math.min(100, width))}%` }} />
+      <span className={styles.statusIcons}>
+        <svg viewBox="0 0 18 12" className={styles.signal}>
+          {[0, 1, 2, 3].map((i) => (
+            <rect key={i} x={i * 4.6} y={9 - i * 3} width="3.2" height={3 + i * 3} rx="0.9" opacity={i < bars ? 1 : 0.3} />
+          ))}
+        </svg>
+        {wifi && (
+          <svg viewBox="0 0 16 12" className={styles.wifi}>
+            <path d="M8 11.2 5.7 8.9a3.3 3.3 0 0 1 4.6 0L8 11.2Z" />
+            <path d="M3.6 6.8a6.2 6.2 0 0 1 8.8 0l-1.3 1.3a4.4 4.4 0 0 0-6.2 0L3.6 6.8Z" />
+            <path d="M1.4 4.6a9.3 9.3 0 0 1 13.2 0l-1.3 1.3a7.5 7.5 0 0 0-10.6 0L1.4 4.6Z" />
+          </svg>
+        )}
+        <span
+          className={styles.battery}
+          data-low={(!charging && percent <= 2) || undefined}
+          data-charging={charging || undefined}
+        >
+          <span className={styles.cell}>
+            <span className={styles.fill} style={{ width: `${width}%` }} />
+            {/* Dark digits once the level is under them, as the phone does. */}
+            <span className={styles.cellNum} data-dark={width >= 55 || undefined}>
+              {percent}
+            </span>
+          </span>
         </span>
       </span>
     </div>

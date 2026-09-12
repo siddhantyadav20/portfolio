@@ -38,13 +38,26 @@ const DOCK: { app: AppId; label: string }[] = [
  * at the top is the player's open question. It's the quiet answer to "what
  * am I supposed to be doing", and it's always one tap from the case file.
  * Page two is where Mum's app has sat since 2021.
+ *
+ * It stays mounted under an open app (`covered`): pushed back, dimmed and
+ * out of reach, so that pulling the app away shows it, as a phone does.
  */
-export default function Home({ state, nav, unread }: { state: CaseState; nav: Nav; unread: number }) {
+export default function Home({
+  state,
+  nav,
+  unread,
+  covered = false,
+}: {
+  state: CaseState;
+  nav: Nav;
+  unread: number;
+  covered?: boolean;
+}) {
   const [page, setPage] = useState(0);
   const open = [...ep.deductions].reverse().find((d) => deductionOpen(state, d));
 
   return (
-    <div className={styles.home}>
+    <div className={styles.home} data-covered={covered || undefined} inert={covered} aria-hidden={covered || undefined}>
       <button type="button" className={styles.widget} onClick={() => nav.go("notes")}>
         <span className={styles.widgetLabel}>{open ? "Open question" : "Case file"}</span>
         <span className={styles.widgetText}>
@@ -86,7 +99,7 @@ export default function Home({ state, nav, unread }: { state: CaseState; nav: Na
 
 function Icon({ app, label, badge = 0, onOpen }: { app: AppId; label: string; badge?: number; onOpen: () => void }) {
   return (
-    <button type="button" className={styles.icon} onClick={onOpen}>
+    <button type="button" className={styles.icon} onClick={onOpen} aria-label={badge > 0 ? `${label}, ${badge} unread` : label}>
       <span className={styles.tile}>
         <AppGlyph app={app} />
         {badge > 0 && <span className={styles.badge}>{badge}</span>}

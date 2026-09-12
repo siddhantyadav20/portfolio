@@ -176,9 +176,13 @@ export function answer(ep: Story, s: CaseState, deductionId: string, pick: reado
     }
     default: {
       const accepts = d.answer.accepts;
-      const picked = (typeof pick === "string" ? [pick] : pick).filter((id) => has(s, `seen:${id}`));
+      const picked = [...new Set(typeof pick === "string" ? [pick] : pick)].filter((id) => has(s, `seen:${id}`));
       keys = picked;
-      ok = accepts.some((combo) => combo.every((id) => picked.includes(id)));
+      // The right evidence and nothing else. Accepting anything that merely
+      // contained it let "tick everything, press Show" solve every question.
+      const within = accepts.find((combo) => combo.every((id) => picked.includes(id)));
+      ok = !!within && picked.length === within.length;
+      if (within && !ok) return { state: s, ok, reply: TOO_MUCH };
     }
   }
 
@@ -186,6 +190,9 @@ export function answer(ep: Story, s: CaseState, deductionId: string, pick: reado
   const nudge = keys.map((k) => d.nudges[k]).find(Boolean);
   return { state: s, ok, reply: nudge ?? d.otherwise };
 }
+
+/** The reply to the right evidence shown with extra alongside it. */
+export const TOO_MUCH = "Some of that proves it. Take out what doesn't.";
 
 /* --- Hints -------------------------------------------------------------------- */
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { story as ep } from "@/content/found/story";
-import { all, has, sessionVars } from "@/lib/found/engine";
+import { actionAvailable, all, has, sessionVars } from "@/lib/found/engine";
 import { say } from "@/lib/found/voice";
 import * as play from "../FoundPhone/actions";
 import type { AppProps } from "./types";
@@ -26,8 +26,10 @@ const RAIL = "M54 0 C52 40 58 70 50 100 C46 114 36 128 30 140";
 
 /**
  * Maps. Its Recents are {name}'s Friday, and — once you've pinned the mill —
- * your Monday, right underneath. At the end of Episode 1 it shows who else
- * can see this phone: the dot that's sharing with K. is you.
+ * your Monday, right underneath. Above them, the thing a phone that shares
+ * its location would show you: who it's sharing with, and a way to stop.
+ * At the end of Episode 1 it shows who else can see this phone: the dot that
+ * K. has been watching is you.
  */
 export default function Maps({ state, nav, arg }: AppProps) {
   const pinFor = arg?.startsWith("pin:") ? arg.slice(4) : null;
@@ -35,6 +37,8 @@ export default function Maps({ state, nav, arg }: AppProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   const exposed = has(state, "fired:cliff-you");
+  const sharing = !has(state, "did:sharing-off");
+  const canStop = actionAvailable(ep, state, "sharing-off");
   const vars = sessionVars(ep, state);
   const t = (x: string) => say(x, state.cast, vars);
   const searches = ep.searches.filter((s) => all(state, s.requires));
@@ -113,7 +117,25 @@ export default function Maps({ state, nav, arg }: AppProps) {
           </>
         ) : (
           <>
-            {exposed && <p className={styles.sharing}>This phone is sharing its location with K. The blue dot is you.</p>}
+            {exposed ? (
+              <p className={styles.sharing}>
+                {sharing
+                  ? "This phone is sharing its location with K. The blue dot is you."
+                  : "You turned sharing off. K. had already seen where it was. The blue dot is you."}
+              </p>
+            ) : (
+              <div className={styles.share}>
+                <span className={styles.shareMain}>
+                  <span className={styles.shareTitle}>{sharing ? "Sharing location with K." : "Location sharing is off"}</span>
+                  <span className={styles.shareSub}>{sharing ? "Since Sat 00:05" : "You stopped sharing with K."}</span>
+                </span>
+                {sharing && canStop && (
+                  <button type="button" className={styles.shareStop} onClick={() => play.perform("sharing-off")}>
+                    Stop
+                  </button>
+                )}
+              </div>
+            )}
             <p className={styles.eyebrow}>Recents</p>
             <ul className={styles.recents}>
               {searches.map((s) => (

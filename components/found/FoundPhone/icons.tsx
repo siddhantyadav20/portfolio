@@ -1,101 +1,157 @@
 import type { AppId } from "@/content/found/types";
 import styles from "./icons.module.css";
 
-/* The phone's app icons. The OS is our own, so are these: one glyph per app,
-   drawn in white on a tile of that app's colour, nothing borrowed. */
+/* The phone's app icons, in the iPhone's idiom: a rounded-square tile in the
+   app's own colour (white for the apps that are mostly paper), one simple
+   glyph, and a soft light along the top edge. All drawn here: the language
+   is borrowed, none of Apple's artwork is. */
 
 const TILE: Record<AppId, string> = {
-  envelope: "#a9814f",
-  lock: "#3a3a3c",
-  messages: "linear-gradient(160deg, #ff9a52, #e2560f)",
-  photos: "linear-gradient(160deg, #f5d27a, #d9822b)",
-  maps: "linear-gradient(160deg, #5fc28a, #2f8f5b)",
-  health: "linear-gradient(160deg, #ff6b8b, #d9304f)",
-  memos: "linear-gradient(160deg, #3b3b3f, #151517)",
-  notes: "linear-gradient(160deg, #f7e27c, #e5b72b)",
-  calculator: "linear-gradient(160deg, #505055, #232326)",
-  settings: "linear-gradient(160deg, #8e8e93, #545458)",
-  guardian: "linear-gradient(160deg, #6fa8ff, #2e5fd6)",
-  nightcam: "linear-gradient(160deg, #26263a, #07070d)",
-  news: "linear-gradient(160deg, #f4f1ea, #d8d2c4)",
-  food: "linear-gradient(160deg, #ff7a59, #d93a1f)",
+  envelope: "linear-gradient(180deg, #c9a06a, #9c7543)",
+  lock: "linear-gradient(180deg, #4a4a4e, #2c2c2e)",
+  messages: "linear-gradient(180deg, #6af07e 0%, #16c23a 100%)",
+  photos: "linear-gradient(180deg, #ffffff 0%, #eeeef2 100%)",
+  maps: "linear-gradient(160deg, #f4f1e6 0%, #e3eed8 100%)",
+  health: "linear-gradient(180deg, #ffffff 0%, #f0f0f3 100%)",
+  memos: "linear-gradient(180deg, #2c2c2e 0%, #050505 100%)",
+  notes: "linear-gradient(180deg, #ffd84a 0%, #f8c81c 24%, #ffffff 24.5%, #f7f7f2 100%)",
+  calculator: "linear-gradient(180deg, #3a3a3c 0%, #111113 100%)",
+  settings: "linear-gradient(180deg, #d8d8dd 0%, #8e8e93 100%)",
+  guardian: "linear-gradient(180deg, #5eb0ff 0%, #1d6fe6 100%)",
+  nightcam: "linear-gradient(180deg, #2a2f5c 0%, #080a18 100%)",
+  news: "linear-gradient(180deg, #ff6a6a 0%, #e4283f 100%)",
+  food: "linear-gradient(180deg, #ffb347 0%, #ff7a1a 100%)",
 };
+
+/** Glyphs that are the whole picture (a map, a page) rather than a mark on a tile. */
+const FULL: ReadonlySet<AppId> = new Set<AppId>(["maps", "notes"]);
 
 function Glyph({ app }: { app: AppId }) {
   switch (app) {
     case "messages":
-      return <path d="M12 4c4.6 0 8 3.2 8 7.2s-3.4 7.3-8 7.3c-1 0-2-.2-2.9-.5L5 19.6l1.3-3.5C4.8 14.8 4 13.1 4 11.2 4 7.2 7.4 4 12 4Z" fill="#fff" />;
+      return (
+        <path
+          d="M12 4.6c4.8 0 8.4 3 8.4 6.9s-3.6 6.9-8.4 6.9c-1 0-1.9-.1-2.8-.4-1 .9-2.6 1.7-4.5 1.9.8-.8 1.4-1.9 1.5-3-1.6-1.3-2.6-3.2-2.6-5.4 0-3.9 3.6-6.9 8.4-6.9Z"
+          fill="#fff"
+        />
+      );
     case "photos":
       return (
-        <g fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round">
-          <rect x="4" y="6" width="16" height="12" rx="2.5" />
-          <path d="m4.5 16 4.5-4.5 3.5 3.5 2.5-2.5 4.5 4.5" />
-          <circle cx="15.5" cy="9.5" r="1.3" fill="#fff" stroke="none" />
+        <g>
+          <circle cx="16.4" cy="7.6" r="2.5" fill="#ff9f0a" />
+          <path d="M2.8 19.6 9.3 10.9l5.4 6.6-1.7 2.1Z" fill="#5ac8fa" />
+          <path d="m8.4 19.6 6.9-7.8 5.9 7.8Z" fill="#30d158" />
         </g>
       );
     case "maps":
       return (
-        <g fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round">
-          <path d="M9 4.5 3.8 6.3v13.2L9 17.7l6 1.8 5.2-1.8V4.5L15 6.3 9 4.5Z" />
-          <path d="M9 4.5v13.2M15 6.3v13.2" />
+        <g>
+          <path d="M14 0h10v9.5H14z" fill="#c2e5a9" />
+          <path d="M7.6-1 10.8 25" stroke="#fff" strokeWidth="2.2" />
+          <path d="M-1 19.8 25 10.2" stroke="#fff" strokeWidth="4.6" />
+          <path d="M-1 19.8 25 10.2" stroke="#ffc933" strokeWidth="2.8" />
+          <circle cx="16.2" cy="17" r="3.5" fill="#0a84ff" stroke="#fff" strokeWidth="1.4" />
+          <path d="m16.2 14.7 1.6 3.9-1.6-.9-1.6.9Z" fill="#fff" />
         </g>
       );
     case "health":
-      return <path d="M12 19.5s-7.5-4.4-7.5-9.7A4.1 4.1 0 0 1 12 7.4a4.1 4.1 0 0 1 7.5 2.4c0 5.3-7.5 9.7-7.5 9.7Z" fill="#fff" />;
+      return (
+        <path d="M12 20s-7.8-4.6-7.8-10.2A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 7.8 2.6C19.8 15.4 12 20 12 20Z" fill="#ff2d55" />
+      );
     case "memos":
       return (
-        <g stroke="#ff453a" strokeWidth="2" strokeLinecap="round">
-          <path d="M5 11v2M8 8.5v7M11 6v12M14 9v6M17 7.5v9M20 11v2" />
-        </g>
+        <path
+          d="M4.5 11v2M7 9v6M9.5 6.5v11M12 4.5v15M14.5 7.5v9M17 9.5v5M19.5 11v2"
+          stroke="#ff375f"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+        />
       );
     case "notes":
       return (
-        <g fill="none" stroke="#6b5310" strokeWidth="1.6" strokeLinecap="round">
-          <path d="M6 8.5h12M6 12h12M6 15.5h8" />
+        <g>
+          <path d="M0 5.9h24" stroke="#d6a900" strokeWidth="0.7" strokeDasharray="0.7 1.1" />
+          <path d="M3.6 10.8h16.8M3.6 14.4h16.8M3.6 18h10.4" stroke="#d1d1d6" strokeWidth="1.1" strokeLinecap="round" />
         </g>
       );
     case "calculator":
       return (
-        <g fill="#fff">
-          <rect x="5" y="5" width="6" height="6" rx="3" fill="#ff9f0a" />
-          <rect x="13" y="5" width="6" height="6" rx="3" />
-          <rect x="5" y="13" width="6" height="6" rx="3" />
-          <rect x="13" y="13" width="6" height="6" rx="3" />
+        <g strokeLinecap="round" strokeWidth="1.3">
+          <circle cx="7.4" cy="7.4" r="4.1" fill="#a5a5aa" />
+          <circle cx="16.6" cy="7.4" r="4.1" fill="#ff9f0a" />
+          <circle cx="7.4" cy="16.6" r="4.1" fill="#5a5a5f" />
+          <circle cx="16.6" cy="16.6" r="4.1" fill="#ff9f0a" />
+          <path d="M7.4 5.6v3.6M5.6 7.4h3.6" stroke="#1c1c1e" />
+          <path d="M14.8 7.4h3.6" stroke="#fff" />
+          <path d="m6.1 15.3 2.6 2.6m0-2.6-2.6 2.6" stroke="#fff" />
+          <path d="M14.8 15.8h3.6M14.8 17.4h3.6" stroke="#fff" />
         </g>
       );
     case "settings":
       return (
-        <g fill="none" stroke="#fff" strokeWidth="1.8">
-          <circle cx="12" cy="12" r="3" />
-          <circle cx="12" cy="12" r="7" strokeDasharray="3 2.5" strokeWidth="3" />
+        <g>
+          {/* Twelve teeth: a thick dashed ring, 2.3 on and 1.73 off round r 7.7. */}
+          <circle cx="12" cy="12" r="7.7" fill="none" stroke="#3c3c40" strokeWidth="3.2" strokeDasharray="2.3 1.73" />
+          <circle cx="12" cy="12" r="6.4" fill="#3c3c40" />
+          <circle cx="12" cy="12" r="4.3" fill="#c7c7cc" />
+          <circle cx="12" cy="12" r="2.1" fill="#3c3c40" />
         </g>
       );
     case "guardian":
       return (
-        <g fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round">
-          <path d="M12 4 5.5 6.5v5c0 4 2.8 7 6.5 8.5 3.7-1.5 6.5-4.5 6.5-8.5v-5L12 4Z" />
-          <path d="m9 12 2.2 2.2L15.5 10" strokeLinecap="round" />
+        <g>
+          <path d="M12 3.6 5.2 6.2v5.3c0 4.3 2.9 7.4 6.8 8.9 3.9-1.5 6.8-4.6 6.8-8.9V6.2L12 3.6Z" fill="#fff" />
+          <path
+            d="m8.8 12.1 2.2 2.2 4.2-4.4"
+            fill="none"
+            stroke="#1d6fe6"
+            strokeWidth="1.9"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </g>
       );
     case "nightcam":
       return (
-        <g fill="none" stroke="#fff" strokeWidth="1.7" strokeLinejoin="round">
-          <path d="M4.5 8.5h3l1.5-2h6l1.5 2h3v10h-15v-10Z" />
-          <path d="M14.2 11.3a3 3 0 1 0 0 4.4 2.4 2.4 0 0 1 0-4.4Z" fill="#fff" stroke="none" />
+        <g>
+          <path
+            d="M4 8.6h3.1l1.4-2.1h7l1.4 2.1H20a1 1 0 0 1 1 1v8.6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.6a1 1 0 0 1 1-1Z"
+            fill="#fff"
+          />
+          <circle cx="12" cy="13.6" r="3.7" fill="#0d1030" />
+          <path d="M13.4 11.9a2.1 2.1 0 1 0 0 3.4 1.7 1.7 0 0 1 0-3.4Z" fill="#ffd60a" />
         </g>
       );
     case "news":
       return (
-        <g fill="none" stroke="#2c2c2e" strokeWidth="1.6" strokeLinecap="round">
-          <rect x="5" y="5" width="14" height="14" rx="2" />
-          <path d="M8 9h8M8 12h8M8 15h5" />
+        <g>
+          <path d="M5 6.5h11.5v11a1.5 1.5 0 0 0 1.5 1.5H6.5A1.5 1.5 0 0 1 5 17.5Z" fill="#fff" />
+          <path d="M16.5 9.5H19v8a1.25 1.25 0 0 1-2.5 0Z" fill="#fff" opacity="0.75" />
+          <path d="M7.3 9.3h6.9M7.3 12h6.9M7.3 14.6h4.4" stroke="#e4283f" strokeWidth="1.3" strokeLinecap="round" />
         </g>
       );
     case "food":
       return (
-        <g fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4.5 12h15a7.5 7.5 0 0 1-15 0Z" />
-          <path d="M9 8.5c0-1.5 1-1.5 1-3M13 8.5c0-1.5 1-1.5 1-3" />
+        <g fill="#fff">
+          {/* A dabba: three tiers and the handle that clips them together. */}
+          <path d="M8.5 7V5.4a3.5 3.5 0 0 1 7 0V7" fill="none" stroke="#fff" strokeWidth="1.6" />
+          <rect x="6" y="7" width="12" height="3.6" rx="1.2" />
+          <rect x="6" y="11.4" width="12" height="3.6" rx="1.2" opacity="0.9" />
+          <rect x="6" y="15.8" width="12" height="3.6" rx="1.2" opacity="0.8" />
+        </g>
+      );
+    case "envelope":
+      return (
+        <g>
+          <rect x="3.5" y="6.5" width="17" height="11" rx="1.6" fill="#fff" />
+          <path d="m4 7.2 8 6 8-6" fill="none" stroke="#9c7543" strokeWidth="1.4" strokeLinejoin="round" />
+        </g>
+      );
+    case "lock":
+      return (
+        <g>
+          <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="#fff" strokeWidth="1.8" />
+          <rect x="6.5" y="10.5" width="11" height="8.5" rx="2" fill="#fff" />
         </g>
       );
     default:
@@ -107,7 +163,7 @@ function Glyph({ app }: { app: AppId }) {
 export function AppGlyph({ app }: { app: AppId }) {
   return (
     <span className={styles.tile} style={{ background: TILE[app] }}>
-      <svg viewBox="0 0 24 24" className={styles.glyph} aria-hidden="true">
+      <svg viewBox="0 0 24 24" className={styles.glyph} data-full={FULL.has(app) || undefined} aria-hidden="true">
         <Glyph app={app} />
       </svg>
     </span>

@@ -35,12 +35,30 @@ const REACTIONS: readonly [string, string][] = [
   ["yes", "Yes"],
 ];
 
+const WORDS = ["none", "one", "two", "three"];
+
+/** How many pieces of evidence a question wants shown together. */
+const needed = (d: Deduction) => (d.answer.kind === "evidence" ? Math.min(...d.answer.accepts.map((c) => c.length)) : 1);
+
+/** "Choose two", then "1 of 2 chosen": the count is part of the question. */
+function chooseLabel(n: number, need: number): string {
+  const word = WORDS[need] ?? String(need);
+  if (n === 0) return `Choose ${word}`;
+  if (n > need) return `That's more than ${word}`;
+  return `${n} of ${need} chosen`;
+}
+
 /**
  * The case file: the player's own note on this phone. Everything they've
  * looked at is here, the open questions ask them to prove something with it
  * (or, once, to type the answer themselves), and "Think" is three hints deep,
  * ending in the answer. Nobody should quit because they're stuck; the funnel
  * will say where they needed it.
+ *
+ * Showing evidence takes exactly as many pieces as the proof needs, and says
+ * how many. Ticking everything and pressing Show used to solve every
+ * question; now Show waits for the right count, and the engine refuses
+ * extras anyway.
  */
 export default function Notes({ state, nav }: AppProps) {
   const vars = sessionVars(ep, state);
@@ -64,8 +82,11 @@ export default function Notes({ state, nav }: AppProps) {
     if (h) setHints((x) => ({ ...x, [id]: t(h) }));
   };
 
-  const toggle = (id: string) =>
+  // One piece of evidence behaves like a choice (tapping another swaps it);
+  // two or more toggle.
+  const toggle = (id: string, need: number) =>
     setPicked((p) => {
+      if (need === 1) return p.has(id) ? new Set() : new Set([id]);
       const next = new Set(p);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -161,6 +182,9 @@ export default function Notes({ state, nav }: AppProps) {
             ) : picking === d.id ? (
               <div className={styles.pick}>
                 {found.length === 0 && <p className={styles.nudge}>Nothing found yet.</p>}
+                <p className={styles.choose} data-over={picked.size > needed(d) || undefined}>
+                  {chooseLabel(picked.size, needed(d))}
+                </p>
                 <ul className={styles.pickList}>
                   {found.map((e) => (
                     <li key={e.id}>
@@ -168,7 +192,7 @@ export default function Notes({ state, nav }: AppProps) {
                         type="button"
                         className={styles.pickRow}
                         data-on={picked.has(e.id) || undefined}
-                        onClick={() => toggle(e.id)}
+                        onClick={() => toggle(e.id, needed(d))}
                       >
                         <span className={styles.check} aria-hidden="true" />
                         <span>{t(e.label)}</span>
@@ -177,7 +201,12 @@ export default function Notes({ state, nav }: AppProps) {
                   ))}
                 </ul>
                 <div className={styles.actions}>
-                  <button type="button" className={styles.primary} disabled={picked.size === 0} onClick={() => settle(d, [...picked])}>
+                  <button
+                    type="button"
+                    className={styles.primary}
+                    disabled={picked.size !== needed(d)}
+                    onClick={() => settle(d, [...picked])}
+                  >
                     Show
                   </button>
                   <button
@@ -199,7 +228,14 @@ export default function Notes({ state, nav }: AppProps) {
                     Pin it on the map
                   </button>
                 ) : (
-                  <button type="button" className={styles.primary} onClick={() => setPicking(d.id)}>
+                  <button
+                    type="button"
+                    className={styles.primary}
+                    onClick={() => {
+                      setPicking(d.id);
+                      setPicked(new Set());
+                    }}
+                  >
                     Show evidence
                   </button>
                 )}

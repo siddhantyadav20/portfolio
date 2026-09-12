@@ -104,6 +104,7 @@ export const episode1: Story = {
         { from: "them", at: "Wed 23:09", text: "is your mum still watching your screen time lol" },
         { from: "owner", at: "Wed 23:10", text: "the guardian thing? yeah" },
         { from: "owner", at: "Wed 23:10", text: "i leave it on so she can sleep" },
+        { from: "them", at: "Wed 23:11", text: "and read receipts on, so she knows the second you've seen her texts. saint" },
         { from: "owner", at: "Fri 22:03", text: "left. don't be mad" },
         { from: "them", at: "Fri 22:04", text: "you said you'd stay for cake!!" },
         { from: "them", at: "Fri 22:41", text: "dev came back in looking like someone kicked his dog" },
@@ -523,7 +524,8 @@ export const episode1: Story = {
       when: ["solved:last-seen"],
       thread: null,
       messages: [],
-      banner: "This phone is sharing its location with K.",
+      // True whether or not the player stopped sharing: K. already had it.
+      banner: "K. can see where this phone is.",
       effect: "show-you",
     },
     {

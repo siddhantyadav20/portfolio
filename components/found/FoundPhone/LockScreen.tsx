@@ -1,16 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 import { story as ep } from "@/content/found/story";
 import type { CaseState } from "@/lib/found/engine";
 import { keyTap, refuse } from "@/lib/found/buzz";
 import { say } from "@/lib/found/voice";
 import * as play from "./actions";
+import { drag } from "./drag";
 import styles from "./LockScreen.module.css";
 
-const LENGTH = ep.locks.find((l) => l.id === "passcode")?.answer.length ?? 6;
+const LOCK = ep.locks.find((l) => l.id === "passcode");
+const LENGTH = LOCK?.answer.length ?? 6;
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
+/** Lifted this far (px), or flicked, the lock screen lets go and asks for the code. */
+const LET_GO = 90;
 
 /** What piled up while it was dead, grouped the way a lock screen stacks it. */
 const BACKLOG: { from: string; text: string }[] = [
@@ -25,6 +29,14 @@ const BACKLOG: { from: string; text: string }[] = [
  * The first puzzle. The notifications say someone is frightened, and the
  * newest says not to unlock it; the passcode pad offers Emergency, like every
  * real phone does; and Emergency shows a Medical ID with a birthday on it.
+ *
+ * Nobody should be stuck here for long, least of all someone who has never
+ * owned an iPhone. "Forgot passcode?" is three hints deep and says so ("Still
+ * stuck?"); from the second wrong code on, each miss brings the next hint
+ * unasked; and once a hint has named Emergency, Emergency pulses.
+ *
+ * The lock screen lifts away with a swipe up, as a phone's does; a tap still
+ * works, for a mouse.
  *
  * After Episode 2's restart it asks again, as a phone does, over three days
  * of backlog. By then the player knows the code by heart.
@@ -41,10 +53,19 @@ export default function LockScreen({
   const [screen, setScreen] = useState<"glance" | "pad" | "medical">("glance");
   const [code, setCode] = useState("");
   const [shakes, setShakes] = useState(0);
-  const [hint, setHint] = useState<string | null>(null);
+  const [asked, setAsked] = useState(false);
+  const [lift, setLift] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const t = (x: string) => say(x, state.cast);
   const med = ep.lockscreen.medical;
   const notes = mode === "restart" ? BACKLOG : ep.lockscreen.notifications;
+  const tier = state.hints.passcode ?? 0;
+  const hint = asked && tier > 0 ? LOCK?.hints?.[tier - 1] : undefined;
+
+  const ask = () => {
+    play.hint("passcode");
+    setAsked(true);
+  };
 
   const press = (digit: string) => {
     if (code.length >= LENGTH) return;
@@ -53,13 +74,14 @@ export default function LockScreen({
     setCode(next);
     if (next.length !== LENGTH) return;
     const ok = mode === "restart" ? play.unlockAfterRestart(next) : play.unlock("passcode", next);
-    if (!ok) {
-      refuse();
-      window.setTimeout(() => {
-        setCode("");
-        setShakes((n) => n + 1);
-      }, 220);
-    }
+    if (ok) return;
+    refuse();
+    const misses = shakes + 1;
+    window.setTimeout(() => {
+      setCode("");
+      setShakes(misses);
+    }, 220);
+    if (misses >= 2 && tier < Math.min(3, misses - 1)) ask();
   };
 
   const erase = () => setCode((c) => c.slice(0, -1));
@@ -68,6 +90,27 @@ export default function LockScreen({
     setScreen("medical");
     play.see(med.evidence);
   };
+
+  const liftUp = (e: React.PointerEvent) =>
+    drag(e, {
+      engage: (dx, dy) => dy < 0 && -dy > Math.abs(dx),
+      move: (_dx, dy) => {
+        setDragging(true);
+        setLift(Math.max(0, -dy));
+      },
+      end: ({ dy, vy }) => {
+        setDragging(false);
+        if (-dy < LET_GO && vy > -0.45) {
+          setLift(0);
+          return;
+        }
+        setLift(480);
+        window.setTimeout(() => {
+          setScreen("pad");
+          setLift(0);
+        }, 200);
+      },
+    });
 
   useEffect(() => {
     if (screen !== "pad") return;
@@ -121,14 +164,25 @@ export default function LockScreen({
             <span key={i} className={styles.dot} data-on={i < code.length || undefined} />
           ))}
         </div>
-        {hint ? <p className={styles.hint}>{t(hint)}</p> : <p className={styles.hint} />}
+        {hint ? (
+          <p key={tier} className={styles.hint} data-new>
+            {t(hint)}
+          </p>
+        ) : (
+          <p className={styles.hint} />
+        )}
         <div className={styles.keys}>
           {KEYS.map((k) => (
             <button type="button" key={k} className={styles.key} onClick={() => press(k)}>
               {k}
             </button>
           ))}
-          <button type="button" className={styles.word} onClick={openMedical}>
+          <button
+            type="button"
+            className={styles.word}
+            data-point={(asked && tier === 2) || undefined}
+            onClick={openMedical}
+          >
             Emergency
           </button>
           <button type="button" className={styles.key} onClick={() => press("0")}>
@@ -138,28 +192,39 @@ export default function LockScreen({
             {code ? "Delete" : "Cancel"}
           </button>
         </div>
-        <button type="button" className={styles.forgot} onClick={() => setHint(play.hint("passcode"))}>
-          Forgot passcode?
-        </button>
+        {!(asked && tier >= 3) && (
+          <button type="button" className={styles.forgot} onClick={ask}>
+            {asked ? "Still stuck?" : "Forgot passcode?"}
+          </button>
+        )}
       </div>
     );
   }
 
   return (
-    <button type="button" className={styles.lock} onClick={() => setScreen("pad")}>
-      <span className={styles.top}>
-        <span className={styles.day}>Monday</span>
-        <span className={styles.clock}>{clock}</span>
+    <button
+      type="button"
+      className={styles.lock}
+      data-dragging={dragging || undefined}
+      style={{ "--lift": `${lift}px`, "--fade": String(Math.max(0, 1 - lift / 240)) } as CSSProperties}
+      onClick={() => setScreen("pad")}
+      onPointerDown={liftUp}
+    >
+      <span className={styles.slide}>
+        <span className={styles.top}>
+          <span className={styles.day}>Monday</span>
+          <span className={styles.clock}>{clock}</span>
+        </span>
+        <span className={styles.notes}>
+          {notes.map((n) => (
+            <span key={`${n.from}:${n.text}`} className={styles.note}>
+              <span className={styles.noteFrom}>{n.from}</span>
+              <span className={styles.noteText}>{t(n.text)}</span>
+            </span>
+          ))}
+        </span>
+        <span className={styles.swipe}>Swipe up to unlock</span>
       </span>
-      <span className={styles.notes}>
-        {notes.map((n) => (
-          <span key={`${n.from}:${n.text}`} className={styles.note}>
-            <span className={styles.noteFrom}>{n.from}</span>
-            <span className={styles.noteText}>{t(n.text)}</span>
-          </span>
-        ))}
-      </span>
-      <span className={styles.swipe}>Tap to unlock</span>
     </button>
   );
 }

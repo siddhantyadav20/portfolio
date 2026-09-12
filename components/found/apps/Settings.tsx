@@ -7,28 +7,11 @@ import { actionAvailable, all, battery, has } from "@/lib/found/engine";
 import { say } from "@/lib/found/voice";
 import * as play from "../FoundPhone/actions";
 import AppBar, { Chevron } from "./AppBar";
+import Switch from "./Switch";
 import type { AppProps } from "./types";
 import app from "./App.module.css";
-import styles from "./Settings.module.css";
 
 type Page = "root" | "wifi" | "sharing" | "messages" | "passcode" | "account";
-
-function Switch({ on, disabled, onChange, label }: { on: boolean; disabled?: boolean; onChange?: () => void; label: string }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label={label}
-      className={styles.switch}
-      data-on={on || undefined}
-      disabled={disabled}
-      onClick={onChange}
-    >
-      <span className={styles.knob} />
-    </button>
-  );
-}
 
 /** A settings row: a page behind it when `onOpen` is given, a plain fact when not. */
 function Row({ title, meta, sub, onOpen }: { title: string; meta?: string; sub?: string; onOpen?: () => void }) {

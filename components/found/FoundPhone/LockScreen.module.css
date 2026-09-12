@@ -10,6 +10,8 @@
   font: inherit;
   text-align: center;
   cursor: pointer;
+  /* Nothing here scrolls: every vertical drag is the lock screen's own. */
+  touch-action: none;
   /* Marine Drive at dusk: the missing person's own lock screen. --wallpaper
      is set inline on the screen from content/found; the gradient is what
      shows if the photograph hasn't arrived. */
@@ -25,6 +27,25 @@
     linear-gradient(rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0.66)),
     var(--wallpaper, linear-gradient(180deg, #0a0c1c 0%, #2a1a1c 100%)) center / cover no-repeat,
     #0a0c1c;
+}
+
+/* Everything on the lock screen rises with the finger and fades as it goes;
+   let go early and it settles back. */
+.slide {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  translate: 0 calc(var(--lift, 0px) * -1);
+  opacity: var(--fade, 1);
+  transition:
+    translate 0.45s cubic-bezier(0.2, 0.9, 0.25, 1),
+    opacity 0.3s;
+}
+
+.lock[data-dragging] .slide {
+  transition: none;
 }
 
 .top {
@@ -156,6 +177,18 @@
   color: var(--os-accent);
 }
 
+/* Each new hint arrives, so a second tap visibly did something. */
+.hint[data-new] {
+  animation: hintIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@keyframes hintIn {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+
 .keys {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 78px));
@@ -187,6 +220,18 @@
   font: inherit;
   font-size: 15px;
   cursor: pointer;
+}
+
+/* The hint has just said "Emergency": so does the button. */
+.word[data-point] {
+  color: var(--os-accent);
+  animation: point 1.6s ease-in-out infinite;
+}
+
+@keyframes point {
+  50% {
+    opacity: 0.45;
+  }
 }
 
 .forgot {

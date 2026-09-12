@@ -249,3 +249,8 @@
   background: var(--os-text);
   color: #000;
 }
+
+/* The photo can be pulled down to put it away; the browser mustn't scroll instead. */
+.viewerImage {
+  touch-action: none;
+}

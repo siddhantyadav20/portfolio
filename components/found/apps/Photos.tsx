@@ -22,13 +22,33 @@ export default function Photos({ state }: AppProps) {
   const deleted = ep.photos.filter((p) => where(p) === "deleted").length;
   const shown = ep.photos.find((p) => p.id === viewing);
   const canRecover = album === "deleted" && shown?.recoverable && !recovered;
+  // The album's own "Recover All", where a phone puts it, so nobody has to
+  // open the photo to learn it can come back.
+  const canRecoverAll = album === "deleted" && !recovered && ep.photos.some((p) => p.album === "deleted" && p.recoverable);
+
+  const recover = () => {
+    play.perform("recover-van");
+    setViewing(null);
+    setAlbum("recents");
+  };
 
   return (
     <section className={app.view}>
       {album === "recents" ? (
         <AppBar />
       ) : (
-        <AppBar title="Recently Deleted" onBack={() => setAlbum("recents")} backLabel="Library" />
+        <AppBar
+          title="Recently Deleted"
+          onBack={() => setAlbum("recents")}
+          backLabel="Library"
+          end={
+            canRecoverAll ? (
+              <button type="button" className={styles.recoverAll} onClick={recover}>
+                Recover All
+              </button>
+            ) : undefined
+          }
+        />
       )}
       <div className={app.body}>
         {album === "recents" && <h2 className={app.big}>Library</h2>}
@@ -72,15 +92,7 @@ export default function Photos({ state }: AppProps) {
           id={viewing}
           cast={state.cast}
           onClose={() => setViewing(null)}
-          onRecover={
-            canRecover
-              ? () => {
-                  play.perform("recover-van");
-                  setViewing(null);
-                  setAlbum("recents");
-                }
-              : undefined
-          }
+          onRecover={canRecover ? recover : undefined}
         />
       )}
     </section>
