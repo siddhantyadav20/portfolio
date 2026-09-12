@@ -1,0 +1,112 @@
+/* A screenshot of Mum's app, as she sent it: light, bureaucratic, calm.
+   Everything on it is the player. */
+
+.card {
+  display: grid;
+  gap: 12px;
+  width: min(270px, 100%);
+  padding: 14px;
+  border-radius: 18px;
+  background: #f5f6f8;
+  color: #1c1c1e;
+  font-size: 13px;
+  line-height: 1.3;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.head {
+  display: grid;
+  gap: 4px;
+}
+
+.badge {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #2e5fd6;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.stat {
+  display: grid;
+  gap: 1px;
+  padding: 8px;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 11px;
+  color: #6c6c70;
+}
+
+.stat b {
+  font-size: 17px;
+  color: #1c1c1e;
+}
+
+.apps {
+  display: grid;
+  gap: 6px;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 78px 1fr 30px;
+  align-items: center;
+  gap: 8px;
+}
+
+.appName {
+  font-weight: 600;
+}
+
+.track {
+  height: 6px;
+  border-radius: 3px;
+  background: #e5e5ea;
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: #2e5fd6;
+}
+
+.appMin {
+  text-align: right;
+  color: #6c6c70;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline {
+  display: grid;
+  gap: 3px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e5ea;
+}
+
+.moment {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 6px;
+  color: #3a3a3c;
+}
+
+.time {
+  color: #8e8e93;
+  font-variant-numeric: tabular-nums;
+}

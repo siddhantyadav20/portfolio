@@ -139,6 +139,11 @@
   color: var(--os-danger);
 }
 
+/* Episode 2: plugged in, and climbing. */
+.battery[data-charging] {
+  color: var(--os-good);
+}
+
 .cell {
   position: relative;
   width: 25px;
@@ -296,6 +301,42 @@
   }
   35%,
   80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Guardian's last word, flickering up under the empty battery. */
+.sting {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 64px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(38, 38, 40, 0.9);
+  color: var(--os-dim);
+  font-size: 13px;
+  text-align: center;
+  animation: flicker 3.4s ease-in both;
+}
+
+@keyframes flicker {
+  0%,
+  30% {
+    opacity: 0;
+  }
+  36% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 0.3;
+  }
+  46%,
+  82% {
     opacity: 1;
   }
   100% {

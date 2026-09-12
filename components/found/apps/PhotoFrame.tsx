@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState, type CSSProperties } from "react";
 
-import { episode1 as ep } from "@/content/found/episode1";
+import { story as ep } from "@/content/found/story";
 import type { Cast } from "@/content/found/types";
 import { say } from "@/lib/found/voice";
 import * as play from "../FoundPhone/actions";
@@ -38,7 +38,18 @@ export default function PhotoFrame({ id, cast, size }: { id: string; cast: Cast;
 }
 
 /** Full screen, with the info sheet a real phone keeps behind ⓘ. */
-export function PhotoViewer({ id, cast, onClose }: { id: string; cast: Cast; onClose: () => void }) {
+export function PhotoViewer({
+  id,
+  cast,
+  onClose,
+  onRecover,
+}: {
+  id: string;
+  cast: Cast;
+  onClose: () => void;
+  /** Offered in Recently Deleted. Putting a photo back is something the phone remembers doing. */
+  onRecover?: () => void;
+}) {
   const photo = ep.photos.find((p) => p.id === id);
   const [info, setInfo] = useState(false);
   const [reading, setReading] = useState(false);
@@ -85,6 +96,11 @@ export function PhotoViewer({ id, cast, onClose }: { id: string; cast: Cast; onC
         </dl>
       )}
       <div className={styles.tools}>
+        {onRecover && (
+          <button type="button" className={styles.textButton} onClick={onRecover}>
+            Recover
+          </button>
+        )}
         {photo.liveText && (
           <button
             type="button"

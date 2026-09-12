@@ -49,11 +49,48 @@
   line-height: 1.25;
 }
 
+/* Pages swipe sideways and snap, like a home screen. */
+.pages {
+  display: flex;
+  margin: 28px -20px 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.pages::-webkit-scrollbar {
+  display: none;
+}
+
+.page {
+  flex: 0 0 100%;
+  padding: 0 20px;
+  scroll-snap-align: start;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 22px 12px;
-  margin-top: 28px;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 18px;
+}
+
+.pageDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.pageDot[data-on] {
+  background: #fff;
 }
 
 .dock {

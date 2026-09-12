@@ -109,6 +109,13 @@
   font-size: 19px;
 }
 
+.restart {
+  max-width: 240px;
+  margin: -10px 0 16px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 .dots {
   display: flex;
   gap: 18px;

@@ -1,18 +1,29 @@
 "use client";
 
-import { episode1 as ep } from "@/content/found/episode1";
+import { useState } from "react";
+
+import { story as ep } from "@/content/found/story";
 import type { AppId } from "@/content/found/types";
-import { deductionOpen, type CaseState } from "@/lib/found/engine";
+import { deductionOpen, sessionVars, type CaseState } from "@/lib/found/engine";
 import { say } from "@/lib/found/voice";
 import type { Nav } from "../apps/types";
 import { AppGlyph } from "./icons";
 import styles from "./Home.module.css";
 
-const GRID: { app: AppId; label: string }[] = [
-  { app: "health", label: "Health" },
-  { app: "memos", label: "Voice Memos" },
-  { app: "calculator", label: "Calculator" },
-  { app: "settings", label: "Settings" },
+/** Two pages, like any phone: what gets used, and what got installed once and forgotten. */
+const PAGES: { app: AppId; label: string }[][] = [
+  [
+    { app: "health", label: "Health" },
+    { app: "memos", label: "Voice Memos" },
+    { app: "calculator", label: "Calculator" },
+    { app: "settings", label: "Settings" },
+    { app: "news", label: "News" },
+    { app: "nightcam", label: "NightCam" },
+  ],
+  [
+    { app: "guardian", label: "Guardian" },
+    { app: "food", label: "Dabba" },
+  ],
 ];
 
 const DOCK: { app: AppId; label: string }[] = [
@@ -26,22 +37,41 @@ const DOCK: { app: AppId; label: string }[] = [
  * The home screen, with one addition a real phone wouldn't have: the widget
  * at the top is the player's open question. It's the quiet answer to "what
  * am I supposed to be doing", and it's always one tap from the case file.
+ * Page two is where Mum's app has sat since 2021.
  */
 export default function Home({ state, nav, unread }: { state: CaseState; nav: Nav; unread: number }) {
-  const open = ep.deductions.find((d) => deductionOpen(state, d));
+  const [page, setPage] = useState(0);
+  const open = [...ep.deductions].reverse().find((d) => deductionOpen(state, d));
 
   return (
     <div className={styles.home}>
       <button type="button" className={styles.widget} onClick={() => nav.go("notes")}>
         <span className={styles.widgetLabel}>{open ? "Open question" : "Case file"}</span>
         <span className={styles.widgetText}>
-          {open ? say(open.question, state.cast) : "Look around. What you open, you keep."}
+          {open ? say(open.question, state.cast, sessionVars(ep, state)) : "Look around. What you open, you keep."}
         </span>
       </button>
 
-      <div className={styles.grid}>
-        {GRID.map(({ app, label }) => (
-          <Icon key={app} app={app} label={label} onOpen={() => nav.go(app)} />
+      <div
+        className={styles.pages}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          setPage(Math.round(el.scrollLeft / Math.max(1, el.clientWidth)));
+        }}
+      >
+        {PAGES.map((icons, i) => (
+          <div key={i} className={styles.page}>
+            <div className={styles.grid}>
+              {icons.map(({ app, label }) => (
+                <Icon key={app} app={app} label={label} onOpen={() => nav.go(app)} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className={styles.dots} aria-hidden="true">
+        {PAGES.map((_, i) => (
+          <span key={i} className={styles.pageDot} data-on={i === page || undefined} />
         ))}
       </div>
 

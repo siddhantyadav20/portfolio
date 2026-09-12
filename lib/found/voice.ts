@@ -1,12 +1,16 @@
 import type { Cast, Gender } from "@/content/found/types";
 
 /* ===========================================================================
-   One script, either cast.
+   One script, either cast — and the player's own numbers.
 
    The missing person is dealt as a girl or a boy per playthrough, and nobody
    is asked which. Every line that names them carries tokens instead, so the
    script is written once and both versions are tested (tests/found.test.ts
    renders every string for every name in the pool).
+
+   A line can also quote the player back at themselves — `{firstPickup}`,
+   `{minutes}`, `{mapsTime}`, `{pinnedAt}` — from their own session
+   (engine.sessionVars). Those are what make Episode 2's report theirs.
    =========================================================================== */
 
 const WORDS: Readonly<Record<Gender, Readonly<Record<string, string>>>> = {
@@ -30,23 +34,26 @@ const WORDS: Readonly<Record<Gender, Readonly<Record<string, string>>>> = {
   },
 };
 
-/** Every token `say` understands, lower-case. Capitalised forms work too. */
+/** Every cast token `say` understands, lower-case. Capitalised forms work too. */
 export const TOKENS: readonly string[] = ["name", ...Object.keys(WORDS.girl)];
+
+/** The session numbers a line may quote. */
+export const VARS = ["firstPickup", "pickups", "minutes", "mapsTime", "pinnedAt"] as const;
 
 const TOKEN = /\{([A-Za-z']+)\}/g;
 
 /**
- * A script line for this cast. `{They}` capitalises; an unknown token is left
- * standing so the test that looks for leftover braces can name it.
+ * A script line for this cast and this player. `{They}` capitalises; an
+ * unknown token is left standing so the test that looks for leftover braces
+ * can name it.
  */
-export function say(text: string, cast: Cast): string {
+export function say(text: string, cast: Cast, vars: Readonly<Record<string, string>> = {}): string {
   return text.replace(TOKEN, (whole, raw: string) => {
+    if (Object.prototype.hasOwnProperty.call(vars, raw)) return vars[raw];
     const key = raw.toLowerCase();
     const word = key === "name" ? cast.name : WORDS[cast.gender][key];
     if (word === undefined) return whole;
-    return raw[0] === raw[0].toUpperCase() && key !== "name"
-      ? word[0].toUpperCase() + word.slice(1)
-      : word;
+    return raw[0] === raw[0].toUpperCase() && key !== "name" ? word[0].toUpperCase() + word.slice(1) : word;
   });
 }
 

@@ -5,6 +5,7 @@ import styles from "./icons.module.css";
    drawn in white on a tile of that app's colour, nothing borrowed. */
 
 const TILE: Record<AppId, string> = {
+  envelope: "#a9814f",
   lock: "#3a3a3c",
   messages: "linear-gradient(160deg, #ff9a52, #e2560f)",
   photos: "linear-gradient(160deg, #f5d27a, #d9822b)",
@@ -14,6 +15,10 @@ const TILE: Record<AppId, string> = {
   notes: "linear-gradient(160deg, #f7e27c, #e5b72b)",
   calculator: "linear-gradient(160deg, #505055, #232326)",
   settings: "linear-gradient(160deg, #8e8e93, #545458)",
+  guardian: "linear-gradient(160deg, #6fa8ff, #2e5fd6)",
+  nightcam: "linear-gradient(160deg, #26263a, #07070d)",
+  news: "linear-gradient(160deg, #f4f1ea, #d8d2c4)",
+  food: "linear-gradient(160deg, #ff7a59, #d93a1f)",
 };
 
 function Glyph({ app }: { app: AppId }) {
@@ -63,6 +68,34 @@ function Glyph({ app }: { app: AppId }) {
         <g fill="none" stroke="#fff" strokeWidth="1.8">
           <circle cx="12" cy="12" r="3" />
           <circle cx="12" cy="12" r="7" strokeDasharray="3 2.5" strokeWidth="3" />
+        </g>
+      );
+    case "guardian":
+      return (
+        <g fill="none" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round">
+          <path d="M12 4 5.5 6.5v5c0 4 2.8 7 6.5 8.5 3.7-1.5 6.5-4.5 6.5-8.5v-5L12 4Z" />
+          <path d="m9 12 2.2 2.2L15.5 10" strokeLinecap="round" />
+        </g>
+      );
+    case "nightcam":
+      return (
+        <g fill="none" stroke="#fff" strokeWidth="1.7" strokeLinejoin="round">
+          <path d="M4.5 8.5h3l1.5-2h6l1.5 2h3v10h-15v-10Z" />
+          <path d="M14.2 11.3a3 3 0 1 0 0 4.4 2.4 2.4 0 0 1 0-4.4Z" fill="#fff" stroke="none" />
+        </g>
+      );
+    case "news":
+      return (
+        <g fill="none" stroke="#2c2c2e" strokeWidth="1.6" strokeLinecap="round">
+          <rect x="5" y="5" width="14" height="14" rx="2" />
+          <path d="M8 9h8M8 12h8M8 15h5" />
+        </g>
+      );
+    case "food":
+      return (
+        <g fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4.5 12h15a7.5 7.5 0 0 1-15 0Z" />
+          <path d="M9 8.5c0-1.5 1-1.5 1-3M13 8.5c0-1.5 1-1.5 1-3" />
         </g>
       );
     default:

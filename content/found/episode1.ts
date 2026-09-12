@@ -1,31 +1,44 @@
 import { teaser } from "./index";
-import type { Episode } from "./types";
+import type { Story } from "./types";
 
 /* ===========================================================================
-   Episode 1 — Low Battery.
+   Low Battery — Episode 1: the pledge.
 
-   THE TRUTH (never shown whole; the player assembles it):
-   On Friday, {name} Sethi, 19, went to Tara's twentieth birthday in Parel.
-   At 21:40 K. confirmed a cash job: photograph the inside of Shree Ram Mills,
-   shut since 2009, Gate 3, 23:30, while the guard was off. {They} left the
-   party at 22:02 and told the group {they} were going home. Dev followed
-   {them} outside; they argued on the pavement ({name} joined his hotspot at
-   22:20). Dev went back in; {name} searched for the mill at 22:24 and walked
-   4.1 km to it. At 23:36 the phone joined the mill's guest Wi-Fi. At 23:38
-   {they} photographed a white van inside the gate. At 23:41 {they} told K.
-   the building wasn't empty. At 23:52 {they} recorded 41 seconds of
-   footsteps, a train, and a whisper. After that the phone never moved again.
+   THE TRUTH (never shown whole; the player assembles it over three episodes):
+   Shree Ram Mills, shut since 2009, is held up by one heritage listing on its
+   1923 engine house. A developer's fixer, Kiran Shetty ("K."), plans a
+   Sunday-night "electrical fire" to clear it, and hires {name} Sethi, 19, who
+   photographs shut buildings at night, to shoot the interior first. His crew
+   runs late.
 
-   What the pilot leaves open, on purpose: who deleted the van photo at 00:07,
-   who is texting from the unknown number, what was in the van, and why the
-   phone came to you.
+   Friday: {name} leaves Tara's party at 22:02, argues with Dev on the
+   pavement (Dev's hotspot, 22:20), searches for the mill at 22:24 and walks
+   4.1km. Inside the gate there's no signal, so at 23:36 they join the crew's
+   open travel router, SRM-GATE3-GUEST, to text K. At 23:38 they photograph a
+   white van in the ordinary camera; then, as always on a trespass job, they
+   switch to NightCam, which saves to the cloud and keeps nothing on the
+   phone. Twelve items, 23:39–23:50, uploaded over the arsonists' own Wi-Fi.
+   At 23:52: footsteps, a train, "someone's here." Caught.
+
+   00:05: Kiran makes them unlock the phone, finds the van in Recents and
+   deletes it (00:07). There is nothing else on the phone to find. He turns on
+   location sharing to himself and switches it off. {name} is locked in the
+   pump room; on Saturday night they get out through the drain culvert, walk
+   the tracks to Currey Road, and reach Tara's. The mill burns on Sunday.
+
+   Monday 07:40: Kiran drops the phone, at 4%, in a letterbox 14km away. The
+   player's. Then, from a burner, he texts it: "Don't unlock it." Because
+   {name} told him on Friday that Mum has an app that watches this phone, he
+   knows exactly what a curious stranger will produce: a phone that's alive,
+   reading, looking at the mill after it burned, and not calling home.
 
    Times are 24-hour, as the phone would show them. Other characters are
-   written plainly; only the missing person goes through tokens.
+   written plainly; only the missing person goes through tokens. A line that
+   uses a token names everyone else rather than using a pronoun for them.
    =========================================================================== */
 
-export const episode1: Episode = {
-  id: "ep1",
+export const episode1: Story = {
+  id: "low-battery",
   title: "Low Battery",
   names: { girl: ["Noor", "Mira", "Ishita"], boy: ["Kabir", "Arjun", "Neel"] },
   surname: "Sethi",
@@ -33,10 +46,12 @@ export const episode1: Episode = {
   envelope: {
     lines: [
       "It came with this morning's post.",
-      "A padded envelope, your name on the front in block capitals. No stamp. No note.",
+      "A padded envelope. No stamp, no note. Just two lines in careful block capitals.",
       "Inside, a phone. As you pick it up, it buzzes.",
     ],
     cta: "Take it out",
+    label: ["TO YOU", "BY HAND"],
+    evidence: "envelope",
   },
 
   lockscreen: {
@@ -47,8 +62,8 @@ export const episode1: Episode = {
       contact: "Mum · +91 98•• ••4410",
       evidence: "medical-id",
     },
-    // Shared with the canvas phone, which keeps them arriving.
-    notifications: teaser.slice(0, 3),
+    // Shared with the canvas phone. The first is 5520's order.
+    notifications: teaser.slice(0, 4),
   },
 
   /* --- Messages ------------------------------------------------------------ */
@@ -86,6 +101,9 @@ export const episode1: Episode = {
         { from: "them", at: "Wed 23:07", text: "fine. but at least lock that stuff away" },
         { from: "owner", at: "Wed 23:07", text: "it is. same code as my gym locker 🙃", evidence: "tara-code" },
         { from: "them", at: "Wed 23:08", text: "wow. unhackable. genius." },
+        { from: "them", at: "Wed 23:09", text: "is your mum still watching your screen time lol" },
+        { from: "owner", at: "Wed 23:10", text: "the guardian thing? yeah" },
+        { from: "owner", at: "Wed 23:10", text: "i leave it on so she can sleep" },
         { from: "owner", at: "Fri 22:03", text: "left. don't be mad" },
         { from: "them", at: "Fri 22:04", text: "you said you'd stay for cake!!" },
         { from: "them", at: "Fri 22:41", text: "dev came back in looking like someone kicked his dog" },
@@ -124,6 +142,13 @@ export const episode1: Episode = {
       ],
     },
     {
+      // The first message the phone shows its new owner, and the first trick.
+      id: "burner",
+      contact: "+91 •• ••5520",
+      nameable: true,
+      messages: [{ from: "them", at: "Mon 08:10", text: "Don't unlock it.", evidence: "burner-dont" }],
+    },
+    {
       id: "k",
       contact: "K.",
       moved: true,
@@ -132,8 +157,9 @@ export const episode1: Episode = {
     {
       id: "unknown",
       contact: "+91 •••• ••3107",
+      nameable: true,
       messages: [],
-      requires: ["fired:unknown-vault"],
+      requires: ["fired:cliff-you"],
     },
   ],
 
@@ -201,6 +227,7 @@ export const episode1: Episode = {
       place: "Location unavailable",
       note: "Deleted Sat 00:07",
       evidence: "deleted-photo",
+      recoverable: true,
     },
     {
       id: "story",
@@ -247,6 +274,8 @@ export const episode1: Episode = {
   ],
 
   searches: [
+    // Yours, once you've pinned it: the same mill, on Monday, after the fire.
+    { query: "Shree Ram Mills", at: "Mon {pinnedAt}", place: "srm", byYou: true, requires: ["solved:last-seen"] },
     { query: "Shree Ram Mills, Gate 3", at: "Fri 22:24", place: "srm", evidence: "maps-srm" },
     { query: "Tara", at: "Fri 19:05", place: "tara" },
     { query: "24 hr chemist near me", at: "Wed 02:10" },
@@ -287,16 +316,18 @@ export const episode1: Episode = {
       id: "k-vault",
       contact: "K.",
       messages: [
-        { from: "them", at: "Tue 13:20", text: "Saw your night shots on the college page. The cinema one. There's a paying job if you want it." },
+        // K.'s side is scrubbed once Episode 2 begins: he deleted his own words
+        // on Monday and left only {name}'s, and the "Seen" you gave him.
+        { from: "them", at: "Tue 13:20", text: "Saw your night shots on the college page. The cinema one. There's a paying job if you want it.", scrubbedBy: "ep:2" },
         { from: "owner", at: "Tue 13:41", text: "what kind of job" },
-        { from: "them", at: "Tue 13:44", text: "Empty buildings. Photograph what's inside. The client likes to know before they buy." },
+        { from: "them", at: "Tue 13:44", text: "Empty buildings. Photograph what's inside. The client likes to know before they buy.", scrubbedBy: "ep:2" },
         { from: "owner", at: "Tue 13:45", text: "is that legal" },
-        { from: "them", at: "Tue 13:52", text: "It's photography." },
-        { from: "them", at: "Thu 18:10", text: "15k. Half now, half after." },
-        { from: "them", at: "Fri 21:40", text: "Tonight. 11:30. Gate 3. The guard is off till 12.", evidence: "k-brief" },
-        { from: "them", at: "Fri 21:41", text: "Leave your phone at home." },
-        { from: "owner", at: "Fri 21:43", text: "need it for the torch" },
-        { from: "them", at: "Fri 21:44", text: "Then turn your location off." },
+        { from: "them", at: "Tue 13:52", text: "It's photography.", scrubbedBy: "ep:2" },
+        { from: "them", at: "Thu 18:10", text: "15k. Half now, half after.", scrubbedBy: "ep:2" },
+        { from: "them", at: "Fri 21:40", text: "Tonight. 11:30. Gate 3. The guard is off till 12.", evidence: "k-brief", scrubbedBy: "ep:2" },
+        { from: "them", at: "Fri 21:41", text: "Leave your phone at home.", scrubbedBy: "ep:2" },
+        { from: "owner", at: "Fri 21:43", text: "can't. mum has an app on it. if it goes dark she panics", evidence: "k-guardian" },
+        { from: "them", at: "Fri 21:44", text: "Then turn your location off.", scrubbedBy: "ep:2" },
         { from: "owner", at: "Fri 23:41", text: "there's a van here. you said it would be empty", evidence: "k-van" },
       ],
     },
@@ -304,18 +335,22 @@ export const episode1: Episode = {
       {
         id: "kit",
         title: "kit",
-        body: "tripod\n35mm + the fast lens\nblack everything\nNO FLASH\n2nd floor, east side\nin and out in 20",
+        body: "tripod\n35mm + the fast lens\nblack everything\nNO FLASH\nnightcam only. cloud only. nothing on the phone\n2nd floor, east side\nin and out in 20",
       },
     ],
   },
 
+  devices: [{ id: "this", name: "This phone", detail: "{name}'s phone" }],
+
   /* --- The case file ------------------------------------------------------- */
 
   evidence: [
+    { id: "envelope", app: "envelope", label: "The envelope's label", detail: "TO YOU / BY HAND, in careful block capitals. No stamp: someone came to your door." },
     { id: "medical-id", app: "lock", label: "Medical ID", detail: "{name} Sethi, born 14 March 2006. Emergency contact: Mum." },
+    { id: "burner-dont", app: "messages", label: "“Don't unlock it.”", detail: "The first message on this phone after it reached you. From +91 •• ••5520." },
     { id: "group-home", app: "messages", label: "“Heading home” at 22:02", detail: "What {name} told the group as {they} left Tara's party." },
     { id: "tara-code", app: "messages", label: "Same code as the gym locker", detail: "On Wednesday {name} told Tara the K. stuff was locked away with the locker's code." },
-    { id: "locker", app: "photos", label: "Locker 14's padlock", detail: "A combination padlock at the college gym. The dials read 2 · 7 · 1 · 9." },
+    { id: "locker", app: "photos", label: "Locker 14's padlock", detail: "A combination padlock at the college gym. Live Text reads 2719." },
     { id: "street", app: "photos", label: "A blurred street at 22:41", detail: "Taken walking, forty minutes after “heading home”." },
     { id: "deleted-photo", app: "photos", label: "Deleted photo, 23:38", detail: "A gate marked 3 and something white parked in the dark. Someone deleted it at 00:07." },
     { id: "health-walk", app: "health", label: "4.1 km walked, 22:30–23:40", detail: "Friday's steps don't stop at ten. {They} walked for over an hour after leaving." },
@@ -325,7 +360,9 @@ export const episode1: Episode = {
     { id: "maps-srm", app: "maps", label: "Searched “Shree Ram Mills, Gate 3”", detail: "Searched at 22:24, four minutes after the hotspot." },
     { id: "memo-train", app: "memos", label: "Voice memo, 23:52", detail: "Footsteps, a train horn very close, and a whisper: “someone's here”." },
     { id: "dev-story", app: "messages", label: "Tara's story, 23:40", detail: "Dev at the party, holding the cake up to the camera, at 23:40.", requires: ["fired:tara-story"] },
+    { id: "burner-close", app: "messages", label: "“Close the calculator.”", detail: "From 5520 again, the moment you opened the vault.", requires: ["fired:burner-close"] },
     { id: "k-brief", app: "calculator", label: "“Gate 3. 11:30.”", detail: "K. told {name} where and when. The guard would be off till midnight.", requires: ["lock:vault"] },
+    { id: "k-guardian", app: "calculator", label: "“mum has an app on it”", detail: "{name} told K. on Friday that if the phone went dark, Mum would panic.", requires: ["lock:vault"] },
     { id: "k-van", app: "calculator", label: "“There's a van here”", detail: "{name}'s last message to K., at 23:41. No reply.", requires: ["lock:vault"] },
   ],
 
@@ -365,8 +402,8 @@ export const episode1: Episode = {
       right: "{They} never went home. The phone hadn't touched the home Wi-Fi since five, and at 22:30 {they} started walking.",
       nudges: {
         "group-home": "That's what {they} said. Find something that shows what {they} did.",
-        street: "{They} were walking somewhere at 22:41. That could still be the way home.",
-        "medical-id": "That's who {they} are. Not where {they} went.",
+        street: "{name} was walking somewhere at 22:41. That could still be the way home.",
+        "medical-id": "That's who {name} is. Not where {they} went.",
       },
       otherwise: "That doesn't say anything about after ten o'clock.",
       hints: [
@@ -426,7 +463,25 @@ export const episode1: Episode = {
       messages: [
         { from: "them", at: "now", text: "It says delivered." },
         { from: "them", at: "now", text: "Beta?" },
+      ],
+    },
+    {
+      // Yours: opening her thread is what sends her the read receipt.
+      id: "mum-read",
+      when: ["did:open:mum"],
+      thread: "mum",
+      messages: [
+        { from: "them", at: "now", text: "It says read." },
         { from: "them", at: "now", text: "Whoever has this phone. Please call me. Please." },
+      ],
+    },
+    {
+      id: "receipts-off",
+      when: ["did:receipts-off"],
+      thread: "mum",
+      messages: [
+        { from: "them", at: "now", text: "It stopped saying read." },
+        { from: "them", at: "now", text: "Why would you turn that off?" },
       ],
     },
     {
@@ -450,22 +505,31 @@ export const episode1: Episode = {
       ],
     },
     {
-      id: "unknown-vault",
+      // The same number, the same trick: told not to, you read everything.
+      id: "burner-close",
       when: ["lock:vault"],
-      thread: "unknown",
-      messages: [{ from: "them", at: "now", text: "Close the calculator." }],
+      thread: "burner",
+      messages: [{ from: "them", at: "now", text: "Close the calculator.", evidence: "burner-close" }],
     },
     {
-      id: "cliff-share",
+      // The only time 5520 says what he means: he needs to know where it is.
+      id: "sharing-off",
+      when: ["did:sharing-off"],
+      thread: "burner",
+      messages: [{ from: "them", at: "now", text: "Turn it back on." }],
+    },
+    {
+      id: "cliff-you",
       when: ["solved:last-seen"],
       thread: null,
       messages: [],
-      banner: "K. started sharing their location with you.",
-      effect: "share-location",
+      banner: "This phone is sharing its location with K.",
+      effect: "show-you",
     },
     {
-      id: "cliff-voice",
-      when: ["fired:cliff-share"],
+      // A wrong passcode photographed you and emailed {name} the picture.
+      id: "cliff-voice-photo",
+      when: ["fired:cliff-you", "did:wrong:passcode"],
       thread: "unknown",
       messages: [
         { from: "them", at: "now", text: "You're not {name}." },
@@ -474,9 +538,65 @@ export const episode1: Episode = {
       ],
       effect: "power-off",
     },
+    {
+      // No wrong passcode: Tara saw her messages go "Read".
+      id: "cliff-voice-read",
+      when: ["fired:cliff-you"],
+      unless: ["did:wrong:passcode"],
+      thread: "unknown",
+      messages: [
+        { from: "them", at: "now", text: "Someone's reading my messages." },
+        { from: "them", at: "now", text: "Who is this?" },
+        { from: "them", at: "now", text: "Keep it charged." },
+      ],
+      effect: "power-off",
+    },
   ],
 
-  battery: { locked: 4, act1: 4, act2: 3, act3: 2, cliff: 1, dead: 0 },
+  replies: [],
+  headlines: [],
+
+  stages: [
+    { id: "locked", episode: 1, when: [], battery: 4, screen: "lock" },
+    { id: "act1", episode: 1, when: ["lock:passcode"], battery: 4, screen: "phone" },
+    { id: "act2", episode: 1, when: ["lock:passcode", "solved:went-home"], battery: 3, screen: "phone" },
+    { id: "act3", episode: 1, when: ["lock:passcode", "solved:went-home", "solved:dev", "lock:vault"], battery: 2, screen: "phone" },
+    { id: "cliff", episode: 1, when: ["lock:passcode", "solved:went-home", "solved:dev", "lock:vault", "solved:last-seen"], battery: 1, screen: "phone" },
+    { id: "dead", episode: 1, when: ["dead"], battery: 0, screen: "end" },
+  ],
+
+  actions: [
+    { id: "open:mum", sets: "did:open:mum", requires: ["lock:passcode"], optional: true },
+    { id: "receipts-off", sets: "did:receipts-off", requires: ["lock:passcode"], optional: true },
+    { id: "sharing-off", sets: "did:sharing-off", requires: ["lock:passcode"], optional: true },
+    { id: "recover-van", sets: "did:recover-van", requires: ["seen:deleted-photo"], optional: true },
+    { id: "start-ep2", sets: "ep:2", requires: ["dead"] },
+  ],
+
+  guardian: {
+    owner: "Anjali Sethi (Mum)",
+    since: "June 2021",
+    sting: "Guardian · Mum viewed today's activity report.",
+    timeline: [
+      { flag: "lock:passcode", label: "Unlocked" },
+      { flag: "did:open:mum", label: "Messages · Mum" },
+      { flag: "seen:deleted-photo", label: "Photos · Recently Deleted" },
+      { flag: "seen:wifi-dev", label: "Settings · Wi-Fi" },
+      { flag: "seen:health-walk", label: "Health · Friday" },
+      { flag: "lock:vault", label: "Calculator" },
+      { flag: "seen:memo-train", label: "Voice Memos" },
+      { flag: "solved:last-seen", label: "Maps · Shree Ram Mills" },
+    ],
+  },
+
+  nightcam: { items: 12, firstFrame: "fuel" },
+
+  food: [
+    { at: "Fri 19:10", item: "Chocolate truffle cake, 1 kg", to: "Tara · Parel", price: "₹1,240" },
+    { at: "Tue 22:05", item: "2 × cutting chai, 1 × bun maska", to: "Lalbaug", price: "₹90" },
+  ],
+
+  keyboard: ["maa", "gate", "sorry"],
 
   end: {
     title: "End of Episode 1",
@@ -486,6 +606,10 @@ export const episode1: Episode = {
       "Who posted you the phone?",
       "Where is {name}?",
     ],
-    ask: "Would you play Episode 2?",
+    ask: "The phone isn't finished with you.",
+    cta: "Charge it",
   },
+
+  // Episode 2 supplies the real one (episode2.ts).
+  end2: { title: "", questions: [], ask: "" },
 };

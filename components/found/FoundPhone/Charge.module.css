@@ -1,0 +1,116 @@
+.charge {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  overflow: hidden;
+  background: #000;
+  color: var(--os-faint);
+}
+
+.echo {
+  margin: 0 0 18px;
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(235, 235, 245, 0.28);
+}
+
+.cell {
+  position: relative;
+  width: 84px;
+  height: 38px;
+  border: 3px solid #48484a;
+  border-radius: 10px;
+}
+
+.cell::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 11px;
+  width: 5px;
+  height: 10px;
+  border-radius: 0 3px 3px 0;
+  background: #48484a;
+}
+
+.level {
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  bottom: 3px;
+  width: 5px;
+  border-radius: 3px;
+  background: var(--os-danger);
+  transition:
+    width 1.6s ease-out,
+    background-color 0.4s;
+}
+
+.cell[data-on] .level {
+  width: 14px;
+  background: var(--os-good);
+}
+
+.state {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* The cable, coming up from below the phone's bottom edge. */
+.cable {
+  position: absolute;
+  left: 50%;
+  bottom: -130px;
+  display: grid;
+  justify-items: center;
+  width: 64px;
+  height: 200px;
+  padding: 0;
+  translate: -50% 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: bottom 0.9s cubic-bezier(0.3, 0.9, 0.3, 1);
+  animation: nudge 2.4s ease-in-out 1s infinite;
+}
+
+.cable[data-in] {
+  bottom: -148px;
+  animation: none;
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    translate: -50% 0;
+  }
+  50% {
+    translate: -50% -10px;
+  }
+}
+
+.plug {
+  width: 22px;
+  height: 34px;
+  border-radius: 5px 5px 3px 3px;
+  background: linear-gradient(90deg, #d8d8dc, #fff 45%, #c7c7cc);
+}
+
+.cord {
+  width: 8px;
+  flex: 1;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #d8d8dc, #fff 45%, #c7c7cc);
+}
+
+.hint {
+  position: absolute;
+  bottom: 84px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--os-dim);
+}

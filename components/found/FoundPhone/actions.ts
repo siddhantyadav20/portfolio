@@ -1,5 +1,5 @@
-import { episode1 as ep } from "@/content/found/episode1";
-import type { Cast, Gender } from "@/content/found/types";
+import { story as ep } from "@/content/found/story";
+import type { AppId, Cast, Gender } from "@/content/found/types";
 import * as engine from "@/lib/found/engine";
 import { MILESTONE_OF } from "@/lib/found/events";
 import { commit, readProgress } from "@/lib/found/progress";
@@ -10,19 +10,26 @@ import { wakeAudio } from "@/lib/found/buzz";
 /* ===========================================================================
    Everything the phone can do to the case, in one place.
 
-   Each action reads the latest saved state, runs the engine, saves the result,
-   and counts any milestone it crossed. Components call these directly rather
-   than threading callbacks through eight apps; the state comes back to them
-   through the progress store.
+   Each action reads the latest saved state, runs the engine, stamps the time
+   on every flag it newly set (that's the clock Mum's report is written in),
+   saves the result, and counts any milestone it crossed. Components call
+   these directly rather than threading callbacks through a dozen apps; the
+   state comes back to them through the progress store.
    =========================================================================== */
 
 function save(next: engine.CaseState): void {
   const prev = readProgress();
   if (!prev || next === prev) return;
-  for (const f of next.flags) {
-    if (prev.flags.includes(f)) continue;
-    const milestone = MILESTONE_OF[f];
-    if (milestone) track(milestone, milestone === "end" ? (Date.now() - next.started) / 1000 : undefined);
+  const fresh = next.flags.filter((f) => !prev.flags.includes(f));
+  if (fresh.length) {
+    const now = Date.now();
+    const at: Record<string, number> = { ...next.at };
+    for (const f of fresh) {
+      at[f] ??= now;
+      const milestone = MILESTONE_OF[f];
+      if (milestone) track(milestone, milestone === "end" ? (now - next.started) / 1000 : undefined);
+    }
+    next = { ...next, at };
   }
   commit(next);
 }
@@ -51,7 +58,8 @@ function runId(): string {
 /** The envelope is opened: deal the cast and start the case. Runs in a click. */
 export function start(): void {
   wakeAudio();
-  commit(engine.newCase(devCast() ?? pickCast(ep.names), runId(), Date.now()));
+  const s = engine.newCase(devCast() ?? pickCast(ep.names), runId(), Date.now());
+  commit(engine.see(ep, s, ep.envelope.evidence));
   track("open");
 }
 
@@ -72,9 +80,18 @@ export function unlock(lockId: string, input: string): boolean {
   const s = readProgress();
   if (!s) return false;
   const r = engine.tryUnlock(ep, s, lockId, input);
-  if (r.ok) save(r.state);
-  else track(`wrong:${lockId}`);
+  save(r.state);
+  if (!r.ok) track(`wrong:${lockId}`);
   return r.ok;
+}
+
+/** After the phone restarts in Episode 2 it wants the passcode again. */
+export function unlockAfterRestart(input: string): boolean {
+  const s = readProgress();
+  const passcode = ep.locks.find((l) => l.id === "passcode")?.answer;
+  if (!s || engine.digits(input) !== passcode) return false;
+  save(engine.perform(ep, s, "unlock-2"));
+  return true;
 }
 
 export function answer(deductionId: string, pick: readonly string[] | string): engine.Answer | null {
@@ -103,7 +120,39 @@ export function fire(eventId: string): void {
 
 export function die(): void {
   const s = readProgress();
-  if (s) save(engine.die(s));
+  if (s) save(engine.die(ep, s));
+}
+
+/** Something done to the phone itself. False if it wasn't possible (yet). */
+export function perform(actionId: string): boolean {
+  const s = readProgress();
+  if (!s) return false;
+  const next = engine.perform(ep, s, actionId);
+  save(next);
+  return next !== s;
+}
+
+/** Send a reply from the phone. */
+export function choose(replyId: string, optionId: string): void {
+  const s = readProgress();
+  if (s) save(engine.choose(ep, s, replyId, optionId));
+}
+
+export function nameContact(threadId: string, name: string): void {
+  const s = readProgress();
+  if (s) commit(engine.nameContact(s, threadId, name));
+}
+
+/** Time spent in an app: the minutes Mum's report will show. */
+export function logUsage(app: AppId, ms: number): void {
+  const s = readProgress();
+  if (s) commit(engine.logUsage(s, app, ms));
+}
+
+/** An app opened from the home screen: a pickup, as Guardian counts them. */
+export function openApp(): void {
+  const s = readProgress();
+  if (s) commit(engine.openApp(s));
 }
 
 /** Back in the envelope. The next open deals a new cast. */
@@ -115,6 +164,7 @@ export function resumed(): void {
   track("resume");
 }
 
-export function verdict(event: "ep2:yes" | "ep2:no" | "email"): void {
+/** A vote or a reaction, counted and nothing else. */
+export function verdict(event: string): void {
   track(event);
 }

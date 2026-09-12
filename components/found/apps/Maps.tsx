@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 
-import { episode1 as ep } from "@/content/found/episode1";
-import { has } from "@/lib/found/engine";
+import { story as ep } from "@/content/found/story";
+import { all, has, sessionVars } from "@/lib/found/engine";
 import { say } from "@/lib/found/voice";
 import * as play from "../FoundPhone/actions";
 import type { AppProps } from "./types";
@@ -24,13 +24,20 @@ const ROADS = [
 const LANES = ["M8 40 H96", "M10 80 H96", "M11 122 H96", "M44 0 V60", "M76 60 V140", "M36 100 V140"];
 const RAIL = "M54 0 C52 40 58 70 50 100 C46 114 36 128 30 140";
 
+/**
+ * Maps. Its Recents are {name}'s Friday, and — once you've pinned the mill —
+ * your Monday, right underneath. At the end of Episode 1 it shows who else
+ * can see this phone: the dot that's sharing with K. is you.
+ */
 export default function Maps({ state, nav, arg }: AppProps) {
   const pinFor = arg?.startsWith("pin:") ? arg.slice(4) : null;
   const question = pinFor ? ep.deductions.find((d) => d.id === pinFor) : undefined;
   const [selected, setSelected] = useState<string | null>(null);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
-  const sharing = has(state, "fired:cliff-share");
-  const t = (x: string) => say(x, state.cast);
+  const exposed = has(state, "fired:cliff-you");
+  const vars = sessionVars(ep, state);
+  const t = (x: string) => say(x, state.cast, vars);
+  const searches = ep.searches.filter((s) => all(state, s.requires));
 
   useEffect(() => {
     play.seeAll(ep.searches.map((s) => s.evidence));
@@ -42,9 +49,6 @@ export default function Maps({ state, nav, arg }: AppProps) {
     const r = play.answer(question.id, id);
     if (r) setResult({ ok: r.ok, text: t(r.reply) });
   };
-
-  const srm = ep.places.find((p) => p.id === "srm");
-  const station = ep.places.find((p) => p.id === "station");
 
   return (
     <section className={styles.maps}>
@@ -80,16 +84,15 @@ export default function Maps({ state, nav, arg }: AppProps) {
           </g>
         ))}
 
-        {sharing && srm && station && (
-          <g transform={`translate(${srm.x} ${srm.y})`}>
-            <g
-              className={styles.k}
-              style={{ "--fx": `${station.x - srm.x}px`, "--fy": `${station.y - srm.y}px` } as CSSProperties}
-            >
-              <circle r="5" className={styles.kPulse} />
-              <circle r="2.4" className={styles.kDot} />
-              <text y="7.4" className={styles.kLabel}>
-                K.
+        {/* This phone, 14 km north. The one K. has been watching. */}
+        {exposed && (
+          <g transform="translate(90 7)">
+            <g className={styles.you}>
+              <circle r="4.6" className={styles.youPulse} />
+              <circle r="2.3" className={styles.youDot} />
+              <path d="M-1.6 -6.2 L0 -8.4 L1.6 -6.2" className={styles.youArrow} />
+              <text x="-4.6" y="1.2" className={styles.youLabel}>
+                You · 14 km
               </text>
             </g>
           </g>
@@ -110,18 +113,17 @@ export default function Maps({ state, nav, arg }: AppProps) {
           </>
         ) : (
           <>
-            {sharing && <p className={styles.sharing}>K. is sharing their location with you.</p>}
+            {exposed && <p className={styles.sharing}>This phone is sharing its location with K. The blue dot is you.</p>}
             <p className={styles.eyebrow}>Recents</p>
             <ul className={styles.recents}>
-              {ep.searches.map((s) => (
-                <li key={s.query}>
-                  <button
-                    type="button"
-                    className={styles.recent}
-                    onClick={() => s.place && setSelected(s.place)}
-                  >
+              {searches.map((s) => (
+                <li key={`${s.query}:${s.at}`}>
+                  <button type="button" className={styles.recent} onClick={() => s.place && setSelected(s.place)}>
                     <span className={styles.recentQuery}>{s.query}</span>
-                    <span className={styles.recentAt}>{s.at}</span>
+                    <span className={styles.recentAt}>
+                      {t(s.at)}
+                      {s.byYou && <span className={styles.byYou}>this phone, after it reached you</span>}
+                    </span>
                   </button>
                 </li>
               ))}

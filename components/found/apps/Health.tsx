@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { episode1 as ep } from "@/content/found/episode1";
+import { story as ep } from "@/content/found/story";
 import * as play from "../FoundPhone/actions";
 import AppBar from "./AppBar";
 import app from "./App.module.css";

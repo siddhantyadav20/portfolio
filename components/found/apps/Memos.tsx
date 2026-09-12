@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { episode1 as ep } from "@/content/found/episode1";
+import { story as ep } from "@/content/found/story";
 import type { Memo } from "@/content/found/types";
 import { cue, keepAwake, playRecording, stopRecording } from "@/lib/found/memoSound";
 import * as play from "../FoundPhone/actions";

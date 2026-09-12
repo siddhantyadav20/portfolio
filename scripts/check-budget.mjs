@@ -79,8 +79,12 @@ const BUDGET = {
    * recording and 2.1MB the waitlist GIF, both of which want re-encoding and
    * are only waiting on a machine with ffmpeg. Lower this to about 7 once they
    * are done.
+   *
+   * Raised 19 → 21 on 2026-09-12, by decision, for Found: Episode 1 shipped
+   * ~1MB of photographs and memos and Episode 2 adds its own. The two re-encodes
+   * above are still what should pay it back.
    */
-  publicTotal: 19,
+  publicTotal: 21,
 };
 
 /** Files that are allowed to be over `asset`, and why. Anything not on this

@@ -32,10 +32,15 @@ export function warmBuzz(): void {
 const SECOND_PULSE_S = 0.45;
 
 export function buzz(): void {
-  try {
-    navigator.vibrate?.([170, 100, 170]);
-  } catch {
-    // Some browsers throw on vibrate without a gesture. Sound still plays.
+  // Before the visitor's first tap (the canvas card buzzes on its own),
+  // Chrome refuses vibrate and logs an error; Safari has no vibrate at all.
+  const nav = navigator as Navigator & { userActivation?: { hasBeenActive: boolean } };
+  if (nav.userActivation?.hasBeenActive !== false) {
+    try {
+      nav.vibrate?.([170, 100, 170]);
+    } catch {
+      // Some browsers throw on vibrate without a gesture. Sound still plays.
+    }
   }
   if (prefersQuiet()) return;
 

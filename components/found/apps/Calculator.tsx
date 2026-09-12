@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-import { episode1 as ep } from "@/content/found/episode1";
-import { has } from "@/lib/found/engine";
+import { story as ep } from "@/content/found/story";
+import { all, has, threadMessages } from "@/lib/found/engine";
 import { keyTap } from "@/lib/found/buzz";
 import { calc } from "@/lib/found/calc";
 import * as play from "../FoundPhone/actions";
@@ -126,8 +126,14 @@ export default function Calculator({ state }: AppProps) {
 
 function Vault({ state, onLock }: { state: AppProps["state"]; onLock: () => void }) {
   const [open, setOpen] = useState<string | null>(null);
-  const note = ep.vault.notes.find((n) => n.id === open);
+  const notes = ep.vault.notes.filter((n) => all(state, n.requires));
+  const note = notes.find((n) => n.id === open);
   const thread = ep.vault.thread;
+  const messages = threadMessages(ep, state, thread.id);
+
+  useEffect(() => {
+    play.see(note?.evidence);
+  }, [note]);
 
   return (
     <section className={app.view}>
@@ -139,17 +145,17 @@ function Vault({ state, onLock }: { state: AppProps["state"]; onLock: () => void
             <button type="button" className={app.row} onClick={() => setOpen(thread.id)}>
               <span className={app.rowMain}>
                 <span className={app.rowTitle}>{thread.contact}</span>
-                <span className={app.rowSub}>{thread.messages.length} messages</span>
+                <span className={app.rowSub}>{messages.length} messages</span>
               </span>
               <Chevron />
             </button>
           </li>
-          {ep.vault.notes.map((n) => (
+          {notes.map((n) => (
             <li key={n.id}>
               <button type="button" className={app.row} onClick={() => setOpen(n.id)}>
                 <span className={app.rowMain}>
                   <span className={app.rowTitle}>{n.title}</span>
-                  <span className={app.rowSub}>Note</span>
+                  <span className={app.rowSub}>{n.kind === "receipt" ? "Photo of a receipt" : "Note"}</span>
                 </span>
                 <Chevron />
               </button>
@@ -159,10 +165,11 @@ function Vault({ state, onLock }: { state: AppProps["state"]; onLock: () => void
       </div>
       {open === thread.id && (
         <Thread
+          threadId={thread.id}
           contact={thread.contact}
-          messages={thread.messages}
-          cast={state.cast}
-          composer={false}
+          messages={messages}
+          state={state}
+          composer="none"
           onBack={() => setOpen(null)}
           backLabel="Vault"
         />
@@ -171,7 +178,13 @@ function Vault({ state, onLock }: { state: AppProps["state"]; onLock: () => void
         <section className={app.view}>
           <AppBar title={note.title} onBack={() => setOpen(null)} backLabel="Vault" />
           <div className={app.body}>
-            <p className={styles.noteBody}>{note.body}</p>
+            {note.kind === "receipt" ? (
+              /* K.'s hand, on a slip of paper, photographed flat. Block
+                 capitals like the envelope's label: the same person wrote both. */
+              <p className={styles.receipt}>{note.body}</p>
+            ) : (
+              <p className={styles.noteBody}>{note.body}</p>
+            )}
           </div>
         </section>
       )}

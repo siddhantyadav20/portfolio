@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 
-import { episode1 as ep } from "@/content/found/episode1";
-import { all } from "@/lib/found/engine";
+import { story as ep } from "@/content/found/story";
+import type { Photo } from "@/content/found/types";
+import { all, has } from "@/lib/found/engine";
+import * as play from "../FoundPhone/actions";
 import AppBar, { Chevron } from "./AppBar";
 import PhotoFrame, { PhotoViewer } from "./PhotoFrame";
 import type { AppProps } from "./types";
@@ -13,8 +15,13 @@ import styles from "./Photos.module.css";
 export default function Photos({ state }: AppProps) {
   const [album, setAlbum] = useState<"recents" | "deleted">("recents");
   const [viewing, setViewing] = useState<string | null>(null);
-  const list = ep.photos.filter((p) => p.album === album && all(state, p.requires));
-  const deleted = ep.photos.filter((p) => p.album === "deleted").length;
+  const recovered = has(state, "did:recover-van");
+  // A recovered photo moves back to the Library, dated when it was put back.
+  const where = (p: Photo) => (p.album === "deleted" && p.recoverable && recovered ? "recents" : p.album);
+  const list = ep.photos.filter((p) => where(p) === album && all(state, p.requires));
+  const deleted = ep.photos.filter((p) => where(p) === "deleted").length;
+  const shown = ep.photos.find((p) => p.id === viewing);
+  const canRecover = album === "deleted" && shown?.recoverable && !recovered;
 
   return (
     <section className={app.view}>
@@ -60,7 +67,22 @@ export default function Photos({ state }: AppProps) {
           </>
         )}
       </div>
-      {viewing && <PhotoViewer id={viewing} cast={state.cast} onClose={() => setViewing(null)} />}
+      {viewing && (
+        <PhotoViewer
+          id={viewing}
+          cast={state.cast}
+          onClose={() => setViewing(null)}
+          onRecover={
+            canRecover
+              ? () => {
+                  play.perform("recover-van");
+                  setViewing(null);
+                  setAlbum("recents");
+                }
+              : undefined
+          }
+        />
+      )}
     </section>
   );
 }

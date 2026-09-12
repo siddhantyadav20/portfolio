@@ -79,6 +79,25 @@
   color: var(--os-dim);
 }
 
+.receipt {
+  justify-self: center;
+  width: min(100%, 240px);
+  margin: 24px auto;
+  padding: 22px 20px 26px;
+  background: #efe9dc;
+  color: #1d1a16;
+  font-family: "Marker Felt", "Bradley Hand", "Segoe Print", cursive;
+  font-size: 22px;
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: pre-wrap;
+  rotate: -2deg;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+  /* Torn along the bottom, where it came off the pad. */
+  clip-path: polygon(0 0, 100% 0, 100% 96%, 92% 100%, 84% 96%, 74% 100%, 63% 97%, 52% 100%, 41% 96%, 30% 100%, 19% 97%, 9% 100%, 0 96%);
+}
+
 .noteBody {
   margin: 8px 4px;
   font-size: 17px;

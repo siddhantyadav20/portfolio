@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 
-import { episode1 as ep } from "@/content/found/episode1";
+import { story as ep } from "@/content/found/story";
 import type { AppId, Deduction } from "@/content/found/types";
-import { caseFile, deductionOpen, has, lockAvailable } from "@/lib/found/engine";
+import { caseFile, deductionOpen, has, lockAvailable, sessionVars } from "@/lib/found/engine";
 import { say } from "@/lib/found/voice";
 import * as play from "../FoundPhone/actions";
 import AppBar from "./AppBar";
@@ -13,6 +13,7 @@ import app from "./App.module.css";
 import styles from "./Notes.module.css";
 
 const SOURCE: Record<AppId, string> = {
+  envelope: "Envelope",
   lock: "Lock screen",
   messages: "Messages",
   photos: "Photos",
@@ -22,27 +23,41 @@ const SOURCE: Record<AppId, string> = {
   maps: "Maps",
   memos: "Voice Memos",
   notes: "Case file",
+  guardian: "Guardian",
+  nightcam: "NightCam",
+  news: "News",
+  food: "Dabba",
 };
+
+const REACTIONS: readonly [string, string][] = [
+  ["no", "Not at all"],
+  ["maybe", "I had a feeling"],
+  ["yes", "Yes"],
+];
 
 /**
  * The case file: the player's own note on this phone. Everything they've
- * looked at is here, the open questions ask them to prove something with it,
- * and "Think" is three hints deep, ending in the answer. Nobody should quit
- * because they're stuck; the funnel will say where they needed it.
+ * looked at is here, the open questions ask them to prove something with it
+ * (or, once, to type the answer themselves), and "Think" is three hints deep,
+ * ending in the answer. Nobody should quit because they're stuck; the funnel
+ * will say where they needed it.
  */
 export default function Notes({ state, nav }: AppProps) {
-  const t = (x: string) => say(x, state.cast);
+  const vars = sessionVars(ep, state);
+  const t = (x: string) => say(x, state.cast, vars);
   const [picking, setPicking] = useState<string | null>(null);
   const [picked, setPicked] = useState<ReadonlySet<string>>(() => new Set());
+  const [typed, setTyped] = useState<Record<string, string>>({});
   const [replies, setReplies] = useState<Record<string, { ok: boolean; text: string }>>({});
   const [hints, setHints] = useState<Record<string, string>>({});
 
   const found = caseFile(ep, state);
-  const open = ep.deductions.filter((d) => deductionOpen(state, d));
-  const solved = ep.deductions.filter((d) => has(state, `solved:${d.id}`));
+  const open = ep.deductions.filter((d) => deductionOpen(state, d)).reverse();
+  const solved = ep.deductions.filter((d) => has(state, `solved:${d.id}`)).reverse();
   const vault = ep.locks.find((l) => l.id === "vault");
   const vaultCard =
     vault && lockAvailable(state, vault) && !has(state, `lock:${vault.id}`) && vault.clues.some((c) => has(state, `seen:${c}`));
+  const reacting = has(state, "solved:e2-who") && !has(state, "did:reacted");
 
   const think = (id: string) => {
     const h = play.hint(id);
@@ -57,8 +72,8 @@ export default function Notes({ state, nav }: AppProps) {
       return next;
     });
 
-  const present = (d: Deduction) => {
-    const r = play.answer(d.id, [...picked]);
+  const settle = (d: Deduction, pick: readonly string[] | string) => {
+    const r = play.answer(d.id, pick);
     if (!r) return;
     setReplies((x) => ({ ...x, [d.id]: { ok: r.ok, text: t(r.reply) } }));
     if (r.ok) {
@@ -76,6 +91,28 @@ export default function Notes({ state, nav }: AppProps) {
           {state.cast.name} {ep.surname}, 19. Missing since Friday night.
         </p>
 
+        {reacting && (
+          <article className={styles.react}>
+            <p className={styles.reactEyebrow}>A question for you, not the case</p>
+            <h3 className={styles.question}>Did you see that coming?</h3>
+            <div className={styles.actions}>
+              {REACTIONS.map(([k, label]) => (
+                <button
+                  type="button"
+                  key={k}
+                  className={styles.secondary}
+                  onClick={() => {
+                    play.verdict(`e2-saw:${k}`);
+                    play.perform("react");
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </article>
+        )}
+
         {open.map((d) => (
           <article key={d.id} className={styles.card}>
             <p className={styles.eyebrow}>Open question</p>
@@ -84,7 +121,44 @@ export default function Notes({ state, nav }: AppProps) {
             {replies[d.id] && !replies[d.id].ok && <p className={styles.nudge}>{replies[d.id].text}</p>}
             {hints[d.id] && <p className={styles.hint}>{hints[d.id]}</p>}
 
-            {picking === d.id ? (
+            {d.answer.kind === "text" ? (
+              <form
+                className={styles.typed}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  settle(d, typed[d.id] ?? "");
+                }}
+              >
+                {/* The keyboard offers what this phone's owner types most. */}
+                <div className={styles.suggest}>
+                  {ep.keyboard.map((w) => (
+                    <button type="button" key={w} className={styles.suggestion} onClick={() => setTyped((x) => ({ ...x, [d.id]: w }))}>
+                      {w}
+                    </button>
+                  ))}
+                </div>
+                <div className={styles.typeRow}>
+                  <input
+                    className={styles.input}
+                    value={typed[d.id] ?? ""}
+                    onChange={(e) => setTyped((x) => ({ ...x, [d.id]: e.target.value }))}
+                    placeholder="Type an answer"
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    aria-label={t(d.question)}
+                  />
+                  <button type="submit" className={styles.primary} disabled={!(typed[d.id] ?? "").trim()}>
+                    Answer
+                  </button>
+                </div>
+                <div className={styles.actions}>
+                  <button type="button" className={styles.secondary} onClick={() => think(d.id)}>
+                    Think
+                  </button>
+                </div>
+              </form>
+            ) : picking === d.id ? (
               <div className={styles.pick}>
                 {found.length === 0 && <p className={styles.nudge}>Nothing found yet.</p>}
                 <ul className={styles.pickList}>
@@ -103,7 +177,7 @@ export default function Notes({ state, nav }: AppProps) {
                   ))}
                 </ul>
                 <div className={styles.actions}>
-                  <button type="button" className={styles.primary} disabled={picked.size === 0} onClick={() => present(d)}>
+                  <button type="button" className={styles.primary} disabled={picked.size === 0} onClick={() => settle(d, [...picked])}>
                     Show
                   </button>
                   <button

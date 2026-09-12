@@ -3,18 +3,29 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { episode1 as ep } from "@/content/found/episode1";
+import { story as ep } from "@/content/found/story";
 import type { CaseState } from "@/lib/found/engine";
 import { say } from "@/lib/found/voice";
 import * as play from "./actions";
-import { joinEpisodeTwo } from "./submit";
+import { joinNextEpisode } from "./submit";
 import styles from "./EndCard.module.css";
 
 /**
- * After the battery. Back in the site's voice, with the questions the pilot
- * leaves open and the one question the pilot exists to ask.
+ * Between episodes, in the site's voice: the questions left open, and then
+ * either the way on (Episode 1: charge it) or the one question the pilot
+ * exists to ask (Episode 2: would you play Episode 3?).
  */
-export default function EndCard({ state, onReplay }: { state: CaseState; onReplay: () => void }) {
+export default function EndCard({
+  state,
+  episode,
+  onReplay,
+}: {
+  state: CaseState;
+  episode: 1 | 2;
+  onReplay: () => void;
+}) {
+  const end = episode === 1 ? ep.end : ep.end2;
+  const next = episode + 1;
   const [vote, setVote] = useState<"yes" | "no" | null>(null);
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState<"idle" | "sending" | "done" | "error">("idle");
@@ -22,31 +33,37 @@ export default function EndCard({ state, onReplay }: { state: CaseState; onRepla
   const choose = (v: "yes" | "no") => {
     if (vote) return;
     setVote(v);
-    play.verdict(v === "yes" ? "ep2:yes" : "ep2:no");
+    play.verdict(`ep${next}:${v}`);
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || sent === "sending") return;
     setSent("sending");
-    const r = await joinEpisodeTwo(email);
+    const r = await joinNextEpisode(email, next);
     setSent(r.ok ? "done" : "error");
     if (r.ok) play.verdict("email");
   };
 
   return (
     <div className={styles.card}>
-      <p className={styles.eyebrow}>{ep.end.title}</p>
-      <h2 className={styles.title}>{ep.title}</h2>
+      <p className={styles.eyebrow}>{end.title}</p>
+      <h2 className={styles.title}>{episode === 1 ? ep.title : "Read Receipts"}</h2>
       <ul className={styles.questions}>
-        {ep.end.questions.map((q) => (
+        {end.questions.map((q) => (
           <li key={q}>{say(q, state.cast)}</li>
         ))}
       </ul>
 
       <div className={styles.ask}>
-        <p className={styles.askText}>{ep.end.ask}</p>
-        {vote === null ? (
+        <p className={styles.askText}>{end.ask}</p>
+        {episode === 1 ? (
+          <div className={styles.choices}>
+            <button type="button" className={styles.primary} onClick={() => play.perform("start-ep2")}>
+              {end.cta ?? "Continue"}
+            </button>
+          </div>
+        ) : vote === null ? (
           <div className={styles.choices}>
             <button type="button" className={styles.primary} onClick={() => choose("yes")}>
               Yes
@@ -58,7 +75,7 @@ export default function EndCard({ state, onReplay }: { state: CaseState; onRepla
         ) : vote === "no" ? (
           <p className={styles.thanks}>Thank you for telling me. That&apos;s the most useful answer there is.</p>
         ) : sent === "done" ? (
-          <p className={styles.thanks}>Done. You&apos;ll hear when Episode 2 is out.</p>
+          <p className={styles.thanks}>Done. You&apos;ll hear when Episode {next} is out.</p>
         ) : (
           <form className={styles.form} onSubmit={submit}>
             <label className={styles.formLabel} htmlFor="found-email">
@@ -86,7 +103,7 @@ export default function EndCard({ state, onReplay }: { state: CaseState; onRepla
 
       <div className={styles.footer}>
         <button type="button" className={styles.link} onClick={onReplay}>
-          Play again, with someone else missing
+          Start over, with someone else missing
         </button>
         <Link className={styles.link} href="/">
           Back to Siddhant&apos;s site

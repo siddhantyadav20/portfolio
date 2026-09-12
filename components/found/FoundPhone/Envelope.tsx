@@ -1,6 +1,6 @@
 "use client";
 
-import { episode1 as ep } from "@/content/found/episode1";
+import { story as ep } from "@/content/found/story";
 import styles from "./Envelope.module.css";
 
 /**
@@ -16,9 +16,12 @@ export default function Envelope({ onOpen }: { onOpen: () => void }) {
         <span className={styles.phone} />
         <span className={styles.front} />
         <span className={styles.label}>
-          To you
-          <br />
-          By hand
+          {ep.envelope.label.map((line, i) => (
+            <span key={line}>
+              {i > 0 && <br />}
+              {line}
+            </span>
+          ))}
         </span>
       </div>
       <div className={styles.lines}>

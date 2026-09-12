@@ -2,16 +2,21 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 
-import type { Cast, Message } from "@/content/found/types";
+import { story as ep } from "@/content/found/story";
+import type { Message } from "@/content/found/types";
+import { openReply, replyOptions, sessionVars, type CaseState } from "@/lib/found/engine";
 import { say } from "@/lib/found/voice";
 import * as play from "../FoundPhone/actions";
 import AppBar from "./AppBar";
+import GuardianCard from "./GuardianCard";
 import PhotoFrame, { PhotoViewer } from "./PhotoFrame";
 import app from "./App.module.css";
 import styles from "./Thread.module.css";
 
+/* The story's present is Monday in both episodes: the morning the phone
+   arrived and the evening it came back on. So Monday is always "Today". */
 const DAYS: Record<string, string> = {
-  Mon: "Monday",
+  Mon: "Today",
   Tue: "Tuesday",
   Wed: "Wednesday",
   Thu: "Thursday",
@@ -26,28 +31,43 @@ const timeOf = (at: string) => (at === "now" ? "Just now" : (at.split(" ")[1] ??
 /**
  * One conversation. Opening it is looking at it: any evidence in its messages
  * goes into the case file, including messages that arrive while it's open.
+ *
+ * The bottom of the thread is what the phone lets the player do there: in
+ * Episode 1, nothing (Low Power Mode); in Episode 2, a short list of things
+ * to send when there's something to answer. Whatever they pick is sent from
+ * {name}'s phone, and it shows up in the thread like anything else sent.
  */
 export default function Thread({
+  threadId,
   contact,
   messages,
-  cast,
+  state,
   moved = false,
   group = false,
-  composer = true,
+  nameable = false,
+  composer,
   onBack,
   backLabel,
 }: {
+  threadId: string;
   contact: string;
   messages: readonly Message[];
-  cast: Cast;
+  state: CaseState;
   moved?: boolean;
   group?: boolean;
-  composer?: boolean;
+  nameable?: boolean;
+  composer: "low-power" | "replies" | "none";
   onBack: () => void;
   backLabel: string;
 }) {
   const body = useRef<HTMLDivElement>(null);
   const [viewing, setViewing] = useState<string | null>(null);
+  const [naming, setNaming] = useState(false);
+  const [name, setName] = useState(state.names[threadId] ?? "");
+  const vars = sessionVars(ep, state);
+  const t = (x: string) => say(x, state.cast, vars);
+  const reply = composer === "replies" ? openReply(ep, state, threadId) : undefined;
+  const options = reply ? replyOptions(state, reply) : [];
 
   useEffect(() => {
     play.seeAll(messages.map((m) => m.evidence));
@@ -59,11 +79,46 @@ export default function Thread({
   useEffect(() => {
     const el = body.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [messages.length]);
+  }, [messages.length, options.length]);
+
+  const title = state.names[threadId] ?? contact;
 
   return (
     <section className={app.view}>
-      <AppBar title={contact} onBack={onBack} backLabel={backLabel} />
+      <AppBar
+        title={title}
+        onBack={onBack}
+        backLabel={backLabel}
+        end={
+          nameable ? (
+            <button type="button" className={styles.nameButton} onClick={() => setNaming((v) => !v)}>
+              {naming ? "Cancel" : state.names[threadId] ? "Rename" : "Add name"}
+            </button>
+          ) : undefined
+        }
+      />
+      {naming && (
+        <form
+          className={styles.naming}
+          onSubmit={(e) => {
+            e.preventDefault();
+            play.nameContact(threadId, name);
+            setNaming(false);
+          }}
+        >
+          <input
+            className={styles.nameInput}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={contact}
+            maxLength={24}
+            autoFocus
+          />
+          <button type="submit" className={styles.nameSave}>
+            Save
+          </button>
+        </form>
+      )}
       <div className={app.body} ref={body}>
         {moved && <p className={styles.moved}>This conversation was moved.</p>}
         {messages.map((m, i) => {
@@ -74,15 +129,25 @@ export default function Thread({
             !next || next.from !== m.from || next.sender !== m.sender || dayOf(next.at) !== dayOf(m.at);
           const showSender =
             group && m.from === "them" && m.sender && (newDay || prev?.sender !== m.sender || prev?.from !== m.from);
+          const scrubbed = m.text === "This message was deleted.";
           return (
             <Fragment key={i}>
               {newDay && <p className={styles.day}>{dayOf(m.at)}</p>}
               <div className={styles.row} data-from={m.from} data-new={m.at === "now" || undefined}>
                 {showSender && <span className={styles.sender}>{m.sender}</span>}
-                {m.text && <p className={styles.bubble}>{say(m.text, cast)}</p>}
+                {m.text && (
+                  <p className={styles.bubble} data-scrubbed={scrubbed || undefined}>
+                    {t(m.text)}
+                  </p>
+                )}
+                {m.card === "guardian" && (
+                  <div className={styles.card}>
+                    <GuardianCard state={state} />
+                  </div>
+                )}
                 {m.photo && (
                   <button type="button" className={styles.photo} onClick={() => setViewing(m.photo ?? null)}>
-                    <PhotoFrame id={m.photo} cast={cast} size="bubble" />
+                    <PhotoFrame id={m.photo} cast={state.cast} size="bubble" />
                   </button>
                 )}
                 {endOfRun && <span className={styles.time}>{timeOf(m.at)}</span>}
@@ -91,8 +156,24 @@ export default function Thread({
           );
         })}
       </div>
-      {composer && <p className={styles.composer}>Low Power Mode is on. Messages can&apos;t be sent.</p>}
-      {viewing && <PhotoViewer id={viewing} cast={cast} onClose={() => setViewing(null)} />}
+
+      {composer === "low-power" && <p className={styles.composer}>Low Power Mode is on. Messages can&apos;t be sent.</p>}
+      {reply && options.length > 0 && (
+        <div className={styles.replies} role="group" aria-label="Reply">
+          {options.map((o) => (
+            <button
+              type="button"
+              key={o.id}
+              className={styles.replyOption}
+              data-silent={o.text === null || undefined}
+              onClick={() => play.choose(reply.id, o.id)}
+            >
+              {o.text === null ? "Don’t reply" : t(o.text)}
+            </button>
+          ))}
+        </div>
+      )}
+      {viewing && <PhotoViewer id={viewing} cast={state.cast} onClose={() => setViewing(null)} />}
     </section>
   );
 }

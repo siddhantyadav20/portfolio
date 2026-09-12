@@ -3,10 +3,10 @@
  * lines the palette, the page's metadata, the share card and the canvas's
  * phone use.
  *
- * Deliberately doesn't import the episode. The palette and the homepage's
- * canvas preview read this file, and the script is 20KB that nothing outside
- * `components/found` should carry. `tests/found.test.ts` checks the title here
- * matches the episode's.
+ * Deliberately doesn't import the story. The palette and the homepage's
+ * canvas preview read this file, and the script is well over 20KB that
+ * nothing outside `components/found` should carry. `tests/found.test.ts`
+ * checks the title here matches the story's.
  */
 export const found = {
   href: "/found",
@@ -20,12 +20,14 @@ export const found = {
 } as const;
 
 /**
- * What keeps landing on the phone's lock screen. The first three are the
- * episode's own lock-screen notifications (episode1.ts reads them from here);
- * the canvas phone cycles through all of them, one per buzz. None of them
- * names the missing person, so none needs a cast.
+ * What keeps landing on the phone's lock screen. The first four are the
+ * story's own lock-screen notifications (episode1.ts reads them from here),
+ * and the very first is the first line of the game: an order that is really
+ * an invitation. The canvas phone cycles through all of them, one per buzz.
+ * None of them names the missing person, so none needs a cast.
  */
 export const teaser: readonly { readonly from: string; readonly text: string }[] = [
+  { from: "+91 •• ••5520", text: "Don't unlock it." },
   { from: "Mum", text: "14 missed calls" },
   { from: "Tara", text: "i'm scared. please" },
   { from: "Dev", text: "your mum called me. where are you" },
