@@ -978,8 +978,19 @@ html[data-canvas] body {
    sets it gets `0` — a zero-width border-image whose `fill` region covers the
    whole box, which is a mask that changes nothing. Nesting is safe by
    construction, and so is putting `.squircle` on something that forgot its
-   radius: it simply does nothing. */
-@supports not (corner-shape: squircle) {
+   radius: it simply does nothing.
+
+   THE MASK IS A CONDITION, NOT A GIVEN. This used to be `@supports not
+   (corner-shape: squircle)` and nothing else, which assumed that a browser
+   without the shape has the mask. Firefox has neither — 155 answers false to
+   `corner-shape`, `mask-border` and `-webkit-mask-box-image` alike — so it
+   took the zero, dropped both mask lines as invalid, and squared off every
+   card on the site. So the zero is only allowed where the thing that replaces
+   it exists. Anywhere else `.squircle`'s own `border-radius: var(--sq-r)`
+   stands: a plain rounded rect, the same answer the second tier gives, and
+   never a square. tests/squircle.test.ts holds the condition in place. */
+@supports (not (corner-shape: squircle)) and
+  ((mask-border: none) or (-webkit-mask-box-image: none)) {
   .squircle {
     border-radius: 0;
     -webkit-mask-box-image: var(--sq-mask) 64 fill / var(--sq-r) / 0 stretch;
