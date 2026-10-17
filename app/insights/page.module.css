@@ -1,0 +1,558 @@
+/* The insights page. Off-white ground, white cards lifted off it, Canela for
+   anything that is a number worth reading — the homepage's language, not a
+   dashboard kit's. Responsive through a container query rather than a new
+   @media width (tests/breakpoints.test.ts). */
+
+.page {
+  container-type: inline-size;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 64px var(--page-pad) 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* --- Header --- */
+
+.head {
+  margin-bottom: 12px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ink-strong);
+}
+
+.meta {
+  margin: 12px 0 0;
+  color: var(--ink-60);
+}
+
+.link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--ink-20);
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  color: var(--ink);
+  text-decoration-color: currentColor;
+}
+
+/* --- Cards --- */
+
+.card {
+  background: var(--surface-solid);
+  border-radius: var(--r-lg);
+  box-shadow: 0 0 24px rgb(0 0 0 / 0.03);
+}
+
+.block {
+  padding: 24px;
+  min-width: 0;
+}
+
+.blockHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.blockTitle {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink-strong);
+}
+
+.blockSub {
+  margin: 2px 0 0;
+  color: var(--ink-60);
+}
+
+.minorTitle {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.empty {
+  margin: 20px 0 4px;
+  color: var(--ink-60);
+}
+
+/* --- Headline figures --- */
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.figure {
+  padding: 20px;
+}
+
+.figureLabel {
+  margin: 0;
+  color: var(--ink-60);
+  font-weight: 500;
+}
+
+.figureValue {
+  margin: 6px 0 2px;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ink-strong);
+}
+
+.figureNote {
+  margin: 0;
+  color: var(--ink-50);
+  font-size: 13px;
+}
+
+/* --- Visitors chart --- */
+
+.legend {
+  display: flex;
+  gap: 16px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ink-70);
+  font-size: 13px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.swatchNew,
+.segNew {
+  background: var(--accent);
+}
+
+.swatchBack,
+.segBack {
+  background: var(--ink-20);
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 200px;
+  color: var(--ink-50);
+  font-size: 12px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  /* Centre each tick on its gridline. */
+  margin: -8px 0;
+  padding: 0;
+}
+
+.columns {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(30, minmax(0, 1fr));
+  align-items: end;
+  height: 200px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+  /* Three hairlines: top, middle and the baseline. */
+  background:
+    linear-gradient(var(--ink-20), var(--ink-20)) top / 100% 1px no-repeat,
+    linear-gradient(var(--ink-20), var(--ink-20)) center / 100% 1px no-repeat,
+    linear-gradient(var(--ink-40), var(--ink-40)) bottom / 100% 1px no-repeat;
+}
+
+.col {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 100%;
+  outline: none;
+  cursor: default;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: min(70%, 20px);
+  min-height: 0;
+}
+
+.stack > span {
+  flex-basis: 0;
+  min-height: 2px;
+}
+
+.stack > span:first-child {
+  border-radius: 4px 4px 0 0;
+}
+
+.col:hover .stack,
+.col:focus-visible .stack {
+  filter: brightness(0.92);
+}
+
+.tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 2;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-solid);
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.12);
+  color: var(--ink-70);
+  font-size: 12px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.tip strong {
+  color: var(--ink-strong);
+}
+
+/* Anchored inside the chart near either edge. */
+.col:nth-child(-n + 4) .tip {
+  left: 0;
+  transform: none;
+}
+
+.col:nth-last-child(-n + 4) .tip {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.col:hover .tip,
+.col:focus-visible .tip {
+  display: flex;
+}
+
+.tick {
+  position: absolute;
+  top: calc(100% + 6px);
+  color: var(--ink-50);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.col:last-child .tick {
+  right: 0;
+}
+
+/* --- Two-up row --- */
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+/* --- Tables --- */
+
+.table {
+  width: 100%;
+  margin-top: 16px;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: 0 0 8px;
+  color: var(--ink-50);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.table td {
+  padding: 12px 0;
+  border-top: 1px solid var(--ink-20);
+  vertical-align: top;
+}
+
+.table .num {
+  width: 80px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.table td.num {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-strong);
+}
+
+.rowLink,
+.rowTitle {
+  display: block;
+  color: var(--ink-strong);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rowLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.rowSub {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-50);
+  font-size: 13px;
+}
+
+/* --- Comments --- */
+
+.comments {
+  display: flex;
+  flex-direction: column;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.comment {
+  padding: 12px 0;
+  border-top: 1px solid var(--ink-20);
+}
+
+.commentHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  color: var(--ink-50);
+  font-size: 13px;
+}
+
+.commentHead strong {
+  color: var(--ink-strong);
+  font-weight: 600;
+}
+
+.commentBody {
+  margin: 4px 0 0;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* --- Found --- */
+
+/* Evidence chips: the homepage's green-bordered pill, semibold figure over a
+   medium green line. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 14px;
+  border: 1px solid rgb(from var(--green) r g b / 0.2);
+  border-radius: var(--r-sm);
+  background: linear-gradient(180deg, var(--surface-solid), rgb(from var(--green) r g b / 0.06));
+}
+
+.chip strong {
+  color: var(--ink-strong);
+  font-weight: 600;
+}
+
+.chip span {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.funnels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+  margin-top: 24px;
+}
+
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) 4.5rem;
+  align-items: center;
+  gap: 12px;
+}
+
+.stepLabel {
+  color: var(--ink-70);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar {
+  height: 12px;
+  border-radius: 0 4px 4px 0;
+  background: rgb(from var(--accent) r g b / 0.1);
+  overflow: hidden;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  background: var(--accent);
+}
+
+.stepNum {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--ink-strong);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pct {
+  color: var(--ink-50);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.foundFoot {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--ink-20);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink-70);
+  font-size: 13px;
+}
+
+.listNum {
+  color: var(--ink-strong);
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Narrow --- */
+
+@container (width < 900px) {
+  .figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .split,
+  .funnels,
+  .foundFoot {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container (width < 560px) {
+  .title {
+    font-size: 36px;
+  }
+
+  .figureValue {
+    font-size: 32px;
+  }
+
+  .block {
+    padding: 20px;
+  }
+
+  .step {
+    grid-template-columns: minmax(0, 1fr) 4.5rem;
+  }
+
+  .bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  /* Weekly ticks crowd a phone; today's is enough. */
+  .col:not(:last-child) .tick {
+    display: none;
+  }
+}

@@ -56,3 +56,20 @@ export function isVisitorId(value: unknown): value is string {
 export function formatVisitors(total: number): string {
   return total.toLocaleString("en-US");
 }
+
+/**
+ * The day a visit belongs to, as `YYYY-MM-DD`, on Siddhant's clock.
+ *
+ * India time rather than UTC: the insights page is read by one person, and a
+ * day that rolls over at half past five in the morning splits an evening's
+ * visitors across two bars. `en-CA` is the locale that formats a date in ISO
+ * order, which is the whole reason it is named here.
+ */
+export function dayStamp(at: Date | number = Date.now()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(at);
+}

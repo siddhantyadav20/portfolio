@@ -191,6 +191,21 @@ export function devRedis(
         return Math.max(0, Math.ceil((entry.expires - Date.now()) / 1000));
       }
 
+      /* --- Keys: the insights page ---
+         `SCAN 0 MATCH <glob>` finds every track that has a reaction set
+         (app/insights). One page holds the whole keyspace here, so the cursor
+         that comes back is always "0" — the loop above it ends after one
+         call, which is what a real SCAN does on a small database too. Only
+         `*` is honoured in the glob; nothing on the site asks for more. */
+      case "SCAN": {
+        const at = args.findIndex((a) => String(a).toUpperCase() === "MATCH");
+        const glob = at >= 0 ? String(args[at + 1]) : "*";
+        const pattern = new RegExp(
+          `^${glob.split("*").map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*")}$`,
+        );
+        return ["0", [...store.keys()].filter((k) => pattern.test(k) && live(k))];
+      }
+
       default:
         throw new Error(`[upstash-dev] ${op} is not implemented`);
     }

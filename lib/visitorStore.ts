@@ -1,7 +1,7 @@
 import "server-only";
 
 import { asCount, redis, redisReady } from "@/lib/upstash";
-import { isVisitorId, NO_VISITORS, type Visitors } from "@/lib/visitors";
+import { dayStamp, isVisitorId, NO_VISITORS, type Visitors } from "@/lib/visitors";
 import { visitorId } from "@/lib/visitorId";
 
 /* ===========================================================================
@@ -11,6 +11,16 @@ import { visitorId } from "@/lib/visitorId";
 
      sy:visitors            set of browser ids, one per distinct browser
      sy:rl:new:<address>    how many new ids one address has introduced lately
+
+   And two per day, for the insights page (app/insights):
+
+     sy:v:day:<date>        set of browser ids seen that day
+     sy:v:new:<date>        the subset that were new to `sy:visitors` that day
+
+   Sets for the same reason the total is one: a reload is not a second visitor.
+   They expire after DAY_TTL, so the daily history is a rolling window rather
+   than a keyspace that grows for as long as the site is up. They started
+   empty on 2026-10-17 — there is no earlier history to backfill.
 
    A SET, NOT A COUNTER, which is the same argument the like and the comment
    thread make: the number is `SCARD` of the membership, derived and never
@@ -57,6 +67,14 @@ const WINDOW_SECONDS = 3600;
 
 const rateKey = (who: string) => `sy:rl:new:${who}`;
 
+/** Browsers seen on a day, and the ones that arrived for the first time. */
+export const dayKey = (date: string) => `sy:v:day:${date}`;
+export const newKey = (date: string) => `sy:v:new:${date}`;
+
+/** How long a day's sets are kept. The page draws 30 days; this leaves room
+ *  to look further back without the history being permanent. */
+const DAY_TTL = 120 * 86_400;
+
 /**
  * Count this browser if it is new, and report the total either way.
  *
@@ -78,20 +96,32 @@ export async function countVisitor(id: unknown): Promise<Visitors> {
   if (!isVisitorId(id)) return readVisitors();
 
   try {
+    const today = dayStamp();
     const [known, total] = await redis(
       ["SISMEMBER", KEY, id],
       ["SCARD", KEY],
     );
 
     if (asCount(known) === 1) {
+      // A returning browser is counted for today and nothing else moves.
+      await redis(["SADD", dayKey(today), id], ["EXPIRE", dayKey(today), DAY_TTL]);
       return { configured: true, total: asCount(total) };
     }
 
+    /* A refused id stays out of the daily sets too: the limiter exists so a
+       loop cannot run a number up, and "today" is a number. */
     if (await overNewLimit()) {
       return { configured: true, total: asCount(total) };
     }
 
-    const [, after] = await redis(["SADD", KEY, id], ["SCARD", KEY]);
+    const [, after] = await redis(
+      ["SADD", KEY, id],
+      ["SCARD", KEY],
+      ["SADD", dayKey(today), id],
+      ["EXPIRE", dayKey(today), DAY_TTL],
+      ["SADD", newKey(today), id],
+      ["EXPIRE", newKey(today), DAY_TTL],
+    );
     return { configured: true, total: asCount(after) };
   } catch (err) {
     console.error("[visitors] count failed", err);
