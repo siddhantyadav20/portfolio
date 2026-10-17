@@ -41,7 +41,11 @@
   width: 24px;
   height: 24px;
   transform-origin: 5.39px 5.69px;
-  transition: opacity 160ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* `scale` is the press (below), on its own property and its own clock so it
+     never has to wait out the variant swap on `transform`. Coming back up is
+     the site's spring; going down is a straight answer. */
+  transition: opacity 160ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    scale var(--dur-base) var(--spring);
 }
 
 /* Zero-sized, so `rotate` pivots on this exact point. */
@@ -85,8 +89,6 @@
 
 .badge {
   position: absolute;
-  left: 0;
-  top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -94,9 +96,37 @@
   height: 132px;
   border-radius: var(--r-pill);
 
-  transform: translate(-50%, -50%) scale(0.72);
+  /* Centred by its offsets rather than inside `transform`, so the press's
+     `scale` below works about the disc's own centre. Folded into the
+     transform, the centring would be scaled with everything else and the
+     disc would slide toward its bottom-right corner as it gave.
+
+     Not the `translate` property, which is the obvious way to say this: the
+     build's Lightning CSS drops a `translate` that shares a rule with a
+     `transform` (measured — the served rule had the transform and no
+     translate, and the disc sat 66px down and right of the pointer). Half of
+     132, written as the arithmetic so the two numbers cannot drift. */
+  left: calc(132px / -2);
+  top: calc(132px / -2);
+  transform: scale(0.72);
   opacity: 0;
-  transition: opacity 160ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 160ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    scale var(--dur-base) var(--spring);
+}
+
+/* Pressed. The arrow folds toward its own tip — `transform-origin` is the
+   hotspot — so the point that is clicking never moves. The disc gives less,
+   in proportion: it is 132px of glass and a fifth of that would be a lurch. */
+.cursor[data-pressed] .arrow {
+  scale: 0.84;
+  transition: opacity 160ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    scale var(--dur-press) var(--ease-out);
+}
+
+.cursor[data-pressed] .badge {
+  scale: 0.92;
+  transition: opacity 160ms ease, transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    scale var(--dur-press) var(--ease-out);
 }
 
 /* Refraction at the rim — the one thing in the reference a hairline can't do.
@@ -150,7 +180,7 @@
 
 .cursor[data-variant="view-project"] .badge {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  transform: scale(1);
 }
 
 /* Both backdrop filters are switched off while the badge is hidden. Each one

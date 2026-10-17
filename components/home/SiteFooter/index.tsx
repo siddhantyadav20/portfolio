@@ -16,6 +16,7 @@ export default function SiteFooter({ colophon = false }: { colophon?: boolean })
     <footer className={styles.footer}>
       <a
         className={`liquid ${styles.linkedin}`}
+        data-press=""
         href={footer.linkedinHref ?? undefined}
         {...externalLinkProps(footer.linkedinHref)}
         data-placeholder={footer.linkedinHref ? undefined : ""}

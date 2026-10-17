@@ -39,9 +39,10 @@
   box-shadow: var(--liquid-cast-hi);
 }
 
-.pill:active {
-  transform: scale(1);
-}
+/* No `:active` rule. This used to be `transform: scale(1)` — taking back the
+   hover's 1.5%, which was the whole of what a press did. The press is now its
+   own motion on its own property (`data-press`, see PressField), and it
+   composes with the hover rather than undoing it. */
 
 /* End-justified rather than centred, for a pill carrying a trailing badge.
    The two numbers that change are the end padding and where the free space

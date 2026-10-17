@@ -52,6 +52,12 @@ export default function CardShell<T extends ElementType = "div">({
   ...rest
 }: CardShellProps<T>) {
   const Tag = (as ?? "div") as ElementType;
+  /* A card that is itself the thing you press gives under the press — see
+     PressField. A `div` card is a place holding controls (the search field,
+     the transport, the waitlist), and pressing one of those is not pressing
+     the card, so only the two element types that *are* a single action opt
+     in. */
+  const pressable = Tag === "a" || Tag === "button";
 
   return (
     <Tag
@@ -65,6 +71,7 @@ export default function CardShell<T extends ElementType = "div">({
         .filter(Boolean)
         .join(" ")}
       {...(isStatic ? {} : { "data-prox-card": "" })}
+      {...(pressable ? { "data-press": "" } : {})}
       {...rest}
     >
       {children}

@@ -256,3 +256,48 @@ export function writeTheme(theme: Theme) {
   }
   window.dispatchEvent(new Event(EVENT));
 }
+
+/** On <html> for the length of a theme change. See "Theme change" in
+ *  globals.css, which is everything this attribute switches on. */
+const SHIFT_ATTR = "data-theme-shift";
+
+/**
+ * `writeTheme`, as one dissolve instead of a cut.
+ *
+ * WHY THE CUT WAS WRONG. One attribute flip repaints the whole site, which is
+ * the right architecture and the wrong motion: every surface changed in the
+ * same frame except the few with a colour transition of their own — the glass
+ * pills, the toggle — which then arrived a quarter-second late, so the page
+ * did not even cut cleanly. It flashed, then caught up.
+ *
+ * WHY A DISSOLVE AND NOT A REVEAL. The circle wiping out from the toggle is
+ * the obvious move and the note in `ThemeToggle/switched.ts` already argues
+ * against it: a theme is a setting, not a moment, and a setting that performs
+ * is how a site starts to feel like a toy. This is what an operating system
+ * does when the appearance changes — the room's light changes, once, all of
+ * it at the same time — and it asks nothing of anyone's attention.
+ *
+ * Skipped mid-morph (two view transitions cannot overlap — the second aborts
+ * the first, and the first is a card on its way into a reader) and under
+ * reduced motion, where the cut is exactly what was asked for.
+ */
+export function crossfadeTheme(theme: Theme) {
+  const root = document.documentElement;
+  const able =
+    typeof document.startViewTransition === "function" &&
+    !matchMedia("(prefers-reduced-motion: reduce)").matches &&
+    !root.hasAttribute("data-morph") &&
+    !root.hasAttribute(SHIFT_ATTR);
+
+  if (!able || readTheme() === theme) {
+    writeTheme(theme);
+    return;
+  }
+
+  root.setAttribute(SHIFT_ATTR, "");
+  const shift = document.startViewTransition(() => writeTheme(theme));
+  shift.ready.catch(() => {});
+  shift.finished
+    .catch(() => {})
+    .finally(() => root.removeAttribute(SHIFT_ATTR));
+}

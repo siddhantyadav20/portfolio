@@ -2,10 +2,10 @@
 
 import { useSyncExternalStore } from "react";
 import {
+  crossfadeTheme,
   readTheme,
   serverTheme,
   subscribeTheme,
-  writeTheme,
   type Theme,
 } from "@/lib/theme";
 import { switched } from "./switched";
@@ -75,7 +75,7 @@ function Option({ theme, active }: { theme: Theme; active: boolean }) {
       aria-pressed={active}
       onClick={() => {
         switched(theme);
-        writeTheme(theme);
+        crossfadeTheme(theme);
       }}
     >
       {/* Both cuts of the glyph, stacked and cross-faded, rather than one

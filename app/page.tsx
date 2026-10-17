@@ -3,6 +3,7 @@ import BottomBlur from "@/components/primitives/BottomBlur";
 import DesignEngineerCard from "@/components/home/DesignEngineerCard";
 import DesignSystemExperience from "@/components/home/DesignSystemExperience";
 import FantasyCard from "@/components/home/FantasyCard";
+import HomeRise from "@/components/home/HomeRise";
 import InspectionExperience from "@/components/home/InspectionExperience";
 import Introduction from "@/components/home/Introduction";
 import MusicPlayer from "@/components/home/MusicPlayer";
@@ -29,6 +30,10 @@ export default function Home() {
           the field because it draws nothing and is not part of the
           composition the pointer is pushing around. */}
       <SmoothScroll />
+
+      {/* Renders nothing. Cards below the fold rise into place as they are
+          scrolled to — see "Rise" in globals.css. */}
+      <HomeRise />
 
       <ProximityField>
         <main id="main" className={styles.page}>

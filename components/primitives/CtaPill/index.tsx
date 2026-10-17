@@ -33,6 +33,8 @@ export default function CtaPill<T extends ElementType = "button">({
       className={[styles.pill, trailing ? styles.withTrailing : null, "liquid", className]
         .filter(Boolean)
         .join(" ")}
+      /* Gives under a press — see PressField. */
+      data-press=""
       {...rest}
     >
       {icon ? (

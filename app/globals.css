@@ -242,6 +242,35 @@
   /* Barely underdamped — for things that should settle rather than bounce. */
   --spring-soft: linear(0, 0.12, 0.35, 0.57, 0.74, 0.86, 0.93, 0.97, 0.99, 1);
 
+  /* --- The vocabulary, by intent ---------------------------------------
+     The site grew forty-odd curves one component at a time, most of them
+     the same three ideas spelled differently. New motion says which idea it
+     is rather than inventing a fourth spelling:
+
+       --ease-out     arriving. Fast off the line, a long quiet landing. This
+                      is the house curve — the one already written out 38
+                      times — given its name.
+       --ease-in      leaving. Slow to start, gone at speed. Something being
+                      dismissed has no reason to linger at the end.
+       --ease-in-out  moving between two rests, where neither end is the
+                      point — a slider, a pan.
+
+     And four tempos, which are about how much of the eye the change asks
+     for, not about how big the element is:
+
+       --dur-press    an answer to a finger. Under ~100ms or it reads as lag.
+       --dur-quick    a state change in place: colour, a glyph, a chip.
+       --dur-base     a surface arriving where the eye already is.
+       --dur-slow     an arrival the eye has to travel to, or a whole page. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.55, 0, 0.9, 0.3);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --dur-press: 90ms;
+  --dur-quick: 180ms;
+  --dur-base: 420ms;
+  --dur-slow: 680ms;
+
   /* --- Radii ----------------------------------------------------------- */
   --r-sm: 16px;
   --r-md: 20px;
@@ -1700,6 +1729,49 @@ html[data-modal-open] body {
   animation-timing-function: var(--morph-ease);
 }
 
+/* --- Theme change ---------------------------------------------------------
+
+   One dissolve of the whole page — see `crossfadeTheme` in lib/theme.ts for
+   why a dissolve and not a reveal.
+
+   EVERY NAME IS TAKEN OFF FOR THE LENGTH OF IT. The homepage's cards keep
+   their `view-transition-name`s permanently (they are morph sources), and
+   every rule above is written for a morph: a named card would get its own
+   group, its corner animated from `--morph-r-from` and its contents faded
+   through on the morph's clock — the Inspection card visibly squaring its
+   corners while the rest of the page changed colour. With no names there is
+   one group, `root`, and the page changes as one sheet.
+
+   `!important` because the names are inline styles (CSS Modules would scope
+   them), and an author `!important` is the one thing that outranks an inline
+   declaration. `[style*=…]` matches them however React serialised them. */
+:root[data-theme-shift] [style*="view-transition-name"] {
+  view-transition-name: none !important;
+}
+
+:root[data-theme-shift]::view-transition-group(root) {
+  animation-duration: var(--dur-base);
+}
+
+/* `plus-lighter` is the UA's and is kept: it is what holds the sum of the two
+   at full strength through the middle, so the page does not dim on its way
+   between themes. That only needs the two layers on the *same* curve — one
+   fading as the other rises — not any particular one.
+
+   So the curve is chosen for the click: plain `ease`, which is already moving
+   on the first frame. The symmetric `--ease-in-out` was the first choice and
+   reads well in a recording, but it holds the old theme for the first
+   hundred milliseconds after the press, which is the moment someone is
+   watching for an answer — the same reason `tests/viewTransition.test.ts`
+   refuses an ease-in on any arrival. The house `--ease-out` errs the other
+   way: half the change lands in two frames and the rest is a tail, which is
+   a cut with an afterglow. */
+:root[data-theme-shift]::view-transition-old(root),
+:root[data-theme-shift]::view-transition-new(root) {
+  animation-duration: var(--dur-base);
+  animation-timing-function: ease;
+}
+
 /* ==========================================================================
    Motion
    ========================================================================== */
@@ -1967,6 +2039,128 @@ html[data-booting] #main {
   html[data-booting] [data-boot-card],
   html[data-booting] [data-logo],
   html[data-booting] #main > *:not([data-boot-card]):not(:has([data-boot-card])) {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Arrival — every visit after the first
+
+   The boot above runs once. This is its last beat on its own: the page rising
+   behind the mark, about half a second, on every later document load of the
+   homepage. The other half is `BOOT_SCRIPT` in lib/boot.ts, which sets
+   `data-arriving` before first paint and takes it down a second later.
+
+   A WAVE FROM THE INTRODUCTION, because that is where the boot's mark lands
+   and so where the page has always risen from. Each card's place in the wave
+   is its distance from the Introduction's centre, measured on the 1440 frame
+   and binned into five rings — static numbers rather than measured ones,
+   because this has to run with no JavaScript at all: the whole point is that
+   it starts on the first frame, not after hydration. On a phone the rings
+   still run top to bottom, since the Introduction leads there too.
+
+   NO BLUR, unlike `bootCardIn`. A `filter` makes its element a backdrop root,
+   and the glass pills inside the Introduction would lose their frost for the
+   length of the animation and get it back with a pop at the end. The boot
+   gets away with it under a covering overlay; this has no overlay.
+
+   ON `translate` AND `scale`, NOT `transform`, which the proximity field owns,
+   and `backwards` rather than `both`: a finished animation holding its end
+   state would hold `scale: 1` over the press. Before it starts it shows the
+   first frame; after it ends it is gone.
+
+   A card that `HomeRise` has taken over (`data-rise`) is excluded — it is
+   below the fold and will arrive on its own when it is scrolled to.
+   ========================================================================== */
+
+html[data-arriving] :is([data-prox-card], [data-prox-passive]):not([data-rise]),
+html[data-arriving] #main > :not(:has([data-prox-card], [data-prox-passive])) {
+  animation: arrive var(--dur-base) var(--spring) backwards;
+  animation-delay: calc(var(--arrive, 3) * 45ms);
+}
+
+html[data-arriving] [data-card="introduction"] {
+  --arrive: 0;
+}
+
+html[data-arriving] [data-card="design-engineer"],
+html[data-arriving] :has(> [data-card="about"]) {
+  --arrive: 1;
+}
+
+html[data-arriving] [data-card="inspection"],
+html[data-arriving] [data-card="store"],
+html[data-arriving] [data-card="canvas"] {
+  --arrive: 2;
+}
+
+/* The timeline, and the chrome by the fallback above. */
+html[data-arriving] [data-card="timeline"] {
+  --arrive: 3;
+}
+
+html[data-arriving] [data-card="design-system"],
+html[data-arriving] [data-card="search"],
+html[data-arriving] [data-card="fantasy"],
+html[data-arriving] [data-card="music"] {
+  --arrive: 4;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+    scale: 0.985;
+  }
+}
+
+/* ==========================================================================
+   Rise — homepage cards arriving as they are scrolled to
+
+   On a phone the homepage is a column eleven cards long, and the proximity
+   field that makes the wide page feel alive is pointer-only, so every card
+   below the first used to be a still picture scrolling up the screen. Now
+   each one rises into place the first time it reaches the reader — once, and
+   never again for the life of the page. `HomeRise` flips the attribute; this
+   is what it looks like.
+
+   PENDING IS OPACITY ONLY. The offset lives in the keyframe, not in the
+   resting state, so a pending card's box is exactly where the design puts it
+   — the proximity field measures cards with `getBoundingClientRect`, and a
+   card parked 28px low would be hovered 28px off.
+
+   The spring is the site's own; at this travel its overshoot is about a
+   pixel, which is the difference between a card being placed and a card
+   landing. Opacity is fully up well before the travel ends — the card is
+   there almost at once and spends the rest of the time settling.
+   ========================================================================== */
+
+/* `:root` for weight, not scope. The attribute lands on each card's own root
+   element, and a card stylesheet that gives that element an `animation` or an
+   `opacity` would otherwise win by load order alone — a module is always
+   later than this file. */
+:root [data-rise="pending"] {
+  opacity: 0;
+}
+
+:root [data-rise="in"] {
+  animation: rise var(--dur-slow) var(--spring) backwards;
+  animation-delay: var(--rise-delay, 0ms);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+    scale: 0.97;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-arriving] :is([data-prox-card], [data-prox-passive]),
+  html[data-arriving] #main > *,
+  [data-rise] {
     opacity: 1;
     animation: none;
   }

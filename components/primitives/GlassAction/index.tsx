@@ -36,7 +36,7 @@ export default function GlassAction({
 
   if (href) {
     return (
-      <Link href={href} className={cls}>
+      <Link href={href} className={cls} data-press="">
         {children}
         <span className="srOnly">{label}</span>
       </Link>
@@ -44,7 +44,13 @@ export default function GlassAction({
   }
 
   return (
-    <button ref={ref} type="button" className={cls} onClick={onClick}>
+    <button
+      ref={ref}
+      type="button"
+      className={cls}
+      onClick={onClick}
+      data-press=""
+    >
       {children}
       <span className="srOnly">{label}</span>
     </button>

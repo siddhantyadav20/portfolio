@@ -191,10 +191,26 @@ export default function CanvasCursor() {
       hide();
     }
 
+    /* The cursor takes the press too. It is the one thing on screen that is
+       always exactly under the finger, so it is where a click is felt first:
+       the disc gives a little as the card under it gives, and the two read as
+       one press rather than as a card reacting to something invisible. */
+    function onPress(e: PointerEvent) {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      el!.setAttribute("data-pressed", "");
+    }
+    function onRelease() {
+      el!.removeAttribute("data-pressed");
+    }
+
     document.addEventListener("pointermove", onPointerMove, { passive: true });
     document.addEventListener("pointerover", onPointerOver, { passive: true });
     document.addEventListener("pointerleave", onLeave);
     window.addEventListener("blur", onLeave);
+    document.addEventListener("pointerdown", onPress, { passive: true });
+    document.addEventListener("pointerup", onRelease, { passive: true });
+    document.addEventListener("pointercancel", onRelease, { passive: true });
+    window.addEventListener("blur", onRelease);
 
     return () => {
       cancelAnimationFrame(frame);
@@ -203,6 +219,10 @@ export default function CanvasCursor() {
       document.removeEventListener("pointerover", onPointerOver);
       document.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("blur", onLeave);
+      document.removeEventListener("pointerdown", onPress);
+      document.removeEventListener("pointerup", onRelease);
+      document.removeEventListener("pointercancel", onRelease);
+      window.removeEventListener("blur", onRelease);
     };
   }, []);
 

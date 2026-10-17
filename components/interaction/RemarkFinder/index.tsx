@@ -486,6 +486,7 @@ export default function RemarkFinder({ cue, track, className }: Props) {
           <button
             type="button"
             className={styles.send}
+            data-press=""
             data-armed={armed ? "" : undefined}
             data-busy={phase === "searching" ? "" : undefined}
             disabled={!armed || phase === "searching"}
@@ -515,6 +516,7 @@ export default function RemarkFinder({ cue, track, className }: Props) {
           <button
             type="button"
             className={styles.category}
+            data-press=""
             data-open={picking ? "" : undefined}
             aria-expanded={picking}
             aria-haspopup="true"
