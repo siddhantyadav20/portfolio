@@ -261,8 +261,13 @@ export function writeTheme(theme: Theme) {
  *  globals.css, which is everything this attribute switches on. */
 const SHIFT_ATTR = "data-theme-shift";
 
+/** Where a reveal starts when nothing was pressed — the palette's theme
+ *  command, say. The toggle is the control that owns the theme, so the light
+ *  comes from it wherever it is on the page; failing that, the middle. */
+const TOGGLE = "[data-theme-at]";
+
 /**
- * `writeTheme`, as one dissolve instead of a cut.
+ * `writeTheme`, as a reveal from the control instead of a cut.
  *
  * WHY THE CUT WAS WRONG. One attribute flip repaints the whole site, which is
  * the right architecture and the wrong motion: every surface changed in the
@@ -270,18 +275,26 @@ const SHIFT_ATTR = "data-theme-shift";
  * pills, the toggle — which then arrived a quarter-second late, so the page
  * did not even cut cleanly. It flashed, then caught up.
  *
- * WHY A DISSOLVE AND NOT A REVEAL. The circle wiping out from the toggle is
- * the obvious move and the note in `ThemeToggle/switched.ts` already argues
- * against it: a theme is a setting, not a moment, and a setting that performs
- * is how a site starts to feel like a toy. This is what an operating system
- * does when the appearance changes — the room's light changes, once, all of
- * it at the same time — and it asks nothing of anyone's attention.
+ * WHY A REVEAL. This was a dissolve first, on the argument in
+ * `ThemeToggle/switched.ts` that a theme is a setting rather than a moment.
+ * Siddhant asked for the reveal, and it earns its place on one thing the
+ * dissolve could not say: *where the change came from*. The new theme spreads
+ * out of the half of the switch you pressed, so the page answers the finger
+ * rather than changing somewhere else on its own.
+ *
+ * What keeps it from being the stock version of this effect is in globals.css
+ * ("Theme change"): a feathered edge rather than a hard circle, so it reads as
+ * light spreading across the page, not a shape wiping over it.
+ *
+ * `from` is what was pressed; its centre is the origin. The radius is the
+ * distance to the farthest corner of the viewport, so the edge leaves the
+ * screen exactly as the animation ends whichever corner it starts in.
  *
  * Skipped mid-morph (two view transitions cannot overlap — the second aborts
  * the first, and the first is a card on its way into a reader) and under
  * reduced motion, where the cut is exactly what was asked for.
  */
-export function crossfadeTheme(theme: Theme) {
+export function revealTheme(theme: Theme, from?: Element | null) {
   const root = document.documentElement;
   const able =
     typeof document.startViewTransition === "function" &&
@@ -294,7 +307,18 @@ export function crossfadeTheme(theme: Theme) {
     return;
   }
 
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const box = (from ?? document.querySelector(TOGGLE))?.getBoundingClientRect();
+  const x = box && box.width ? box.left + box.width / 2 : vw / 2;
+  const y = box && box.height ? box.top + box.height / 2 : vh / 2;
+  const r = Math.hypot(Math.max(x, vw - x), Math.max(y, vh - y));
+
+  root.style.setProperty("--reveal-x", `${Math.round(x)}px`);
+  root.style.setProperty("--reveal-y", `${Math.round(y)}px`);
+  root.style.setProperty("--reveal-to", `${Math.ceil(r)}px`);
   root.setAttribute(SHIFT_ATTR, "");
+
   const shift = document.startViewTransition(() => writeTheme(theme));
   shift.ready.catch(() => {});
   shift.finished

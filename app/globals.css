@@ -1731,8 +1731,9 @@ html[data-modal-open] body {
 
 /* --- Theme change ---------------------------------------------------------
 
-   One dissolve of the whole page — see `crossfadeTheme` in lib/theme.ts for
-   why a dissolve and not a reveal.
+   The new theme spreads out of the half of the switch that was pressed — see
+   `revealTheme` in lib/theme.ts, which writes the origin (`--reveal-x/y`) and
+   the distance to the farthest corner (`--reveal-to`) onto <html>.
 
    EVERY NAME IS TAKEN OFF FOR THE LENGTH OF IT. The homepage's cards keep
    their `view-transition-name`s permanently (they are morph sources), and
@@ -1749,27 +1750,58 @@ html[data-modal-open] body {
   view-transition-name: none !important;
 }
 
-:root[data-theme-shift]::view-transition-group(root) {
-  animation-duration: var(--dur-base);
+/* The edge's radius, registered so it can be animated — unregistered, a
+   custom property is a string and jumps from one value to the other. */
+@property --reveal-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
 }
 
-/* `plus-lighter` is the UA's and is kept: it is what holds the sum of the two
-   at full strength through the middle, so the page does not dim on its way
-   between themes. That only needs the two layers on the *same* curve — one
-   fading as the other rises — not any particular one.
+:root[data-theme-shift]::view-transition-group(root) {
+  animation-duration: var(--dur-slow);
+}
 
-   So the curve is chosen for the click: plain `ease`, which is already moving
-   on the first frame. The symmetric `--ease-in-out` was the first choice and
-   reads well in a recording, but it holds the old theme for the first
-   hundred milliseconds after the press, which is the moment someone is
-   watching for an answer — the same reason `tests/viewTransition.test.ts`
-   refuses an ease-in on any arrival. The house `--ease-out` errs the other
-   way: half the change lands in two frames and the rest is a tail, which is
-   a cut with an afterglow. */
-:root[data-theme-shift]::view-transition-old(root),
+/* The old theme simply stays where it is and is covered. Declaring
+   `animation` here also removes the UA's `plus-lighter` blend, which is right
+   for a reveal: inside the edge is only the new page, never the sum of both. */
+:root[data-theme-shift]::view-transition-old(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* A FEATHERED EDGE, NOT A CIRCLE. The stock version of this effect clips the
+   new page to a hard disc, and a hard disc is a shape being dragged across
+   the screen. Here the last tenth of the radius is a ramp, so the edge reads
+   as light spreading — soft where it is travelling, sharp nowhere. Because the
+   ramp is a fraction of the radius it starts as a pin-point under the finger
+   and widens as it goes, the way a pool of light does.
+
+   The far end is `--reveal-to / 0.9`: the *solid* part has to clear the
+   farthest corner, not just the feathered rim, or the corner would finish on
+   a half-mixed tone and snap at the end.
+
+   The curve decelerates on the radius, and the area it uncovers grows as the
+   square of that — so the page answers at once around the toggle and the far
+   corner settles last, which is where nobody is looking. */
 :root[data-theme-shift]::view-transition-new(root) {
-  animation-duration: var(--dur-base);
-  animation-timing-function: ease;
+  mix-blend-mode: normal;
+  mask-image: radial-gradient(
+    circle at var(--reveal-x, 50%) var(--reveal-y, 50%),
+    #000 calc(var(--reveal-r) * 0.9),
+    transparent var(--reveal-r)
+  );
+  animation: theme-reveal var(--dur-slow) cubic-bezier(0.25, 0.1, 0.15, 1)
+    both;
+}
+
+@keyframes theme-reveal {
+  from {
+    --reveal-r: 0px;
+  }
+  to {
+    --reveal-r: calc(var(--reveal-to, 150vmax) / 0.9);
+  }
 }
 
 /* ==========================================================================

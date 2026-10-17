@@ -2,8 +2,8 @@
 
 import { useSyncExternalStore } from "react";
 import {
-  crossfadeTheme,
   readTheme,
+  revealTheme,
   serverTheme,
   subscribeTheme,
   type Theme,
@@ -73,9 +73,10 @@ function Option({ theme, active }: { theme: Theme; active: boolean }) {
       type="button"
       className={styles.option}
       aria-pressed={active}
-      onClick={() => {
+      onClick={(e) => {
         switched(theme);
-        crossfadeTheme(theme);
+        // From the half you pressed — see `revealTheme`.
+        revealTheme(theme, e.currentTarget);
       }}
     >
       {/* Both cuts of the glyph, stacked and cross-faded, rather than one

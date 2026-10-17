@@ -6,7 +6,7 @@ import { copyToClipboard } from "@/lib/clipboard";
 import { openMaking } from "@/lib/making";
 import { canvasJump } from "@/lib/palette";
 import { setSoundOn, soundOn } from "@/lib/sound";
-import { crossfadeTheme, readTheme } from "@/lib/theme";
+import { readTheme, revealTheme } from "@/lib/theme";
 import { studyHref } from "@/content/work";
 
 /* ===========================================================================
@@ -241,7 +241,7 @@ async function runAction(action: string): Promise<RunResult> {
       return {};
 
     case "theme":
-      crossfadeTheme(readTheme() === "dark" ? "light" : "dark");
+      revealTheme(readTheme() === "dark" ? "light" : "dark");
       return { keepOpen: true };
 
     case "sound": {
