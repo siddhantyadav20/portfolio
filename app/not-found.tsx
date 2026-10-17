@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { STUDIES, studyHref } from "@/content/work";
 import styles from "./not-found.module.css";
 
 /** Without this a 404 inherits the root default and is titled
@@ -34,6 +35,19 @@ export default function NotFound() {
         <Link href="/" className={styles.back}>
           <span aria-hidden="true">&larr;</span> Back to the homepage
         </Link>
+
+        {/* And the three things they may have been looking for.
+            "Kept plain" above still holds — this is not a performance, it is
+            the list of destinations this site actually has. A stale link to a
+            case study is the likeliest way anyone arrives here, and sending
+            them back to the homepage to find it again is one hop too many. */}
+        <nav className={styles.studies} aria-label="Case studies">
+          {STUDIES.map((study) => (
+            <Link key={study.slug} href={studyHref(study.slug)} className={styles.study}>
+              {study.title}
+            </Link>
+          ))}
+        </nav>
       </div>
     </main>
   );

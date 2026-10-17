@@ -493,6 +493,22 @@
   gap: calc(20 * var(--u));
 }
 
+/* THE CHIP'S CORNER, KEPT CLEAR AT REST.
+   The Search card pins its Navigation-first / Search-first chip to its own
+   bottom-right corner and shows it only while this instrument is idle — so the
+   rows rendered at rest have to stop above it. Four fit on the wide card
+   (index.tsx drops the fifth); on a phone the chip is nearly the card's width,
+   so the fourth goes too.
+
+   Done here rather than with another branch in the component because it is a
+   fact about the card's geometry at this width, and the row it hides is the
+   least-used of the four. */
+@media (width < 700px) {
+  [data-phase="idle"] .rows > :nth-child(4) {
+    display: none;
+  }
+}
+
 .row {
   display: flex;
   align-items: center;

@@ -10,6 +10,8 @@ export type {
   StudyCaption,
   StudyExhibit,
   StudyHero,
+  StudyJourney,
+  StudyJourneyStop,
   StudyLive,
   StudyMedia,
   StudyMeta,
@@ -18,9 +20,14 @@ export type {
   StudyQuoteGroup,
   StudySection,
   StudySlide,
+  StudySource,
+  StudyStat,
+  StudyConstraint,
   StudyTableRow,
+  StudyText,
+  StudyTimeline,
 } from "./types";
-export { heroStill } from "./types";
+export { heroStill, plainText } from "./types";
 
 /**
  * The registry.

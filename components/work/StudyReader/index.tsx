@@ -4,6 +4,8 @@ import QuickLinks, { type QuickLink } from "@/components/work/StudyChrome/QuickL
 import ScrollProgress from "@/components/work/StudyChrome/ScrollProgress";
 import StudyHero from "@/components/work/StudyHero";
 import StudyEnd from "@/components/work/StudyEnd";
+import StudyMap from "@/components/work/StudyMap";
+import StudyMotion from "@/components/work/StudyMotion";
 import StudySections from "@/components/work/StudySections";
 import type { CaseStudy } from "@/content/work";
 import styles from "./StudyReader.module.css";
@@ -47,8 +49,16 @@ export default function StudyReader({ study }: Props) {
       <div className={styles.inner}>
       <ScrollProgress />
       {links.length > 1 && <QuickLinks items={links} />}
+      {study.journey && (
+        <StudyMap
+          journey={study.journey}
+          timeline={timelineOf(study, study.journey.after)}
+        />
+      )}
 
       <div className={styles.content}>
+        <StudyMotion />
+
         <section id="intro" className={styles.intro}>
           <div className={styles.titleBlock} data-stage="title" style={MODAL_VT.title}>
             {study.helpers && (
@@ -77,21 +87,49 @@ export default function StudyReader({ study }: Props) {
               Title, hero, then outcomes. */}
           {study.outcomes && (
             <div className={styles.outcomes}>
-              <div className={styles.outcomeRow}>
-                {study.outcomes.items.map((outcome) => (
+              <div
+                className={styles.outcomeRow}
+                /* The sky cards arrive and count; the tinted ones of the
+                   other studies are left exactly as they were. */
+                data-reveal={study.outcomes.look ? "" : undefined}
+              >
+                {study.outcomes.items.map((outcome, i) => (
                   <div
                     key={outcome.label}
                     className={`${styles.outcome} squircle`}
                     data-tint={outcome.tint}
+                    data-look={study.outcomes?.look}
+                    style={{ ["--i" as string]: i }}
                   >
                     {/* The number and what it measures are one figure, 4px
                         apart; the card's own 12px gap is between that pair
-                        and the sentence under it. Figma 529:11941. */}
-                    <div className={styles.outcomeFigure}>
-                      <p className={styles.outcomeValue}>{outcome.value}</p>
-                      <p className={styles.outcomeLabel}>{outcome.label}</p>
+                        and the sentence under it. Figma 529:11941. The sky
+                        look (1617:9064) puts the figure and an icon on one
+                        row, 8 apart inside the figure. */}
+                    <div className={styles.outcomeHead}>
+                      <div className={styles.outcomeFigure}>
+                        <p
+                          className={styles.outcomeValue}
+                          data-count={study.outcomes?.look ? "" : undefined}
+                        >
+                          {outcome.value}
+                        </p>
+                        <p className={styles.outcomeLabel}>{outcome.label}</p>
+                      </div>
+                      {outcome.icon && (
+                        <span
+                          className={`inkIcon ${styles.outcomeIcon}`}
+                          style={{ ["--icon" as string]: `url(${outcome.icon})` }}
+                          aria-hidden="true"
+                        />
+                      )}
                     </div>
                     <p className={styles.outcomeNote}>{outcome.note}</p>
+                    {outcome.fineprint && (
+                      <p className={styles.outcomeFineprint}>
+                        {outcome.fineprint}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -197,4 +235,17 @@ function quickLinks(study: CaseStudy): readonly QuickLink[] {
        study has it, and it is the same words on all of them. */
     { id: "comments", label: "Comments" },
   ];
+}
+
+/**
+ * The timeline the journey map is converted from — the first timeline block
+ * in the section the map takes over from. The map carries a copy of its
+ * drawing for the flight from the page into the corner.
+ */
+function timelineOf(study: CaseStudy, section: string) {
+  const blocks = study.sections?.find((s) => s.id === section)?.blocks ?? [];
+  for (const block of blocks) {
+    if (block.kind === "timeline") return block.timeline;
+  }
+  return undefined;
 }

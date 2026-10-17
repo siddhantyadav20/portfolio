@@ -1,0 +1,103 @@
+/* Figma 1619:9975 — two columns 8 apart, rows 8 apart, the whole thing
+   clipped to one 24 corner. */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  --sq-r: var(--r-lg);
+  overflow: hidden;
+}
+
+/* 60% white, 24 in, the icon 16 from the text and level with its first
+   line. */
+.cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  background-color: rgb(255 255 255 / 0.6);
+}
+
+/* Figma 1619:9998 — the biggest of them, across both columns on solid
+   white, centred, with a little more air above and below. */
+.cell[data-last] {
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  background-color: var(--surface-solid);
+}
+
+:global(html[data-theme="dark"]) .cell {
+  background-color: var(--surface-glass);
+}
+
+:global(html[data-theme="dark"]) .cell[data-last] {
+  background-color: var(--surface-raised);
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  color: var(--ink);
+}
+
+.text {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  font-size: 15px;
+  line-height: var(--lh-wide);
+  color: var(--ink-70);
+}
+
+.cell[data-last] .text {
+  flex: 0 1 auto;
+}
+
+.lead {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* Arriving — row by row, and less far than the reader's 16: the cells are
+   clipped by the grid's corner, and a full lift would show them sliding out
+   from under it. The last, heaviest cell holds a beat longer before it lands. */
+.grid[data-reveal="pending"] > .cell {
+  opacity: 0;
+  translate: 0 10px;
+}
+
+.grid[data-reveal="in"] > .cell {
+  transition:
+    opacity var(--reveal-ms) var(--reveal-ease),
+    translate var(--reveal-ms) var(--reveal-ease);
+  transition-delay: calc(var(--i, 0) * var(--reveal-step) * 1.4);
+}
+
+.grid[data-reveal="in"] > .cell[data-last] {
+  transition-delay: calc(var(--i, 0) * var(--reveal-step) * 1.4 + 120ms);
+}
+
+@media (width < 700px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    --sq-r: var(--r-md);
+  }
+
+  .cell,
+  .cell[data-last] {
+    padding: 20px;
+    gap: 12px;
+  }
+
+  .cell[data-last] {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+}

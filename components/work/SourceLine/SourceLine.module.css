@@ -1,0 +1,70 @@
+/* Figma 1617:9417 — 8 apart, 13px medium, centred on the 24px mark. */
+
+.line {
+  --tone: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  white-space: nowrap;
+}
+
+/* Each channel's own ink, as the file draws it. The dark theme lifts each
+   one the way it lifts every other ink — Zoom's #0052fe on #111 is a blue
+   nobody can read. GoPro's is black in the file, which is to say the page's
+   ink. */
+.line[data-tone="zoom"] {
+  --tone: #0052fe;
+}
+
+.line[data-tone="forms"] {
+  --tone: #6b3fb9;
+}
+
+.line[data-tone="reddit"] {
+  --tone: #ff4500;
+}
+
+:global(html[data-theme="dark"]) .line[data-tone="zoom"] {
+  --tone: #6f9bff;
+}
+
+:global(html[data-theme="dark"]) .line[data-tone="forms"] {
+  --tone: #b394ea;
+}
+
+:global(html[data-theme="dark"]) .line[data-tone="reddit"] {
+  --tone: #ff7a45;
+}
+
+/* Zoom, Reddit and GoPro are round marks; the Forms mark is its own square
+   document shape and the file leaves it unclipped. */
+.logo {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-pill);
+  object-fit: cover;
+}
+
+.logo[data-tone="forms"] {
+  border-radius: 0;
+}
+
+.name {
+  color: var(--tone);
+}
+
+.dot {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background-color: #d9d9d9;
+}
+
+.channel {
+  color: rgb(from var(--tone) r g b / 0.6);
+}

@@ -51,3 +51,28 @@
 .back:hover {
   color: var(--accent);
 }
+
+/* The three studies, under the way back. A column of quiet rules rather than
+   cards: this page is a signpost and the homepage is where the work is
+   presented. */
+.studies {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin-top: 20px;
+  border-top: 1px solid var(--ink-20);
+}
+
+.study {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--ink-20);
+  font-size: 15px;
+  line-height: var(--lh);
+  color: var(--ink-70);
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.study:hover {
+  color: var(--accent);
+}

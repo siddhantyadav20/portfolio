@@ -55,6 +55,16 @@
   color: var(--accent);
 }
 
+/* THREE CELLS, EACH NAMED, because two of the three children are conditional.
+
+   The credit is the middle cell and the two captions flank it. Left to auto
+   placement, that only holds while all three are present: the visitor count
+   goes away below its floor (see VisitorCount) and the colophon link only
+   renders on the homepage, so with either missing the credit fell back into
+   the first column and the footer of every page read left-aligned with the
+   copyright under the LinkedIn plate. Placing each child explicitly means an
+   absent one leaves a gap where it was rather than dragging the other two
+   along behind it. */
 .row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -64,6 +74,7 @@
 }
 
 .visitors {
+  grid-column: 1;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -89,6 +100,7 @@
    6px mark in the live colour. */
 
 .credit {
+  grid-column: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -106,6 +118,7 @@
 }
 
 .making {
+  grid-column: 3;
   justify-self: end;
   font-size: 12px;
   font-weight: 500;
@@ -134,13 +147,18 @@
 }
 
 @media (width < 700px) {
+  /* One column, so the three stack — and the explicit columns above have to be
+     unset or the credit would sit in a second column that no longer exists. */
   .row {
     grid-template-columns: 1fr;
     justify-items: center;
     text-align: center;
   }
+
   .visitors,
+  .credit,
   .making {
+    grid-column: 1;
     justify-self: center;
   }
 }

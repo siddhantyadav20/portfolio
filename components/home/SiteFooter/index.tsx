@@ -7,9 +7,9 @@ import styles from "./SiteFooter.module.css";
 /**
  * `colophon` is passed only by the homepage.
  *
- * This footer also draws inside the About reader, where opening a second
- * full-screen modal would stack two shells — see `ColophonLink`. There it
- * stays the inert placeholder it has always been.
+ * This footer also draws inside the About reader and inside the colophon
+ * itself, where opening a second full-screen modal would stack two shells —
+ * see `ColophonLink`. There the slot is simply empty; see the note at it.
  */
 export default function SiteFooter({ colophon = false }: { colophon?: boolean }) {
   return (
@@ -50,19 +50,18 @@ export default function SiteFooter({ colophon = false }: { colophon?: boolean })
           <span>{footer.credit}</span>
         </p>
 
-        {colophon ? (
-          <ColophonLink />
-        ) : (
-          <a
-            className={styles.making}
-            href={footer.makingOf ?? undefined}
-            {...externalLinkProps(footer.makingOf)}
-            data-placeholder={footer.makingOf ? undefined : ""}
-            aria-disabled={footer.makingOf ? undefined : true}
-          >
-            How I made this portfolio?
-          </a>
-        )}
+        {/* NOTHING WHERE THERE IS NOWHERE TO GO.
+            `footer.makingOf` is null and always has been — the colophon is a
+            reader this footer opens, not a URL — so the second branch was a
+            permanently dead, `aria-disabled`, placeholder-marked link reading
+            "How I made this portfolio?". It shipped in the two places this
+            footer renders that are not the homepage: the bottom of the About
+            reader, and the bottom of the colophon itself, where it offered to
+            show the reader the page they had just finished reading.
+
+            The homepage keeps the real control. Should there ever be a written
+            piece to link out to, this is where it goes — with an href. */}
+        {colophon && <ColophonLink />}
       </div>
     </footer>
   );

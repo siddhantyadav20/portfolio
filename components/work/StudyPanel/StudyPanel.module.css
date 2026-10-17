@@ -1,0 +1,141 @@
+/* Figma 1617:9399 — the intro line, 24 down to the panel, 24 down to the
+   label, which stands at the right edge. */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+}
+
+.intro {
+  width: 100%;
+  margin: 0;
+  font-size: 17px;
+  line-height: var(--lh-wide);
+  color: var(--ink-70);
+}
+
+/* 40% white, 32 in, a 32 corner — the plate every exhibit in the reader
+   stands on. */
+.panel {
+  display: flex;
+  width: 100%;
+  padding: 32px;
+  --sq-r: var(--r-xl);
+  background-color: var(--surface-glass);
+  overflow: hidden;
+}
+
+.frame {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.frame[data-radius="16"] {
+  --sq-r: var(--r-sm);
+}
+
+.frame[data-radius="24"] {
+  --sq-r: var(--r-lg);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+}
+
+/* Figma 1617:9440 — a frosted pill 16 in from the picture's top-right
+   corner: the source's name, then its mark in a 40px disc. 12 of padding on
+   the text side and 4 on the disc's, so the disc sits in the pill's end. */
+.badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 12px;
+  border-radius: var(--r-pill);
+  background-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  /* Over a photograph, so not an ink: the file's near-white in both themes. */
+  color: #f4fcff;
+}
+
+.badgeLogo {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-pill);
+  object-fit: cover;
+}
+
+/* Arriving: the panel rises like every block in the reader, and the picture
+   inside it settles from a touch of zoom to exactly its frame — the frame
+   clips it, so the panel's edges never move and only the picture breathes
+   out. The intro line above is prose and is never held back. The GoPro
+   pill lands once the picture has. */
+.block[data-reveal="pending"] .panel,
+.block[data-reveal="pending"] > figcaption {
+  opacity: 0;
+  translate: 0 var(--reveal-lift);
+}
+
+.block[data-reveal="in"] .panel,
+.block[data-reveal="in"] > figcaption {
+  transition:
+    opacity var(--reveal-ms) var(--reveal-ease),
+    translate var(--reveal-ms) var(--reveal-ease);
+}
+
+.block[data-reveal="pending"] .image {
+  scale: 1.06;
+}
+
+.block[data-reveal="in"] .image {
+  transition: scale 1400ms var(--reveal-ease);
+}
+
+.block[data-reveal="pending"] .badge {
+  opacity: 0;
+  translate: 0 -6px;
+}
+
+.block[data-reveal="in"] .badge {
+  transition:
+    opacity 480ms var(--reveal-ease) 700ms,
+    translate 480ms var(--reveal-ease) 700ms;
+}
+
+@media (width < 700px) {
+  .intro {
+    font-size: 16px;
+  }
+
+  .panel {
+    padding: 12px;
+    --sq-r: var(--r-lg);
+  }
+
+  .badge {
+    top: 8px;
+    right: 8px;
+    padding: 2px 2px 2px 10px;
+    font-size: 12px;
+  }
+
+  .badgeLogo {
+    width: 28px;
+    height: 28px;
+  }
+}

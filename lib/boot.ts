@@ -37,8 +37,11 @@ export const BOOT_ATTR = "data-booting";
  * number that sets the pace. Three and a half seconds is a long time to hold
  * somebody and it is deliberate: about a second and a half of it is the mark
  * being drawn, and the drawing is the point. It survives being that long only
- * because it happens once, because it is skippable, and because the second
- * half of it is the actual page arriving rather than a spinner.
+ * because it happens once, because reduced motion opts out of it entirely, and
+ * because the second half of it is the actual page arriving rather than a
+ * spinner. (It is deliberately *not* skippable — see the note in
+ * `BootSequence`, which is where that decision is argued. This comment used to
+ * claim the opposite.)
  */
 export const BOOT_MS = 3400;
 

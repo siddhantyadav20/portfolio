@@ -70,6 +70,13 @@ export default function AboutModal({ open, closing = false, onClose }: Props) {
     education,
   } = about;
 
+  /* The plates that have a photograph behind them, narrowed so the strip's
+     `src` is a string rather than `string | null`. Module-level constant would
+     be nicer; this component already destructures its content here. */
+  const filledPlates = reel.plates.filter(
+    (p): p is typeof p & { src: string } => Boolean(p.src),
+  );
+
   /**
    * Whether the head chart is showing.
    *
@@ -159,28 +166,36 @@ export default function AboutModal({ open, closing = false, onClose }: Props) {
 
         {/* --- The strip ---------------------------------------------------
             Full-bleed, and the one element here that breaks the reader's
-            column. It scrolls rather than auto-playing: eight of the nine
-            plates are still empty, and a marquee of empty plates advertises
-            the gap instead of the photographs. */}
-        <section
-          className={styles.reel}
-          aria-label={reel.label}
-          tabIndex={0}
-          role="group"
-        >
-          <ul className={styles.plates}>
-            {reel.plates.map((plate, i) => (
-              <li
-                className={styles.plate}
-                key={i}
-                data-placeholder={plate.src ? undefined : ""}
-                style={{
-                  width: `${plate.w}px`,
-                  height: `${plate.h}px`,
-                  marginTop: `${plate.y}px`,
-                }}
-              >
-                {plate.src && (
+            column. It scrolls rather than auto-playing.
+
+            ONLY THE FILLED PLATES SHIP, AND ONLY IF THERE ARE ENOUGH OF THEM.
+            Figma's rhythm is nine plates and eight of them have no export
+            behind them, so what a visitor actually met at the end of the About
+            modal was a full-bleed band of eight dashed rectangles — the most
+            prominent unfinished thing on the site, at the moment the reader is
+            deciding whether to write to him. The plates are kept in
+            `content/site.ts` at their authored sizes: drop files in and the
+            strip comes back, at three photographs or more. Below that a strip
+            is not a strip, and one portrait is already up there beside the
+            lede. */}
+        {filledPlates.length >= 3 && (
+          <section
+            className={styles.reel}
+            aria-label={reel.label}
+            tabIndex={0}
+            role="group"
+          >
+            <ul className={styles.plates}>
+              {filledPlates.map((plate, i) => (
+                <li
+                  className={styles.plate}
+                  key={i}
+                  style={{
+                    width: `${plate.w}px`,
+                    height: `${plate.h}px`,
+                    marginTop: `${plate.y}px`,
+                  }}
+                >
                   <Image
                     src={plate.src}
                     alt=""
@@ -188,11 +203,11 @@ export default function AboutModal({ open, closing = false, onClose }: Props) {
                     height={plate.h}
                     sizes={`${plate.w}px`}
                   />
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* --- Experience --------------------------------------------------- */}
         <section className={styles.block}>

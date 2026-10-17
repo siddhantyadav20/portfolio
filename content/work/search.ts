@@ -60,7 +60,7 @@ export const search: CaseStudy = {
     "SaaS",
     "PropTech",
     "Product Design",
-    "2023 — 2025",
+    "2023 – 2025",
     "Enterprise Search",
     /* ~2,470 words in the body, measured off the rendered page rather than
        guessed. At a reading pace of about 230 a minute that is eleven. */
@@ -79,9 +79,17 @@ export const search: CaseStudy = {
   outcomes: {
     items: [
       {
-        value: "*45 minutes",
-        label: "END TO END",
-        note: "down from three to four hours",
+        /* 40, NOT 45, AND THAT IS A CORRECTION.
+           The brief this file was written from said ~45; three other places
+           that a reader holds at the same time say 40 — the About modal's
+           experience entry ("4 hours to 40 minutes"), the Inspection study's
+           own outcome, and the CV. One number had to win and the majority of
+           sources agree on this one. The before-figure is "about four hours"
+           for the same reason: "three to four" read as a hedge next to the
+           About modal's flat four. */
+        value: "*40 minutes",
+        label: "REPORT, END TO END",
+        note: "down from about four hours",
         tint: "amber",
       },
       {
@@ -106,7 +114,7 @@ export const search: CaseStudy = {
   meta: [
     { label: "Product", value: "iOS, Android, iPad + Web" },
     { label: "Role", value: "Product Designer, solo from Dec 2023" },
-    { label: "Timeline", value: "Jul 2023 - 2025" },
+    { label: "Timeline", value: "Jul 2023 – 2025" },
     {
       label: "Skills",
       value:
@@ -140,7 +148,7 @@ export const search: CaseStudy = {
           kind: "aside",
           lead: "A good library, filed by the people who built it.",
           body: [
-            "WINspect is the product WIN Home Inspection's inspectors use to run an inspection and write the report at the end of it. Roughly 11,000 of them, across about 900 teams.",
+            "WINspect is the product WIN Home Inspection’s inspectors use to run an inspection and write the report at the end of it. Roughly 11,000 of them, across about 900 teams.",
 
             "The remark library was large and it was genuinely good — expert-authored, reviewed, and structured to cover the range of things a house can be wrong about. The product exposed it the way the organisation understood it: category, then subcategory, then a list. The legacy system had 491 subcategories. The redesign had already cut that to 78, moving the leftover variation into contextual Abouts — attribute sets hung off each subcategory.",
 
@@ -200,7 +208,7 @@ export const search: CaseStudy = {
       id: "the-observation",
       eyebrow: "THE OBSERVATION",
       label: "The Observation",
-      heading: "The problem wasn't the search box",
+      heading: "The problem wasn’t the search box",
       blocks: [
         {
           kind: "aside",
@@ -208,7 +216,7 @@ export const search: CaseStudy = {
           body: [
             "An inspector standing in a property thinks: I saw a crack in a window. The library thinks: Exterior, then Windows, then a list of forty things. Those are not the same sentence, and everything hard about this project lives in the distance between them.",
 
-            "Navigating wasn't stubbornness or a habit nobody had broken. It was the only route that didn't require guessing what the system had decided to call the thing they had just looked at. Category navigation is slow and it is certain. A search box that comes back wrong twice makes slow and certain look like a bargain.",
+            "Navigating wasn’t stubbornness or a habit nobody had broken. It was the only route that didn’t require guessing what the system had decided to call the thing they had just looked at. Category navigation is slow and it is certain. A search box that comes back wrong twice makes slow and certain look like a bargain.",
 
             "Which meant the fix I had been reaching for — better ranking, a more prominent entry point, fewer taps to the same place — was aimed at the wrong thing. None of it closes a gap between two ways of describing the same crack.",
           ],
@@ -220,7 +228,7 @@ export const search: CaseStudy = {
           heading:
             "I stopped designing a search box and started designing an access layer",
           body: [
-            "The question was never how to return a better list. It was how a field professional's own words reach a body of knowledge someone else organised.",
+            "The question was never how to return a better list. It was how a field professional’s own words reach a body of knowledge someone else organised.",
             "That is not a retrieval problem you tune. It is an interface between two mental models, and it had to be designed as one.",
           ],
         },
@@ -246,7 +254,7 @@ export const search: CaseStudy = {
               columns: ["THE DECISION", "WHY"],
               rows: [
                 [
-                  "Search coexists with categories, it doesn't replace them",
+                  "Search coexists with categories, it doesn’t replace them",
                   "Category navigation is the better tool when you know the system or want to browse a section deliberately. Removing it would have punished the experienced inspectors first",
                 ],
                 [
@@ -255,7 +263,7 @@ export const search: CaseStudy = {
                 ],
                 [
                   "A result has to earn trust before it earns a tap",
-                  "Reuse means putting somebody else's sentence in your report under your name. That needs context, not just relevance",
+                  "Reuse means putting somebody else’s sentence in your report under your name. That needs context, not just relevance",
                 ],
                 [
                   "Reuse is not always verbatim",
@@ -283,7 +291,7 @@ export const search: CaseStudy = {
       id: "retrieval",
       eyebrow: "THE RETRIEVAL MOMENT",
       label: "Retrieval",
-      heading: "From a query to a result you'd stake a report on",
+      heading: "From a query to a result you’d stake a report on",
       blocks: [
         {
           kind: "aside",
@@ -312,17 +320,17 @@ export const search: CaseStudy = {
             "Relevance decides what matches. Usage decides what comes first.",
           body: [
             "Keyword relevance is weighed first, and how often a remark has been used orders results that are similarly relevant. Search for a missing shingle and the phrasing you have reached for a thousand times outranks the one you have used fifty — without either beating a genuinely better match.",
-            "Every result carries two counts: your own company's use, and the network's. Keeping them separate is the point. A remark the network leans on that you have barely touched is worth a look; one you use constantly that nobody else does is your house style. One number could say neither.",
+            "Every result carries two counts: your own company’s use, and the network’s. Keeping them separate is the point. A remark the network leans on that you have barely touched is worth a look; one you use constantly that nobody else does is your house style. One number could say neither.",
           ],
         },
 
         {
           kind: "note",
           eyebrow: "EDIT & ADD",
-          heading: "The button that admits expert wording isn't always final",
+          heading: "The button that admits expert wording isn’t always final",
           body: [
-            "Every state and every inspector's local conventions shape how a finding has to read. A system that only offers Add is quietly insisting the library got it right for every house in the country.",
-            "Edit & Add opens the remark before it goes in. The edited version is the inspector's to keep rather than a change to everybody else's copy — which is what turns a one-off edit into something they can reuse instead of redoing.",
+            "Every state and every inspector’s local conventions shape how a finding has to read. A system that only offers Add is quietly insisting the library got it right for every house in the country.",
+            "Edit & Add opens the remark before it goes in. The edited version is the inspector’s to keep rather than a change to everybody else’s copy — which is what turns a one-off edit into something they can reuse instead of redoing.",
           ],
         },
 
@@ -369,7 +377,7 @@ export const search: CaseStudy = {
       id: "the-loop",
       eyebrow: "THE LOOP",
       label: "The Loop",
-      heading: "Finding a remark isn't the job. Writing the report is.",
+      heading: "Finding a remark isn’t the job. Writing the report is.",
       blocks: [
         {
           kind: "aside",
@@ -417,7 +425,7 @@ export const search: CaseStudy = {
               },
             },
 
-            "This is also where the ownership question gets answered properly. A search over one central library is a search over somebody else's words. So the sources are separated — an inspector's own library, the network's, and the SME-authored baseline — the filters are additive, and the selection persists. Any remark can be saved into an inspector's own library, where the saved copy becomes theirs to maintain rather than an edit to everyone else's.",
+            "This is also where the ownership question gets answered properly. A search over one central library is a search over somebody else’s words. So the sources are separated — an inspector’s own library, the network’s, and the SME-authored baseline — the filters are additive, and the selection persists. Any remark can be saved into an inspector’s own library, where the saved copy becomes theirs to maintain rather than an edit to everyone else’s.",
           ],
         },
 
@@ -442,7 +450,7 @@ export const search: CaseStudy = {
       blocks: [
         {
           kind: "aside",
-          lead: "The feature was finished. The argument wasn't.",
+          lead: "The feature was finished. The argument wasn’t.",
           body: [
             "The measure was never whether the search screen tested well. It was whether inspectors stopped routing around it — and that is a question only production answers, through what people search, what they reuse, what they shake the phone to complain about, and what Support keeps getting asked.",
 

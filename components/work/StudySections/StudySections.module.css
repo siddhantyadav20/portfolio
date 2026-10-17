@@ -44,6 +44,22 @@
   margin-top: 64px;
 }
 
+/* Figma 1617:9388 and 1617:9568 — a section that is one walk through one
+   thing keeps its blocks 64 apart rather than 120. */
+.section[data-rhythm="tight"] > * + * {
+  margin-top: 64px;
+}
+
+/* Figma 1617:9393 — a heading drawn at the column's full width. */
+.section[data-measure="full"] .heading {
+  max-width: none;
+}
+
+/* Figma 1617:9106 — the timeline is the heading's own figure, 40 under it. */
+.head + .timeline {
+  margin-top: 40px;
+}
+
 /* Figma 476:11203 — the dot-and-caps line, 12 above the display heading. */
 .head {
   display: flex;
@@ -72,6 +88,31 @@
   height: 8px;
   border-radius: var(--r-pill);
   background-color: currentColor;
+}
+
+/* The heading, with the icon in front of it and the note after it when a
+   section has them — Figma 1617:9970, 16 apart and centred on one row. */
+.headingRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 16px;
+}
+
+.headingIcon {
+  width: 24px;
+  height: 24px;
+  color: var(--ink);
+}
+
+/* "MVP  →  v1  →  v2  →  Current" — the file sets two spaces either side of
+   each arrow, so whitespace is kept rather than collapsed. */
+.headingNote {
+  margin: 0;
+  font-size: 15px;
+  line-height: var(--lh-wide);
+  color: var(--ink-70);
+  white-space: pre;
 }
 
 .heading {
@@ -114,6 +155,13 @@
   line-height: var(--lh-wide);
   color: var(--ink-70);
   white-space: pre-wrap;
+}
+
+/* The ink-coloured run inside a muted paragraph. Medium, not bold — the file
+   sets these in Outfit Medium. */
+.strong {
+  font-weight: 500;
+  color: var(--ink);
 }
 
 /* --- The aside ------------------------------------------------------------
@@ -259,6 +307,214 @@
   margin: 0;
 }
 
+/* --- The challenge ------------------------------------------------------
+   Figma 1637:10162. Amber at 10% inside a dashed amber edge, everything
+   centred, 32 in from the stroke — the file's frame is 286 tall, which is
+   its 32s plus a pixel of stroke at each edge. */
+
+.challenge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  padding: 32px;
+  border: 1px dashed var(--caution);
+  border-radius: var(--r-lg);
+  background-color: var(--caution-wash);
+  text-align: center;
+}
+
+.challengeHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.challengeRing {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--caution);
+  border-radius: var(--r-pill);
+  color: var(--caution);
+}
+
+/* Arriving: the panel rises, and once it has landed the ring sends out one
+   pulse — the warning announcing itself a single time, then holding still.
+   The pulse is a copy of the ring's own stroke, so at rest there is nothing
+   here that the design does not have. */
+.challenge[data-reveal="pending"] {
+  opacity: 0;
+  translate: 0 var(--reveal-lift);
+}
+
+.challenge[data-reveal="in"] {
+  transition:
+    opacity var(--reveal-ms) var(--reveal-ease),
+    translate var(--reveal-ms) var(--reveal-ease);
+}
+
+.challengeRing::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--caution);
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.challenge[data-reveal="in"] .challengeRing::after {
+  animation: challenge-pulse 1600ms var(--reveal-ease) 520ms both;
+}
+
+@keyframes challenge-pulse {
+  from {
+    opacity: 0.8;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 1.9;
+  }
+}
+
+.challengeEyebrow {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: var(--lh-wide);
+  color: var(--caution);
+}
+
+.challengeContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.challengeHeading {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.challengeBody {
+  margin: 0;
+  font-size: 17px;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+/* --- The version strip ----------------------------------------------------
+   Figma 1617:9574: 48 apart over a dashed rule, each a small kicker over a
+   label with a 4px bar under it that only the current one fills. The rule is
+   the strip's own bottom edge, so the bar stands on it. */
+
+.versions {
+  display: flex;
+  gap: 48px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px dashed rgb(from var(--ink) r g b / 0.24);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.version {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.versionText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+  line-height: var(--lh-wide);
+}
+
+.versionKicker {
+  font-size: 11px;
+  color: var(--ink-60);
+}
+
+.versionLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.versionBar {
+  width: 100%;
+  height: 4px;
+  border-radius: 12px 12px 0 0;
+}
+
+.version[aria-current] .versionLabel {
+  color: var(--accent);
+}
+
+.version[aria-current] .versionBar {
+  background-color: var(--accent);
+}
+
+/* The pinned strip's 36 of top air, taken back out of the gap above it so the
+   strip lands where the design puts it — see StickyBar. Two classes, to
+   outrank the section's own block rhythm. */
+.section > .versionsPin.versionsPin {
+  margin-top: 28px;
+}
+
+@media (width < 700px) {
+  .section > .versionsPin.versionsPin {
+    margin-top: 40px;
+  }
+}
+
+/* Arriving: the versions step in left to right, in the order they shipped,
+   and then the current one's bar draws out under it from the left — the
+   strip saying "this one" after it has said what there is to choose from. */
+.versions[data-reveal="pending"] .versionText {
+  opacity: 0;
+  translate: 0 8px;
+}
+
+.versions[data-reveal="in"] .versionText {
+  transition:
+    opacity 480ms var(--reveal-ease),
+    translate 480ms var(--reveal-ease);
+  transition-delay: calc(var(--i, 0) * var(--reveal-step));
+}
+
+.versionBar {
+  transform-origin: left;
+}
+
+.versions[data-reveal="pending"] .versionBar {
+  scale: 0 1;
+}
+
+.versions[data-reveal="in"] .versionBar {
+  transition: scale 720ms var(--reveal-ease) 360ms;
+}
+
 /* --- Figures at the full measure ----------------------------------------- */
 
 .figure {
@@ -336,8 +592,33 @@
   }
 
   .noteHeading,
-  .insightHeading {
+  .insightHeading,
+  .challengeHeading {
     font-size: 20px;
+  }
+
+  .section[data-rhythm="tight"] > * + * {
+    margin-top: 40px;
+  }
+
+  .head + .timeline {
+    margin-top: 24px;
+  }
+
+  .headingNote {
+    white-space: normal;
+  }
+
+  .challenge {
+    padding: 23px 19px;
+  }
+
+  .challengeBody {
+    font-size: 16px;
+  }
+
+  .versions {
+    gap: 32px;
   }
 
   .insight {

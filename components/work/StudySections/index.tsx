@@ -7,9 +7,20 @@ import StudyCollage from "@/components/work/StudyCollage";
 import StudyExhibit from "@/components/work/StudyExhibit";
 import StudyLiveBlock from "@/components/work/StudyLiveBlock";
 import StudyMockup from "@/components/work/StudyMockup";
+import StickyBar from "@/components/work/StickyBar";
+import StudyConstraints from "@/components/work/StudyConstraints";
+import StudyPanel from "@/components/work/StudyPanel";
 import StudyQuotes from "@/components/work/StudyQuotes";
+import StudyScreens from "@/components/work/StudyScreens";
+import StudyStats from "@/components/work/StudyStats";
 import StudyTable from "@/components/work/StudyTable";
-import type { AsideItem, StudyBlock, StudySection } from "@/content/work";
+import StudyTimeline from "@/components/work/StudyTimeline";
+import type {
+  AsideItem,
+  StudyBlock,
+  StudySection,
+  StudyText,
+} from "@/content/work";
 import styles from "./StudySections.module.css";
 
 type Props = {
@@ -62,7 +73,12 @@ export default function StudySections({ sections, className }: Props) {
               which is the boundary between two different things. */}
           {index > 0 && <div className={`dashRule ${styles.separator}`} />}
 
-          <section id={section.id} className={styles.section}>
+          <section
+            id={section.id}
+            className={styles.section}
+            data-rhythm={section.rhythm}
+            data-measure={section.measure}
+          >
             <header className={styles.head}>
               {section.eyebrow && (
                 <p className={styles.eyebrow}>
@@ -70,7 +86,22 @@ export default function StudySections({ sections, className }: Props) {
                   {section.eyebrow}
                 </p>
               )}
-              <h2 className={styles.heading}>{section.heading}</h2>
+              {/* Figma 1617:9970 — an icon, the heading and a muted note on
+                  one row, 16 apart. A plain heading is the same row with one
+                  thing in it. */}
+              <div className={styles.headingRow}>
+                {section.icon && (
+                  <span
+                    className={`inkIcon ${styles.headingIcon}`}
+                    style={{ ["--icon" as string]: `url(${section.icon})` }}
+                    aria-hidden="true"
+                  />
+                )}
+                <h2 className={styles.heading}>{section.heading}</h2>
+                {section.headingNote && (
+                  <p className={styles.headingNote}>{section.headingNote}</p>
+                )}
+              </div>
             </header>
 
             {section.blocks.length === 0 ? (
@@ -218,7 +249,125 @@ function Block({ block }: { block: StudyBlock }) {
 
     case "live":
       return <StudyLiveBlock view={block.view} />;
+
+    case "panel":
+      return (
+        <StudyPanel
+          intro={block.intro && <Rich text={block.intro} />}
+          media={block.media}
+          radius={block.radius}
+          aspect={block.aspect}
+          badge={block.badge}
+          caption={block.caption}
+        />
+      );
+
+    case "stats":
+      return <StudyStats heading={block.heading} cards={block.cards} />;
+
+    case "constraints":
+      return <StudyConstraints items={block.items} last={block.last} />;
+
+    /* Figma 1637:10162 — the problem the section has to solve, centred, in
+       amber, under a ringed danger mark. The dashed edge is a plain CSS
+       `dashed` border here rather than a `DashedFrame`: the file draws this
+       one with the default dash, not the insight's 6-on-4-off. */
+    case "challenge":
+      return (
+        <aside className={styles.challenge} data-reveal="">
+          <div className={styles.challengeHead}>
+            <span className={styles.challengeRing} aria-hidden="true">
+              <span
+                className="inkIcon"
+                style={{
+                  ["--icon" as string]: "url(/icons/danger-bold.svg)",
+                  width: 24,
+                  height: 24,
+                }}
+              />
+            </span>
+            <p className={styles.challengeEyebrow}>{block.eyebrow}</p>
+          </div>
+          <div className={styles.challengeContent}>
+            <h3 className={styles.challengeHeading}>{block.heading}</h3>
+            <p className={styles.challengeBody}>{block.body}</p>
+          </div>
+        </aside>
+      );
+
+    case "timeline":
+      return (
+        <StudyTimeline
+          timeline={block.timeline}
+          caption={block.caption}
+          className={styles.timeline}
+        />
+      );
+
+    /* Figma 1617:9574 — the versions under a dashed rule, the one this
+       section is about in the accent and standing on its bar. A strip of
+       labels rather than tabs: the file has one version written, and a tab
+       that switches to nothing is worse than a label that names what is
+       coming. It pins to the top for the rest of the section — see
+       StickyBar. */
+    case "versions":
+      return (
+        <StickyBar className={styles.versionsPin}>
+          <ol className={styles.versions} data-reveal="">
+            {block.items.map((item, i) => (
+              <li
+                key={item.label}
+                className={styles.version}
+                aria-current={i === block.active ? "step" : undefined}
+                style={{ ["--i" as string]: i }}
+              >
+                <span className={styles.versionText}>
+                  <span className={styles.versionKicker}>{item.kicker}</span>
+                  <span className={styles.versionLabel}>{item.label}</span>
+                </span>
+                <span className={styles.versionBar} aria-hidden="true" />
+              </li>
+            ))}
+          </ol>
+        </StickyBar>
+      );
+
+    case "screens":
+      return (
+        <StudyScreens
+          pills={block.pills}
+          active={block.active}
+          phones={block.phones}
+          caption={block.caption}
+        />
+      );
   }
+}
+
+/** A paragraph rather than an artefact. `Array.isArray` alone does not narrow
+ *  a readonly array out of a union, so the guard is spelled out. */
+function isText(item: AsideItem): item is StudyText {
+  return typeof item === "string" || Array.isArray(item);
+}
+
+/**
+ * A `StudyText` — runs of muted prose with the odd phrase set in ink.
+ *
+ * `strong` rather than a styled span, because it is emphasis and a screen
+ * reader should be allowed to say so; the stylesheet takes the bold back down
+ * to the file's medium.
+ */
+function Rich({ text }: { text: StudyText }) {
+  if (typeof text === "string") return text;
+  return text.map((run, i) =>
+    typeof run === "string" ? (
+      <Fragment key={i}>{run}</Fragment>
+    ) : (
+      <strong key={i} className={styles.strong}>
+        {run.strong}
+      </strong>
+    ),
+  );
 }
 
 /**
@@ -231,8 +380,12 @@ function Block({ block }: { block: StudyBlock }) {
  * are each a figure with a caption and their own behaviour at narrow widths.
  */
 function Item({ item }: { item: AsideItem }) {
-  if (typeof item === "string") {
-    return <p className={styles.paragraph}>{item}</p>;
+  if (isText(item)) {
+    return (
+      <p className={styles.paragraph}>
+        <Rich text={item} />
+      </p>
+    );
   }
 
   switch (item.kind) {
@@ -280,6 +433,6 @@ function Item({ item }: { item: AsideItem }) {
       );
 
     case "quotes":
-      return <StudyQuotes groups={item.groups} />;
+      return <StudyQuotes groups={item.groups} look={item.look} />;
   }
 }

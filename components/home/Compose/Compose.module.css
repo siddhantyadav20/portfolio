@@ -385,3 +385,24 @@
     font-size: 16px;
   }
 }
+
+/* A 12px dot is a mouse target. On a touch screen it is a 12px dot next to two
+   other 12px dots, and the only way out of this window that does not involve
+   knowing about Escape or tapping the page behind it — so the close light
+   carries an invisible 44px target on coarse pointers, per the platform's own
+   minimum. The dot does not change size; nothing visual moves.
+
+   Only `close` gets one: the other two lights are decoration and are already
+   out of the tab order and the accessibility tree. */
+@media (hover: none), (pointer: coarse) {
+  .light[data-light="close"] {
+    position: relative;
+  }
+
+  .light[data-light="close"]::after {
+    content: "";
+    position: absolute;
+    /* (44 - 12) / 2 */
+    inset: -16px;
+  }
+}

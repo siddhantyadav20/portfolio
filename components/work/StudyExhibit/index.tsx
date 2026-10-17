@@ -55,11 +55,10 @@ const PANELS: Record<ExhibitName, React.ReactNode> = {
         <SplitFlow />
       </div>
 
-      <div className={`${styles.slot} squircle`} data-placeholder="">
-        <span className="srOnly">
-          A recording of the existing camera flow, not yet captured
-        </span>
-      </div>
+      {/* The recording's slot used to sit here, drawn empty. It is out until
+          there is a recording: `.card` is `flex: 1 1 0`, so the diagram takes
+          the panel's full width on its own — the same shape the governance
+          exhibit below already ships. See the note in StudyMockup. */}
     </>
   ),
 

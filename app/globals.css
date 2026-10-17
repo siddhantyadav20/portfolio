@@ -163,6 +163,19 @@
   --wash-violet: #fae5ff;
   --wash-to: rgba(255, 255, 255, 0.4);
 
+  /* The Report Writing study's cards — Figma 1617:9063: white running to a
+     sky tint *past* the far corner (the stop is at 118%), so the whole card is
+     the near-white half of the ramp. A different ramp from the three above:
+     those start tinted and fade, this starts white and tints. */
+  --wash-sky-from: #ffffff;
+  --wash-sky: #eefbfe;
+
+  /* The challenge panel — Figma 1637:10162. An amber the accent ladder does
+     not have: a study's own colour is for what it concluded, and this panel
+     is the problem it had to solve. */
+  --caution: #ca7d2f;
+  --caution-wash: rgba(221, 126, 31, 0.1);
+
   /* The insight panel — Figma's accent at 10%.
 
      Derived rather than written out, so it is a *tone of the accent* and not a
@@ -744,6 +757,24 @@ html[data-theme="dark"] [data-accent="rose"] {
 html[data-canvas],
 html[data-canvas] body {
   overscroll-behavior: none;
+}
+
+/* The page holds still under anything opened over it — see `lib/pageLock.ts`
+   for who sets this and why it is a count rather than a flag.
+
+   Every overlay on this site brings its own scroller (`ModalSurface` is
+   `position: fixed; inset: 0; overflow-y: auto`, the palette's list scrolls
+   inside the panel), so nothing here is taking away a scroll anybody needs.
+   `scrollbar-gutter` keeps the classic-scrollbar platforms from reflowing the
+   whole composition sideways by the scrollbar's width at the moment the lock
+   lands — on overlay-scrollbar platforms it is a no-op. */
+html {
+  scrollbar-gutter: stable;
+}
+
+html[data-modal-open],
+html[data-modal-open] body {
+  overflow: hidden;
 }
 
 /* Content whose destination or data source isn't decided yet: inert, and
@@ -1783,6 +1814,14 @@ html[data-theme="dark"] {
   --wash-teal: rgba(64, 230, 210, 0.14);
   --wash-violet: rgba(214, 122, 255, 0.14);
   --wash-to: rgba(255, 255, 255, 0.04);
+
+  /* The sky ramp as a film: the white end becomes the faint card film every
+     other dark panel uses, and the tint its hue at a low alpha. */
+  --wash-sky-from: rgba(255, 255, 255, 0.04);
+  --wash-sky: rgba(85, 194, 245, 0.1);
+
+  --caution: #e8a15a;
+  --caution-wash: rgba(232, 161, 90, 0.12);
 
   /* Same one line as the light theme, a shade heavier — a tint that reads
      over a near-white page has far less light to subtract from over #111.

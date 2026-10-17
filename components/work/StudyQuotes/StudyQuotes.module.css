@@ -56,6 +56,17 @@
   width: 100%;
 }
 
+/* A LONE QUOTE TAKES THE ROW.
+   Figma's panel is a pair, and while a missing second quote was drawn as an
+   empty card the two-column grid was right. With that card gone (see
+   index.tsx) a single quote sat in the left half with the panel's other half
+   empty beside it — a two-column grid holding one thing, which reads as a
+   layout that lost something. Every quote group in the studies is currently
+   one quote; the pair comes back the moment a second is transcribed. */
+.row:has(> :only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* Figma 760:12894 — the solid card inside the film, 16 in, 16 radius. */
 .quote {
   display: flex;
@@ -140,6 +151,84 @@ span.avatar {
   background-color: var(--ink-20);
 }
 
+/* --- The sky look — Figma 1637:10177 -------------------------------------
+   The same panel at reading size: no hairlines anywhere, the study's
+   white-to-sky ramp at 40% under the finding, the finding a size up, and the
+   quote cards solid white with their words in ink rather than grey. The
+   attribution is a `SourceLine`, in the source's own colour. */
+
+.groups[data-look="sky"] .group {
+  gap: 16px;
+  border: none;
+  background-color: transparent;
+  background-image: linear-gradient(
+    126.32deg,
+    color-mix(in srgb, var(--wash-sky-from) 40%, transparent) 0%,
+    color-mix(in srgb, var(--wash-sky) 40%, transparent) 118.04%
+  );
+}
+
+.groups[data-look="sky"] .finding {
+  gap: 8px;
+}
+
+.groups[data-look="sky"] .heading {
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.groups[data-look="sky"] .body {
+  font-size: 15px;
+  color: var(--ink-70);
+}
+
+.groups[data-look="sky"] .row {
+  gap: 24px;
+}
+
+/* The attribution stands at the foot of the card whatever the words weigh,
+   so a short quote beside a long one still lines its source up with its
+   neighbour's. */
+.groups[data-look="sky"] .quote {
+  justify-content: space-between;
+  border: none;
+}
+
+.groups[data-look="sky"] .mark {
+  margin-bottom: -4px;
+  font-size: 22px;
+}
+
+.groups[data-look="sky"] .text {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+/* Arriving (sky look only): each panel rises as it reaches the reader, and
+   its two voices follow it in, a beat apart. */
+.group[data-reveal="pending"] {
+  opacity: 0;
+  translate: 0 var(--reveal-lift);
+}
+
+.group[data-reveal="in"] {
+  transition:
+    opacity var(--reveal-ms) var(--reveal-ease),
+    translate var(--reveal-ms) var(--reveal-ease);
+}
+
+.group[data-reveal="pending"] .quote {
+  opacity: 0;
+  translate: 0 12px;
+}
+
+.group[data-reveal="in"] .quote {
+  transition:
+    opacity var(--reveal-ms) var(--reveal-ease),
+    translate var(--reveal-ms) var(--reveal-ease);
+  transition-delay: calc(180ms + var(--i, 0) * 110ms);
+}
+
 /* Two quote cards side by side inside a phone-width column are two columns of
    four-word lines. */
 @media (width < 700px) {
@@ -160,5 +249,9 @@ span.avatar {
 
   .group {
     padding: 20px;
+  }
+
+  .groups[data-look="sky"] .row {
+    gap: 16px;
   }
 }

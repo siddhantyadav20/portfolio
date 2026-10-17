@@ -111,8 +111,47 @@ export type StudyOutcome = {
   readonly label: string;
   /** "to documenting observations". */
   readonly note: string;
-  /** Which of the three washes this card carries. */
-  readonly tint: "amber" | "teal" | "violet";
+  /** Which of the three washes this card carries. Unused by the `sky` look,
+   *  whose three cards are one wash. */
+  readonly tint?: "amber" | "teal" | "violet";
+  /** The 24px glyph in the card's top-right corner — `sky` only. A path under
+   *  /icons, drawn in the card's ink rather than its own colour. */
+  readonly icon?: string;
+  /** An 11px line at the foot of this one card — `sky` only. Where the
+   *  number's qualification belongs to the number rather than to the row. */
+  readonly fineprint?: string;
+};
+
+/**
+ * Running text with emphasis — Figma's habit of setting part of a muted
+ * paragraph in medium ink ("ISN's report writer: a decade of…").
+ *
+ * A bare string is one run. A list is runs in order, where `{ strong }` is the
+ * ink-coloured medium weight. Line breaks are authored as `\n` and kept: the
+ * file sets most of these as one text node broken over lines, with an empty
+ * line where a paragraph gap would be, and a `\n\n` is exactly that gap.
+ */
+export type StudyText = string | readonly (string | { readonly strong: string })[];
+
+/** The words of a `StudyText`, for surfaces that cannot render emphasis. */
+export function plainText(text: StudyText): string {
+  return typeof text === "string"
+    ? text
+    : text.map((run) => (typeof run === "string" ? run : run.strong)).join("");
+}
+
+/**
+ * Where a piece of evidence came from, with the source's own mark and colour —
+ * Figma 1617:9417. "Survey" is Google Forms purple, "1-1 Interview" Zoom blue.
+ * `tone` names the brand rather than carrying a hex, so the dark theme can lift
+ * each one the way it lifts every other ink.
+ */
+export type StudySource = {
+  readonly name: string;
+  readonly logo: string;
+  readonly tone: "zoom" | "forms" | "reddit" | "gopro";
+  /** "Zoom", "Google Forms" — the second, paler half of the line. */
+  readonly channel?: string;
 };
 
 /**
@@ -161,6 +200,15 @@ export type StudyQuote = {
   readonly source: string;
   readonly channel: string;
   readonly avatar?: StudyMedia;
+  /** The source's own mark — Figma 1637:10188, a 24px logo where the
+   *  `avatar` would be. */
+  readonly logo?: string;
+  /** The source's own colour, in place of the study's accent. */
+  readonly tone?: StudySource["tone"];
+  /** `false` to set the words without the opening mark above them — Figma
+   *  1637:10194, the survey answer beside an interview quote, is written
+   *  rather than said and the file draws it bare. */
+  readonly mark?: false;
 };
 
 /** A finding, and the quotes that are the evidence for it — Figma 757:12760. */
@@ -182,7 +230,7 @@ export type StudyQuoteGroup = {
  * screenshots land between the two halves of it.
  */
 export type AsideItem =
-  | string
+  | StudyText
 
   /** A still inside the column, with the indexed label row under it.
    *  `StudyMedia`'s own prose caption is dropped rather than added to: this
@@ -233,11 +281,72 @@ export type AsideItem =
       readonly caption: StudyCaption;
     }
 
-  /** The findings from testing, each with its quotes — Figma 760:12916. */
+  /** The findings from testing, each with its quotes — Figma 760:12916.
+   *
+   *  `look: "sky"` is Figma 1637:10177: the same finding-then-quotes panel
+   *  without hairlines, on the study's white-to-sky wash, at reading size,
+   *  with every quote attributed in its source's own colour. */
   | {
       readonly kind: "quotes";
       readonly groups: readonly StudyQuoteGroup[];
+      readonly look?: "sky";
     };
+
+/** One card of a stat row — Figma 1617:9413. */
+export type StudyStat = {
+  /** "1031". */
+  readonly value: string;
+  /** "Feedbacks collected". */
+  readonly label: string;
+  readonly source: StudySource;
+  /** What the number was gathered *for*. */
+  readonly body: string;
+};
+
+/** One cell of the constraints grid — Figma 1619:9977. */
+export type StudyConstraint = {
+  /** A path under /icons. */
+  readonly icon: string;
+  /** The bold run that opens the cell, comma and all. */
+  readonly lead: string;
+  readonly body: string;
+};
+
+/**
+ * A hand-placed diagram on a dotted canvas the reader scrolls sideways —
+ * Figma 1617:9135.
+ *
+ * Coordinates are the file's, in px from the canvas's top-left corner, and are
+ * content rather than layout: this is a drawing, and a drawing's positions are
+ * what it says. The canvas is as wide as the furthest thing on it, so the
+ * months run on past the frame and the "Scroll to move" pill means something.
+ */
+export type StudyTimeline = {
+  /** "Jul 2023", in order. 124px apart from x 24, as the file spaces them. */
+  readonly months: readonly string[];
+  /** The long white bars — "ISN, Legacy tool (used ~10 years)". */
+  readonly bars: readonly {
+    readonly label: string;
+    readonly note: string;
+    readonly x: number;
+    readonly width: number;
+    readonly y: number;
+  }[];
+  /** The cards — "Discovery" and the work under it. */
+  readonly phases: readonly {
+    readonly icon: string;
+    readonly title: string;
+    readonly items: readonly string[];
+    readonly x: number;
+    readonly y: number;
+  }[];
+  /** Short accent arrows pointing down, the file's connector lines. */
+  readonly arrows?: readonly {
+    readonly x: number;
+    readonly y: number;
+    readonly length: number;
+  }[];
+};
 
 /**
  * A block in a section's body.
@@ -310,7 +419,88 @@ export type StudyBlock =
   | ({ readonly kind: "figure" } & StudyMedia)
 
   /** A specimen the reader can operate. */
-  | { readonly kind: "live"; readonly view: StudyLive };
+  | { readonly kind: "live"; readonly view: StudyLive }
+
+  /**
+   * A screenshot or a field still on a frosted panel, 32 in — Figma 1617:9399
+   * and 1617:9437. `intro` is the line above the panel; `badge` the frosted
+   * pill in its top-right corner naming where the picture came from.
+   * `radius` is the picture's own corner, which the file draws two ways: 16
+   * on a product screenshot, 24 on a photograph.
+   */
+  | {
+      readonly kind: "panel";
+      readonly intro?: StudyText;
+      readonly media: Omit<StudyMedia, "caption">;
+      readonly radius: 16 | 24;
+      /** The frame's own shape when it crops the picture — "1056 / 510" for
+       *  Figma 1617:9402, which trims a few pixels off the screenshot. Left
+       *  out, the frame is the picture's shape. */
+      readonly aspect?: string;
+      readonly badge?: { readonly label: string; readonly logo: string };
+      readonly caption: StudyCaption;
+    }
+
+  /** A heading over a row of three stat cards — Figma 1617:9410. */
+  | {
+      readonly kind: "stats";
+      readonly heading: string;
+      readonly cards: readonly StudyStat[];
+    }
+
+  /**
+   * Six constraints, two to a row, and the one that outweighs them across the
+   * foot — Figma 1619:9975.
+   */
+  | {
+      readonly kind: "constraints";
+      readonly items: readonly StudyConstraint[];
+      readonly last: StudyConstraint;
+    }
+
+  /**
+   * The centred warning panel — Figma 1637:10162. Not the `insight`: that is
+   * what a section arrives at, in the study's own colour; this is the problem
+   * the section has to solve, in amber, with the danger mark over it.
+   */
+  | {
+      readonly kind: "challenge";
+      readonly eyebrow: string;
+      readonly heading: string;
+      readonly body: string;
+    }
+
+  /** The dotted timeline canvas and its label — Figma 1617:9129. */
+  | {
+      readonly kind: "timeline";
+      readonly timeline: StudyTimeline;
+      readonly caption: StudyCaption;
+    }
+
+  /**
+   * The strip of versions under a dashed rule — Figma 1617:9574. `active` is
+   * the one this section is about, drawn in the accent with its bar.
+   */
+  | {
+      readonly kind: "versions";
+      readonly items: readonly { readonly kicker: string; readonly label: string }[];
+      readonly active: number;
+    }
+
+  /**
+   * A row of screen pills over a row of phones, each named underneath — Figma
+   * 1617:9608. `active` is the pill that is filled.
+   */
+  | {
+      readonly kind: "screens";
+      readonly pills: readonly string[];
+      readonly active: number;
+      readonly phones: readonly {
+        readonly media: Omit<StudyMedia, "caption">;
+        readonly label: string;
+      }[];
+      readonly caption: StudyCaption;
+    };
 
 /**
  * A section of the long-form body.
@@ -328,6 +518,19 @@ export type StudySection = {
   readonly eyebrow?: string;
   readonly heading: string;
   readonly label?: string;
+  /** A 24px glyph in front of the heading — Figma 1617:9970. */
+  readonly icon?: string;
+  /** A muted line after the heading, on the same baseline row —
+   *  "MVP → v1 → v2 → Current". */
+  readonly headingNote?: string;
+  /**
+   * 64 between blocks instead of 120 — Figma 1617:9388 and 1617:9568, whose
+   * blocks are one walk through one thing rather than separate arguments.
+   */
+  readonly rhythm?: "tight";
+  /** The heading runs the column's full 1120 rather than stopping at 960 —
+   *  Figma 1617:9393, a one-line heading the narrower measure would break. */
+  readonly measure?: "full";
   readonly blocks: readonly StudyBlock[];
 };
 
@@ -420,6 +623,32 @@ export function heroStill(
 }
 
 /**
+ * One stop on the journey map — Figma 1617:9636, the glass panel that takes
+ * over from the timeline once it has scrolled away.
+ *
+ * `section` is the id of the part of the study that *is* this stop: reading
+ * it puts you there on the map, and pressing the stop takes you to it. A stop
+ * without one is still ahead of the study — written about in the strip
+ * ("MVP → v1 → v2 → Current") but not yet in the write-up — and is drawn as
+ * the road ahead rather than as somewhere you can go.
+ */
+export type StudyJourneyStop = {
+  /** "ISN". */
+  readonly label: string;
+  /** "Legacy tool". */
+  readonly note: string;
+  readonly section?: string;
+};
+
+export type StudyJourney = {
+  readonly stops: readonly StudyJourneyStop[];
+  /** The section whose drawing the map stands in for. The map appears once
+   *  that section's figure has left the screen, and not before — while the
+   *  full timeline is visible, a second, smaller one is noise. */
+  readonly after: string;
+};
+
+/**
  * Which accent the study is drawn in — see "Accent themes" in globals.css.
  *
  * The homepage is orange and a case study is not: Figma 821:1142 gives the
@@ -466,6 +695,13 @@ export type CaseStudy = {
     /** The asterisk's other half. Optional, but an asterisked number with no
      *  note underneath it is a claim hiding its own qualification. */
     readonly note?: string;
+    /**
+     * Figma 1617:9062: one white-to-sky wash on all three, no hairline, the
+     * number and its label both in the deep blue with an icon opposite, and
+     * any qualification inside the card it qualifies. Left out, the cards are
+     * the three tinted ones of 548:12203.
+     */
+    readonly look?: "sky";
   };
 
   readonly meta: readonly StudyMeta[];
@@ -473,4 +709,8 @@ export type CaseStudy = {
 
   /** The long-form write-up. `null` until it is written. */
   readonly sections: readonly StudySection[] | null;
+
+  /** The floating "you are here" map. Optional: only a study with a journey
+   *  to be somewhere along has one. */
+  readonly journey?: StudyJourney;
 };

@@ -371,11 +371,22 @@
       matrix(0.9961, -0.0886, -0.0886, -0.9961, 0, 0);
   }
 
-  /* The plane rides the route, so it moves with it. 74.5 is a little past the
-     middle of a route that used to start at 73; 28 is the same place on one
-     that starts at 27. */
+  /* The plane rides the route, so it moves with it — but it may not park on
+     the words.
+
+     28 was "the same place on the route" as the 74.5 the wide card uses, and
+     on a 168px card that place is directly on top of DES: the disc covered the
+     glyphs and the label under them. It is worse than it looks in one more
+     way, because index.tsx measures the Designer-side gap between label and
+     badge and mirrors it at the ENG end — so a negative gap here put the
+     landing on top of the other label too.
+
+     66 parks it in the only clear band this width has: DES ends at 62, ENG
+     begins at 102, and a 32px disc at 66 leaves 4px either side. The flight is
+     a short hop at this width because there is nowhere further to go, and a
+     short hop between two legible labels beats a long one across them. */
   .planeBadge {
-    left: calc(28 * var(--u));
+    left: calc(66 * var(--u));
   }
 }
 

@@ -30,6 +30,15 @@ export default function StudyMockup({
   shape = "phone",
   caption,
 }: Props) {
+  /* NO IMAGE, NO FIGURE.
+     This used to draw the empty slot below and label it, on the argument that
+     Figma draws it empty too. That argument belongs to a file in progress, not
+     to a page a hiring manager reads: three studies carrying fourteen dashed
+     rectangles read as a broken site rather than as an honest one, and the
+     prose around them never depends on the picture. The slot is still here for
+     the moment an export lands — it just doesn't ship empty. */
+  if (!image) return null;
+
   return (
     <figure className={styles.block}>
       <div className={`${styles.panel} squircle`} data-shape={shape}>

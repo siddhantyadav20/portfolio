@@ -63,6 +63,15 @@ export default function Introduction({ className }: { className?: string }) {
 
       <div className={styles.content}>
         <div className={styles.header}>
+          {/* The hiring signal, first thing in the reading order of the card
+              that introduces him — see the note in `content/site.ts`. A dot
+              and three words: any more here and it is a banner. */}
+          {intro.availability && (
+            <p className={styles.availability}>
+              <span className={styles.availabilityDot} aria-hidden="true" />
+              {intro.availability}
+            </p>
+          )}
           <h1 className={styles.title}>{intro.title}</h1>
           <p className={styles.tagline}>{intro.tagline}</p>
         </div>
@@ -99,6 +108,12 @@ export default function Introduction({ className }: { className?: string }) {
           {sentFrom ? intro.compose.sent : intro.compose.cta}
         </CtaPill>
 
+        {/* NO THIRD PILL HERE, by request. A Résumé pill sat between these
+            two for one pass: it does not fit the row at this column's width,
+            so the palette's door wrapped onto a line of its own and the pair
+            Figma draws stopped being a pair. The CV is still two keystrokes
+            away in the palette ("resume" finds it) and is a named control at
+            the end of every case study. */}
         <CtaPill
           className={styles.searchPill}
           onClick={() => openPalette()}

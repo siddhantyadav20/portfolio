@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   didYouMean,
+  fold,
   levenshtein,
   matchAll,
   prefixAt,
@@ -98,6 +99,40 @@ describe("matchAll", () => {
     expect(hit).not.toBeNull();
     expect(hit.marks).toEqual([]);
     expect(hit.quality).toBe(0);
+  });
+});
+
+describe("fold", () => {
+  /* The bug this exists for: the palette's CV row is labelled "Open résumé",
+     so `resume` — the likeliest word anybody types into a designer's command
+     palette — matched nothing at all, and the empty state offered "Did you
+     mean result?" instead. */
+  it("reaches an accented label from an unaccented query", () => {
+    expect(matchAll("Open résumé", ["resume"])).not.toBeNull();
+  });
+
+  it("keeps marks aligned with the original string", () => {
+    // This is why `fold` is per-character rather than NFD-then-strip: marks
+    // are indices into the text a renderer paints, and NFD changes lengths.
+    const text = "Open résumé";
+    const { marks } = matchAll(text, ["resume"])!;
+    const [start, len] = marks[0];
+    expect(text.slice(start, start + len)).toBe("résumé");
+  });
+
+  it("leaves plain ASCII exactly as it was", () => {
+    expect(fold("Open resume")).toBe("Open resume");
+  });
+
+  it("folds a query's own accents too", () => {
+    // Somebody who types the accents gets the same row.
+    expect(tokenize("Résumé")).toEqual(["resume"]);
+  });
+
+  it("does not fold characters whose decomposition is not an accent", () => {
+    // Length-preserving by construction: anything that would change length is
+    // left alone, ligatures included.
+    expect(fold("æon").length).toBe(3);
   });
 });
 

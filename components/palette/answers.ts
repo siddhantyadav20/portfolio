@@ -164,7 +164,7 @@ function available(): Answer {
       },
       {
         label: "Résumé",
-        value: "Download the CV",
+        value: "Open the CV",
         to: { kind: "action", action: "resume" },
       },
     ],

@@ -7,6 +7,7 @@ import { LETTER_BODY_MAX, LETTER_SUBJECT_MAX, validateLetter } from "@/lib/lette
 import { escapeFromField, FOCUSABLE, focusQuietly } from "@/lib/modalShell";
 import { sendLetter, type LetterResult } from "./send";
 import styles from "./Compose.module.css";
+import { lockPage } from "@/lib/pageLock";
 
 type Problem = Extract<LetterResult, { ok: false }>["reason"];
 type Leaving = "close" | "sent";
@@ -186,7 +187,7 @@ export default function Compose({ open, anchorId, id, onClose, onSent }: Props) 
 
     // ProximityField stops carrying the cards while this is open, so the pill
     // the popover hangs off does not drift out from under it.
-    document.documentElement.setAttribute("data-modal-open", "");
+    const unlock = lockPage();
 
     // One frame late, so the entry has a painted "before" to transition from.
     const raf = requestAnimationFrame(() => pop?.setAttribute("data-enter", ""));
@@ -204,7 +205,7 @@ export default function Compose({ open, anchorId, id, onClose, onSent }: Props) 
     return () => {
       cancelAnimationFrame(raf);
       pop?.removeAttribute("data-enter");
-      document.documentElement.removeAttribute("data-modal-open");
+      unlock();
     };
   }, [present]);
 

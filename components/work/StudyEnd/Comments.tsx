@@ -184,8 +184,14 @@ export default function Comments({ slug, title }: Props) {
   return (
     <div className={styles.comments}>
       <header className={styles.commentsHead}>
+        {/* WAS: "Leave a like/comment, or have a look at my other
+            projects!" — which asks a hiring manager for a favour at the exact
+            moment they have finished reading the work and are deciding what to
+            do about it. The reader's next step is another study or an email,
+            and the two controls under this heading are still here for anyone
+            who does want to react. */}
         <h2 className={styles.ask}>
-          Leave a like/comment, or have a look at my other projects!
+          Thanks for reading. Here&rsquo;s what else I&rsquo;ve shipped.
         </h2>
 
         <div className={styles.stats}>
@@ -212,15 +218,18 @@ export default function Comments({ slug, title }: Props) {
             {/* Keyed on the value: React replaces the element, which is what
                 lets the old number leave and the new one arrive instead of the
                 text swapping in place. */}
-            <span className={styles.statCount}>
-              {loaded ? (
+            {/* NOTHING RATHER THAN A ZERO.
+                A public "0" next to a like button is the one number on this
+                page that argues against the work — and it is the first thing a
+                visitor sees, because they are the first visitor. The glyph
+                alone still reads as "you can like this". */}
+            {loaded && data.likes > 0 && (
+              <span className={styles.statCount}>
                 <span key={data.likes} className={styles.roll}>
                   {data.likes}
                 </span>
-              ) : (
-                "—"
-              )}
-            </span>
+              </span>
+            )}
             <span className="srOnly">
               {data.liked ? "Remove your like" : "Like this case study"}
             </span>
@@ -228,19 +237,20 @@ export default function Comments({ slug, title }: Props) {
 
           {/* Not a button. The count is a fact about the thread that is already
               on the page — there is nowhere for it to take you. */}
-          <p className={styles.stat} data-kind="count" data-static="">
-            <Glyph icon="messages" />
-            <span className={styles.statCount}>
-              {loaded ? (
+          {/* Same rule as the like count, and this one has nothing to say
+              when the thread is empty: the thread itself says "No comments
+              yet" a few lines down. */}
+          {loaded && data.total > 0 && (
+            <p className={styles.stat} data-kind="count" data-static="">
+              <Glyph icon="messages" />
+              <span className={styles.statCount}>
                 <span key={data.total} className={styles.roll}>
                   {data.total}
                 </span>
-              ) : (
-                "—"
-              )}
-            </span>
-            <span className="srOnly">comments</span>
-          </p>
+              </span>
+              <span className="srOnly">comments</span>
+            </p>
+          )}
 
           <Share title={title} />
         </div>

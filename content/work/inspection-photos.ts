@@ -1,91 +1,133 @@
-import type { CaseStudy } from "./types";
+import type { CaseStudy, StudySource } from "./types";
 
 /**
  * Inspection — the flagship study, and the only one with a running prototype.
  *
- * Migrated out of `content/site.ts` (where it lived as `inspection.caseStudy`)
- * without changing the slug: `?study=inspection-photos` links are already
- * shareable from the modal's copy button, and some may exist.
+ * Now the Report Writing Ecosystem: Figma "Report Writing Tool - Case Study
+ * Modal - Desktop" (node 1617:8921), every string transcribed from it. It
+ * replaced the camera study that lived under this slug, and the slug stayed:
+ * `?study=inspection-photos` and `/work/inspection-photos` links are already
+ * out in the world, and the homepage card, its morph and the hero recording
+ * are the same app either way.
  *
- * Every string below is transcribed from Figma "Case Study - Modal"
- * (node 62:3688), which is the redesign of this reader rather than a new
- * document — so a few things moved rather than appearing:
+ * What the file has that this does not, on purpose:
  *
- *   · `title` is now the study's own line ("When you observe, you document")
- *     rather than the homepage card's headline. The card keeps its own copy in
- *     `content/site.ts`, which is why the two were never the same string.
- *   · The four-row meta list is superseded on the page by `helpers`. It stays
- *     in the data because the share card still renders it — see the study's
- *     `opengraph-image.tsx`, which lays out the first three filled rows.
- *   · The old opening paragraph is gone from the design, and with it from
- *     `body`. It read: "In early 2026, after launching an offline-first mobile
- *     app for conducting home inspections for inspectors based in the US in
- *     early 2025, we set out to redesign the camera flow — one of the most
- *     crucial and most heavily used features, and one that had never been
- *     designed to its full potential." Kept here rather than deleted, because
- *     it is the only place the 2025 launch is written down.
- *   · The Problem used to end on a `note` ("THE REAL PROBLEM") followed by an
- *     `insight` ("THE INSIGHT"). Figma 548:12210 folds both into one panel,
- *     "THE SYNTHESIS", whose two lines are the two headings that used to be a
- *     paragraph apart. The section then continues into the constraints, which
- *     it never did before.
+ *   · A second copy of the timeline canvas (1617:9636), 320x240, floating
+ *     over the right margin beside the version strip. It is outside the
+ *     content frame and overlaps the page edge — a sketch of the diagram,
+ *     not part of the page.
+ *   · Hidden connector lines and a hidden category dropdown on the comment
+ *     box. Hidden in the file, so hidden here.
  *
- * Three of the four sections are written. What has not been exported yet is
- * artwork rather than argument: the two device screens in the launch and the
- * explorations, and explorations 2 and 3, whose cards Figma draws as one
- * component in one state. Those slots are marked rather than filled — see the
- * `null` convention in `types.ts`.
+ * Three numbers in the frame do not agree with each other or with the rest of
+ * the site, and are transcribed as drawn rather than reconciled here: 10,000+
+ * inspectors in the subtitle, 12,397 migrated on the card, 2,172 moved in
+ * "A pile up of constraints"; and ~43 minutes of reporting time where the
+ * Search study and the CV say 40.
  */
+
+/** The four evidence sources the frame attributes things to. */
+const zoom = {
+  logo: "/media/report-writing/logo-zoom.png",
+  tone: "zoom",
+} as const;
+const forms = {
+  logo: "/media/report-writing/logo-forms.png",
+  tone: "forms",
+} as const;
+const reddit = {
+  logo: "/media/report-writing/logo-reddit.png",
+  tone: "reddit",
+} as const;
+const gopro = {
+  logo: "/media/report-writing/logo-gopro.png",
+  tone: "gopro",
+} as const;
+
+const survey: StudySource = { name: "Survey", ...forms };
+
+/** The app's home screen — the still in all three phones of 3.1. */
+const homeScreen = {
+  src: "/media/report-writing/home-screen.png",
+  alt: "WINspect's inspection home: a Full Home Inspection at W123 Main St, the recommended next step (Kitchen), and a row of suggestions waiting for approval",
+  width: 726,
+  height: 1574,
+};
+
 export const inspectionPhotos: CaseStudy = {
   slug: "inspection-photos",
-  title: "When you observe, you document",
+  title: "Report Writing Ecosystem",
   subtitle:
-    "Redesigning how home inspectors capture, organise and turn visual " +
-    "evidence into a report. Moving the camera from a standalone capture " +
-    "tool into a context-aware part of the inspection workflow.",
+    "This case study covers how we moved 10,000+ home inspectors in US off " +
+    "a decade-old legacy platform onto an ecosystem we built from scratch " +
+    "without breaking a single day of their work.",
 
   accent: "blue",
 
-  helpers: ["SaaS", "PropTech", "Product Design", "2026", "AI", "10 min read"],
+  helpers: ["SaaS", "PropTech", "Product Design", "2023 - Now", "15 min read"],
 
   body: null,
 
   outcomes: {
+    look: "sky",
     items: [
       {
-        value: "*40 minutes",
-        label: "INSPECTION TIME",
-        note: "for documenting observations",
-        tint: "amber",
+        value: "~43 mins",
+        label: "Reporting Time",
+        note: "down from ~4 hrs on ISN (Legacy Platform)",
+        fineprint: "*Measured via SmartLook and Database",
+        icon: "/icons/timer.svg",
       },
       {
-        value: "52",
-        label: "FEWER CLICKS",
-        note: "to add 18 remarks on average",
-        tint: "teal",
+        value: "12,397",
+        label: "Inspectors Migrated",
+        note: "before the sunset date, 0.2% rollback",
+        icon: "/icons/briefcase-tick.svg",
       },
       {
-        value: "89%",
-        label: "ADOPTION",
-        note: "of ML assisted remarks",
-        tint: "violet",
+        value: "1,113",
+        label: "Daily Inspections",
+        note: "conducted over 40+ states across the US currently",
+        icon: "/icons/chart.svg",
       },
     ],
-    note:
-      "*Metrics reflect the broader Winspect redesign and are not attributed " +
-      "solely to the camera workflow",
   },
 
   meta: [
     { label: "Product", value: "iOS, iPad + Android" },
     { label: "Role", value: "Product Designer" },
-    { label: "Timeline", value: "Jan 2026 - Mar 2026" },
+    { label: "Timeline", value: "2023 – Now" },
     {
       label: "Skills",
       value:
         "Product design, Stakeholder management, Interactive prototyping, User research & testing",
     },
   ],
+
+  /* The map's stops are the strip's own journey — "MVP → v1 → v2 →
+     Current" — with the two phases the study spends most of its length on put
+     in front of it, starting where the inspectors started: on ISN. Every note
+     is a line the study already says somewhere, not a new one. */
+  journey: {
+    after: "timeline",
+    stops: [
+      { label: "ISN", note: "Legacy tool", section: "timeline" },
+      {
+        label: "Discovery",
+        note: "1,031 responses · 74 interviews",
+        section: "the-discovery",
+      },
+      {
+        label: "Synthesis",
+        note: "Flexibility and Muscle Memory",
+        section: "the-synthesis",
+      },
+      { label: "MVP", note: "Adapt the workflow", section: "the-products" },
+      { label: "Version 1", note: "Learn from real users" },
+      { label: "Version 2", note: "Give inspectors more control" },
+      { label: "Current", note: "Assist the inspectors" },
+    ],
+  },
 
   hero: {
     kind: "prototype",
@@ -94,272 +136,354 @@ export const inspectionPhotos: CaseStudy = {
     width: 2240,
     height: 1400,
     morphName: "inspection-frame",
-    caption: { index: "0.1", label: "The Final Flow", tag: "PROTOTYPE" },
+    caption: {
+      index: "0.1",
+      label: "Report Writing App - LIVE",
+      tag: "PROTOTYPE",
+    },
   },
 
   sections: [
     {
-      id: "the-problem",
-      eyebrow: "THE PROBLEM",
-      label: "The Problem",
-      heading: "Inspectors don't take photos. They collect evidence.",
+      id: "timeline",
+      eyebrow: "THE 60s VERSION",
+      label: "Timeline",
+      icon: "/icons/calendar-2.svg",
+      heading: "Project Timeline",
+      headingNote: "MVP  →  v1  →  v2  →  Current",
       blocks: [
         {
-          kind: "aside",
-          lead: "The request was simple. The problem wasn't.",
-          body: [
-            "The original request was straightforward: make it easier for inspectors to add multiple photos to an observation. But tracing the existing workflow revealed that we weren't solving a camera problem. We were solving a handoff problem.",
-
-            {
-              kind: "figure",
-              media: {
-                /* Renamed rather than replaced in place. `/_next/image` keys
-                   its cache on the source path, not on the bytes, and
-                   `minimumCacheTTL` is a year — so swapping a file's contents
-                   under the same name leaves every returning visitor on the old
-                   picture until 2027. A new name is a new cache entry. */
-                src: "/media/inspection-backlog.png",
-                /* The two ticket titles are in the picture now rather than in
-                   two strips laid over it, so the alt text is where they live
-                   for a screen reader and for find-in-page. Keep them here
-                   verbatim if the screenshot is ever re-exported. */
-                alt:
-                  "Two tickets in the Winspect backlog. WNC-713: allow categorisation on the camera flow by allowing inspectors to choose inspection categories. WNC-2506: Zillow integration, automatically add property details using Zillow's info.",
-                width: 1664,
-                height: 240,
+          kind: "timeline",
+          timeline: {
+            months: [
+              "Jul 2023",
+              "Aug 2023",
+              "Sep 2023",
+              "Oct 2023",
+              "Nov 2023",
+              "Dec 2023",
+              "Jan 2024",
+              "Feb 2024",
+              "Mar 2024",
+            ],
+            bars: [
+              {
+                label: "ISN",
+                note: "Legacy tool (used ~10 years)",
+                x: 24,
+                y: 78,
+                width: 680,
               },
-              caption: { index: "1.1", label: "JIRA Backlog", tag: "SPRINT" },
-            },
-          ],
-        },
-
-        {
-          kind: "exhibit",
-          view: "inspection-split-flow",
+              {
+                label: "ISN",
+                note: "Legacy tool (used ~10 years)",
+                x: 734,
+                y: 78,
+                width: 680,
+              },
+            ],
+            phases: [
+              {
+                icon: "/icons/microscope.svg",
+                title: "Discovery",
+                items: [
+                  "Legacy workflow audit",
+                  "Competitor Research",
+                  "Surveys",
+                  "1-1 & Focus Group Interviews",
+                ],
+                x: 24,
+                y: 150,
+              },
+              {
+                icon: "/icons/microscope.svg",
+                title: "Discovery",
+                items: [
+                  "Legacy workflow audit",
+                  "Competitor Research",
+                  "Surveys",
+                  "1-1 & Focus Group Interviews",
+                ],
+                x: 192,
+                y: 290,
+              },
+            ],
+            arrows: [{ x: 560, y: 235, length: 16 }],
+          },
           caption: {
-            index: "1.2",
-            label: "The existing camera",
-            tag: "PROTOTYPE + FLOW ANALYSIS",
+            index: "1.1",
+            label: "Project Process within Timeline",
+            tag: "SCROLLER",
+          },
+        },
+      ],
+    },
+
+    {
+      id: "the-discovery",
+      eyebrow: "THE DISCOVERY",
+      label: "The Discovery",
+      heading:
+        "First we investigated the source. Then we went to the people who lived in it.",
+      rhythm: "tight",
+      measure: "full",
+      blocks: [
+        {
+          kind: "panel",
+          intro: [
+            { strong: "ISN's report writer:" },
+            " a decade of accumulated structure. ",
+            { strong: "Every one of these fields is someone's habit." },
+          ],
+          media: {
+            src: "/media/report-writing/isn-report-writer.png",
+            alt: "ISN's report writer: a template's section tree down the left, and the Air Conditioning section open on the right with its type, manufacturer, location and operation fields, each with its own remarks search",
+            width: 1944,
+            height: 944,
+          },
+          radius: 16,
+          aspect: "1056 / 510",
+          caption: {
+            index: "2.1",
+            label: "ISN's Product Sneak-peek",
+            tag: "IMAGE",
           },
         },
 
         {
-          kind: "insight",
-          eyebrow: "THE SYNTHESIS",
-          heading: "Taking the photo wasn't the problem, what happened after it was",
+          kind: "aside",
+          lead: "The ISN(Legacy) Audit",
           body: [
-            "The inspector already knows what they're looking at when they capture it.",
-            "We were asking the product to forget it, and the inspector to remember it later.",
+            "Before designing anything, we mapped what ten years of accumulated structure actually looked like: \n" +
+              "29 templates, 500+ sub-categories, 7,016,823 remarks.\n" +
+              "Understanding what inspectors would lose mattered more than imagining what they'd gain.",
           ],
         },
 
         {
-          kind: "aside",
-          lead: "The constraints",
-          body: [
-            "Well to start off, the inspectors were primarily 40-60 year old who feared change, and were used to the flows that they were using for almost a year now. The change management was one constraint I had to deal with throughout, but there were some others too:",
-
+          kind: "stats",
+          heading: "Then the inspectors",
+          cards: [
             {
-              kind: "table",
-              columns: ["CONSTRAINT", "WHAT IT MEANT FOR DESIGN"],
-              rows: [
-                [
-                  "Existing reporting model",
-                  "Photos still needed to map to the right inspection context",
-                ],
-                [
-                  "ML capabilities",
-                  "Assistance could suggest, but couldn't become a dependency",
-                ],
-                [
-                  "Field environment",
-                  "Primary actions had to remain fast and predictable, and available for offline mode (many areas did not have network)",
-                ],
-                [
-                  "Existing product architecture",
-                  "We couldn't solve everything by rebuilding the workflow",
-                ],
-                ["Tech Limitations", "No image recognition"],
-                [
-                  "Evidence quality",
-                  "Speed couldn't come at the cost of usable documentation",
-                ],
-              ],
-              caption: { index: "1.3", label: "Constraints", tag: "TABLE" },
+              value: "1031",
+              label: "Feedbacks collected",
+              source: survey,
+              body: "To size the pain: which parts of report writing cost the most time, at scale.",
+            },
+            {
+              value: "74",
+              label: "Users interviewed",
+              source: { name: "1-1 & Group Interview", ...zoom },
+              body: "To find the workflow beneath the workflow: the notepads, workarounds and personal systems inspectors built around ISN's gaps.",
+            },
+            {
+              value: "3",
+              label: "Go-Pro Inspections Studied",
+              source: { name: "GoPro", ...gopro },
+              body: "To see what nobody reports in an interview: where hands are full, gloves are on, and the phone goes in a pocket.",
             },
           ],
+        },
+
+        {
+          kind: "panel",
+          media: {
+            src: "/media/report-writing/gopro-basement.jpg",
+            alt: "A GoPro frame from an inspection in a basement: the inspector has gloves on, his phone pocketed and a paper checklist out, and there is no signal down there",
+            width: 1672,
+            height: 941,
+          },
+          radius: 24,
+          badge: { label: "GoPro", logo: gopro.logo },
+          caption: {
+            index: "2.2",
+            label: "In the field",
+            tag: "GO PRO RECORDING",
+          },
         },
       ],
     },
 
     {
-      id: "how-might-we",
-      eyebrow: "HOW MIGHT WE",
-      label: "How Might We",
-      heading:
-        "Connect capture and documentation without slowing the inspection?",
+      id: "the-synthesis",
+      eyebrow: "THE SYNTHESIS",
+      label: "The Synthesis",
+      heading: "This wasn't a redesign. It was a migration with no safety net.",
       blocks: [
         {
           kind: "aside",
-          lead: "What the data said",
+          lead: "The reframe",
           body: [
-            "To start off, I already had good understanding of how the inspectors were using the gallery from interviews and SmartLook session recordings. I had to build something that does not get in the way, but acts as a supporting layer inside the camera flow itself.",
-
-            {
-              kind: "collage",
-              /* Back to front, which is the order Figma stacks them in:
-                 behaviour flows underneath, then the heatmaps, then the
-                 dashboards on top. The renderer knows where each one goes. */
-              images: [
-                {
-                  src: "/media/smartlook-heatmaps.png",
-                  alt: "SmartLook heatmaps over three screens of the inspection app, with the heaviest touches on the capture and submit controls",
-                  width: 720,
-                  height: 367,
-                },
-                {
-                  src: "/media/smartlook-behaviour-flows.png",
-                  alt: "A SmartLook behaviour-flow diagram for iOS, showing sessions moving repeatedly between the camera screen and the modal that hosts remarks",
-                  width: 720,
-                  height: 371,
-                },
-                {
-                  src: "/media/smartlook-dashboards.png",
-                  alt: "SmartLook dashboards counting cover photo additions, camera photos clicked, camera photos uploaded and photos uploaded from the device library",
-                  width: 720,
-                  height: 370,
-                },
-              ],
-              caption: { index: "2.1", label: "SmartLook", tag: "ANALYTICS" },
-            },
-
-            "The data confirmed the synthesis, the inspectors captured multiple photos and then searched remarks to then attach the photos to the remarks",
+            [
+              "We went in assuming inspectors hated ISN. They didn't. They hated the friction — the lag, the 500-category scavenger hunt, the web app that crashed on an iPad mid-inspection. The structure itself had become muscle memory they relied on.\n\n",
+              {
+                strong:
+                  "That distinction rewrote our brief. We weren't designing an escape from ISN. We were designing a faster body for habits that already worked to bring the inspectors over, to then ship other things that’d complement the workflow that already worked.",
+              },
+            ],
           ],
         },
 
         {
           kind: "aside",
-          lead: "We explored 3 different ways of solving the same problem",
+          lead: "A pile up of constraints",
           body: [
-            {
-              kind: "carousel",
-              slides: [
-                {
-                  eyebrow: "EXPLORATION 1",
-                  body: [
-                    "The exploration focused on allowing inspectors to capture multiple photos at the same time, and then perform certain actions for the batch:",
-                  ],
-                  points: [
-                    "Add to Remark: The photos taken could be attached to the remark straight away after taking them.",
-                    "Categorise: The photos taken could be categorised to the specific category so that it’s easy for the inspector to find when needed among almost 500 photos.",
-                  ],
-                  rejected: [
-                    "The flow still did not solve the issue of combining the capture and documentation.",
-                    "Leaving the camera to document seemed like a job for later rather than doing it between the capture",
-                    "We added a step b/w the capture which irritated the inspectors who wanted to just take multiple photos to store to gallery",
-                  ],
-                  worked: [
-                    "The inspectors were able to take multiple pictures in a flow undisturbed.",
-                    "The inspectors were able to categorise which reduced their work for the later stage of documentation",
-                  ],
-                  image: null,
-                },
-
-                /* Two and three are real explorations that have not been
-                   written up. Figma draws this card as one component in one
-                   state, so the file has copy for the first only — and the
-                   lead beside the carousel says there were three, which a
-                   carousel of one would contradict. */
-                {
-                  eyebrow: "EXPLORATION 2",
-                  body: [],
-                  rejected: [],
-                  worked: [],
-                  image: null,
-                },
-                {
-                  eyebrow: "EXPLORATION 3",
-                  body: [],
-                  rejected: [],
-                  worked: [],
-                  image: null,
-                },
-              ],
-              caption: { index: "2.2", label: "Explorations", tag: "CAROUSEL" },
-            },
-          ],
-        },
-      ],
-    },
-
-    {
-      id: "the-launch",
-      eyebrow: "THE LAUNCH",
-      label: "The Launch",
-      heading: "What went to production",
-      blocks: [
-        {
-          kind: "aside",
-          lead: "So, what shipped?",
-          body: [
-            "The version that shipped was a combination of multiple explorations we did with the users, each interaction was defined by what we believed would work.",
-
-            {
-              kind: "mockup",
-              image: null,
-              caption: { index: "3.1", label: "v1 Launch", tag: "PROTOTYPE" },
-            },
-
-            "The launch was made with a fallback setting, the inspectors could choose whether they wanted to enter the flow or not with a toggle that was being monitored. The flow was used by ~31% of the users (data from backend).",
+            "Moving 2,172 inspectors to an entirely new product meant designing inside a tight timeline with feedback loops, onboarding, data recovery and training running in parallel.\n" +
+              "I argued for, and we committed to an offline-first mobile app as the MVP.\n\n" +
+              "It was the harder engineering path, but it was the only one that matched how inspections actually happen. That decision came with its own pile-up:",
           ],
         },
 
         {
+          kind: "constraints",
+          items: [
+            {
+              icon: "/icons/teacher.svg",
+              lead: "A decade of muscle memory,",
+              body: "inspectors had spent over 10 years using the legacy platform. The redesign had to improve efficiency without forcing users to relearn how they inspected homes.",
+            },
+            {
+              icon: "/icons/cloud-remove.svg",
+              lead: "Offline wasn't optional,",
+              body: "inspections often happened in areas with unreliable connectivity. Reports, photos and remarks needed to work locally first and sync reliably once a connection became available.",
+            },
+            {
+              icon: "/icons/data-2.svg",
+              lead: "Flexible inspection workflows,",
+              body: "no two inspectors followed the same sequence. The product had to support multiple ways of documenting an inspection rather than enforcing a rigid workflow.",
+            },
+            {
+              icon: "/icons/calendar-tick.svg",
+              lead: "Fixed migration timeline,",
+              body: "the legacy platform had a defined sunset date. We needed to ship a stable MVP quickly, then improve the experience through production feedback and phased rollouts.",
+            },
+            {
+              icon: "/icons/lock.svg",
+              lead: "Complex inspection ecosystem,",
+              body: "the mobile app wasn't the only product. Every decision had to align with template management, reporting, interactive reports, CRM integrations and future web support.",
+            },
+            {
+              icon: "/icons/briefcase.svg",
+              lead: "Multiple stakeholders,",
+              body: "every feature balanced feedback from inspectors, SMEs, engineering, product managers and executive leadership, each with different priorities, expectations and opinions which we had to prioritise and say NO to.",
+            },
+          ],
+          last: {
+            icon: "/icons/note.svg",
+            lead: "Template & remarks.",
+            body: "Our biggest challenge. Managing 29 different templates with remarks from 40+ states with different requirements for each.",
+          },
+        },
+
+        {
+          kind: "challenge",
+          eyebrow: "THE CHALLENGE",
+          heading: "Flexibility and Muscle Memory",
+          body: "Build one flexible system that serves 29 templates across 40+ states: Usable offline in a basement, learnable in minutes by people with ten years of muscle memory, and shipped before a sunset date we didn't control.",
+        },
+
+        {
           kind: "aside",
-          lead: "What the users said",
+          lead: "Three themes from 1,031 responses and 74 interviews",
           spacing: "loose",
           body: [
             {
               kind: "quotes",
+              look: "sky",
               groups: [
                 {
-                  heading: "Voice is cool, but the interruption isn’t",
-                  body: "The inspectors liked that they had to just speak out the issue while taking pictures, but hated that they had to wait for the results which was delaying taking the remaining photos from the location they were inspecting",
+                  heading: "Time pressure is commercial, not personal.",
+                  body: "Clients expect same-day reports; every hour of writing time is business risk.",
                   quotes: [
                     {
-                      text: "The voice is cool, but it acts as a blocker to take the rest of my photos. Switching back to the classic mode but kudos to thinking different",
+                      text: "My clients want the report on the same day, and it brings a negative impact on my business when i’m not able to do so.",
                       source: "1-1 Interview",
                       channel: "Zoom",
+                      ...zoom,
+                    },
+                    {
+                      text: "It’s so difficult to train my additional inspectors. I get so many inspections calls but have to turn them down as it takes so long to complete even two in a day.",
+                      source: "Survey",
+                      channel: "Google Forms",
+                      ...forms,
+                      mark: false,
                     },
                   ],
                 },
                 {
-                  heading: "Quick commands save time but need better accuracy",
-                  body: "Inspectors enjoyed using quick voice commands to tag issues but found the recognition errors frustrating and slowing down the process",
+                  heading: "The tool loses people mid-task.",
+                  body: "Inspectors got lost navigating 500+ categories while physically walking a house.",
                   quotes: [
                     {
-                      text: "Love how fast I can tag things, but it keeps misunderstanding me—hope they improve it soon!",
-                      source: "User Feedback",
-                      channel: "Field Test",
+                      text: "I messed around with it during beta testing…hated it. Wasn’t intuitive and it felt clunky. I’m not sure if they worked out the kinks or not.",
+                      source: "Reddit",
+                      channel: "r/HomeInspectors",
+                      ...reddit,
                     },
-                  ],
-                },
-                {
-                  heading: "Photo review feature boosts confidence and reduces errors",
-                  body: "Inspectors appreciated being able to review photos immediately with voice notes, which helped verify issues before moving on",
-                  quotes: [
                     {
-                      text: "Reviewing photos with voice notes right after snapping them really helps me catch mistakes early.",
-                      source: "Focus Group",
-                      channel: "Mobile App",
+                      text: "I often find myself getting lost within the application, it becomes frustrating after a point. I have 500+ categories to go through for each inspection report.",
+                      source: "1-1 Interview",
+                      channel: "Zoom",
+                      ...zoom,
                     },
                   ],
                 },
               ],
             },
 
-            "One thing that was clear: We were on the right track!",
+            [
+              "One thing that really surprised us was that we were considering the inspectors as not tech-savvy but it changed the minute we entered the first interview.\n\n",
+              {
+                strong:
+                  "The workflows they maintained and learnt to work around for over 10 years surprised us.",
+              },
+            ],
           ],
+        },
+      ],
+    },
+
+    {
+      id: "the-products",
+      eyebrow: "THE PRODUCTS & their jobs",
+      label: "The Products",
+      heading: "Winspect’s evolution into an ecosystem",
+      rhythm: "tight",
+      blocks: [
+        {
+          kind: "versions",
+          active: 0,
+          items: [
+            { kicker: "Adapt the workflow", label: "Version 0: MVP" },
+            { kicker: "Learn from real users", label: "Version 1" },
+            { kicker: "Give inspectors more control", label: "Version 2" },
+            { kicker: "Assist the inspectors", label: "Current" },
+          ],
+        },
+
+        {
+          kind: "aside",
+          lead: "MVP: Adapting to the inspectors",
+          body: [
+            'With a fixed sunset date, the question was never "what can we build?", it was "what can we responsibly not build yet?" Two inputs drew the line: what the market had already solved, and where the field work actually happens. Instead of introducing something new, we gave the inspectors a familiar playground.',
+          ],
+        },
+
+        {
+          kind: "screens",
+          active: 0,
+          pills: [
+            "Login",
+            "Inspection Orders Listing",
+            "Order Details",
+            "Inspection Workflow",
+          ],
+          phones: [
+            { media: homeScreen, label: "MVP" },
+            { media: homeScreen, label: "v1" },
+            { media: homeScreen, label: "v2" },
+          ],
+          caption: { index: "3.1", label: "MVP Launch", tag: "PROTOTYPE" },
         },
       ],
     },

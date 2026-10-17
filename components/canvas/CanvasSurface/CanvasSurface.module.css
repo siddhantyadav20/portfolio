@@ -156,6 +156,16 @@
   color: var(--ink-40);
   white-space: nowrap;
 
+  /* A PLATE UNDER IT, because the board slides beneath this and the stickers
+     are the densest things on it: park a wrestler under the corner and "press
+     / for shortcuts" becomes unreadable text over artwork. The plate is the
+     page's own ground at 72%, blurred like the rest of the site's glass, so at
+     rest it reads as part of the chrome rather than as a label with a box
+     drawn round it. */
+  background-color: rgb(from var(--page-base) r g b / 0.72);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+
   opacity: 0.7;
   transition: opacity 0.2s ease, color 0.2s ease;
 }

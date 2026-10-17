@@ -63,6 +63,16 @@ export const intro = {
   resumeHref: "/siddhant-yadav-cv.pdf" as MaybeHref,
 
   /**
+   * The hiring signal, above the name.
+   *
+   * The canvas's profile card has said "Open to new work" for a while, four
+   * clicks deep. The homepage said it nowhere, so the single fact a hiring
+   * manager is on this page to establish was the one thing the page withheld.
+   * Set to `null` the day it stops being true and the chip disappears.
+   */
+  availability: "Open to new work" as string | null,
+
+  /**
    * The palette's front door, now a pill in the CTA row rather than a field
    * standing on its own.
    *
@@ -79,7 +89,12 @@ export const intro = {
 
 export const inspection = {
   title: "Capturing 200+ Inspection Photos",
-  stat: "Cut reporting time by 13 minutes per inspection, across 20,000+ properties daily",
+  /* THE SCOPE IS IN THE SENTENCE ON PURPOSE.
+     The studies both carry a 40-minutes-end-to-end outcome for the whole
+     WINspect redesign. Left as "reporting time", this number reads as a third
+     answer to the same question; "documentation time" says which part of the
+     job the camera workflow actually moved, which is what this card is about. */
+  stat: "Cut documentation time by 13 minutes per inspection, across 20,000+ properties daily",
   href: "/work/inspection-photos",
 
   /**
@@ -148,7 +163,13 @@ export const search = {
     },
     {
       id: "sme",
-      label: "SME",
+      /* "Expert library", not "SME". The note above already says nobody out
+         here knows what an SP is; the same is true of SME, which sits in a
+         three-item picker next to two labels anybody can read — and the row's
+         own support line has to say "Expert-curated" to explain the label
+         above it. The product's name for it stays in `searching`, where it
+         reads as the system talking rather than as a label to decode. */
+      label: "Expert library",
       searching: "Searching the SME Toolkit",
       support: "Expert-curated observations & templates",
     },
@@ -252,8 +273,8 @@ export const about = {
   puns: ["/siddh", "aant/", "but I start from where it ends"],
 
   lede:
-    "I'm a product designer with 5 years of experience who thrives on all " +
-    "things ambiguous and gnarly. With a strong focus on craft, storytelling, " +
+    "I’m a product designer with 5 years of experience who thrives on " +
+    "ambiguous, gnarly problems, with a strong focus on craft, storytelling " +
     "and high exploration output. I enjoy diving into the details, solving " +
     "problems thoughtfully, and bringing order to chaos.",
 
@@ -291,10 +312,10 @@ export const about = {
     title: "Day job",
     body: [
       "Currently, I am a ",
-      { strong: "User Experience Specialist at WIN Home Inspection" },
+      { strong: "UX Design Specialist at WIN Home Inspection" },
       ". Before that, I designed at Mistry.Store which is a homebuilding " +
         "material e-commerce business and LikeMinds which is a plug & play " +
-        "community platform. I hold a Bsc(Hons) in Computer Science from the " +
+        "community platform. I hold a B.Sc. (Hons) in Computer Science from the " +
         "University of Delhi.",
     ] as Rich,
   },
@@ -302,10 +323,10 @@ export const about = {
   outOfOffice: {
     title: "Out of office",
     body: [
-      "When I'm not building things, I love going out, playing football, " +
+      "When I’m not building things, I love going out, playing football, " +
         "basketball and video games, cooking, designing, and capturing moments " +
-        "through photography. I'm a natural puzzler with a passion for trivia " +
-        "and crosswords! If I've piqued your interest, feel free to reach out!",
+        "through photography. I’m a natural puzzler with a passion for trivia " +
+        "and crosswords! If I’ve piqued your interest, feel free to reach out!",
     ] as Rich,
   },
 
@@ -339,7 +360,7 @@ export const about = {
         body:
           "I understand software systems and limitations. I can also get in the " +
           "trenches with my devs. This means anything from fixing small bugs in " +
-          "production to code reviews in Gitbhub.",
+          "production to code reviews in GitHub.",
       },
     ],
   },
@@ -380,9 +401,9 @@ export const about = {
     title: "Experience",
     entries: [
       {
-        years: "2023 - Now",
+        years: "2023 – Now",
         org: "WIN Home Inspection",
-        role: "User Experience Specialist",
+        role: "UX Design Specialist",
         body: [
           [
             "Designed a home inspection app which allows the inspectors based " +
@@ -411,7 +432,7 @@ export const about = {
         /* 2022, not the 2021 the desktop frame prints. `timeline.dayOne` puts
            this entry at 2022.55 and the mobile frame agrees; the desktop label
            is the stale one of the two. */
-        years: "2022 - 2023",
+        years: "2022 – 2023",
         org: "Mistry.Store",
         role: "Lead UX Designer + Product Lead",
         body: [
@@ -432,7 +453,7 @@ export const about = {
         ] as readonly Rich[],
       },
       {
-        years: "2021 - 2022",
+        years: "2021 – 2022",
         org: "LikeMinds",
         role: "UX Designer",
         body: [
@@ -455,13 +476,13 @@ export const about = {
     title: "Education",
     entries: [
       {
-        years: "2018 - 2021",
+        years: "2018 – 2021",
         org: "University of Delhi",
-        role: "Bsc. (Hons) Computer Science",
-        note: "CGPA - 7.1",
+        role: "B.Sc. (Hons) Computer Science",
+        note: "CGPA: 7.1",
       },
       {
-        years: "2004 - 2018",
+        years: "2004 – 2018",
         org: "St. Columba’s School",
         role: "Majors: Computer Science, Maths, Physics, Chemistry",
         /* The mobile frame repeats the university's CGPA under the school,
@@ -492,7 +513,7 @@ export const about = {
    * `note` is the second half of the joke and the first half of the honesty.
    */
   interests: {
-    title: "What's in the head",
+    title: "What’s in the head",
     note: "Self-reported, unmeasured, and revised constantly.",
     items: [
       { name: "History", share: 5 },
@@ -576,11 +597,11 @@ export const timeline = {
      it back would only make the card animate a change from "Student" to
      "Student". */
   entries: [
-    { at: -2, title: "Student", context: "B.Sc Computer Science" },
+    { at: -2, title: "Student", context: "B.Sc. Computer Science" },
     {
       at: -0.7,
       title: "Researching UX",
-      context: "B.Sc Computer Science",
+      context: "B.Sc. Computer Science",
     },
     { at: 0, title: "UX Designer", context: "LikeMinds" },
     { at: 0.8, title: "UX Designer", context: "Mistry.Store" },
@@ -769,7 +790,12 @@ export const footer = {
    *  clock at build time rather than from a literal that quietly goes stale
    *  the first January after it was written. */
   copyrightName: "Siddhant Yadav",
-  credit: "Designed on Figma. Built using Claude + Qwen.",
+  /* "in Figma", not "on Figma" — and "coded with", which is what happened.
+     "Built using Claude + Qwen" invites the one reading this site spends the
+     rest of its effort refusing: that it was generated rather than designed.
+     The credit stays, because it is true and hiding it would be worse; the
+     colophon link sitting beside it is the long answer. */
+  credit: "Designed in Figma. Coded with Claude + Qwen.",
   /* The count itself is not here any more — it is measured, not written down.
      `VisitorCount` asks `/api/visitors` for it and falls back to the em dash
      this used to be hard-coded to whenever there is no store to ask.

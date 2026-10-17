@@ -65,13 +65,13 @@ export const designSystem: CaseStudy = {
      card gives this about five lines at 28px before it pushes the meta row
      off the bottom. */
   subtitle:
-    "WinConnect is the system twelve WIN products are built on. I didn't draw " +
+    "WinConnect is the system twelve WIN products are built on. I didn’t draw " +
     "its components — I chose the foundation, themed it into ours, drew the " +
     "rules for changing it, and have run it alone since late 2023.",
 
   accent: "rose",
 
-  helpers: ["SaaS", "PropTech", "Design Systems", "2023 → present", "8 min read"],
+  helpers: ["SaaS", "PropTech", "Design Systems", "2023 – present", "8 min read"],
 
   body: null,
 
@@ -127,7 +127,7 @@ export const designSystem: CaseStudy = {
   meta: [
     { label: "Scope", value: "12 products" },
     { label: "Role", value: "System owner & sole maintainer" },
-    { label: "Timeline", value: "Late 2023 → present" },
+    { label: "Timeline", value: "Late 2023 – present" },
     {
       label: "Skills",
       value:
@@ -224,7 +224,7 @@ export const designSystem: CaseStudy = {
                 ],
                 [
                   "What it locked in",
-                  "The component API is MUI's. Anything MUI does badly, WIN inherits — and in a couple of places we have",
+                  "The component API is MUI’s. Anything MUI does badly, WIN inherits — and in a couple of places we have",
                 ],
               ],
               caption: {
@@ -269,9 +269,9 @@ export const designSystem: CaseStudy = {
         {
           kind: "prose",
           body: [
-            "A licensed foundation arrives wearing somebody else's brand, and the temptation is to treat re-theming as a find-and-replace on one colour. It is the first place a bought system gives itself away, so it is where I started.",
+            "A licensed foundation arrives wearing somebody else’s brand, and the temptation is to treat re-theming as a find-and-replace on one colour. It is the first place a bought system gives itself away, so it is where I started.",
             "Light and dark are the same variable names holding different tables: background/default goes from #ffffff to #141a21, background/paper from #ffffff to #1c252e, text-primary from #1c252e to #ffffff, and the shadow colour from a cool grey to black — because a grey shadow on a dark page is not a shadow. Nothing is renamed, nothing is conditional, and no component knows which mode it is in.",
-            "One token I deliberately held still: primary/main is #005982 in both modes. A product's identity should not change when the lights go out, and making the brand colour mode-dependent is the shortcut that quietly produces two brands.",
+            "One token I deliberately held still: primary/main is #005982 in both modes. A product’s identity should not change when the lights go out, and making the brand colour mode-dependent is the shortcut that quietly produces two brands.",
             "On top of that sit the two axes a product actually gets to pick — whether the navigation reads as part of the page or as a panel over it, and which primary it takes. Those combinations are why a CRM and an inspection report writer can feel like different products while sharing every component between them. The specimen below is that mechanism, running: move across it to change the primary, down it to cross the modes.",
           ],
         },
@@ -325,8 +325,8 @@ export const designSystem: CaseStudy = {
         {
           kind: "prose",
           body: [
-            "The products have very little in common as products. A CRM is dense, relational and lives in tables. An inspection report writer is a long linear form that people fill in on site, often on a phone, often in bad light. A learning system is mostly reading. An admin console is mostly destructive actions that need to be hard to do by accident. The SME toolkit is somebody's first ten minutes with the ecosystem.",
-            "What they share is not a look. It is the shell — where navigation lives, how deep it nests, what a page header contains, where a settings panel comes from, what a destructive confirmation reads like — plus the tier boundary that says which of those a product may argue with. That is the part that had to be decided once. The rest is each product's own problem, and should be.",
+            "The products have very little in common as products. A CRM is dense, relational and lives in tables. An inspection report writer is a long linear form that people fill in on site, often on a phone, often in bad light. A learning system is mostly reading. An admin console is mostly destructive actions that need to be hard to do by accident. The SME toolkit is somebody’s first ten minutes with the ecosystem.",
+            "What they share is not a look. It is the shell — where navigation lives, how deep it nests, what a page header contains, where a settings panel comes from, what a destructive confirmation reads like — plus the tier boundary that says which of those a product may argue with. That is the part that had to be decided once. The rest is each product’s own problem, and should be.",
           ],
         },
         {
@@ -391,7 +391,7 @@ export const designSystem: CaseStudy = {
             "The afternoon in the second section is the whole of the buying. The three years since are the system, and they are the half of this project I would point at first.",
             "The model is centralised, and the centre is one person. That is not a best practice so much as an accurate description: every request, every publish and every audit came through me. It is the cheapest governance a twelve-product ecosystem can run on and the most fragile, and both halves of that are true at the same time.",
             "Every change goes out as a library publish with written release notes, and consuming files choose when to take it. That is a small mechanic with a large consequence: no product has ever been redesigned out from under a designer mid-sprint, which is the fastest way there is to make a team detach from a library and never reattach.",
-            "Teams could ask for a component, and most of that work was deciding which requests should not become one. The test I used was whether more than one product needed the thing, and needed it for the same reason. A card only the CRM wants is a CRM component and belongs in the CRM's own file; admitting it to the library makes eleven other products carry it.",
+            "Teams could ask for a component, and most of that work was deciding which requests should not become one. The test I used was whether more than one product needed the thing, and needed it for the same reason. A card only the CRM wants is a CRM component and belongs in the CRM’s own file; admitting it to the library makes eleven other products carry it.",
             "And I audited. Periodically I went through shipped products against the library looking for divergence, which is the only way to find out whether a system is being used or merely installed.",
           ],
         },
@@ -413,7 +413,7 @@ export const designSystem: CaseStudy = {
           width: 1440,
           height: 544,
           caption:
-            "The written half of the boundary the tiers already draw, and the thing to notice is how little of it there is: the four things a product may change, and the naming rule that keeps an icon's colour attached to it. Everything not on this page is a conversation with me.",
+            "The written half of the boundary the tiers already draw, and the thing to notice is how little of it there is: the four things a product may change, and the naming rule that keeps an icon’s colour attached to it. Everything not on this page is a conversation with me.",
         },
 
         {
@@ -450,7 +450,7 @@ export const designSystem: CaseStudy = {
             "The component-token tier went too deep. I would draw that line higher now.",
             "nav/vertical/item-root-height is 44. That is a real value and it is the right value, and treating it as a governed token was still a mistake of degree. A token that specific stops being a shared decision and becomes a lock: it does not say what the navigation should feel like, it fixes what the navigation is, and a product with a genuine reason to differ has to come to me instead of to the semantic layer.",
             "The tier that earns its keep is the middle one. I leaned on the third because the second was working — which is the ordinary way a system gets over-built. Success at one level of abstraction reads, from the inside, like an argument for another one.",
-            "The other cost is the one the second section named in advance. Buying the foundation bought MUI's component API along with it, and where MUI is opinionated in a way that does not suit an inspector standing on a roof in the sun, WIN inherits the opinion. I would make the same trade again — months of runway against a handful of inherited defaults is not a close call — but it is a trade, and a study that only listed what buying gave me would be selling something.",
+            "The other cost is the one the second section named in advance. Buying the foundation bought MUI’s component API along with it, and where MUI is opinionated in a way that does not suit an inspector standing on a roof in the sun, WIN inherits the opinion. I would make the same trade again — months of runway against a handful of inherited defaults is not a close call — but it is a trade, and a study that only listed what buying gave me would be selling something.",
           ],
         },
 

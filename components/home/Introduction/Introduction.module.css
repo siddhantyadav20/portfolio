@@ -155,3 +155,25 @@
     font-size: calc(20 * var(--u));
   }
 }
+
+/* --- The availability chip ------------------------------------------------
+   Above the name, and deliberately small: it is a fact, not a badge. The live
+   dot is the same one the footer's visitor count and the canvas profile use,
+   so "something is true right now" has one shape across the site. */
+.availability {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  margin: 0 0 calc(10 * var(--u));
+  font-size: calc(13 * var(--u));
+  line-height: var(--lh);
+  letter-spacing: 0.01em;
+  color: var(--ink-60);
+}
+
+.availabilityDot {
+  width: calc(6 * var(--u));
+  height: calc(6 * var(--u));
+  border-radius: 50%;
+  background-color: var(--green);
+}

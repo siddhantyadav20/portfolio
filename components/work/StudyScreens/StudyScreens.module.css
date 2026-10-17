@@ -1,0 +1,160 @@
+/* Figma 1617:9607 — the panel, 24 down to its label. */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+}
+
+/* Figma 1617:9608 — 40% white, 32 in, a 32 corner, 48 between the pills
+   and the phones. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  width: 100%;
+  padding: 32px;
+  --sq-r: var(--r-xl);
+  background-color: var(--surface-glass);
+  overflow: hidden;
+}
+
+.pills {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* Figma 1619:10152 — 40 tall, 24 either side, fully round. The rest sit on
+   the panel's own glass; the current one is filled with the accent. */
+.pill {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 40px;
+  padding: 8px 24px;
+  border-radius: 60px;
+  background-color: var(--surface-glass);
+  box-shadow: var(--glass-shadow);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.pill[aria-current] {
+  background-color: var(--accent);
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Three 236x502 screens, first and last at the panel's edges. */
+.phones {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.phone {
+  display: flex;
+  flex: 0 1 236px;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.screen {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 236 / 502;
+  object-fit: cover;
+  object-position: top;
+  --sq-r: var(--r-lg);
+}
+
+.label {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: var(--lh-wide);
+  color: var(--accent);
+}
+
+/* Arriving: the panel rises, the flows step in along the top, and the three
+   phones come up after them on the site's spring, MVP first — the versions
+   arriving in the order they shipped. */
+.block[data-reveal="pending"] .panel,
+.block[data-reveal="pending"] > figcaption {
+  opacity: 0;
+  translate: 0 var(--reveal-lift);
+}
+
+.block[data-reveal="in"] .panel,
+.block[data-reveal="in"] > figcaption {
+  transition:
+    opacity var(--reveal-ms) var(--reveal-ease),
+    translate var(--reveal-ms) var(--reveal-ease);
+}
+
+.block[data-reveal="pending"] .pill {
+  opacity: 0;
+  translate: 0 6px;
+}
+
+.block[data-reveal="in"] .pill {
+  transition:
+    opacity 420ms var(--reveal-ease),
+    translate 420ms var(--reveal-ease);
+  transition-delay: calc(200ms + var(--i, 0) * 60ms);
+}
+
+.block[data-reveal="pending"] .phone {
+  opacity: 0;
+  translate: 0 28px;
+}
+
+.block[data-reveal="in"] .phone {
+  transition:
+    opacity 520ms ease,
+    translate 820ms var(--spring);
+  transition-delay: calc(360ms + var(--i, 0) * 130ms);
+}
+
+@media (width < 700px) {
+  .panel {
+    gap: 24px;
+    padding: 16px;
+    --sq-r: var(--r-lg);
+  }
+
+  .pills {
+    gap: 8px;
+  }
+
+  .pill {
+    height: 36px;
+    padding: 6px 16px;
+    font-size: 12px;
+  }
+
+  .phones {
+    gap: 8px;
+  }
+
+  .screen {
+    --sq-r: var(--r-sm);
+  }
+
+  .label {
+    font-size: 13px;
+  }
+}

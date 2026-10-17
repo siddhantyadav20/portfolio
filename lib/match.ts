@@ -31,6 +31,35 @@
 export type Mark = readonly [start: number, length: number];
 
 /**
+ * Strip accents, one character for one character.
+ *
+ * WRITTEN AFTER A RECRUITER-SHAPED MISS. The palette's résumé entry is
+ * labelled "Download résumé", so typing `resume` — the single most likely word
+ * anyone types into this palette — matched nothing and the empty state
+ * helpfully offered "Did you mean result?".
+ *
+ * The obvious fix, `normalize("NFD").replace(/\p{M}/gu, "")`, cannot be used
+ * here: every `Mark` is an index into the original string, and NFD changes the
+ * length of what it touches, so the highlight would slide off the letters it
+ * belongs to. Folding each character on its own and keeping only the first
+ * code point of its decomposition is length-preserving by construction, which
+ * is what keeps `marks` aligned with the text a renderer is painting.
+ *
+ * Only combining accents fold. Ligatures and eszett would change length and
+ * are left alone; nothing on this site is spelled with them.
+ */
+export function fold(text: string): string {
+  // The common path is pure ASCII: one regex test beats rebuilding the string.
+  if (!/[^\u0000-\u007f]/.test(text)) return text;
+  let out = "";
+  for (const ch of text) {
+    const base = ch.normalize("NFD");
+    out += base.length > 1 && ch.length === 1 ? base[0] : ch;
+  }
+  return out;
+}
+
+/**
  * Word starts in a string: the index of every character that begins a word.
  *
  * Alphanumeric runs only. Punctuation and whitespace both break a word, which
@@ -55,7 +84,7 @@ export function wordStarts(text: string): number[] {
  * is still typing does not produce an empty token that can never match.
  */
 export function tokenize(query: string): string[] {
-  return query.toLowerCase().split(/[^a-z0-9]+/i).filter(Boolean);
+  return fold(query).toLowerCase().split(/[^a-z0-9]+/i).filter(Boolean);
 }
 
 /** What a successful match knows about itself. */
@@ -154,7 +183,10 @@ export function matchFields(
   // Lowercased once per row, not once per token — one query walks the whole
   // index, so this is the loop that has to stay cheap.
   const prepared = fields.map((f) => {
-    const text = f.text.toLowerCase();
+    // Folded as well as lowercased, so "resume" reaches "résumé". `fold` is
+    // length-preserving, which is what lets the marks below stay indices into
+    // the caller's own string.
+    const text = fold(f.text).toLowerCase();
     return { ...f, text, starts: wordStarts(text) };
   });
 

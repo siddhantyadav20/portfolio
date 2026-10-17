@@ -22,6 +22,7 @@ import { Peek } from "./Peek";
 import { Results, rowId } from "./Results";
 import { hrefFor, run, verbFor } from "../run";
 import styles from "./CommandPalette.module.css";
+import { lockPage } from "@/lib/pageLock";
 
 /* ===========================================================================
    The command palette.
@@ -257,7 +258,7 @@ export default function CommandPalette({
 
   useEffect(() => {
     if (!open) return;
-    document.documentElement.setAttribute("data-modal-open", "");
+    const unlock = lockPage();
     const page = document.getElementById("main");
     page?.setAttribute("inert", "");
     const raf = requestAnimationFrame(() =>
@@ -265,7 +266,7 @@ export default function CommandPalette({
     );
     return () => {
       cancelAnimationFrame(raf);
-      document.documentElement.removeAttribute("data-modal-open");
+      unlock();
       page?.removeAttribute("inert");
     };
   }, [open]);

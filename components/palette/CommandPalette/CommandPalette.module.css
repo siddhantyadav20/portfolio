@@ -1465,6 +1465,17 @@
   .hints {
     display: none;
   }
+
+  /* THE QUESTION HAS TO FIT, INCLUDING ITS QUESTION MARK.
+     At 21px in the display face, "What do you want to know?" runs past a
+     390px panel that also carries a glyph, a 16px gutter each side and the
+     close button — so the phone got "What do you want to know" with the mark
+     cut off mid-glyph, which reads as a rendering fault rather than as a
+     placeholder. Two points down is enough at 375 and still the largest type
+     in the panel. */
+  .input {
+    font-size: 19px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

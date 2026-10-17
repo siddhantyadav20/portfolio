@@ -91,6 +91,16 @@
 
 /* Figma's Content frame: 80 between the intro, the rule, and each section. */
 .content {
+  /* THE ARRIVAL — what a block opted into `data-reveal` does when it reaches
+     the reader (see StudyMotion). The curve and the 16px are the modal's own
+     `modal-rise`, so a block landing on scroll moves the way the page did
+     when it opened; the step is the stagger between siblings. Declared here
+     so every block in the study inherits one clock. */
+  --reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --reveal-ms: 640ms;
+  --reveal-step: 70ms;
+  --reveal-lift: 16px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -125,6 +135,13 @@
      pair and a subtitle. */
   gap: 20px;
   width: 100%;
+}
+
+/* Figma 1617:9049 — the redesign that brought the sky cards also opened the
+   title block to 24. Keyed off the cards rather than set for every study,
+   because the other studies' frames still draw 20. */
+.intro:has(.outcome[data-look="sky"]) .titleBlock {
+  gap: 24px;
 }
 
 /* --- Helpers — Figma 328:10064 -------------------------------------------
@@ -269,6 +286,84 @@
   color: var(--ink-70);
 }
 
+/* Arriving: the three cards rise in a beat apart. `translate` rather than
+   `transform`, so nothing that wants `transform` later has to share it. */
+.outcomeRow[data-reveal="pending"] > .outcome {
+  opacity: 0;
+  translate: 0 var(--reveal-lift);
+}
+
+.outcomeRow[data-reveal="in"] > .outcome {
+  transition:
+    opacity var(--reveal-ms) var(--reveal-ease),
+    translate var(--reveal-ms) var(--reveal-ease);
+  transition-delay: calc(var(--i, 0) * var(--reveal-step));
+}
+
+/* Anything still held back prints anyway — a page printed before it was
+   scrolled is a page with holes in it otherwise. */
+@media print {
+  .content [data-reveal="pending"],
+  .content [data-reveal="pending"] * {
+    opacity: 1 !important;
+    translate: none !important;
+    scale: none !important;
+    clip-path: none !important;
+  }
+}
+
+/* The figure and, on the sky look, the icon opposite it. */
+.outcomeHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* --- The sky look — Figma 1617:9062 -------------------------------------
+   Same card, different paper: no hairline, one white-to-sky ramp on all
+   three at the file's 117deg, a 20 corner, and the number *and* its label in
+   the deep blue — the label here is a phrase ("Reporting Time"), not a caps
+   tag, so it is set a size up and medium. */
+.outcome[data-look="sky"] {
+  border: none;
+  --sq-r: var(--r-md);
+  background-image: linear-gradient(
+    117.35deg,
+    var(--wash-sky-from) 0%,
+    var(--wash-sky) 118.04%
+  );
+}
+
+.outcome[data-look="sky"] .outcomeFigure {
+  gap: 8px;
+}
+
+.outcome[data-look="sky"] .outcomeValue,
+.outcome[data-look="sky"] .outcomeLabel {
+  color: var(--blue);
+}
+
+.outcome[data-look="sky"] .outcomeLabel {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.outcomeIcon {
+  width: 24px;
+  height: 24px;
+  color: var(--blue);
+}
+
+/* The number's qualification, inside the card it qualifies — 11px, the
+   smallest type in the reader. */
+.outcomeFineprint {
+  margin: 0;
+  font-size: 11px;
+  line-height: var(--lh-wide);
+  color: var(--ink-70);
+}
+
 /* Centred under the row and a size down from the cards' own notes — it is the
    asterisk's other half, not a fourth statistic. Figma 548:12201. */
 .outcomeFootnote {
@@ -336,6 +431,26 @@
 @media (width < 700px) {
   .inner {
     padding: 0 24px;
+  }
+
+  /* THE META LINE, WITHOUT ORPHANED DOTS.
+     Each item carries its own separator in front of it, which is right on one
+     line and wrong on two: at 390px the six items wrap and the line below
+     began with a floating 6px dot before "10 min read", reading as a bullet
+     nobody asked for. The dots go at this width and a wider gap does their
+     job — six tags, centred — and 20px display type for a metadata line on a
+     phone was oversized anyway. */
+  .helpers {
+    gap: 4px 14px;
+    font-size: 15px;
+  }
+
+  .helper {
+    gap: 0;
+  }
+
+  .dot {
+    display: none;
   }
 
   /* Matches `.inner`'s two 24s, and the same reduction the footer takes. */

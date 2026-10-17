@@ -68,7 +68,10 @@ export default function StudyCarousel({ slides, caption }: Props) {
           id={`${id}-slide`}
           aria-live="polite"
         >
-          {slide.image ? (
+          {/* An exploration with no export shows its write-up alone rather
+              than a dashed handset beside it — `.column` is `flex: 1 1 0` and
+              takes the card. See the note in StudyMockup. */}
+          {slide.image && (
             <Image
               src={slide.image.src}
               alt={slide.image.alt}
@@ -78,12 +81,6 @@ export default function StudyCarousel({ slides, caption }: Props) {
               loading="lazy"
               sizes="236px"
             />
-          ) : (
-            <div className={`${styles.slot} squircle`} data-placeholder="">
-              <span className="srOnly">
-                The screen for this exploration, not yet exported
-              </span>
-            </div>
           )}
 
           <div className={styles.column}>

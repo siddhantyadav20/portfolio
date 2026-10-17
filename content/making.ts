@@ -145,7 +145,7 @@ export const scenes = [
     line: "Everything above is in the history, and the history is public.",
     /* The claim in that sentence is the only one on the page a reader cannot
        check by looking at the page, so it gets a link. A colophon that says
-       "it's all in the commits" and then does not say where is asking to be
+       "it’s all in the commits" and then does not say where is asking to be
        taken at its word, which is exactly what the four numbers above it are
        trying not to do. Verified public on 2026-09-04. */
     link: { label: "Read the commits", href: REPO },

@@ -1,0 +1,459 @@
+/* The journey map — Figma 1617:9636 — and the timeline turning into it.
+
+   The box (left, top, width, height) and `--t`, how far through the
+   conversion it is from 0 to 1, are written by StudyMap on every scroll
+   frame. Everything below is what those two mean: at 0 this is the timeline's
+   frame, at 1 it is the map in its corner, and in between every layer is a
+   mix of the two. */
+
+.map {
+  --t: 0;
+  position: fixed;
+  z-index: 3;
+  border-radius: var(--r, 24px);
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: var(--glass-shadow);
+  /* The glass. It is on from the first frame of the lift, which costs
+     nothing: the box starts exactly over the frame's empty slot, where there
+     is only flat page to blur. */
+  backdrop-filter: blur(16px) saturate(1.3);
+}
+
+.map[data-phase="hidden"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* In flight it is the reader's scroll moving it, not a pointer target. */
+.map[data-phase="morph"] {
+  pointer-events: none;
+}
+
+/* Landed. From here the box only moves when it folds or unfolds, or the
+   window changes size, so those get the site's spring; while it is flying the
+   scroll is the clock and there is nothing to ease. */
+.map[data-phase="docked"] {
+  transition:
+    left 560ms var(--spring),
+    top 560ms var(--spring),
+    width 560ms var(--spring),
+    height 560ms var(--spring),
+    border-radius 560ms var(--spring),
+    opacity 300ms ease,
+    translate 400ms var(--reveal-ease, ease);
+}
+
+/* The closing band has arrived — the journey is over, and the map steps
+   down out of the corner. */
+.map[data-ended] {
+  opacity: 0;
+  translate: 0 12px;
+  pointer-events: none;
+}
+
+/* --- The two papers ------------------------------------------------------
+   The timeline frame's 40% white and the map's frosted #f3f3f3 on its 12%
+   hairline, crossfading over the flight. */
+
+.paperFrame,
+.paperGlass {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.paperFrame {
+  background-color: var(--surface-glass);
+  opacity: calc(1 - var(--t));
+}
+
+.paperGlass {
+  border: 1px solid rgb(0 0 0 / 0.12);
+  background-color: rgb(243 243 243 / 0.8);
+  opacity: var(--t);
+}
+
+:global(html[data-theme="dark"]) .paperGlass {
+  border-color: rgb(255 255 255 / 0.08);
+  background-color: rgb(30 30 30 / 0.8);
+}
+
+/* --- The drawing, in flight ----------------------------------------------
+   A copy of the timeline at the scale of the box, panned to where the reader
+   left the real one, gone by the time it is too small to read: fully there
+   until 55% of the way, gone by 75%. The card is already coming in under it
+   by then, so the hand-off is one object changing rather than an empty pane
+   between two. */
+
+.drawingLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: clamp(0, calc((0.75 - var(--t)) / 0.2), 1);
+}
+
+.drawing {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  transform-origin: 0 0;
+}
+
+.drawingPan {
+  transform: translateX(var(--pan, 0px));
+}
+
+/* --- The card ------------------------------------------------------------
+   The map proper, pinned to the box's bottom-right corner at its own size,
+   so in flight it waits in the corner it is flying to, and when it folds the
+   box closes over it into that corner. It arrives between 60% and 85% of the
+   flight, as the drawing is leaving. */
+
+.card {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  height: 240px;
+  opacity: clamp(0, calc((var(--t) - 0.6) / 0.25), 1);
+}
+
+.map[data-minimised] .card {
+  opacity: 0;
+}
+
+.map[data-phase="docked"] .card,
+.map[data-phase="docked"] .pill {
+  transition: opacity 260ms ease;
+}
+
+/* The window onto the paper. The road ahead runs off its bottom rather than
+   being cut by it: the last 56px fade out, so the half-seen stop down there
+   reads as "further on" instead of as a card that did not fit. */
+.window {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 56px), transparent);
+}
+
+/* The paper the stops hang on, as tall as the journey plus one window, and
+   the camera. At the first stop the window is the file's frame exactly —
+   that stop at the top, the arrow under it. From the second stop on, the
+   camera keeps one stop of the road behind you in view above the one you are
+   at. The dots are on the paper rather than on the panel, so the paper moves
+   with the stops — the map travels instead of relabelling.
+
+   Figma's dots: 3px at 7% ink, fourteen across 296 and nine down 216, inset
+   11 inside the hairline — 22.54 by 26.63, tiled from 12.5 (the inset plus a
+   dot's radius). */
+.track {
+  --dot: rgb(from var(--ink) r g b / 0.07);
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(var(--stops) * var(--step) + 240px);
+  background-image: radial-gradient(circle, var(--dot) 1.5px, transparent 1.6px);
+  background-size: 22.538px 26.625px;
+  background-position: calc(12.5px - 22.538px / 2) calc(12.5px - 26.625px / 2);
+  translate: 0 calc(max(var(--at) - 1, 0) * var(--step) * -1);
+  transition: translate 820ms var(--spring);
+}
+
+.stops {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One stop: the card at the file's y of 11, centred, and the arrow 13 under
+   it pointing at the next. */
+.stop {
+  position: absolute;
+  top: calc(11px + var(--i) * var(--step));
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 13px;
+}
+
+/* Figma 1617:9773 — white, a 12% hairline, a 10 corner, 24 by 6 in. */
+.stopCard {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 24px;
+  border: 1px solid rgb(0 0 0 / 0.12);
+  border-radius: 10px;
+  background-color: var(--surface-solid);
+  font-family: inherit;
+  line-height: var(--lh-wide);
+  white-space: nowrap;
+  transition:
+    background-color 360ms ease,
+    border-color 360ms ease,
+    opacity 360ms ease,
+    transform 320ms var(--spring);
+}
+
+:global(html[data-theme="dark"]) .stopCard {
+  border-color: var(--ink-20);
+  background-color: var(--surface-raised);
+}
+
+button.stopCard {
+  cursor: pointer;
+}
+
+button.stopCard:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  button.stopCard:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.label {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  transition: color 360ms ease;
+}
+
+.note {
+  font-size: 12px;
+  color: var(--ink-60);
+  transition: color 360ms ease;
+}
+
+/* THE ROAD AHEAD — the same card, not yet reached: no paper of its own, a
+   dashed edge, its words faint. */
+.stop[data-state="ahead"] .stopCard {
+  border-style: dashed;
+  border-color: var(--ink-20);
+  background-color: transparent;
+}
+
+.stop[data-state="ahead"] .label {
+  color: var(--ink-50);
+}
+
+.stop[data-state="ahead"] .note {
+  color: var(--ink-40);
+}
+
+/* Behind you, and on its way off the top of the window. */
+.stop[data-state="past"] .stopCard {
+  opacity: 0.4;
+}
+
+/* Figma 1617:9777 — a short connector pointing down. Grey between stops, and
+   the accent out of the one you are at: the next step, lit. */
+.arrow {
+  position: relative;
+  width: 0;
+  height: 16px;
+  border-left: 1.5px solid var(--ink-20);
+  transition: border-color 360ms ease;
+}
+
+.arrow::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -4.25px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--ink-20);
+  border-bottom: 1.5px solid var(--ink-20);
+  rotate: 45deg;
+  transition: border-color 360ms ease;
+}
+
+.stop[data-state="here"] .arrow,
+.stop[data-state="here"] .arrow::after {
+  border-color: var(--accent);
+}
+
+/* --- Folding it away ----------------------------------------------------
+   A small round button in the card's top-right corner, its chevron pointing
+   down into the corner the card folds into. Quiet at rest so it does not
+   compete with the stops, and plainly a button under the pointer. */
+
+.fold {
+  appearance: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgb(0 0 0 / 0.08);
+  border-radius: var(--r-pill);
+  background-color: rgb(255 255 255 / 0.7);
+  color: var(--ink-60);
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    scale 320ms var(--spring);
+}
+
+:global(html[data-theme="dark"]) .fold {
+  border-color: var(--ink-20);
+  background-color: var(--surface-raised);
+}
+
+.chevron {
+  width: 8px;
+  height: 8px;
+  --icon: url(/icons/chevron-sm.svg);
+  transition: translate 320ms var(--spring);
+}
+
+/* The glyph points left; down is a quarter turn one way, up the other. */
+.chevron[data-dir="down"] {
+  rotate: -90deg;
+}
+
+.chevron[data-dir="up"] {
+  rotate: 90deg;
+}
+
+@media (hover: hover) {
+  .fold:hover {
+    background-color: var(--surface-raised);
+    color: var(--ink);
+  }
+
+  .fold:hover .chevron {
+    translate: 0 1.5px;
+  }
+}
+
+.fold:active {
+  scale: 0.92;
+}
+
+.fold:focus-visible,
+.pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* --- The pill -----------------------------------------------------------
+   What the card folds into, and still a map: the accent dot of "you are
+   here", the name of the stop, and a white disc with a chevron pointing up
+   at the card it opens back into. It is the box's own glass, so it is the
+   same object, smaller — not a second control. */
+
+.pill {
+  appearance: none;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.map[data-minimised] .pill {
+  opacity: clamp(0, calc((var(--t) - 0.6) / 0.25), 1);
+}
+
+.pillBody {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  height: 44px;
+  padding: 0 6px 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* You are here — the accent, with a slow halo breathing out of it so the
+   pill reads as live from the corner of the eye. */
+.dot {
+  position: relative;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background-color: var(--accent);
+}
+
+.dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: var(--accent);
+  animation: here 2400ms ease-out infinite;
+}
+
+@keyframes here {
+  from {
+    opacity: 0.5;
+    scale: 1;
+  }
+
+  70%,
+  to {
+    opacity: 0;
+    scale: 2.6;
+  }
+}
+
+.pillOpen {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background-color: var(--surface-raised);
+  box-shadow: 0 0 12px rgb(145 158 171 / 0.24);
+  color: var(--ink);
+  transition: scale 320ms var(--spring);
+}
+
+@media (hover: hover) {
+  .pill:hover .pillOpen {
+    scale: 1.08;
+  }
+
+  .pill:hover .chevron {
+    translate: 0 -1.5px;
+  }
+}
+
+.pill:active .pillOpen {
+  scale: 0.94;
+}
+
+/* No corner on a phone to put it in — the card would sit over half the
+   screen. The rail and the strip carry "where am I" at that width. */
+@media (width < 700px) {
+  .map {
+    display: none;
+  }
+}

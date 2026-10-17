@@ -234,7 +234,12 @@ describe("context", () => {
     const [cold] = searchPalette("permission model");
     expect(cold.entry.study).toBe("design-system");
 
-    const inspection = searchPalette("problem", { study: "inspection-photos" });
+    // "offline" is in the Search study and the Report Writing one, and cold
+    // it ranks Search first — so the reorder is the context's doing. (It was
+    // "problem", after the camera study's "The Problem" section, which went
+    // when the study under this slug was replaced.)
+    expect(searchPalette("offline")[0].entry.study).toBe("search");
+    const inspection = searchPalette("offline", { study: "inspection-photos" });
     expect(inspection[0].entry.study).toBe("inspection-photos");
   });
 

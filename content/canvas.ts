@@ -278,10 +278,10 @@ export const widgets: readonly Widget[] = [
 
 export const profile = {
   name: "Siddhant Yadav",
-  role: "Product/UX Designer",
+  role: "Product Designer",
   avatar: "/media/workspace/avatar.png",
   body: [
-    "Product and UX Designer with 4.5 years of experience. Currently designing AI assisted inspection software used by field professionals across the US.",
+    "Product Designer with 5 years of experience. Currently designing AI assisted inspection software used by field professionals across the US.",
     "Years of gaming taught me that great experiences are rarely noticed, they just feel right. That’s the standard I design for.",
   ],
   /** A one-line state-of-play under the name. Small, but it is the first
@@ -291,7 +291,7 @@ export const profile = {
   /** The three numbers worth stating, and only those. */
   facts: [
     { value: "5", label: "Years" },
-    { value: "20+", label: "Shipped" },
+    { value: "12", label: "Products" },
   ],
   updatesLabel: "Latest updates",
   updates: [
@@ -318,7 +318,7 @@ export const receipt = {
   subtitle: "Est. in the pixels",
   order: "2024-0042",
   name: "Siddhant Yadav",
-  role: "Product/UX Designer",
+  role: "Product Designer",
   items: [
     { label: "User Research", price: 13.37 },
     { label: "Interaction Design", price: 13.28 },
@@ -329,8 +329,8 @@ export const receipt = {
   tools: ["Figma", "Framer", "Notion", "Jira", "Miro"],
   toolFrequency: "daily",
   stats: [
-    { label: "Years experience", value: "4.5 yrs" },
-    { label: "Projects shipped", value: "12+" },
+    { label: "Years experience", value: "5 yrs" },
+    { label: "Products shipped", value: "12" },
     { label: "Coffee consumed", value: "∞" },
   ],
   subtotal: 54.88,
@@ -363,7 +363,7 @@ export const terminal = {
   ],
   bootOk: "  ready ✓",
 
-  tagline: "  Product/UX Designer  ·  4.5 yrs  ·  India 🇮🇳",
+  tagline: "  Product Designer  ·  5 yrs  ·  India 🇮🇳",
 
   skills: [
     "User Research",
@@ -380,7 +380,7 @@ export const terminal = {
     { name: "LikeMinds", desc: "Onboarding redesign · drop-off −28%" },
   ],
   about: [
-    "  Product/UX Designer · 4.5 yrs",
+    "  Product Designer · 5 yrs",
     "  Currently @ WIN Home Inspection",
     "  Based in India 🇮🇳",
   ],
@@ -430,7 +430,7 @@ export const terminal = {
    The foil hides a design brief. "Sketch it" pins the brief to the drawing
    canvas and flies the camera there; the visitor draws it and can send it.
    It used to hide a chess game with nowhere to go — PLAY NOW was an inert
-   placeholder and the "beat me, I'll owe you a coffee" prize never rendered.
+   placeholder and the "beat me, I’ll owe you a coffee" prize never rendered.
 
    A brief is three things, and each has a job on the ticket: the problem in a
    sentence, the one constraint that makes it interesting, and a time limit
@@ -494,7 +494,7 @@ export const briefs: readonly Brief[] = [
   {
     id: "roof-form", brief: "An inspection form filled in on a roof", constraint: "Gloves on, wind up", seconds: 60, frame: "tablet",
     take: {
-      note: "I had this one for real. The camera stopped being a separate tool: you photograph what's in front of you, and it lands in the right part of the report.",
+      note: "I had this one for real. The camera stopped being a separate tool: you photograph what’s in front of you, and it lands in the right part of the report.",
       study: { href: "/work/inspection-photos", label: "How it went" },
     },
   },
@@ -508,7 +508,7 @@ export const briefs: readonly Brief[] = [
   },
   {
     id: "song-driving", brief: "Skipping a song while driving", constraint: "Eyes on the road", seconds: 60, frame: "car",
-    take: { note: "No screen at all. A long press on the wheel skips, and the car reads the new song's name aloud, so there's never a reason to look down." },
+    take: { note: "No screen at all. A long press on the wheel skips, and the car reads the new song’s name aloud, so there’s never a reason to look down." },
   },
   {
     id: "platform-delay", brief: "A train delay on a platform screen", constraint: "Read in three seconds", seconds: 60, frame: "sign",
@@ -519,16 +519,16 @@ export const briefs: readonly Brief[] = [
     take: { note: "The step turns when you say “next”, and the screen stays awake while the timer runs. The only thing your hands should touch is the dough." },
   },
   {
-    id: "cancel-flow", brief: "A cancel flow that doesn't guilt-trip", constraint: "Three taps, max", seconds: 60, frame: "phone",
+    id: "cancel-flow", brief: "A cancel flow that doesn’t guilt-trip", constraint: "Three taps, max", seconds: 60, frame: "phone",
     take: { note: "Cancel is the first button, not the last. One screen that says what you lose and when, and a pause offered once, never twice." },
   },
   {
     id: "festival-lost", brief: "Finding your friends at a festival", constraint: "No signal", seconds: 60, frame: "watch",
-    take: { note: "Agree before you lose each other. Drop a meeting pin while there's signal; after that the phone is a compass pointing at it." },
+    take: { note: "Agree before you lose each other. Drop a meeting pin while there’s signal; after that the phone is a compass pointing at it." },
   },
   {
     id: "bad-news", brief: "Telling a user their order is late", constraint: "Before they ask", seconds: 60, frame: "phone",
-    take: { note: "Say it before they notice: the new date, the reason in one line, and what's being done about it. The apology goes last, not first." },
+    take: { note: "Say it before they notice: the new date, the reason in one line, and what’s being done about it. The apology goes last, not first." },
   },
 ];
 
@@ -536,18 +536,18 @@ export const briefs: readonly Brief[] = [
    into the deck means writing its note — the tests will say if it's missing. */
 export const benchedBriefs: readonly BenchedBrief[] = [
   { id: "atm-rain", brief: "An ATM screen people use in the rain", constraint: "Wet fingers, glare", seconds: 60 },
-  { id: "first-phone", brief: "Video calls on a grandparent's first phone", constraint: "One button", seconds: 60 },
+  { id: "first-phone", brief: "Video calls on a grandparent’s first phone", constraint: "One button", seconds: 60 },
   { id: "parking-meter", brief: "A parking meter nobody swears at", constraint: "Paid in ten seconds", seconds: 60 },
   { id: "empty-todo", brief: "The empty state of a brand-new to-do app", constraint: "No illustration", seconds: 60 },
   { id: "useful-404", brief: "A 404 page that still gets you somewhere", constraint: "No jokes", seconds: 60 },
   { id: "meds-travel", brief: "Medication reminders for someone who travels", constraint: "Time zones", seconds: 90 },
   { id: "kid-savings", brief: "A savings app for a nine-year-old", constraint: "No numbers over 100", seconds: 60 },
   { id: "skip-onboarding", brief: "Onboarding for people who skip onboarding", constraint: "One screen", seconds: 60 },
-  { id: "password-reset", brief: "A password reset that isn't a punishment", constraint: "No email loop", seconds: 60 },
+  { id: "password-reset", brief: "A password reset that isn’t a punishment", constraint: "No email loop", seconds: 60 },
   { id: "waiting-room", brief: "A hospital waiting-room queue display", constraint: "Anxious people", seconds: 90 },
   { id: "honest-unsub", brief: "Unsubscribe, designed by someone honest", constraint: "One click", seconds: 60 },
   { id: "lift-panel", brief: "Lift buttons for a forty-storey building", constraint: "Found at a glance", seconds: 60 },
-  { id: "fridge-expiry", brief: "A fridge that says what's about to go off", constraint: "No screen", seconds: 60 },
+  { id: "fridge-expiry", brief: "A fridge that says what’s about to go off", constraint: "No screen", seconds: 60 },
   { id: "shared-bill", brief: "Splitting a bill when one person paid", constraint: "Nobody feels cheap", seconds: 60 },
 ];
 

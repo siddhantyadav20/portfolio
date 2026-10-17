@@ -1,0 +1,412 @@
+/* Figma 1617:9129 — the frame, 24 down to its label. */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+}
+
+/* Figma 1617:9135 — 40% white, a 24 corner, the file's 2% glass shadow.
+   Clipped, because the canvas inside it is wider than it is. */
+.frame {
+  position: relative;
+  width: 100%;
+  height: 540px;
+  --sq-r: var(--r-lg);
+  background-color: var(--surface-glass);
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+}
+
+/* LIFTED OFF. While the journey map is carrying this frame into the corner
+   (see StudyMap), the map is the frame — a copy at exactly this box when the
+   lift begins — and the original steps out of the way so there are never two
+   of it on screen. `visibility`, so its slot keeps its size and nothing on
+   the page moves. */
+.frame[data-lifted] {
+  visibility: hidden;
+}
+
+.scroller {
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+/* A hand where the drawing can move under a mouse — see TimelinePan. Only on
+   a fine pointer: a phone has no cursor, and the hand would be meaningless
+   on one. */
+@media (pointer: fine) {
+  .scroller[data-pannable] {
+    cursor: grab;
+  }
+
+  .scroller[data-dragging] {
+    cursor: grabbing;
+    user-select: none;
+  }
+}
+
+.scroller:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* THE DOTS. Figma draws twelve rows of sixteen 5px dots at 7% ink, inset 12
+   and spread edge to edge over 1096x516 — 72.73 apart across and 46.45 down.
+   Painted rather than placed: a radial gradient tiled at that pitch, offset so
+   the first dot's centre lands at 14.5, which is 12 of inset plus its own
+   radius. It is the canvas's background, so it scrolls with the drawing and
+   keeps going past the frame at the same pitch. */
+.canvas {
+  --dot: rgb(from var(--ink) r g b / 0.07);
+  position: relative;
+  background-image: radial-gradient(
+    circle,
+    var(--dot) 2.5px,
+    transparent 2.6px
+  );
+  background-size: 72.733px 46.455px;
+  background-position: calc(14.5px - 72.733px / 2) calc(14.5px - 46.455px / 2);
+}
+
+.months {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.month {
+  position: absolute;
+  top: 24px;
+  width: 60px;
+  font-size: 13px;
+  line-height: var(--lh-read);
+  color: var(--ink);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Figma 1617:9341 — a white bar on a 12% hairline, the tool's name centred
+   and what it was pinned to the left edge. */
+.bar {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 6px 24px;
+  border: 1px solid rgb(0 0 0 / 0.12);
+  border-radius: 10px;
+  background-color: var(--surface-solid);
+  white-space: nowrap;
+}
+
+:global(html[data-theme="dark"]) .bar {
+  border-color: var(--ink-20);
+}
+
+.barLabel {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.barNote {
+  position: absolute;
+  top: 50%;
+  left: 12.5px;
+  transform: translateY(-50%);
+  font-size: 12px;
+  line-height: var(--lh-wide);
+  color: var(--ink-60);
+}
+
+/* Figma 1617:9366 — a short connector in the accent, pointing down. The shaft
+   is the element's left edge and the head is a rotated corner at its foot. */
+.arrow {
+  position: absolute;
+  width: 0;
+  border-left: 1.5px solid var(--accent);
+  transform: translateX(-0.75px);
+  transform-origin: top;
+}
+
+.arrow::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -4.25px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--accent);
+  border-bottom: 1.5px solid var(--accent);
+  transform: rotate(45deg);
+  transform-origin: center;
+}
+
+/* Figma 1617:9347 — a white card in a 6px ring of the canvas's grey, hugging
+   its longest line. The ring is the ink at 5% over the card's own white, which
+   is the file's #f4f4f4 and stays a ring rather than a halo in dark. */
+.phase {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: max-content;
+  padding: 12px;
+  border: 6px solid rgb(from var(--ink) r g b / 0.05);
+  border-radius: 12px;
+  background-color: var(--surface-solid);
+}
+
+.phaseTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+}
+
+.phaseIcon {
+  width: 24px;
+  height: 24px;
+  color: var(--ink);
+}
+
+.phaseItems {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0 0 0 19.5px;
+  font-size: 13px;
+  line-height: var(--lh-wide);
+  color: var(--ink-70);
+  white-space: nowrap;
+}
+
+/* Figma 1617:9377 — pinned 24 in from the frame's bottom-right corner. A
+   button now (it glides the drawing; see TimelinePan), drawn exactly as the
+   pill it was. */
+.hint {
+  appearance: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: scale 320ms var(--spring);
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 8px 16px;
+  border-radius: 60px;
+  background-color: var(--surface-glass);
+  box-shadow: var(--glass-shadow);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: var(--lh-wide);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.hint:active {
+  scale: 0.96;
+}
+
+.hint:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.hintIcon {
+  width: 25.5px;
+  height: 11px;
+  color: var(--ink);
+}
+
+/* --- Motion --------------------------------------------------------------
+
+   THE PILL'S ARROWS NUDGE until the drawing has been moved once — two small
+   swings, left then right, which is the gesture the pill is describing. Then
+   they stop for good: a hint that keeps waving after it has been understood
+   is just noise in the corner. Pointing at the pill swings them again. */
+.frame:not([data-touched]) .hintIcon {
+  animation: hint-nudge 1200ms ease-in-out var(--nudge-at, 900ms) 2 both;
+}
+
+@media (hover: hover) {
+  /* Its own name, so it restarts on every visit: an animation only replays
+     when its name changes, not when its timing does. */
+  .hint:hover .hintIcon {
+    animation: hint-nudge-again 1200ms ease-in-out 0ms 1 both;
+  }
+}
+
+@keyframes hint-nudge {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  30% {
+    translate: -3px 0;
+  }
+
+  65% {
+    translate: 3px 0;
+  }
+}
+
+@keyframes hint-nudge-again {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  30% {
+    translate: -3px 0;
+  }
+
+  65% {
+    translate: 3px 0;
+  }
+}
+
+/* THE PHASE CARDS OVERLAP, as drawn — so the one under the pointer comes to
+   the front and lifts a couple of pixels, which is what makes the line hidden
+   under its neighbour readable. `transform` is the hover's; the arrival below
+   uses `translate` and `scale`, so the two never fight over one property. */
+.phase {
+  transition: transform 360ms var(--spring);
+}
+
+@media (hover: hover) {
+  .phase:hover {
+    z-index: 1;
+    transform: translateY(-2px);
+  }
+}
+
+/* THE ARRIVAL. In the order you would draw it, from the moment the block is
+   flipped to "in" (see StudyMotion):
+
+     0ms     the frame rises, as every block in the reader does
+     200ms   the months tick across, 45ms apart
+     420ms   the legacy bars wipe in left to right, along the months
+     980ms   the arrow drops
+     1080ms  the phase cards land on the site's spring, 150ms apart
+     1500ms  the pill, last — and its arrows nudge once it has settled */
+
+.block[data-reveal="pending"] .frame,
+.block[data-reveal="pending"] > figcaption {
+  opacity: 0;
+  translate: 0 var(--reveal-lift);
+}
+
+.block[data-reveal="in"] .frame,
+.block[data-reveal="in"] > figcaption {
+  transition:
+    opacity var(--reveal-ms) var(--reveal-ease),
+    translate var(--reveal-ms) var(--reveal-ease);
+}
+
+.block[data-reveal="in"] > figcaption {
+  transition-delay: 160ms;
+}
+
+.block[data-reveal="pending"] .month {
+  opacity: 0;
+  translate: 0 6px;
+}
+
+.block[data-reveal="in"] .month {
+  transition:
+    opacity 420ms var(--reveal-ease),
+    translate 420ms var(--reveal-ease);
+  transition-delay: calc(200ms + var(--i, 0) * 45ms);
+}
+
+.block[data-reveal="pending"] .bar {
+  clip-path: inset(0 100% 0 0 round 10px);
+}
+
+.block[data-reveal="in"] .bar {
+  clip-path: inset(0 0 0 0 round 10px);
+  transition: clip-path 900ms cubic-bezier(0.65, 0, 0.35, 1);
+  transition-delay: calc(420ms + var(--i, 0) * 160ms);
+}
+
+.block[data-reveal="pending"] .arrow {
+  scale: 1 0;
+  opacity: 0;
+}
+
+.block[data-reveal="in"] .arrow {
+  transition:
+    scale 420ms var(--reveal-ease) 980ms,
+    opacity 200ms ease 980ms;
+}
+
+.block[data-reveal="pending"] .phase {
+  opacity: 0;
+  translate: 0 14px;
+  scale: 0.96;
+}
+
+.block[data-reveal="in"] .phase {
+  transition:
+    opacity 480ms ease calc(1080ms + var(--i, 0) * 150ms),
+    translate 760ms var(--spring) calc(1080ms + var(--i, 0) * 150ms),
+    scale 760ms var(--spring) calc(1080ms + var(--i, 0) * 150ms),
+    transform 360ms var(--spring);
+}
+
+.block[data-reveal="pending"] .hint {
+  opacity: 0;
+  translate: 0 8px;
+}
+
+.block[data-reveal="in"] .hint {
+  transition:
+    opacity 420ms var(--reveal-ease) 1500ms,
+    translate 420ms var(--reveal-ease) 1500ms,
+    scale 320ms var(--spring);
+}
+
+/* Held still until it has arrived, then nudging once it has settled. */
+.block[data-reveal="pending"] .hintIcon {
+  animation: none;
+}
+
+.block[data-reveal="in"] {
+  --nudge-at: 2100ms;
+}
+
+@media (width < 700px) {
+  .hint {
+    right: 12px;
+    bottom: 12px;
+    height: 36px;
+    padding: 6px 12px;
+    gap: 8px;
+    font-size: 12px;
+  }
+}

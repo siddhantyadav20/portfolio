@@ -217,7 +217,12 @@ export default function RemarkFinder({ cue, track, className }: Props) {
   }, [clearTimers]);
 
   const hits = useMemo(() => searchRemarks(query), [query]);
-  const suggestions = hits.slice(0, SUGGESTIONS);
+  /* Four at rest, five once somebody types. The card's outcome chip — the
+     Navigation-first / Search-first comparison — is pinned to the bottom right
+     corner of the card and only shows while this instrument is idle, so the
+     fifth row at rest would sit under it. It gives up its place to the chip
+     and comes back the moment the chip goes. */
+  const suggestions = hits.slice(0, phase === "idle" ? SUGGESTIONS - 1 : SUGGESTIONS);
   const spread = spreadOf(hits);
 
   /* --- The cue -------------------------------------------------------------
@@ -568,7 +573,18 @@ export default function RemarkFinder({ cue, track, className }: Props) {
 
       {/* --- What is under it -------------------------------------------- */}
       <div className={styles.below}>
-        {phase === "typing" && (
+        {/* IDLE SHOWS THE SAME LIST TYPING DOES, which is the card making the
+            study's own argument instead of describing it: "suggested
+            observations come up before anything is typed — the empty state is
+            the most useful screen in the flow". `searchRemarks("")` already
+            returns the library ranked by use for exactly this.
+
+            It is also what closes the hole in the card. This block only
+            appeared once somebody typed, so at rest the card was a heading, a
+            search field, and ~300px of nothing above the before/after chip
+            pinned to its floor — the largest piece of empty space on the
+            homepage, on the card whose subject is a good empty state. */}
+        {(phase === "idle" || phase === "typing") && (
           <div className={styles.suggestions}>
             <div className={styles.listHead}>
               <p className={styles.listTitle}>Suggested Observations</p>
@@ -659,9 +675,16 @@ export default function RemarkFinder({ cue, track, className }: Props) {
             </div>
 
             {empty ? (
+              /* WAS: "Down a tree it was three taps, and only for the one
+                 branch you guessed." The point is good and the sentence was
+                 unreadable cold — and this is the state most visitors land in,
+                 because the sample is 40 remarks and they type a real one like
+                 "roof leak". So: what to try, then the point. */
               <p className={styles.blank}>
-                Nothing in the library says that. Down a tree it was three taps,
-                and only for the one branch you guessed.
+                Nothing in this sample says that — try <b>crack</b>,{" "}
+                <b>moisture</b> or <b>shingles</b>. That took{" "}
+                {query.trim().length} characters to find out; down the tree it
+                was three taps, and only if you guessed the right branch.
               </p>
             ) : (
               <ul className={styles.findings}>

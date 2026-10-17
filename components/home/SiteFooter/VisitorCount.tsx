@@ -52,6 +52,11 @@ export default function VisitorCount() {
 
   const total = visitors?.configured ? visitors.total : null;
 
+  /* EVERY COUNT SHOWS, however small. A floor under it was tried and pulled
+     back out by request: the number is real, it is the footer's own quiet
+     measurement, and a counter that appears only once it is flattering is not
+     a measurement. */
+
   return (
     <p
       className={styles.visitors}

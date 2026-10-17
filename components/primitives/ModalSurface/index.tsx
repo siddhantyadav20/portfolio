@@ -6,6 +6,7 @@ import BottomBlur from "@/components/primitives/BottomBlur";
 import GlassAction, { CloseGlyph } from "@/components/primitives/GlassAction";
 import { escapeFromField, useModalShell } from "@/lib/modalShell";
 import styles from "./ModalSurface.module.css";
+import { lockPage } from "@/lib/pageLock";
 
 /* `EXIT_MS` and `MODAL_VT` used to live here and now live in
    `lib/viewTransition.ts`, alongside the rest of the morph's vocabulary —
@@ -109,7 +110,7 @@ export default function ModalSurface({
     // ProximityField watches for this and stops writing transforms to the cards
     // behind us — they're invisible under an opaque overlay, and a card still
     // easing when the closing snapshot is taken drags on the morph back.
-    document.documentElement.setAttribute("data-modal-open", "");
+    const unlock = lockPage();
 
     /* And the page behind goes `inert`.
        The modal renders its own <h1> and portals it to <body>, alongside the
@@ -131,7 +132,7 @@ export default function ModalSurface({
 
     return () => {
       cancelAnimationFrame(raf);
-      document.documentElement.removeAttribute("data-modal-open");
+      unlock();
       page?.removeAttribute("inert");
     };
   }, [open]);

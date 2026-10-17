@@ -52,7 +52,13 @@ import {
 } from "@/content/site";
 import { found } from "@/content/found";
 import { making } from "@/content/making";
-import { STUDIES, type StudyBlock, heroStill } from "@/content/work";
+import {
+  STUDIES,
+  type StudyBlock,
+  type StudyText,
+  heroStill,
+  plainText,
+} from "@/content/work";
 import type { PaletteEntry } from "./types";
 
 export * from "./types";
@@ -183,7 +189,14 @@ function prosaic(block: StudyBlock): string[] {
       /* Only the paragraphs. Everything else in the column is an artefact
          with a caption, and a caption is a label rather than a sentence
          somebody would search for — see `prosaic`'s own contract above. */
-      return [block.lead, ...block.body.filter((i) => typeof i === "string")];
+      return [
+        block.lead,
+        ...block.body.flatMap((i) =>
+          typeof i === "string" || Array.isArray(i)
+            ? [plainText(i as StudyText)]
+            : [],
+        ),
+      ];
     case "note":
     case "insight":
       return [block.eyebrow, block.heading, ...block.body];
@@ -193,6 +206,23 @@ function prosaic(block: StudyBlock): string[] {
       return [block.caption.label];
     case "live":
       return [];
+    case "panel":
+      return block.intro ? [plainText(block.intro)] : [];
+    case "stats":
+      return [
+        block.heading,
+        ...block.cards.flatMap((c) => [c.value, c.label, c.body]),
+      ];
+    case "constraints":
+      return [...block.items, block.last].map((c) => `${c.lead} ${c.body}`);
+    case "challenge":
+      return [block.eyebrow, block.heading, block.body];
+    case "timeline":
+      return block.timeline.phases.flatMap((p) => [p.title, ...p.items]);
+    case "versions":
+      return block.items.flatMap((v) => [v.kicker, v.label]);
+    case "screens":
+      return [...block.pills];
   }
 }
 
@@ -680,8 +710,16 @@ const actions: PaletteEntry[] = [
   {
     id: "do:resume",
     group: "do",
-    label: "Download résumé",
-    keywords: "cv curriculum vitae pdf experience download",
+    /* "Open", not "Download", because that is what the action does — it opens
+       the PDF in a new tab. The button in the peek pane has always said Open;
+       this row promised a file on disk and then didn't deliver one.
+
+       `resume` is spelled out in the keywords as well as folded out of the
+       label by `lib/match.ts`. Belt and braces on the one word most likely to
+       be typed here. */
+    label: "Open résumé",
+    hint: "CV · PDF",
+    keywords: "resume cv curriculum vitae pdf experience download hire",
     to: { kind: "action", action: "resume" },
     featured: true,
   },
