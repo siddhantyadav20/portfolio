@@ -1,0 +1,53 @@
+/* The device's own measurements — `.device` and `.screen` in
+   FoundPhone.module.css — so the real phone lands exactly on this one. */
+.device {
+  /* Found is always dark, whatever the site's theme is. */
+  --skel-bone: rgb(255 255 255 / 0.1);
+  --skel-chip: rgb(255 255 255 / 0.045);
+  --skel-media-from: rgb(255 255 255 / 0.08);
+  --skel-media-to: rgb(255 255 255 / 0.035);
+
+  position: relative;
+  height: min(860px, calc(100cqh - 48px));
+  aspect-ratio: 390 / 844;
+  padding: 11px;
+  border-radius: 60px;
+  background: rgb(255 255 255 / 0.035);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  animation: open 620ms var(--spring-drop) backwards;
+}
+
+.screen {
+  position: relative;
+  height: 100%;
+  border-radius: 50px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.025);
+}
+
+/* The island, drawn rather than boned: it is the one part of the phone that
+   is always there, whatever the screen ends up showing. */
+.screen::before {
+  content: "";
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  width: 31%;
+  height: 33px;
+  translate: -50% 0;
+  border-radius: 99px;
+  background: rgb(0 0 0 / 0.55);
+}
+
+@keyframes open {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .device {
+    animation: none;
+  }
+}

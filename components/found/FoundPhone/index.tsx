@@ -29,6 +29,7 @@ import Charge from "./Charge";
 import { drag } from "./drag";
 import EndCard from "./EndCard";
 import Envelope from "./Envelope";
+import Skeleton from "./Skeleton";
 import Home from "./Home";
 import { AppGlyph } from "./icons";
 import LockScreen from "./LockScreen";
@@ -348,7 +349,10 @@ export default function FoundPhone() {
   const st = s ? stage(ep, s) : null;
   let body: React.ReactNode = null;
 
-  if (mounted && !s) body = <Envelope onOpen={play.start} />;
+  // Before hydration there is no saved game to read, so no screen to draw:
+  // the phone's outline holds the place. See ./Skeleton.
+  if (!mounted) body = <Skeleton />;
+  else if (!s) body = <Envelope onOpen={play.start} />;
   else if (mounted && s && st?.screen === "end") body = <EndCard state={s} episode={st.episode} onReplay={play.reset} />;
   else if (mounted && s && st) {
     const charging = st.episode === 2;

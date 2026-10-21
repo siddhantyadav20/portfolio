@@ -1,5 +1,6 @@
 "use client";
 
+import { pending } from "@/lib/pending";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
 import CtaPill from "@/components/primitives/CtaPill";
@@ -166,7 +167,7 @@ export default function CanvasCard() {
     // new state inside `flushSync`, and a component that has not arrived yet
     // renders nothing to snapshot. Awaiting here is the guarantee; hovering the
     // card has usually already fetched it.
-    const mod = await loadSurface();
+    const mod = await pending(cardRef.current, loadSurface());
     const update = () => {
       setSurface(() => mod.default);
       setOpen(true);

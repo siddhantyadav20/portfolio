@@ -2,11 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import BootSequence from "@/components/boot/BootSequence";
 import CanvasCursor from "@/components/interaction/CanvasCursor";
+import MediaSkeleton from "@/components/interaction/MediaSkeleton";
 import NoTabFocus from "@/components/interaction/NoTabFocus";
 import PressField from "@/components/interaction/PressField";
 import PaletteHost from "@/components/palette/PaletteHost";
 import { intro, linkedin } from "@/content/site";
 import { BOOT_SCRIPT } from "@/lib/boot";
+import { SCENE_SCRIPT } from "@/lib/scene";
 import { siteUrl } from "@/lib/origin";
 import { CHROME, THEME_SCRIPT } from "@/lib/theme";
 import { canela, outfit } from "./fonts";
@@ -94,6 +96,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             would otherwise have to hide a moment later. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
+        {/* And the skeleton that scene opens on, drawn off the parsed page
+            before React has it. Inert unless BOOT_SCRIPT asked for a scene.
+            See lib/scene.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: SCENE_SCRIPT }} />
       </head>
       <body>
         {/* Who this is, in the form a search engine will actually read. The
@@ -135,6 +141,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Renders nothing. Every `data-press` surface on every route gives
             under a press — one listener, so it lives with the cursor. */}
         <PressField />
+        {/* Renders nothing. A study's pictures that have not arrived yet get
+            a frame of their own until they do — in the modal and on the
+            study page alike. */}
+        <MediaSkeleton />
         {/* Renders nothing. Refuses Tab site-wide — see the note in that file,
             which carries what that costs. */}
         <NoTabFocus />

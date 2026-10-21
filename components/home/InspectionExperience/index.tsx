@@ -1,5 +1,6 @@
 "use client";
 
+import { pending } from "@/lib/pending";
 import Image from "next/image";
 import { useCallback, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
@@ -62,31 +63,41 @@ export default function InspectionExperience() {
   const [closing, setClosing] = useState(false);
   const { Modal, setModal, load, warmModal } = useLazyStudyModal(open);
 
-  const openStudy = useCallback(async (from?: Element | null) => {
-    // The modal's own code, resolved before anything moves — same reason as
-    // the assets below, and the same guarantee. See `useLazyStudyModal`.
-    const Loaded = await load();
-    // Cleared alongside the open so the card isn't left playing behind the
-    // modal. Safe under a view transition: the "old" snapshot is taken before
-    // this callback runs, so it still catches the card hovered.
-    const update = () => {
-      setModal(() => Loaded);
-      setHovered(false);
-      setOpen(true);
-    };
-    if (!canMorph()) {
-      update();
-      return;
-    }
-    // Hovering will normally have finished this long ago; awaiting is the
-    // guarantee, not the mechanism. See MODAL_ASSETS.
-    await Promise.all(MODAL_ASSETS.map(warm));
-    morph(update, {
-      name: inspectionPhotos.hero?.morphName,
-      from,
-      dir: "in",
-    });
-  }, [load, setModal]);
+  const openStudy = useCallback(
+    async (from?: Element | null) => {
+      // The modal's own code, resolved before anything moves — same reason as
+      // the assets below, and the same guarantee. See `useLazyStudyModal`.
+      // Shown on the card if it is slow — see lib/pending.ts.
+      const Loaded = await pending(
+        from,
+        (async () => {
+          const Modal = await load();
+          // Hovering will normally have finished this long ago; awaiting is
+          // the guarantee, not the mechanism. See MODAL_ASSETS.
+          if (canMorph()) await Promise.all(MODAL_ASSETS.map(warm));
+          return Modal;
+        })(),
+      );
+      // Cleared alongside the open so the card isn't left playing behind the
+      // modal. Safe under a view transition: the "old" snapshot is taken before
+      // this callback runs, so it still catches the card hovered.
+      const update = () => {
+        setModal(() => Loaded);
+        setHovered(false);
+        setOpen(true);
+      };
+      if (!canMorph()) {
+        update();
+        return;
+      }
+      morph(update, {
+        name: inspectionPhotos.hero?.morphName,
+        from,
+        dir: "in",
+      });
+    },
+    [load, setModal],
+  );
 
   /**
    * Click handler for the card's real `<a href="/work/inspection-photos">`.

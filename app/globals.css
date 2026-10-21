@@ -1977,10 +1977,10 @@ html[data-theme="dark"] {
    The homepage on somebody's first arrival, while `BootSequence` writes the
    mark and hands it over.
 
-   THE CARDS ANIMATE THEMSELVES. The component measures them, orders them by
-   distance from the Introduction and writes `--boot-at` onto each; the rest is
-   here. They arrive 45ms apart, which is the interval a wave wants — an
-   earlier version used 350ms and read as a queue rather than a gesture.
+   THE CARDS ARE THE SCENE'S. While the mark is drawn, the page around it is
+   the skeleton — see "Scene" below — and the boot only says *when* the
+   content lands: it calls `land()` as the mark sets off for home, so the page
+   fills in behind it, outward from the card it is flying to.
 
    THE PAGE IS DIMMED, NEVER HIDDEN. `display: none` would leave the sequence
    nothing to measure — an element with no box has no `getBoundingClientRect()`,
@@ -2014,52 +2014,6 @@ html[data-booting] [data-logo] {
   }
 }
 
-/* Every card, waiting its turn. */
-html[data-booting] [data-boot-card] {
-  opacity: 0;
-  animation: bootCardIn 420ms var(--spring) var(--boot-at, 0ms) forwards;
-}
-
-/* Arriving from slightly under and slightly out of focus.
-
-   The blur is the part that does the work: a surface that scales up *and*
-   resolves reads as coming toward you, where scale alone reads as a box being
-   stretched. Opacity-only entrances are the flattest thing in motion design
-   and the one every list of amateur tells names first. */
-@keyframes bootCardIn {
-  from {
-    opacity: 0;
-    transform: translateY(7px) scale(0.985);
-    filter: blur(9px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-/* The chrome that is not a card — theme toggle, footer, the blur ramp. Last,
-   and derived from the run rather than hardcoded: the previous version pinned
-   this at 3200ms, which silently desynchronised the moment the sequence was
-   retimed. */
-/* The chrome that is not a card — the theme toggle, the footer.
-
-   `:has()` is doing real work here: `.band` is a direct child of `#main` and it
-   *contains* every card, so a plain `#main > *` held the entire grid at opacity
-   0 until the chrome's own late delay. The cards were animating correctly
-   inside a parent that was invisible.
-
-   `.skipLink` is deliberately not in this list. It is positioned off-screen by
-   a transform until focused, and `bootCardIn` sets `transform` — which
-   overrode that and parked "Skip to content" in the top-left corner of the
-   loading screen. Anything whose resting state is a transform must not be
-   given an entrance that animates one. */
-html[data-booting] #main > *:not([data-boot-card]):not(:has([data-boot-card])) {
-  opacity: 0;
-  animation: bootCardIn 420ms var(--spring) var(--boot-chrome, 2250ms) forwards;
-}
-
 /* Nothing under the overlay should react to a pointer crossing it — the
    proximity field would be pushing cards around behind a screen nobody can see
    through. */
@@ -2068,82 +2022,422 @@ html[data-booting] #main {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-booting] [data-boot-card],
-  html[data-booting] [data-logo],
-  html[data-booting] #main > *:not([data-boot-card]):not(:has([data-boot-card])) {
+  html[data-booting] [data-logo] {
     opacity: 1;
     animation: none;
   }
 }
 
 /* ==========================================================================
-   Arrival — every visit after the first
+   Scene — frames first, then what goes in them
 
-   The boot above runs once. This is its last beat on its own: the page rising
-   behind the mark, about half a second, on every later document load of the
-   homepage. The other half is `BOOT_SCRIPT` in lib/boot.ts, which sets
-   `data-arriving` before first paint and takes it down a second later.
+   Every document load of the homepage and of a case study. `lib/scene.ts`
+   says what it is and why; this is what it looks like.
 
-   A WAVE FROM THE INTRODUCTION, because that is where the boot's mark lands
-   and so where the page has always risen from. Each card's place in the wave
-   is its distance from the Introduction's centre, measured on the 1440 frame
-   and binned into five rings — static numbers rather than measured ones,
-   because this has to run with no JavaScript at all: the whole point is that
-   it starts on the first frame, not after hydration. On a phone the rings
-   still run top to bottom, since the Introduction leads there too.
+   THE SKELETON is the page's own layout, read off the DOM: a frame per card in
+   that card's corner, and a bone per line of text, per image, per pill. It is
+   drawn as one surface — a frame is the card's ground at a fraction of its
+   strength, a bone is ink at a breath — so the page reads as itself, unfilled,
+   rather than as a grid of grey boxes from a component kit.
 
-   NO BLUR, unlike `bootCardIn`. A `filter` makes its element a backdrop root,
-   and the glass pills inside the Introduction would lose their frost for the
-   length of the animation and get it back with a pop at the end. The boot
-   gets away with it under a covering overlay; this has no overlay.
+   THREE MOTIONS, AND THEY ARE ONE GESTURE. The frames open, the light passes
+   and the content lands, each as a ripple out of the same point — the card the
+   eye is on. A loader with its own idea of direction (the left-to-right sweep
+   every skeleton library ships) argues with the page about where to look;
+   this one keeps pointing at the same place.
 
-   ON `translate` AND `scale`, NOT `transform`, which the proximity field owns,
-   and `backwards` rather than `both`: a finished animation holding its end
-   state would hold `scale: 1` over the press. Before it starts it shows the
-   first frame; after it ends it is gone.
+   THE LIGHT IS A LIFT, NOT A GRADIENT. As the ripple passes a bone it brightens
+   and rises a pixel and a half, then settles — keys on a piano being run
+   over, rather than a sheen sliding over glass. Opacity and `translate` only,
+   so the whole loader runs on the compositor while React is still hydrating
+   the page underneath it.
 
-   A card that `HomeRise` has taken over (`data-rise`) is excluded — it is
-   below the fold and will arrive on its own when it is scrolled to.
+   THE LANDING is a drop on a bouncier spring than the site's own: each card
+   comes down from slightly above and slightly nearer, overshoots its frame by
+   about two pixels, and settles. Placed, with a little give — the press
+   physics' cousin. On `translate`, `scale` and `opacity` only, never
+   `transform`: the proximity field owns that one, every frame.
    ========================================================================== */
 
-html[data-arriving] :is([data-prox-card], [data-prox-passive]):not([data-rise]),
-html[data-arriving] #main > :not(:has([data-prox-card], [data-prox-passive])) {
-  animation: arrive var(--dur-base) var(--spring) backwards;
-  animation-delay: calc(var(--arrive, 3) * 45ms);
+/* Sampled from a damped spring, ζ 0.5 at 2.2Hz over the animation's run: one
+   overshoot of 16% and a rebound of 3%. The site's `--spring` overshoots 4%,
+   which at a 14px drop is a third of a pixel — correct for a surface being
+   placed, invisible for one being dropped. */
+:root {
+  --spring-drop: linear(
+    0, 0.064, 0.221, 0.422, 0.629, 0.815, 0.964, 1.07, 1.133, 1.16, 1.16,
+    1.14, 1.109, 1.075, 1.043, 1.016, 0.995, 0.982, 0.975, 0.973, 0.975, 0.98,
+    0.985, 0.991, 0.996, 0.999, 1.002, 1.004, 1.004, 1.004, 1.004, 1.003,
+    1.002, 1.001, 1, 1, 1
+  );
+
+  /* A frame is a card's ground, held back: white film on the light page. */
+  --skel-frame: rgb(255 255 255 / 0.55);
+  --skel-bone: rgb(from var(--ink) r g b / 0.11);
+  --skel-chip: rgb(from var(--ink) r g b / 0.045);
+  --skel-media-from: rgb(from var(--ink) r g b / 0.09);
+  --skel-media-to: rgb(from var(--ink) r g b / 0.045);
 }
 
-html[data-arriving] [data-card="introduction"] {
-  --arrive: 0;
+html[data-theme="dark"] {
+  --skel-frame: rgb(255 255 255 / 0.04);
+  --skel-bone: rgb(255 255 255 / 0.1);
+  --skel-chip: rgb(255 255 255 / 0.04);
+  --skel-media-from: rgb(255 255 255 / 0.075);
+  --skel-media-to: rgb(255 255 255 / 0.035);
 }
 
-html[data-arriving] [data-card="design-engineer"],
-html[data-arriving] :has(> [data-card="about"]) {
-  --arrive: 1;
+/* Held back, from the first frame. The item list is `SCENE_PAGES` in
+   lib/scene.ts and the two must say the same thing.
+
+   `:where()`, so the hold weighs one attribute and nothing more: the
+   runtime's landing rules are a path from `#main`, and a hold that counted
+   the ids in this list (`#main #intro`) outranked them and kept a study
+   invisible until the failsafe let it go.
+
+   `scene-failsafe` is the guarantee: if the runtime never ran, or threw, every
+   item lets itself go fourteen seconds in, and the page is the page. The
+   runtime's own landing rules replace this animation long before then. */
+html[data-scene="home"]
+  :where(
+    #main :is([data-prox-card], [data-prox-passive]),
+    #main > :not(:has([data-prox-card], [data-prox-passive])),
+    #main
+      > :has([data-prox-card], [data-prox-passive])
+      > :not(:has([data-prox-card], [data-prox-passive])):not(
+        [data-prox-card],
+        [data-prox-passive]
+      )
+  ),
+html[data-scene="study"]
+  :where(
+    #main > :not(:has(#intro, #comments)),
+    #main #intro > *,
+    #main #intro ~ [data-stage="rule"],
+    #main #intro ~ * > section > *,
+    #main #comments,
+    #main footer
+  ),
+html[data-scene="page"] :where([data-scene-root] > *) {
+  opacity: 0;
+  animation: scene-failsafe 1ms 14s forwards;
 }
 
-html[data-arriving] [data-card="inspection"],
-html[data-arriving] [data-card="store"],
-html[data-arriving] [data-card="canvas"] {
-  --arrive: 2;
+@keyframes scene-failsafe {
+  to {
+    opacity: 1;
+  }
 }
 
-/* The timeline, and the chrome by the fallback above. */
-html[data-arriving] [data-card="timeline"] {
-  --arrive: 3;
-}
-
-html[data-arriving] [data-card="design-system"],
-html[data-arriving] [data-card="search"],
-html[data-arriving] [data-card="fantasy"],
-html[data-arriving] [data-card="music"] {
-  --arrive: 4;
-}
-
-@keyframes arrive {
+/* The landing for an item that holds something `position: fixed` — a
+   control pinned to the viewport, a modal open inside its card. `translate`
+   and `scale` would make the item the containing block for it and drag it
+   out of place for the length of the drop, so these arrive by light alone. */
+@keyframes scene-fade {
   from {
     opacity: 0;
-    translate: 0 10px;
-    scale: 0.985;
+  }
+}
+
+/* The runtime writes one rule per item as it lands — `opacity: 1` and this. */
+@keyframes scene-land {
+  from {
+    opacity: 0;
+    translate: 0 -14px;
+    scale: 1.035;
+  }
+}
+
+/* --- The skeleton -------------------------------------------------------- */
+
+/* Document coordinates, so it scrolls with the page and a restored scroll
+   position finds the frames where they belong. As tall as the document (the
+   runtime sets the height) and clipped at the viewport's sides: the Timeline
+   deliberately bleeds past the right edge and its frame must not become a
+   horizontal scrollbar. Above the content, so a frame can cross-fade into the
+   card landing in it; under the boot's mark, which is at 990. */
+.scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  overflow: clip;
+  pointer-events: none;
+  contain: layout style;
+}
+
+.scene-frame {
+  position: absolute;
+  overflow: hidden;
+  /* Opening: a pop out of the page on the drop spring. */
+  animation: scene-frame-in 620ms var(--spring-drop)
+    calc(var(--clock, 0ms) + var(--in, 0ms)) backwards;
+}
+
+.scene-frame.is-filled {
+  background: var(--skel-frame);
+}
+
+/* A card whose ground is a photograph — Inspection — is one big media bone
+   with its words laid over it. */
+.scene-frame.is-pictured {
+  background: linear-gradient(
+    160deg,
+    var(--skel-media-from),
+    var(--skel-media-to)
+  );
+}
+
+@keyframes scene-frame-in {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
+.scene-bone {
+  position: absolute;
+  display: block;
+  background: var(--skel-bone);
+  opacity: 0.6;
+  transform-origin: left center;
+  animation:
+    scene-bone-in 420ms var(--ease-out)
+      calc(var(--clock, 0ms) + var(--in, 0ms) + 90ms + var(--i, 0) * 16ms)
+      backwards,
+    scene-glint 2400ms var(--ease-in-out)
+      calc(var(--clock, 0ms) + 1100ms + var(--g, 0ms)) infinite;
+}
+
+/* A pill, a field, a chip: the shape only, quieter than what sits in it. */
+.scene-bone.is-c {
+  background: var(--skel-chip);
+  opacity: 1;
+}
+
+.scene-bone.is-m {
+  background: linear-gradient(
+    160deg,
+    var(--skel-media-from),
+    var(--skel-media-to)
+  );
+  opacity: 1;
+  transform-origin: center;
+}
+
+/* Lines are drawn left to right, the way they will be read. */
+@keyframes scene-bone-in {
+  from {
+    opacity: 0;
+    scale: 0 1;
+  }
+}
+
+.scene-bone.is-m,
+.scene-bone.is-c {
+  animation-name: scene-media-in, scene-glint;
+}
+
+@keyframes scene-media-in {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+}
+
+/* The ripple of light. Most of the cycle is rest, so it reads as something
+   passing rather than as everything pulsing. */
+@keyframes scene-glint {
+  0%,
+  34%,
+  100% {
+    translate: 0 0;
+  }
+  12% {
+    opacity: 1;
+    translate: 0 -1.5px;
+  }
+}
+
+/* Landing: the frame lets go as the card comes down into it. Both animations
+   stay listed, so a frame still opening when its card lands is not snapped
+   to the end of its entrance. */
+.scene-frame[data-out] {
+  animation:
+    scene-frame-in 620ms var(--spring-drop)
+      calc(var(--clock, 0ms) + var(--in, 0ms)) backwards,
+    scene-frame-out 280ms var(--ease-out) calc(var(--out, 0ms) + 40ms) forwards;
+}
+
+@keyframes scene-frame-out {
+  to {
+    opacity: 0;
+    scale: 1.012;
+  }
+}
+
+/* The boot draws the mark in a clearing of the skeleton — the frames wait
+   around it rather than under it — and the clearing closes as the mark sets
+   off home and the content follows it in. `--pool` is registered so the mask
+   can be transitioned at all. */
+@property --pool {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+html[data-booting] .scene {
+  --pool: 40vmin;
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50vh,
+    transparent calc(var(--pool) * 0.6),
+    #000 var(--pool)
+  );
+  mask-image: radial-gradient(
+    circle at 50% 50vh,
+    transparent calc(var(--pool) * 0.6),
+    #000 var(--pool)
+  );
+  /* Closing from the moment the content starts down — `land()` is called
+     as the drawing begins, with that moment as its delay. */
+  transition: --pool 900ms var(--ease-in-out) var(--land-at, 0ms);
+}
+
+html[data-booting] .scene[data-landing] {
+  --pool: 0px;
+}
+
+/* --- Pending: the card you pressed, while what it opens is on its way ---
+
+   See lib/pending.ts. A ring of the scene's light leaves the point that was
+   pressed and keeps leaving it, and the card's own content steps back a
+   little so the ring reads as the card working rather than as a decoration
+   laid over it. Snaps back with no transition: the attribute comes off just
+   before the morph takes its snapshot, and the snapshot must be of the card
+   at rest. */
+@property --pending-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+[data-pending] {
+  position: relative;
+  --pending-band: rgb(from var(--ink) r g b / 0.07);
+  --pending-edge: rgb(from var(--ink) r g b / 0.2);
+}
+
+html[data-theme="dark"] [data-pending] {
+  --pending-band: rgb(255 255 255 / 0.08);
+  --pending-edge: rgb(255 255 255 / 0.28);
+}
+
+[data-pending] > * {
+  opacity: 0.62;
+}
+
+[data-pending]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  pointer-events: none;
+  /* A soft trailing band with a crisp leading edge — a wavefront, so it
+     reads as travelling outward rather than as a halo breathing. */
+  background: radial-gradient(
+    circle at var(--pending-x, 50%) var(--pending-y, 50%),
+    transparent calc(var(--pending-r) - 110px),
+    var(--pending-band) calc(var(--pending-r) - 8px),
+    var(--pending-edge) var(--pending-r),
+    transparent calc(var(--pending-r) + 1.5px)
+  );
+  animation: pending-ring 1100ms var(--ease-out) infinite;
+}
+
+@keyframes pending-ring {
+  from {
+    --pending-r: 0px;
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.8;
+  }
+  to {
+    --pending-r: calc(var(--pending-reach, 400px) + 60px);
+    opacity: 0;
+  }
+}
+
+/* --- A picture that has not arrived yet --------------------------------
+
+   See components/interaction/MediaSkeleton. The hole the picture will fill
+   is a frame of its own — the media bone's ground — with the scene's ring of
+   light leaving its middle until the picture is in; then the picture
+   develops, soft and pale to sharp. The ground is the image element's own
+   background, so it is exactly the picture's box and corner, and the picture
+   paints straight over it. */
+@property --media-r {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+img[data-skel="loading"] {
+  background-color: var(--skel-media-to);
+  background-image:
+    radial-gradient(
+      circle at 50% 50%,
+      transparent calc(var(--media-r) - 22%),
+      var(--skel-bone) calc(var(--media-r) - 2%),
+      transparent var(--media-r)
+    ),
+    linear-gradient(160deg, var(--skel-media-from), var(--skel-media-to));
+  animation: media-ring 1500ms var(--ease-out) infinite;
+}
+
+@keyframes media-ring {
+  from {
+    --media-r: 0%;
+  }
+  to {
+    --media-r: 90%;
+  }
+}
+
+img[data-skel="in"] {
+  animation: media-develop 560ms var(--ease-out);
+}
+
+@keyframes media-develop {
+  from {
+    filter: blur(10px) saturate(0.4) brightness(1.06);
+  }
+}
+
+/* Rising with a modal open inside it is the scene's bug again — `translate`
+   and `scale` would make the card the containing block for the modal. */
+:root [data-rise="in"]:has([aria-modal="true"]) {
+  animation-name: scene-fade;
+}
+
+/* Reduced motion never gets a scene (`BOOT_SCRIPT` does not set the
+   attribute); this is the belt to that braces, for a preference changed with
+   the page already open. */
+@media (prefers-reduced-motion: reduce) {
+  .scene {
+    display: none;
+  }
+
+  img[data-skel] {
+    animation: none;
+  }
+
+  /* Still told that something is happening — just not with motion. */
+  [data-pending]::after {
+    animation: none;
+    background: var(--skel-chip);
   }
 }
 
@@ -2190,8 +2484,6 @@ html[data-arriving] [data-card="music"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-arriving] :is([data-prox-card], [data-prox-passive]),
-  html[data-arriving] #main > *,
   [data-rise] {
     opacity: 1;
     animation: none;

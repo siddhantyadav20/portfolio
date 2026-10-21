@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import LogoMark from "@/components/brand/LogoMark";
 import { LOGO_BOX, LOGO_PARTS } from "@/content/logo";
 import { BOOT_MS, isBooting, markSeen, revealPage } from "@/lib/boot";
+import { landScene } from "@/lib/scene";
 import styles from "./BootSequence.module.css";
 
 /* ===========================================================================
@@ -62,19 +63,6 @@ const HOLD_UNTIL = 0.66;
 const FLY = 0.22;
 /** Cards start before the mark lands — overlapping action. */
 const CARDS_LEAD = 0.19;
-/**
- * The page's own entrance, in milliseconds rather than fractions.
- *
- * These are perceptual constants, not pace: 45ms apart is the interval a wave
- * wants whatever the run is timed at — wider and the eye reads a queue, which
- * is what an earlier version at 350ms got wrong — and a card takes 420ms to
- * arrive because that is how long that particular entrance takes to land.
- *
- * `in` is the one number here that is written down twice: it is the duration
- * on `bootCardIn` in globals.css, and it is needed here to know when the wave
- * has finished. If that keyframe is retimed, retime this with it.
- */
-const CARD = { step: 45, in: 420, chrome: 260 };
 /** How long a control handle is out for, and how far ahead of the line it goes. */
 const ARM = 0.1;
 const ARM_LEAD = 0.012;
@@ -110,8 +98,6 @@ const MAX_SHARE = 0.42;
  */
 const PX = { anchor: 2.8, handleDot: 2.1, head: 3.2, hair: 1.5 };
 
-const CARDS = "[data-prox-card], [data-prox-passive]";
-const FOCAL = '[data-card="introduction"]';
 const LOGO = "[data-logo]";
 
 type Flight = {
@@ -151,7 +137,9 @@ const BEATS = (() => {
      solid while the Y is still being drawn. Two moments rather than one, which
      is how the drawing actually goes. */
   const inkAt = (tone: "s" | "y") =>
-    Math.max(...LOGO_PARTS.map((p, i) => (p.tone === tone ? parts[i].ends : 0)));
+    Math.max(
+      ...LOGO_PARTS.map((p, i) => (p.tone === tone ? parts[i].ends : 0)),
+    );
   return { parts, ink: { s: inkAt("s"), y: inkAt("y") } };
 })();
 
@@ -171,6 +159,9 @@ export default function BootSequence() {
   const finish = useCallback(() => {
     if (done.current) return;
     done.current = true;
+    /* A no-op when the flight already called it — and the only thing that
+       brings the cards in when the sequence ended before it could. */
+    landScene(0);
     revealPage();
     markSeen();
     /* And actually leave.
@@ -205,96 +196,31 @@ export default function BootSequence() {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
 
-      /* Schedule every card. Written straight onto the elements rather than
-         held in state — the cards are not this component's to render, and
-         re-rendering to move eight numbers would be work for nothing.
+      /* When the content lands.
 
-         EVERY card, and that word is the bug this fixes. Being scheduled is
-         also what *hides* a card — the stylesheet holds `[data-boot-card]` at
-         opacity 0 until its moment — so a card left out of this list is not
-         quietly skipped, it is on screen at full strength from the first
-         frame. The old filter dropped anything starting within 40px of the
-         bottom edge, which is a 40px band of viewport heights where the two
-         cards on the last row sat there in plain sight while the mark was
-         still being drawn. Whether the loader looked right came down to how
-         tall the window happened to be.
+         The cards are the scene's (lib/scene.ts): it has been showing them as
+         their own skeleton since the HTML arrived, and the mark is being
+         drawn in a clearing of it. All this decides is the moment the content
+         comes down into those frames — `CARDS_LEAD` before the mark lands, so
+         the page fills in behind it on its way home and the two motions
+         overlap instead of queueing; and never before both tones are down,
+         because content arriving during the sketch reads as the page giving
+         up on its own animation.
 
-         So the list is everything, and where a card is decides only when it
-         arrives: the ones on screen carry the wave, and the ones outside it
-         come home with the tail. */
-      const all = Array.from(document.querySelectorAll<HTMLElement>(CARDS))
-        .map((el) => ({ el, b: el.getBoundingClientRect() }))
-        .filter(({ b }) => b.width > 40 && b.height > 40);
-      const cards = all.filter(({ b }) => b.y < vh && b.y + b.height > 0);
-      const offscreen = all.filter((c) => !cards.includes(c));
-
-      const focal = document.querySelector<HTMLElement>(FOCAL)?.getBoundingClientRect();
-      const ox = focal ? focal.x + focal.width / 2 : vw / 2;
-      const oy = focal ? focal.y + focal.height / 2 : vh / 2;
-
-      /* When the wave starts.
-
-         `CARDS_LEAD` is the intent — begin before the mark lands, so the two
-         motions overlap instead of queueing. The `min` is the guarantee: the
-         wave plus the chrome behind it takes a fixed number of milliseconds,
-         and if the beats above are ever retimed so that tail no longer fits
-         inside the run, the overlay is removed part-way through it and every
-         card still animating snaps to its end state. That is a cut, and it is
-         invisible in review because it only shows up on the last card or two.
-         Starting late enough to finish is worth more than starting exactly
-         where the fraction says. */
-      const tail = cards.length * CARD.step + CARD.chrome + CARD.in;
-      /* ...and the floor that keeps the wave off the drawing.
-
-         The `min` above can pull the wave arbitrarily early — it is a function
-         of how many cards are on screen, so a tall window or one more card on
-         the page moves it — and early enough is *during the sketch*, which
-         reads as the page giving up on its own animation. Nothing may arrive
-         before both tones are down and the mark is whole. If the two ever
-         genuinely conflict, the last card or two clipping at the hand-over is
-         the cheaper failure: it happens at the edge of a screen already
-         filling up, where the sketch is the thing being looked at. */
+         The ripple's order and spread are the scene's too, outward from the
+         Introduction — the card the mark is flying to. The run no longer has
+         to fit inside BOOT_MS: the scene takes itself down when its last card
+         is down, so finishing here cannot cut a card off part-way. */
       const drawn = (BEATS.ink.y + INK) * BOOT_MS;
-      const lands = Math.max(
-        drawn,
-        Math.min((HOLD_UNTIL + FLY - CARDS_LEAD) * BOOT_MS, BOOT_MS - tail),
-      );
-      cards
-        .map((c) => ({
-          ...c,
-          d: Math.hypot(c.b.x + c.b.width / 2 - ox, c.b.y + c.b.height / 2 - oy),
-        }))
-        /* Ordered by distance from the Introduction, so the page opens
-           outward from the card the mark is landing in rather than in DOM
-           order. */
-        .sort((a, b) => a.d - b.d)
-        .forEach((c, i) => {
-          c.el.dataset.bootCard = "";
-          c.el.style.setProperty(
-            "--boot-at",
-            `${Math.round(lands + i * CARD.step)}ms`,
-          );
-        });
-
-      /* The cards nobody can see, held until the wave has passed. They are
-         off screen and the page is scroll-locked, so this is not about how
-         they look — it is so that a late reflow (a font landing, an image
-         settling) cannot slide one into view mid-sketch. Hidden costs nothing;
-         being wrong about what is visible is what caused this. */
-      const last = Math.round(lands + cards.length * CARD.step);
-      for (const c of offscreen) {
-        c.el.dataset.bootCard = "";
-        c.el.style.setProperty("--boot-at", `${last}ms`);
-      }
+      const lands = Math.max(drawn, (HOLD_UNTIL + FLY - CARDS_LEAD) * BOOT_MS);
+      landScene(Math.round(lands));
 
       /* The two moments the stylesheet needs, derived here so retiming the
          sequence cannot desynchronise them. An earlier version hardcoded the
          chrome delay at 3200ms and it drifted the first time BOOT_MS moved. */
-      const root = document.documentElement.style;
-      root.setProperty("--boot-handover", `${Math.round((HOLD_UNTIL + FLY) * BOOT_MS)}ms`);
-      root.setProperty(
-        "--boot-chrome",
-        `${Math.round(lands + cards.length * CARD.step + CARD.chrome)}ms`,
+      document.documentElement.style.setProperty(
+        "--boot-handover",
+        `${Math.round((HOLD_UNTIL + FLY) * BOOT_MS)}ms`,
       );
 
       const k = Math.min(SCALE, (Math.min(vw, vh) * MAX_SHARE) / r.width);
@@ -365,6 +291,7 @@ export default function BootSequence() {
   useEffect(() => {
     if (!booting) return;
     const bail = window.setTimeout(() => {
+      landScene(0);
       revealPage();
       setGone(true);
     }, BOOT_MS * 2);
@@ -458,7 +385,9 @@ export default function BootSequence() {
                           "--ox": `${node.on[0]}px`,
                           "--oy": `${node.on[1]}px`,
                           "--at": ms(
-                            BEATS.parts[i].from + node.at * BEATS.parts[i].dur - ARM_LEAD,
+                            BEATS.parts[i].from +
+                              node.at * BEATS.parts[i].dur -
+                              ARM_LEAD,
                           ),
                         } as React.CSSProperties
                       }
@@ -496,7 +425,9 @@ export default function BootSequence() {
                     {
                       "--ox": `${node.on[0]}px`,
                       "--oy": `${node.on[1]}px`,
-                      "--at": ms(BEATS.parts[i].from + node.at * BEATS.parts[i].dur),
+                      "--at": ms(
+                        BEATS.parts[i].from + node.at * BEATS.parts[i].dur,
+                      ),
                     } as React.CSSProperties
                   }
                 />

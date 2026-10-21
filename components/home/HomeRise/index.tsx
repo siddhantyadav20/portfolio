@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect } from "react";
+import { SCENE_ATTR, SCENE_END } from "@/lib/scene";
 
 /** The homepage's cards — the same set the proximity field and the boot use. */
 const CARDS = "#main :is([data-prox-card], [data-prox-passive])";
@@ -34,9 +35,11 @@ export default function HomeRise() {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (typeof IntersectionObserver === "undefined") return;
 
-    const fold = window.innerHeight;
+    let io: IntersectionObserver | null = null;
+    const start = () => {
+      const fold = window.innerHeight;
 
-    /* The bottom edge is pulled in, so a card arrives a little way into the
+      /* The bottom edge is pulled in, so a card arrives a little way into the
        screen — where the eye already is — rather than at its edge.
 
        The top edge is pushed out to effectively infinity, and that is the fix
@@ -47,44 +50,59 @@ export default function HomeRise() {
        about it — and it sat at opacity 0, above the reader, until they
        scrolled back and watched it rise *upward* into a page they had already
        read. Counted as arrived instead, it is simply there. */
-    const io = new IntersectionObserver(
-      (entries) => {
-        const arriving = entries
-          .filter((e) => e.isIntersecting)
-          .sort(
-            (a, b) =>
-              a.boundingClientRect.top - b.boundingClientRect.top ||
-              a.boundingClientRect.left - b.boundingClientRect.left,
-          );
+      const observer = (io = new IntersectionObserver(
+        (entries) => {
+          const arriving = entries
+            .filter((e) => e.isIntersecting)
+            .sort(
+              (a, b) =>
+                a.boundingClientRect.top - b.boundingClientRect.top ||
+                a.boundingClientRect.left - b.boundingClientRect.left,
+            );
 
-        let seen = 0;
-        for (const entry of arriving) {
-          const el = entry.target as HTMLElement;
-          io.unobserve(el);
-          // Passed over, not arrived at: no motion for nobody to see.
-          if (entry.boundingClientRect.bottom <= 0) {
-            el.dataset.rise = "done";
-            continue;
-          }
-          /* Capped, so a card does not wait on a queue of others: four
+          let seen = 0;
+          for (const entry of arriving) {
+            const el = entry.target as HTMLElement;
+            observer.unobserve(el);
+            // Passed over, not arrived at: no motion for nobody to see.
+            if (entry.boundingClientRect.bottom <= 0) {
+              el.dataset.rise = "done";
+              continue;
+            }
+            /* Capped, so a card does not wait on a queue of others: four
              arriving at once is a fling, and the last of them should not
              still be holding back a fifth of a second later. */
-          const step = Math.min(seen++, 2);
-          el.style.setProperty("--rise-delay", `${step * STAGGER_MS}ms`);
-          el.dataset.rise = "in";
-        }
-      },
-      { rootMargin: "100000px 0px -8% 0px" },
-    );
+            const step = Math.min(seen++, 2);
+            el.style.setProperty("--rise-delay", `${step * STAGGER_MS}ms`);
+            el.dataset.rise = "in";
+          }
+        },
+        { rootMargin: "100000px 0px -8% 0px" },
+      ));
 
-    for (const el of document.querySelectorAll<HTMLElement>(CARDS)) {
-      if (el.dataset.rise === "in" || el.dataset.rise === "done") continue;
-      if (el.getBoundingClientRect().top <= fold) continue;
-      el.dataset.rise = "pending";
-      io.observe(el);
-    }
+      for (const el of document.querySelectorAll<HTMLElement>(CARDS)) {
+        if (el.dataset.rise === "in" || el.dataset.rise === "done") continue;
+        if (el.getBoundingClientRect().top <= fold) continue;
+        el.dataset.rise = "pending";
+        observer.observe(el);
+      }
+    };
 
-    return () => io.disconnect();
+    /* The page is opening as its own skeleton (lib/scene.ts), and what is on
+       screen is the scene's to land. Wait for it to finish and measure then,
+       against wherever the reader is by that point — a reload restores the
+       scroll position during the scene, and the fold at hydration may be a
+       different part of the page from the one being looked at. The scene
+       ends in the same task that removes its hold, so a card handed over
+       here is never painted in between. */
+    if (document.documentElement.hasAttribute(SCENE_ATTR)) {
+      window.addEventListener(SCENE_END, start, { once: true });
+    } else start();
+
+    return () => {
+      window.removeEventListener(SCENE_END, start);
+      io?.disconnect();
+    };
   }, []);
 
   return null;

@@ -1,5 +1,6 @@
 "use client";
 
+import { pending } from "@/lib/pending";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
@@ -446,7 +447,8 @@ export default function AboutMeCard() {
     }
 
     await Promise.all([
-      ...MODAL_ASSETS.map(warm),
+      // The gather is a beat, not a wait; only the fetch is shown as one.
+      pending(cardRef.current, Promise.all(MODAL_ASSETS.map(warm))),
       new Promise((r) => window.setTimeout(r, GATHER_LEAD)),
     ]);
     morph(() => setOpen(true), { name: PORTRAIT_MORPH, from: cardRef.current, dir: "in" });

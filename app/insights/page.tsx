@@ -28,7 +28,7 @@ export default async function InsightsPage({ searchParams }: PageProps<"/insight
   const data = await readInsights();
 
   return (
-    <main id="main" className={styles.page}>
+    <main id="main" className={styles.page} data-scene-root>
       <header className={styles.head}>
         <p className={styles.eyebrow}>Insights</p>
         <h1 className={styles.title}>Who’s been here</h1>

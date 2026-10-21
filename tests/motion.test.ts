@@ -2,11 +2,12 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { ARRIVE_HOLD_MS, BOOT_SCRIPT } from "../lib/boot";
+import { BOOT_SCRIPT } from "../lib/boot";
+import { SCENE_MS, SCENE_PAGES, SCENE_SCRIPT } from "../lib/scene";
 import { PRESS, RELEASE_EASE, pressScale } from "../lib/press";
 
 /**
- * The press, the arrival and the rise.
+ * The press, the opening scene and the rise.
  *
  * Loose on purpose, like `viewTransition.test.ts`: the feel can be re-tuned
  * freely, and only the properties that make it read as one material — or
@@ -52,7 +53,10 @@ describe("press", () => {
   });
 
   it("comes back past rest, once, and lands exactly on it", () => {
-    const points = /^linear\((.*)\)$/.exec(RELEASE_EASE)![1].split(",").map(Number);
+    const points = /^linear\((.*)\)$/
+      .exec(RELEASE_EASE)![1]
+      .split(",")
+      .map(Number);
     expect(points[0]).toBe(0);
     expect(points[points.length - 1]).toBe(1);
     const peak = Math.max(...points);
@@ -62,44 +66,69 @@ describe("press", () => {
   });
 });
 
-describe("arrival", () => {
-  const step = Number(/animation-delay: calc\(var\(--arrive, \d+\) \* (\d+)ms\)/.exec(css)?.[1]);
-  const rings = [...css.matchAll(/--arrive: (\d+);/g)].map((m) => Number(m[1]));
-  const fallback = Number(/var\(--arrive, (\d+)\)/.exec(css)?.[1]);
-  const base = Number(/--dur-base: (\d+)ms/.exec(css)?.[1]);
+describe("scene", () => {
+  const norm = (sel: string) =>
+    sel
+      .split(/,(?![^(]*\))/)
+      .map((p) =>
+        p
+          .replace(/\s+/g, " ")
+          .replace(/\s*([>~+(),])\s*/g, "$1")
+          .trim(),
+      )
+      .filter(Boolean)
+      .sort();
+  /** The selector list inside `html[data-scene="<kind>"] :where( ... )`. */
+  const hidden = (kind: string) => {
+    const at = css.indexOf(`html[data-scene="${kind}"]`);
+    const open = css.indexOf(":where(", at) + 7;
+    let depth = 1;
+    let i = open;
+    for (; depth && i < css.length; i++) {
+      if (css[i] === "(") depth++;
+      if (css[i] === ")") depth--;
+    }
+    return css.slice(open, i - 1);
+  };
 
-  it("is written the way this test reads it", () => {
-    expect(step).toBeGreaterThan(0);
-    expect(rings.length).toBeGreaterThan(3);
-    expect(base).toBeGreaterThan(0);
-    expect(/animation: arrive var\(--dur-base\)/.test(css)).toBe(true);
+  it("holds back exactly what the runtime lands", () => {
+    /* An item the stylesheet hides and the runtime does not list is
+       invisible until the scene ends; the other way round, it is drawn twice. */
+    for (const kind of ["home", "study", "page"] as const)
+      expect(norm(hidden(kind))).toEqual(norm(SCENE_PAGES[kind].items));
   });
 
-  it("finishes before the attribute that runs it is taken down", () => {
-    /* `data-arriving` comes off ARRIVE_HOLD_MS after the first frame. A card
-       still animating then loses its animation and snaps to rest — a cut on
-       the last card or two, which is exactly where nobody looks in review. */
-    const last = Math.max(...rings, fallback) * step + base;
-    expect(last).toBeLessThan(ARRIVE_HOLD_MS);
+  it("only runs on a document load, and never on back/forward or reduced motion", () => {
+    expect(BOOT_SCRIPT).toMatch(/prefers-reduced-motion: reduce/);
+    expect(BOOT_SCRIPT).toMatch(/back_forward/);
+    // The boot is only ever an addition to the homepage's scene.
+    expect(BOOT_SCRIPT).toMatch(
+      /p==="\/"\)\{d\.setAttribute\("data-scene","home"\);if\(!localStorage[^}]*data-booting/,
+    );
+    expect(BOOT_SCRIPT).toMatch(/"data-scene","study"/);
   });
 
-  it("is short enough not to be a loader", () => {
-    const last = Math.max(...rings, fallback) * step + base;
-    expect(last).toBeLessThanOrEqual(700);
+  it("lets the page go even if the runtime never runs", () => {
+    expect(css).toMatch(/animation: scene-failsafe 1ms \d+s forwards;/);
   });
 
-  it("never runs on the first visit, alongside the boot", () => {
-    // One branch sets `data-booting`, the other `data-arriving`; never both.
-    expect(BOOT_SCRIPT).toMatch(/if\(!localStorage\.getItem\([^)]*\)\)\{[^}]*data-booting[^}]*\}else\{[^}]*data-arriving/);
+  it("is a loader with a ceiling, not a wait", () => {
+    expect(SCENE_MS.hold).toBeLessThan(SCENE_MS.wait);
+    // A reload with everything cached: frames, then down, in about a second.
+    expect(SCENE_MS.hold + SCENE_MS.spread).toBeLessThanOrEqual(1000);
+    expect(SCENE_MS.wait).toBeLessThanOrEqual(3000);
   });
 
   it("keeps off the properties the proximity field and the press own", () => {
     /* `transform` is written every frame by the field, and a fill that holds
        `scale` would sit over every later press. */
-    const arrive = /@keyframes arrive \{([\s\S]*?)\n\}/.exec(css)![1];
+    const land = /@keyframes scene-land \{([\s\S]*?)\n\}/.exec(css)![1];
     const rise = /@keyframes rise \{([\s\S]*?)\n\}/.exec(css)![1];
-    for (const body of [arrive, rise]) expect(body).not.toMatch(/\btransform\s*:/);
-    expect(css).toMatch(/animation: arrive [^;]*\bbackwards;/);
+    for (const body of [land, rise])
+      expect(body).not.toMatch(/\btransform\s*:/);
+    expect(SCENE_SCRIPT).toMatch(
+      /scene-land "[^"]*"ms var\(--spring-drop\) "[^"]*"ms backwards/,
+    );
     expect(css).toMatch(/animation: rise [^;]*\bbackwards;/);
   });
 });

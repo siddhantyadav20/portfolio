@@ -5,6 +5,7 @@ import { useLazyStudyModal } from "@/components/home/CaseStudyModal/lazy";
 import { exitMs } from "@/components/primitives/ModalSurface";
 import { heroStill, type CaseStudy } from "@/content/work";
 import { canMorph, morph, warm } from "@/lib/viewTransition";
+import { pending } from "@/lib/pending";
 import { useStudyUrl } from "./useStudyUrl";
 
 /**
@@ -27,30 +28,41 @@ export function useStudyModal(study: CaseStudy, live = true) {
   const [closing, setClosing] = useState(false);
   const { Modal, setModal, load, warmModal } = useLazyStudyModal(open);
 
-  const openStudy = useCallback(async (from?: Element | null) => {
-    // Resolved before anything else moves — see `useLazyStudyModal`. Hovering
-    // has normally done this already; awaiting is the guarantee.
-    const Loaded = await load();
-    const update = () => {
-      setModal(() => Loaded);
-      setOpen(true);
-    };
-    if (!canMorph()) {
-      update();
-      return;
-    }
-    // Decode the hero before the transition starts, or the modal's half of the
-    // morph snapshots an empty frame. Hovering has usually done this already.
-    //
-    // A `live` hero is DOM rather than an image and has nothing to decode: it
-    // is already painted by the time the transition takes its snapshot, so
-    // waiting on its stand-in still would only delay the morph by a network
-    // round trip for a file that surface never shows.
-    if (study.hero && study.hero.kind !== "live") {
-      await warm(heroStill(study.hero).src);
-    }
-    morph(update, { name: study.hero?.morphName, from, dir: "in" });
-  }, [study.hero, load, setModal]);
+  const openStudy = useCallback(
+    async (from?: Element | null) => {
+      // Resolved before anything else moves — see `useLazyStudyModal`. Hovering
+      // has normally done this already; awaiting is the guarantee. On a phone
+      // there was no hover, and the card shows the wait — see lib/pending.ts.
+      const Loaded = await pending(
+        from,
+        (async () => {
+          const Modal = await load();
+          // Decode the hero before the transition starts, or the modal's half
+          // of the morph snapshots an empty frame. Hovering has usually done
+          // this already.
+          //
+          // A `live` hero is DOM rather than an image and has nothing to
+          // decode: it is already painted by the time the transition takes its
+          // snapshot, so waiting on its stand-in still would only delay the
+          // morph by a network round trip for a file that surface never shows.
+          if (canMorph() && study.hero && study.hero.kind !== "live") {
+            await warm(heroStill(study.hero).src);
+          }
+          return Modal;
+        })(),
+      );
+      const update = () => {
+        setModal(() => Loaded);
+        setOpen(true);
+      };
+      if (!canMorph()) {
+        update();
+        return;
+      }
+      morph(update, { name: study.hero?.morphName, from, dir: "in" });
+    },
+    [study.hero, load, setModal],
+  );
 
   const close = useCallback(() => {
     if (canMorph()) {

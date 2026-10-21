@@ -1,5 +1,6 @@
 "use client";
 
+import { pending } from "@/lib/pending";
 import { useCallback, useEffect, useState } from "react";
 import { exitMs } from "@/components/primitives/ModalSurface";
 import { MAKING_OPEN } from "@/lib/making";
@@ -78,7 +79,7 @@ export default function ColophonLink() {
   const [morphed, setMorphed] = useState(false);
 
   const openReader = useCallback(async (from?: Element | null) => {
-    const Loaded = await loadReader();
+    const Loaded = await pending(from, loadReader());
     const update = () => {
       setReader(() => Loaded);
       setOpen(true);

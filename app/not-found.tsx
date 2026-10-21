@@ -25,7 +25,7 @@ export const metadata: Metadata = {
  */
 export default function NotFound() {
   return (
-    <main id="main" className={styles.page}>
+    <main id="main" className={styles.page} data-scene-root>
       <div className={styles.block}>
         <p className={styles.code}>404</p>
         <h1 className={styles.title}>That page isn’t here.</h1>

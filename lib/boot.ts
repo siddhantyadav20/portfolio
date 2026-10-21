@@ -24,6 +24,8 @@
    time — the sequence is drawn on top of it, not instead of it.
    =========================================================================== */
 
+import { SCENE_ATTR } from "./scene";
+
 /** Bumping this replays the sequence for everyone who has already seen it. */
 export const BOOT_KEY = "sy-seen-v1";
 
@@ -48,61 +50,44 @@ export const BOOT_MS = 3400;
 /**
  * Runs in <head>, before anything is painted.
  *
- * Hand-minified and deliberately dull. Four reasons to do nothing, then one
- * attribute:
+ * Hand-minified and deliberately dull. It decides two things.
  *
- *   - not the homepage — the sequence draws the homepage's cards, so it has
- *     nothing to say on a case study or the canvas;
- *   - seen already — which is not nothing any more: a returning visitor gets
- *     `ARRIVE_ATTR` instead, the sequence's last beat on its own, and the
- *     script takes it down again a second after the first frame;
- *   - reduced motion, which this must honour: it is a large, fast, decorative
- *     animation and it is exactly what that setting is for;
- *   - a restore from the back/forward cache, where the page is already
- *     painted and re-running would be a flash for no reason. (Neither
- *     attribute can fire there: an inline script does not run again on a
- *     restore.)
+ * WHETHER THERE IS A SCENE (`SCENE_ATTR`, see lib/scene.ts): the page opening
+ * as its own skeleton and the content landing into it. On every *document
+ * load* — a first visit, a reload, a link opened in a new tab — of every page
+ * but three: the canvas, whose board has its own arrival; Found, which is
+ * drawn on the client and has its own skeleton (`FoundPhone/Skeleton`); and
+ * the dev benches. And on nothing else:
+ *
+ *   - not a back/forward load, which is somebody returning to a place they
+ *     were already reading; replaying the opening at them is a tax. (A
+ *     restore from the back/forward cache never gets here at all — an inline
+ *     script does not run again on a restore.)
+ *   - not a client-side navigation, which never runs this script;
+ *   - not reduced motion, which this must honour: it is a large, decorative
+ *     movement of the whole page and exactly what that setting is for.
+ *
+ * WHETHER THE BOOT RUNS TOO (`BOOT_ATTR`): the homepage, and nobody has seen it
+ * yet. The boot draws the mark over the scene's skeleton and tells it when to
+ * land; everyone after that gets the scene on its own.
  *
  * The `try` is not decoration. Safari in private mode throws on
  * `localStorage` access rather than returning null, and a portfolio that
  * white-screens on arrival because of a loading animation would be the single
- * most expensive bug this file could have.
+ * most expensive bug this file could have. A throw there leaves the scene
+ * standing without the boot, which is the right half to lose.
  */
-/**
- * Set on <html> for the first second of every *later* arrival. See "Arrival"
- * in globals.css.
- *
- * The sequence above happens once, and everything after it used to be a cut:
- * the second visit, and every one after, got the finished page in a single
- * frame, as if the first five seconds had been a different site. This is the
- * last beat of that sequence and nothing else — the page rising behind the
- * mark — kept short enough that nobody waits on it. No overlay, no drawing,
- * nothing hidden for longer than half a second, and never on a client-side
- * navigation, because this script only runs on a document load.
- */
-export const ARRIVE_ATTR = "data-arriving";
-
-/**
- * How long, after the first frame, the attribute stays up. Longer than the
- * slowest card's delay plus its run (see `--arrive` in globals.css), so it is
- * only ever taken down from cards whose animation has already finished — a
- * card losing its animation part-way through would snap to rest.
- *
- * Counted from the first frame rather than from now: this runs in <head>,
- * before the stylesheet has loaded or anything has been painted, and a timer
- * started here could run out before the animation it is guarding had begun.
- */
-export const ARRIVE_HOLD_MS = 1000;
-
-export const BOOT_SCRIPT = `try{var d=document.documentElement;if(location.pathname==="/"&&!matchMedia("(prefers-reduced-motion: reduce)").matches){if(!localStorage.getItem(${JSON.stringify(
+export const BOOT_SCRIPT = `try{var d=document.documentElement,p=location.pathname,n=performance.getEntriesByType&&performance.getEntriesByType("navigation")[0];if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&!(n&&n.type==="back_forward")){if(p==="/"){d.setAttribute(${JSON.stringify(
+  SCENE_ATTR,
+)},"home");if(!localStorage.getItem(${JSON.stringify(
   BOOT_KEY,
-)})){d.setAttribute(${JSON.stringify(
+)}))d.setAttribute(${JSON.stringify(
   BOOT_ATTR,
-)},"")}else{d.setAttribute(${JSON.stringify(
-  ARRIVE_ATTR,
-)},"");requestAnimationFrame(function(){setTimeout(function(){d.removeAttribute(${JSON.stringify(
-  ARRIVE_ATTR,
-)})},${ARRIVE_HOLD_MS})})}}}catch(e){}`;
+)},"")}else if(/^\\/work\\/[^/]+\\/?$/.test(p))d.setAttribute(${JSON.stringify(
+  SCENE_ATTR,
+)},"study");else if(!/^\\/(canvas|found|dev)(\\/|$)/.test(p))d.setAttribute(${JSON.stringify(
+  SCENE_ATTR,
+)},"page")}}catch(e){}`;
 
 /** Whether the pre-paint script decided to run. Read by the component. */
 export function isBooting(): boolean {
