@@ -84,11 +84,11 @@ export default async function StudyPage({ params }: PageProps<"/work/[slug]">) {
           they are ever offered the chance to pass the study on. Leaving it out
           meant the reader who received the link could not send it to anyone
           else without going to the address bar for it. */}
-      <div className={styles.leading}>
+      <div className={styles.leading} data-scene-item>
         <StudyShare />
       </div>
 
-      <div className={styles.controls}>
+      <div className={styles.controls} data-scene-item>
         <ThemeToggle />
         <GlassAction
           href="/"

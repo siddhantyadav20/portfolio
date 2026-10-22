@@ -2101,17 +2101,12 @@ html[data-theme="dark"] {
 html[data-scene="home"]
   :where(
     #main :is([data-prox-card], [data-prox-passive]),
-    #main > :not(:has([data-prox-card], [data-prox-passive])),
-    #main
-      > :has([data-prox-card], [data-prox-passive])
-      > :not(:has([data-prox-card], [data-prox-passive])):not(
-        [data-prox-card],
-        [data-prox-passive]
-      )
+    #main > .liquid,
+    #main [data-scene-item]
   ),
 html[data-scene="study"]
   :where(
-    #main > :not(:has(#intro, #comments)),
+    #main [data-scene-item],
     #main #intro > *,
     #main #intro ~ [data-stage="rule"],
     #main #intro ~ * > section > *,
@@ -2394,6 +2389,10 @@ img[data-skel="loading"] {
       transparent var(--media-r)
     ),
     linear-gradient(160deg, var(--skel-media-from), var(--skel-media-to));
+}
+
+/* Only on screen — see the observer in MediaSkeleton. */
+img[data-skel="loading"][data-skel-live] {
   animation: media-ring 1500ms var(--ease-out) infinite;
 }
 

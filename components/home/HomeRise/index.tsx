@@ -75,6 +75,16 @@ export default function HomeRise() {
             const step = Math.min(seen++, 2);
             el.style.setProperty("--rise-delay", `${step * STAGGER_MS}ms`);
             el.dataset.rise = "in";
+            /* And "done" once it has landed, so a card is only "in" for as
+               long as it is actually rising — the stylesheet's modal guard
+               keys a `:has()` on "in", and a card that kept the value for the
+               rest of the visit kept that guard watching its whole subtree. */
+            const landed = (ev: AnimationEvent) => {
+              if (ev.target !== el) return;
+              el.removeEventListener("animationend", landed);
+              if (el.dataset.rise === "in") el.dataset.rise = "done";
+            };
+            el.addEventListener("animationend", landed);
           }
         },
         { rootMargin: "100000px 0px -8% 0px" },

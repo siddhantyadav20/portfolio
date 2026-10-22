@@ -38,8 +38,30 @@ export default function MediaSkeleton() {
   useEffect(() => {
     if (typeof MutationObserver === "undefined") return;
 
+    /* The ring runs only while its frame is on screen.
+
+       A lazy picture far down a study is not even requested until the reader
+       nears it, so it can sit in "loading" for the whole visit — and the ring
+       is a registered custom property, which the compositor cannot animate.
+       Left running everywhere it was a main-thread repaint per frame for
+       every unloaded picture on the page, which on a phone cost a study more
+       than everything else on it put together. Off screen the frame is still
+       drawn, still. */
+    const io =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver((entries) => {
+            for (const e of entries) {
+              const img = e.target as HTMLImageElement;
+              if (e.isIntersecting) img.dataset.skelLive = "";
+              else delete img.dataset.skelLive;
+            }
+          });
+
     const settle = (img: HTMLImageElement) => {
       if (img.dataset.skel !== "loading") return;
+      io?.unobserve(img);
+      delete img.dataset.skelLive;
       img.dataset.skel = "in";
       window.setTimeout(() => {
         if (img.dataset.skel === "in") delete img.dataset.skel;
@@ -70,6 +92,7 @@ export default function MediaSkeleton() {
       if (r.width < MIN || r.height < MIN) return;
       if (layered(img, r)) return;
       img.dataset.skel = "loading";
+      io?.observe(img);
       const done = () => settle(img);
       img.addEventListener("load", done, { once: true });
       img.addEventListener("error", done, { once: true });
@@ -119,7 +142,10 @@ export default function MediaSkeleton() {
       attributeFilter: ["src", "srcset"],
     });
 
-    return () => mo.disconnect();
+    return () => {
+      mo.disconnect();
+      io?.disconnect();
+    };
   }, []);
 
   return null;

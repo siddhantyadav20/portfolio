@@ -396,6 +396,18 @@
   /* Negative delays start every spoke part-way through the same fade, which is
      what makes the gap travel. */
   animation-delay: calc(var(--i) * -75ms);
+  /* Held still until it is shown. The Join button's spinner is in the page
+     from the start at opacity 0, and twelve infinite animations under an
+     invisible parent are not composited — they ran on the main thread on
+     every frame of every visit, the largest single cost of an idle homepage
+     on a phone. Paused, not removed, so the gap is already travelling the
+     moment it fades in. */
+  animation-play-state: paused;
+}
+
+.join[data-busy] .spoke,
+.discSpin .spoke {
+  animation-play-state: running;
 }
 
 /* --- The error line -------------------------------------------------------- */

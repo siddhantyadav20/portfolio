@@ -1,6 +1,7 @@
 "use client";
 
 import { pending } from "@/lib/pending";
+import { useVisible } from "@/lib/visible";
 import { useCallback, useEffect, useRef, useState } from "react";
 import CardShell from "@/components/primitives/CardShell";
 import CtaPill from "@/components/primitives/CtaPill";
@@ -84,10 +85,16 @@ export default function CanvasCard() {
      The board breathes on its own and leans toward the pointer. Written
      straight to a transform outside React, like ProximityField — this runs on
      the homepage and must not cost a render. */
+  /* Off screen, or the tab in the background: the drift stops and the
+     preview's own ambient animations (the profile card's live dots) hold.
+     The drift was a rAF writing a transform onto the whole world every frame
+     for as long as the homepage was open, wherever the reader had scrolled. */
+  const onScreen = useVisible(viewportRef, "100px");
+
   useEffect(() => {
     const shell = viewportRef.current;
     const world = worldRef.current;
-    if (!shell || !world) return;
+    if (!shell || !world || !onScreen) return;
     if (!window.matchMedia("(pointer: fine)").matches) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -133,7 +140,7 @@ export default function CanvasCard() {
       shell.removeEventListener("pointermove", onMove);
       shell.removeEventListener("pointerleave", onLeave);
     };
-  }, []);
+  }, [onScreen]);
 
   /* --- The records' sleeves ------------------------------------------------
      Fetched when the card comes near the viewport, not with the page: one
@@ -265,7 +272,12 @@ export default function CanvasCard() {
         // view-transition name abort the transition.
         style={open ? undefined : { viewTransitionName: CANVAS_MORPH }}
       >
-        <div ref={viewportRef} className={styles.viewport} aria-hidden="true">
+        <div
+          ref={viewportRef}
+          className={styles.viewport}
+          aria-hidden="true"
+          data-idle={onScreen ? undefined : ""}
+        >
           {/* Preview by construction now — the live board is a separate
               module the homepage never imports. See CanvasWorld/Live. */}
           <CanvasWorld

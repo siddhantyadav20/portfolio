@@ -88,9 +88,16 @@ export default function SmoothScroll() {
        to `change` as well as read once, because the OS setting is a switch
        people actually use mid-session — and turning it on has to take effect
        without a reload, which is the whole point of asking. */
-    const sync = () => (quiet.matches ? stop() : start());
+    /* Only where there is a wheel or a trackpad to smooth. Touch scrolling
+       is native here (`syncTouch: false`), so on a phone Lenis smoothed
+       nothing and still ran a frame loop and its scroll listeners for the
+       life of the page. `any-pointer` rather than `pointer`, so a tablet with
+       a trackpad attached still glides. */
+    const fine = window.matchMedia("(any-pointer: fine)");
+    const sync = () => (quiet.matches || !fine.matches ? stop() : start());
     sync();
     quiet.addEventListener("change", sync);
+    fine.addEventListener("change", sync);
 
     /* A view transition snapshots the page and cross-fades it. A rAF loop
        still writing `scrollTo` underneath that is writing to a document
@@ -105,6 +112,7 @@ export default function SmoothScroll() {
 
     return () => {
       quiet.removeEventListener("change", sync);
+      fine.removeEventListener("change", sync);
       window.removeEventListener(SCROLL_PAUSE, pause);
       window.removeEventListener(SCROLL_RESUME, resume);
       stop();

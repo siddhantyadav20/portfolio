@@ -62,11 +62,16 @@ export type SceneKind = keyof typeof SCENE_PAGES;
  * ends, and one this lists that the stylesheet does not hide is drawn twice.
  */
 export const SCENE_PAGES = {
+  /* No `:has()` anywhere in these. They are matched by a stylesheet rule
+     that is in force for the life of the page, and a `:has()` there made
+     every change inside <main> — a timeline tick, an image arriving — a
+     style recalculation of the whole document on a phone. The chrome that is
+     not a card says so with an attribute instead. */
   home: {
     items:
       "#main :is([data-prox-card],[data-prox-passive])," +
-      "#main > :not(:has([data-prox-card],[data-prox-passive]))," +
-      "#main > :has([data-prox-card],[data-prox-passive]) > :not(:has([data-prox-card],[data-prox-passive])):not([data-prox-card],[data-prox-passive])",
+      "#main > .liquid," +
+      "#main [data-scene-item]",
     focal: '[data-card="introduction"]',
   },
   /* A study is a document, not a grid: its frames are the blocks a reader
@@ -75,7 +80,7 @@ export const SCENE_PAGES = {
      read, paragraph by paragraph. */
   study: {
     items:
-      "#main > :not(:has(#intro,#comments))," +
+      "#main [data-scene-item]," +
       "#main #intro > *," +
       '#main #intro ~ [data-stage="rule"],' +
       "#main #intro ~ * > section > *," +
@@ -435,7 +440,7 @@ function runScene(page: Page, pace: Pace, boot: boolean) {
          pixels long and walking all of it for bones nobody will see is the
          one cost here that grows with the page. Far items still land — they
          just have no frame to land in. */
-      if (r.bottom < -innerHeight || r.top > innerHeight * 2) {
+      if (r.bottom < -innerHeight * 0.25 || r.top > innerHeight * 1.25) {
         items.push({
           el,
           frame: null,
@@ -747,10 +752,15 @@ function runScene(page: Page, pace: Pace, boot: boolean) {
   d.addEventListener("error", onMedia, true);
   addEventListener("resize", onResize);
   if (d.fonts) {
+    /* Whether the faces were already in when the bones were measured. A
+       reload has them from cache before the parser is done, and walking the
+       whole layout a second time for an identical answer was a second
+       main-thread stall during hydration on a phone. */
+    const measuredInFace = d.fonts.status === "loaded";
     d.fonts.ready.then(() => {
       fontsIn = true;
       // Text bones were measured in the fallback face; measure the real one.
-      build();
+      if (!measuredInFace) build();
       if (!boot) tick();
     });
   }

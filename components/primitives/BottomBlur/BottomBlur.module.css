@@ -65,3 +65,24 @@
   backdrop-filter: blur(3.2px);
   mask: linear-gradient(to top, #000 0%, #000 4%, transparent 24%);
 }
+
+/* On a touch screen, two layers rather than four.
+
+   Every layer here is a `backdrop-filter` re-rendered on every frame of a
+   scroll, over the full width of the screen at three device pixels per CSS
+   pixel — on a phone that is the most expensive thing on the page per frame,
+   and it is spent on blurs of under two pixels, below what a phone's density
+   lets anyone see as separate steps. Two layers keep the ramp's shape (a
+   whisper at the top, the most at the very bottom, no edge anywhere): the
+   first is unchanged and the third takes the fourth's radius and reach. */
+@media (pointer: coarse) {
+  .layer:nth-child(2),
+  .layer:nth-child(4) {
+    display: none;
+  }
+
+  .layer:nth-child(3) {
+    backdrop-filter: blur(2.8px);
+    mask: linear-gradient(to top, #000 0%, #000 10%, transparent 52%);
+  }
+}

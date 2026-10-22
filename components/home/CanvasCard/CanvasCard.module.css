@@ -74,7 +74,13 @@
   top: 0;
   left: 0;
   transform-origin: 0 0;
-  will-change: transform;
+}
+
+/* The drift that writes it runs for a fine pointer only (index.tsx). */
+@media (hover: hover) and (pointer: fine) {
+  .world {
+    will-change: transform;
+  }
 }
 
 .cta {
@@ -114,3 +120,8 @@
   }
 }
 
+
+/* Out of sight, the preview holds still — see `onScreen` in index.tsx. */
+.viewport[data-idle] * {
+  animation-play-state: paused !important;
+}

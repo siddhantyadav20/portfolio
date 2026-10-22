@@ -11,9 +11,18 @@
      the composition but never scales. */
   --prox-x: 0px;
   --prox-y: 0px;
-  transform: translate3d(var(--prox-x), var(--prox-y), 0);
-  will-change: transform;
+  transform: translate(var(--prox-x), var(--prox-y));
 }
+/* Promoted ahead of time only where the proximity field runs — a fine
+   pointer. On a phone the field is inert, and a permanent layer per card at
+   three device pixels per CSS pixel was GPU memory and compositing cost for
+   a transform that never moves. */
+@media (hover: hover) and (pointer: fine) {
+  .intro {
+    will-change: transform;
+  }
+}
+
 
 /* The mark. One SVG now, themed by `--mark-s` / `--mark-y`, where it used to
    be two PNGs and a display swap. Sized in `--u` like everything else in this

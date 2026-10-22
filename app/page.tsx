@@ -143,7 +143,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className={styles.footerWrap}>
+            <div className={styles.footerWrap} data-scene-item>
               <SiteFooter colophon />
             </div>
           </div>
